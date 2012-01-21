@@ -78,16 +78,6 @@ void init(void) {
     setupTimers();
 }
 
-/* You could farm this out to the files in boards/ if e.g. it takes
- * too long to test on Maple Native (all those FSMC pins...). */
-bool boardUsesPin(uint8 pin) {
-    for (int i = 0; i < BOARD_NR_USED_PINS; i++) {
-        if (pin == boardUsedPins[i]) {
-            return true;
-        }
-    }
-    return false;
-}
 
 static void setupFlash(void) {
     flash_enable_prefetch();
@@ -103,7 +93,7 @@ static void setupFlash(void) {
  * comment above.
  */
 static void setupClocks() {
-    rcc_clk_init(RCC_CLKSRC_PLL, RCC_PLLSRC_HSI_DIV_2, RCC_PLLMUL_9); 
+    rcc_clk_init(RCC_CLKSRC_PLL, RCC_PLLSRC_HSI_DIV_2, RCC_PLLMUL_9);
     rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
     rcc_set_prescaler(RCC_PRESCALER_APB1, RCC_APB1_HCLK_DIV_1);
     rcc_set_prescaler(RCC_PRESCALER_APB2, RCC_APB2_HCLK_DIV_1);

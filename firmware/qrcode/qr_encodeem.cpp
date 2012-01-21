@@ -4,6 +4,7 @@
 #include <string.h>
 #include <algorithm>
 #include "qr_encodeem.h"
+#include "qr_defs.h"
 #include "qr_utils.h"
 #include <iostream>
 
@@ -95,7 +96,7 @@ bool qr_encode_data(int nLevel, int nVersion,bool bAutoExtent, int nMaskingNo, c
   uint8_t m_byDataCodeWord[MAX_INPUTDATA];
   int     m_ncDataCodeWordBit;
 
-	int m_nMaskingNo = nMaskingNo;
+	//int m_nMaskingNo = nMaskingNo;
 
 	// データ長が指定されていない場合は lstrlen によって取得
 	int ncLength;
@@ -794,7 +795,7 @@ void clear_qrimage(uint8_t *data) {
 // 戻り値：一辺のモジュール数
 
 void FormatModule(uint8_t *image,int width,uint8_t *input_data,int input_data_len,int m_nMaskingNo,int version,int level) {
-	int i, j;
+	//int i, j;
 
   clear_qrimage(image);
 

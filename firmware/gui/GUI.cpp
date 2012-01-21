@@ -13,7 +13,6 @@
 #include <string.h>
 #include "buzzer.h"
 #include "captouch.h"
-#include "serialinterface.h"
 
 bool first_render=true;
 
@@ -21,12 +20,19 @@ uint16 header_color=HEADER_COLOR_CPMINVALID;
 
 uint8_t m_language;
 
+/****************
+ *   Utility functions for drawing on the screen
+ */
+
+/**
+ * Used to draw arrow above digits for settings menus
+ */
 void display_draw_equtriangle(uint8_t x,uint8_t y,uint8_t s,uint16_t color) {
 
   uint8_t start = x;
   uint8_t end   = x;
   for(uint8_t n=0;n<s;n++) {
- 
+
     for(uint8_t i=start;i<=end;i++) {
       display_draw_point(i,y,color);
     }
@@ -36,12 +42,15 @@ void display_draw_equtriangle(uint8_t x,uint8_t y,uint8_t s,uint16_t color) {
   }
 }
 
+/**
+ * Used to draw arrow below digits for settings menus
+ */
 void display_draw_equtriangle_inv(uint8_t x,uint8_t y,uint8_t s,uint16_t color) {
 
   uint8_t start = x;
   uint8_t end   = x;
   for(uint8_t n=0;n<s;n++) {
- 
+
     for(uint8_t i=start;i<=end;i++) {
       display_draw_point(i,y,color);
     }
@@ -54,7 +63,7 @@ void display_draw_equtriangle_inv(uint8_t x,uint8_t y,uint8_t s,uint16_t color) 
 char     ticked_items[10][TEXT_LENGTH];
 uint32_t ticked_items_size=0;
 
-void tick_item(char *name,bool tick_val) {
+void tick_item(const char *name,bool tick_val) {
 
   if((ticked_items_size >= 10) && (tick_val == true)) return;
 
@@ -77,7 +86,7 @@ void tick_item(char *name,bool tick_val) {
   }
 }
 
-bool is_ticked(char *name) {
+bool is_ticked(const char *name) {
   for(uint32_t n=0;n<ticked_items_size;n++) {
     if(strcmp(name,ticked_items[n]) == 0) return true;
   }
@@ -86,10 +95,10 @@ bool is_ticked(char *name) {
 
 
 void render_item_menu(screen_item &item, bool selected) {
-  
+
   uint16_t highlight = FOREGROUND_COLOR;
   if(selected) highlight = BACKGROUND_COLOR;
-  
+
   // render tick
   bool ticked = is_ticked(item.text);
   if(ticked) {
@@ -130,12 +139,20 @@ void render_item_menu(screen_item &item, bool selected) {
 
 }
 
-#define VARNUM_MAXSIZE 50
+/**
+ * We maintain a global array of variable items (VARNUM) that are
+ * displayed in settings menus mainly. a VARNUM is a single digit
+ * or single character, hence the uint8_t
+ */
 
-char    varnum_names[VARNUM_MAXSIZE][10];
-uint8_t varnum_values[VARNUM_MAXSIZE];
+#define VARNUM_MAXSIZE 50  // Number of variables we can track
+char    varnum_names[VARNUM_MAXSIZE][10];  // Name of the variables
+uint8_t varnum_values[VARNUM_MAXSIZE]; // Value of the variables
 uint8_t varnum_size = 0;
 
+/**
+ * Get the current value of a variable (a single digit or character)
+ */
 uint8_t get_item_state_varnum(const char *name) {
 
   for(uint32_t n=0;n<varnum_size;n++) {
@@ -146,6 +163,12 @@ uint8_t get_item_state_varnum(const char *name) {
   return 0;
 }
 
+/**
+ * Update state of a variable number in the varnum_values table
+ *
+ * @param name of the varnum
+ * @param value
+ */
 void set_item_state_varnum(char *name,uint8_t value) {
 
   int itemcount=0;
@@ -157,33 +180,47 @@ void set_item_state_varnum(char *name,uint8_t value) {
   if(itemcount != 0) {
     if(value > itemcount) return;
   }
-  
+
   for(uint32_t n=0;n<varnum_size;n++) {
     if(strcmp(varnum_names[n],name) == 0) {
       varnum_values[n] = value;
       return;
     }
   }
-  
+
   if(varnum_size >= VARNUM_MAXSIZE) return;
   strcpy(varnum_names[varnum_size],name);
   varnum_values[varnum_size] = value;
   varnum_size++;
 }
 
+/**
+ * Rendering of a variable number/char (single digit with
+ * up/down arrows above/below it).
+ *
+ * @param item should be an ITEM_TYPE_VARNUM
+ * @param selected if cursor should be on that particular digit
+ */
 void render_item_varnum(screen_item &item, bool selected) {
 
+  // Position on screen where to draw the digit
   uint8_t x = item.val1;
   uint8_t y = item.val2;
 
   int len = strlen(item.text);
   int colon_pos=-1;
+  // Text can be with this format:
+  // "NAME:char1,char2,char..." to let user select
+  // non-numeric values, we detect this below:
   for(int n=0;n<len;n++) {
     if(item.text[n] == ':') colon_pos=n;
   }
-  
+
   bool nonnumeric = false;
   char selitem[10][10];
+  // We have a non-numeric variable, initialize the
+  // possible values (comma-separated string following ":"
+  // in the item.text. For instance: "SIGN:-,+,"
   if(colon_pos != -1) {
     nonnumeric=true;
 
@@ -191,7 +228,7 @@ void render_item_varnum(screen_item &item, bool selected) {
     int  current_pos=0;
     int  cselitem=0;
     for(int n=colon_pos+1;n<len;n++) {
- 
+
       if(item.text[n] != ',') {
         current[current_pos  ] = item.text[n];
         current[current_pos+1] = 0;
@@ -205,6 +242,7 @@ void render_item_varnum(screen_item &item, bool selected) {
     }
   }
 
+  // Retrieve the current value of this VARNUM
   uint8_t val = get_item_state_varnum(item.text);
 
   uint16_t color;
@@ -217,7 +255,7 @@ void render_item_varnum(screen_item &item, bool selected) {
     display_draw_text(x-4,y+9,selitem[val],FOREGROUND_COLOR);
   }
 }
-      
+
 uint8_t get_item_state_varnum(screen_item &item) {
   return get_item_state_varnum(item.text);
 }
@@ -241,11 +279,15 @@ void clear_item_varnum(screen_item &item, bool selected) {
 
   if(start_y <   0) start_y = 0;
   if(  end_y > 127)   end_y = 127;
-  
+
   display_draw_rectangle(start_x,start_y,end_x,end_y,BACKGROUND_COLOR);
 }
 
-
+/**
+ * Render a static text label.
+ *
+ * @param item should be an ITEM_TYPE_LABEL
+ */
 void render_item_label(screen_item &item, bool selected) {
 
   if(m_language == LANGUAGE_ENGLISH) {
@@ -283,25 +325,23 @@ float *source_graph_data;
 
 void render_item_graph(screen_item &item, bool selected) {
 
-  int32_t data_size=240;
-  int32_t data_offset=600-240;
-  int32_t data_increment=2;
-  int32_t x_spacing=1;
+  uint32_t data_size=240;
+  uint32_t data_offset=600-240;
+  uint32_t data_increment=2;
   float   max_height = 80;
 
-  int32_t m_x = item.val1;
-  int32_t m_y = item.val2;
-  
-//  display_draw_rectangle(0,16,128,128,BACKGROUND_COLOR);
+  uint32_t m_x = item.val1;
+  uint32_t m_y = item.val2;
+
 
   // find min and max in data
-  int32_t nmax = source_graph_data[data_offset];
-  int32_t nmin = source_graph_data[data_offset];
+  uint32_t nmax = source_graph_data[data_offset];
+  uint32_t nmin = source_graph_data[data_offset];
   for(uint32_t n=data_offset;n<(data_offset+data_size);n++) {
     if(source_graph_data[n] > nmax) nmax = source_graph_data[n];
     if(source_graph_data[n] < nmin) nmin = source_graph_data[n];
   }
-  
+
   // axis
   display_draw_line(m_x,m_y           ,m_x+(data_size/data_increment),m_y           ,FOREGROUND_COLOR);
   display_draw_line(m_x,m_y-max_height,m_x+(data_size/data_increment),m_y-max_height,FOREGROUND_COLOR);
@@ -337,7 +377,7 @@ void render_item_graph(screen_item &item, bool selected) {
   }
 
   // apply averaging, and offset to data.
-  for(int n=0;n<120;n++) {
+  for(uint32_t n=0;n<120;n++) {
     if(m_graph_count[n] != 0) m_graph_data[n] = m_y - m_graph_data[n]/m_graph_count[n];
                          else m_graph_data[n] = 0;
   }
@@ -360,10 +400,10 @@ void render_item_graph(screen_item &item, bool selected) {
   for(uint32_t n=0;n<120;n++) {
     m_old_graph_data[n] = m_graph_data[n];
   }
-  
+
   display_draw_tinynumber(m_x+5,m_y-max_height-10,nmax,4,FOREGROUND_COLOR);
   display_draw_tinynumber(m_x+5,m_y-10           ,nmin,4,FOREGROUND_COLOR);
-  
+
 }
 
 void clear_item_menu(screen_item &item, bool selected) {
@@ -371,7 +411,7 @@ void clear_item_menu(screen_item &item, bool selected) {
 
   if(text_len == 0) return;
 
-  
+
   uint8_t x_max=127;
   uint8_t y_max=(item.val2+1)*16;
   if(y_max > 127) y_max=127;
@@ -382,7 +422,7 @@ void clear_item_label(screen_item &item, bool selected) {
   int32_t text_len = strlen(item.text);
 
   if(text_len == 0) return;
-   
+
   int x_max = 0;
   if(item.val1 == 255) { x_max = 127;} else
                        { x_max = item.val1+(text_len*8)-1;}
@@ -398,7 +438,7 @@ void clear_item_smalllabel(screen_item &item, bool selected) {
   int32_t text_len = strlen(item.text);
 
   if(text_len == 0) return;
-   
+
   int x_max = 0;
   if(item.val1 == 255) { x_max = 127;} else
                        { x_max = item.val1+(text_len*8)-1;}
@@ -419,7 +459,7 @@ void clear_item_head(screen_item &item, bool selected) {
   int y_max=16;
   display_draw_rectangle(item.val1,item.val2,x_max,y_max,BACKGROUND_COLOR);
 }
-    
+
 void clear_item_bigvarlabel(screen_item &item, bool selected) {
   int32_t text_len = strlen(item.text);
 
@@ -463,16 +503,16 @@ void render_item(screen_item &item,bool selected) {
   } else
   if(item.type == ITEM_TYPE_GRAPH) {
     render_item_graph(item,selected);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_HEAD) {
     render_item_head(item,selected);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_MENU_ACTION) {
     render_item_menu(item,selected);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_VARNUM) {
     render_item_varnum(item,selected);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_DELAY) {
     render_item_delay(item,selected);
   }
@@ -493,7 +533,7 @@ void clear_item(screen_item &item,bool selected) {
   } else
   if(item.type == ITEM_TYPE_GRAPH) {
     clear_item_graph(item,selected);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_HEAD) {
     clear_item_head(item,selected);
   } else
@@ -517,7 +557,7 @@ void update_item_graph(screen_item &item,const void *value) {
 
 
 uint8 lock_mask [11][8] = {
-  
+
   {0,1,1,1,1,1,1,0},
   {1,1,0,0,0,0,1,1},
   {1,0,0,0,0,0,0,1},
@@ -535,7 +575,7 @@ uint8 lock_mask [11][8] = {
 
 bool lock_state=false;
 void render_lock(bool on) {
-  
+
   if((on == lock_state) && (on != true)) return;
   lock_state = on;
 
@@ -546,7 +586,7 @@ void render_lock(bool on) {
 
       if(render_value > 0)  render_value = 0xFFFF;
                        else render_value = 0;
- 
+
       if(on == false) render_value = 0;
 
       image_data[(y*8)+x] = render_value;
@@ -556,6 +596,10 @@ void render_lock(bool on) {
   display_draw_image(128-8,128-11,8,11,image_data);
 }
 
+
+/**
+ * A battery icon for the status bar
+ */
 uint8 battery_mask [16][24] = {
 
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -577,10 +621,42 @@ uint8 battery_mask [16][24] = {
 
 };
 
+/**
+ * A battery icon with a "Charging" sign for the status bar
+ */
+uint8 battery_mask_chg [16][24] = {
+
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0},
+  {3,3,3,3,3,3,3,3,3,3,3,3,9,9,3,3,3,3,3,3,0,0,0,0},
+  {2,2,2,2,2,2,2,2,2,2,2,9,9,2,2,2,2,2,2,2,2,2,2,0},
+  {2,2,2,2,2,2,2,2,2,2,9,9,2,2,2,2,2,2,2,2,2,2,2,0},
+  {1,1,1,1,1,1,1,1,1,9,9,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {1,1,1,1,1,1,1,1,9,9,9,9,9,9,1,1,1,1,1,1,1,1,1,0},
+  {1,1,1,1,1,1,1,1,9,9,9,9,9,9,1,1,1,1,1,1,1,1,1,0},
+  {1,1,1,1,1,1,1,1,1,1,1,9,9,1,1,1,1,1,1,1,1,1,1,0},
+  {2,2,2,2,2,2,2,2,2,2,9,9,2,2,2,2,2,2,2,2,2,2,2,0},
+  {2,2,2,2,2,2,2,2,2,9,9,2,2,2,2,2,2,2,2,2,2,2,2,0},
+  {3,3,3,3,3,3,3,3,9,9,3,3,3,3,3,3,3,3,3,3,0,0,0,0},
+  {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+
+};
+
 uint16 last_batlevel=0;
 
-void render_battery(int x,int y,int level) {
-
+/**
+ * Draw a battery sign on the screen
+ *
+ * @param x        X location on screen
+ * @param y        Y location on screen
+ * @param level    level of charge in percent
+ * @param charging display charging symbol or not
+ */
+void render_battery(int x,int y,int level,int charging) {
+ 
   uint16 image_data[384]; // 24*16
 
   // only move bat level, if there's a big difference to prevent flickering.
@@ -593,17 +669,22 @@ void render_battery(int x,int y,int level) {
 
   for(int x=0;x<24;x++) {
     for(int y=0;y<16;y++) {
-      int16 render_value = battery_mask[y][x];
+      int16 render_value;
+      if(!charging) render_value = battery_mask[y][x];
+               else render_value = battery_mask_chg[y][x];
 
-      if(x <= level) {
-        if(render_value > 0)  render_value = 0xF1FF - (2081*(render_value-1));
-                         else render_value = header_color;// HEADER_COLOR; // header background
-      }
+      if(render_value != 9) {
+        if(x <= level) {
+          if(render_value > 0)  render_value = 0xF1FF - (2081*(render_value-1));
+                           else render_value = header_color;// HEADER_COLOR; // header background
+        }
 
-      if(x > level) {
-        if(render_value > 0)  render_value = BACKGROUND_COLOR;  //6243 - (2081*(render_value-1));
-                         else render_value = header_color;//HEADER_COLOR; // header background
+        if(x > level) {
+          if(render_value > 0)  render_value = BACKGROUND_COLOR;  //6243 - (2081*(render_value-1));
+                           else render_value = header_color;//HEADER_COLOR; // header background
+        }
       }
+      if(render_value == 9) render_value = 0xF1F0 - (2001*(render_value-1));
       image_data[(y*24)+x] = render_value;
     }
   }
@@ -611,6 +692,13 @@ void render_battery(int x,int y,int level) {
   display_draw_image(104,0,24,16,image_data);
 }
 
+/**
+ * Draw the GUI screen header
+ *
+ * @param item  unused
+ * @param value text to draw at start of header (CPM usually)
+ *
+ */
 void update_item_head(screen_item &item,const void *value) {
 
   uint16_t new_header_color;
@@ -634,7 +722,8 @@ void update_item_head(screen_item &item,const void *value) {
   draw_text(0,0,v,header_color);//HEADER_COLOR);
 
   // a hack!
-  render_battery(0,128-24,power_battery_level());
+  render_battery(0,128-24,power_battery_level(),power_charging());
+    
 
   uint8_t hours,min,sec,day,month;
   uint16_t year;
@@ -668,6 +757,9 @@ void update_item_head(screen_item &item,const void *value) {
 //  display_draw_tinytext(0,128-5,OS100VERSION,FOREGROUND_COLOR);
 }
 
+/**
+ * Update the value of a VARNUM in the varnum_values table
+ */
 void update_item_varnum(screen_item &item,const void *value) {
   set_item_state_varnum(item.text,((uint8_t *) value)[0]);
 }
@@ -698,6 +790,12 @@ int get_item_state_delay_destination(screen_item &item) {
   return 0;
 }
 
+/**
+ * Update a part of the screen
+ *
+ * @param item  type of item to draw
+ * @param value value of the item to draw
+ */
 void update_item(screen_item &item,const void *value) {
   if(item.type == ITEM_TYPE_VARLABEL) {
     if(item.val1 == 255) {
@@ -707,16 +805,16 @@ void update_item(screen_item &item,const void *value) {
       display_draw_text(item.val1,item.val2,(char *)value,FOREGROUND_COLOR);
     }
 
-  } else 
+  } else
   if(item.type == ITEM_TYPE_GRAPH) {
     update_item_graph(item,value);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_HEAD) {
     update_item_head(item,value);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_VARNUM) {
     update_item_varnum(item,value);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_DELAY) {
     update_item_delay(item,value);
   } else
@@ -724,11 +822,11 @@ void update_item(screen_item &item,const void *value) {
     display_draw_bigtext(item.val1,item.val2,(char *)value,FOREGROUND_COLOR);
   }
 }
-  
+
 void GUI::clear_stack() {
   selected_stack_size=0;
 }
-  
+
 void GUI::pop_stack(int &current_screen,int &selected_item) {
 
   if(selected_stack_size == 0) return;
@@ -741,13 +839,17 @@ void GUI::pop_stack(int &current_screen,int &selected_item) {
 
 void GUI::push_stack(int current_screen,int selected_item) {
 
-  if(selected_stack_size >= MAX_SCREEN_STACK) return;  
+  if(selected_stack_size >= MAX_SCREEN_STACK) return;
 
   selected_screen_stack[selected_stack_size] = current_screen;
   selected_item_stack  [selected_stack_size] = selected_item;
   selected_stack_size++;
 }
 
+/**
+ * The GUI object. Interacts with the Controller object, manipulated from
+ * the main firmware event loop in main.cpp
+ */
 GUI::GUI(Controller &r) : receive_gui_events(r) {
 
   m_repeated =false;
@@ -787,7 +889,15 @@ void GUI::show_help_screen(uint8_t helpscreen) {
   m_displaying_help = true;
 }
 
-void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,char *dialog_text4,bool buzz,int img1,int img2,int img3,int img4) {
+void GUI::show_dialog(const char *dialog_text1,
+                      const char *dialog_text2,
+                      const char *dialog_text3,
+                      const char *dialog_text4,
+                      bool buzz,
+                      int img1,
+                      int img2,
+                      int img3,
+                      int img4) {
   display_draw_rectangle(0,0,128,128,BACKGROUND_COLOR);
   //strcpy(m_dialog_text1,dialog_text1);
   //strcpy(m_dialog_text2,dialog_text2);
@@ -800,11 +910,14 @@ void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,c
   render_dialog(dialog_text1,dialog_text2,dialog_text3,dialog_text4,img1,img2,img3,img4);
 }
 
+/**
+ * The main render loop of the GUI
+ */
 void GUI::render() {
 
   if(m_sleeping) {
 //     process_keys();
-    return;  
+    return;
   }
 
   if(m_displaying_dialog) {
@@ -819,7 +932,7 @@ void GUI::render() {
     clear_pending_keys();
     redraw();
   }
-  
+
   if(m_repeating) {
     // This would be better incremented in a timer, but I don't want to use another timer.
     if(m_repeat_time == m_repeat_delay) {
@@ -852,7 +965,7 @@ void GUI::render() {
   m_redraw = false;
 
   render_lock(m_screen_lock);
-  for(uint32_t n=0;n<screens_layout[cscreen].item_count;n++) {
+  for(int32_t n=0;n<screens_layout[cscreen].item_count;n++) {
 
     if(first_render) {
       if(screens_layout[current_screen].items[n].type == ITEM_TYPE_ACTION) {
@@ -868,11 +981,11 @@ void GUI::render() {
 
     if(first_render || select_render || do_redraw) {
       //bool do_render = true;
- 
+
       // don't render labels, just because they are near other things...
       //if(!first_render && select_render && (screens_layout[cscreen].items[n].type == ITEM_TYPE_LABEL)) {
       //  do_render = false;
-      //} 
+      //}
 
       //if(do_render)
       bool selected = false;
@@ -887,7 +1000,7 @@ void GUI::render() {
 }
 
 void GUI::clear_screen(int32_t c_screen,int32_t c_selected) {
-  for(uint32_t n=0;n<screens_layout[c_screen].item_count;n++) {
+  for(int32_t n=0;n<screens_layout[c_screen].item_count;n++) {
 
     bool selected = false;
     if(n == c_selected) selected = true;
@@ -908,14 +1021,7 @@ void GUI::redraw() {
 }
 
 void GUI::receive_key(int key_id,int type) {
-  //char s[50];
-  //if(key_id == KEY_HELP  ) sprintf(s,"rkey: HELP   %d\r\n",type);
-  //if(key_id == KEY_UP    ) sprintf(s,"rkey: UP     %d\r\n",type);
-  //if(key_id == KEY_DOWN  ) sprintf(s,"rkey: DOWN   %d\r\n",type);
-  //if(key_id == KEY_SELECT) sprintf(s,"rkey: SELECT %d\r\n",type);
-  //if(key_id == KEY_HOME  ) sprintf(s,"rkey: HOME   %d\r\n",type);
-  //serial_write_string(s);
-    
+
   // don't activate HELP key when in a help screen
   if((m_displaying_help == true) && (key_id == KEY_HELP)) return;
 
@@ -925,10 +1031,7 @@ void GUI::receive_key(int key_id,int type) {
     m_displaying_dialog_complete=true;
     return;
   }
-  
-//  char s[25];
-//  sprintf(s,"keys cache: %d %d\r\n",new_keys_start,new_keys_end);
-//  serial_write_string(s);
+
 
   new_keys_key [new_keys_end] = key_id;
   new_keys_type[new_keys_end] = type;
@@ -936,7 +1039,7 @@ void GUI::receive_key(int key_id,int type) {
 
   if(new_keys_end >= NEW_KEYS_MAX_SIZE) new_keys_end=0;
 }
-    
+
 
 void GUI::clear_pending_keys() {
   new_keys_end   = 0;
@@ -1001,14 +1104,6 @@ void GUI::process_key_up() {
 
 void GUI::process_key(int key_id,int type) {
 
-  //char s[50];
-  //if(key_id == KEY_HELP  ) sprintf(s,"key: HELP   %d\r\n",type);
-  //if(key_id == KEY_UP    ) sprintf(s,"key: UP     %d\r\n",type);
-  //if(key_id == KEY_DOWN  ) sprintf(s,"key: DOWN   %d\r\n",type);
-  //if(key_id == KEY_SELECT) sprintf(s,"key: SELECT %d\r\n",type);
-  //if(key_id == KEY_HOME  ) sprintf(s,"key: HOME   %d\r\n",type);
-  //serial_write_string(s);
-
   if(m_screen_lock) return;
 
   if(m_trigger_any_key) {
@@ -1062,7 +1157,7 @@ void GUI::process_key(int key_id,int type) {
 
     if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_MENU) {
       if(screens_layout[current_screen].items[selected_item].val1 != INVALID_SCREEN) {
-        
+
         if(clear_next_render == false) {
           clear_next_render = true;
           first_render=true;
@@ -1075,11 +1170,11 @@ void GUI::process_key(int key_id,int type) {
         last_selected_item = 1;
         selected_item = 1;
       }
-    } else 
+    } else
     if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_MENU_ACTION) {
       receive_gui_events.receive_gui_event(screens_layout[current_screen].items[selected_item].text,"select");
     }
-    
+
   }
 
   if((key_id == KEY_BACK) && (type == KEY_RELEASED)) {
@@ -1100,7 +1195,7 @@ void GUI::process_key(int key_id,int type) {
 
     if((current_screen != 0) && (!clear_next_render)) {
 			if(selected_stack_size !=0) {
-				clear_next_render = true; 
+				clear_next_render = true;
 				first_render=true;
 				clear_screen_screen   = current_screen;
 				clear_screen_selected = selected_item;
@@ -1126,7 +1221,7 @@ void GUI::process_key(int key_id,int type) {
       selected_item  = 1;
     }
   }
-  
+
 }
 
 void GUI::jump_to_screen(const char screen) {
@@ -1137,13 +1232,22 @@ void GUI::jump_to_screen(const char screen) {
   leave_screen_actions(current_screen);
 
   clear_stack();
-  current_screen = screen; 
+  current_screen = screen;
   last_selected_item = 1;
   selected_item  = 1;
 }
 
+/**
+ * Received GUI update events sent by the Controller. Check if the
+ * currently displayed screen template contains the tag, and update
+ * if on screen if it does. If the current screen does not display the
+ * tag, then do nothing
+ *
+ * @param tag   name of the variable to update
+ * @param value value of the variable to update
+ */
 void GUI::receive_update(const char *tag,const void *value) {
-  
+
   if(m_pause_display_updates) return;
 
   for(uint32_t n=0;n<screens_layout[current_screen].item_count;n++) {
@@ -1178,7 +1282,14 @@ void GUI::set_language(uint8_t lang) {
   m_language = lang;
 }
 
-void GUI::render_dialog(char *text1,char *text2,char *text3,char *text4,int img1,int img2,int img3,int img4) {
+void GUI::render_dialog(const char *text1,
+                        const char *text2,
+                        const char *text3,
+                        const char *text4,
+                        int img1,
+                        int img2,
+                        int img3,
+                        int img4) {
 
   if(m_language == LANGUAGE_JAPANESE) {
     if(img1 == 255) { display_draw_text_center(20,text1,FOREGROUND_COLOR); } else
@@ -1205,6 +1316,7 @@ void GUI::render_dialog(char *text1,char *text2,char *text3,char *text4,int img1
     display_draw_text_center(20,text1,FOREGROUND_COLOR);
     display_draw_text_center(36,text2,FOREGROUND_COLOR);
     display_draw_text_center(52,text3,FOREGROUND_COLOR);
+
     display_draw_text_center(68,text4,FOREGROUND_COLOR);
     display_draw_text_center(94,"PRESS ANY KEY",FOREGROUND_COLOR);
   }

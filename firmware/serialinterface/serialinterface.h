@@ -6,4 +6,6 @@ void serial_sendlog();
 void serial_eventloop();
 
 void serial_write_string(const char *str);
+
+void cmd_guid(char* line);
 #endif

@@ -11,20 +11,12 @@
 #include <stdint.h>
 
 
-#define LCD_SPI      SPI2
-#define LCD_DC_GPIO  31
-#define LCD_CS_GPIO  33
-#define LCD_PWR_GPIO 16
-#define LCD_RES_GPIO 17
-
 #define BPP 2 /* 2 bytes per pixel */
 
 #define NOTE(x) Serial1.print(__FILE__); Serial1.print(":"); Serial1.print(__LINE__); Serial1.print(" "); Serial1.println(x);
 #define RGB16(r, b, g) ((((r)<<11L)&0x1fL) | (((g)<<5L)&0x3fL) | (((b)<<0L)&0x1fL))
 
-void
-write_c(unsigned char out_command)
-{	
+void write_c(unsigned char out_command) {
     gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
                    PIN_MAP[LCD_DC_GPIO].gpio_bit,
                    0);
@@ -36,12 +28,11 @@ void write_d_stream(void *data, uint32 count) {
   gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
                  PIN_MAP[LCD_DC_GPIO].gpio_bit,
                  1);
-  uint8 fail = spi_aux_write(LCD_SPI,(uint8 *)data, count);
+  spi_aux_write(LCD_SPI,(uint8 *)data, count);
   delay_us(10);
 }
 
-void write_d(unsigned char out_data)
-{
+void write_d(unsigned char out_data) {
     gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
                    PIN_MAP[LCD_DC_GPIO].gpio_bit,
                    1);
@@ -69,16 +60,14 @@ void oled_platform_init(void) {
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //  Instruction Setting
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void Set_Column_Address(unsigned char a, unsigned char b)
-{
+void Set_Column_Address(unsigned char a, unsigned char b) {
     write_c(0x15);            // Set Column Address
     write_d(a);              //   Default => 0x00 (Start Address)
     write_d(b);              //   Default => 0x7F (End Address)
 }
 
 
-void Set_Row_Address(unsigned char a, unsigned char b)
-{
+void Set_Row_Address(unsigned char a, unsigned char b) {
     write_c(0x75);            // Set Row Address
     write_d(a);              //   Default => 0x00 (Start Address)
     write_d(b);              //   Default => 0x7F (End Address)
@@ -87,15 +76,13 @@ void Set_Row_Address(unsigned char a, unsigned char b)
 //=========================================================
 // Reset GDRAM position
 //=========================================================
-static void Home(void)
-{
+static void Home(void) {
     Set_Column_Address(0x00, Max_Column);
     Set_Row_Address(0x00, Max_Row);
 }
 
 
-static void Set_Remap_Format(unsigned char d)
-{
+static void Set_Remap_Format(unsigned char d) {
     write_c(0xA0);      // Set Re-Map / Color Depth
     write_d(d);         //   Default => 0x40
                         //     Horizontal Address Increment
@@ -107,22 +94,19 @@ static void Set_Remap_Format(unsigned char d)
 }
 
 
-static void Set_Start_Line(unsigned char d)
-{
+static void Set_Start_Line(unsigned char d) {
     write_c(0xA1);           // Set Vertical Scroll by RAM
     write_d(d);              //   Default => 0x00
 }
 
 
-static void Set_Display_Offset(unsigned char d)
-{
+static void Set_Display_Offset(unsigned char d) {
     write_c(0xA2);           // Set Vertical Scroll by Row
     write_d(d);              //   Default => 0x60
 }
 
 
-static void Set_Display_Mode(unsigned char d)
-{
+static void Set_Display_Mode(unsigned char d) {
     write_c(0xA4|d);    // Set Display Mode
                         //   Default => 0xA6
                         //     0xA4 (0x00) => Entire Display Off, All Pixels Turn Off
@@ -132,8 +116,7 @@ static void Set_Display_Mode(unsigned char d)
 }
 
 
-static void Set_Function_Selection(unsigned char d)
-{
+static void Set_Function_Selection(unsigned char d) {
     write_c(0xAB);            // Function Selection
     write_d(d);              //   Default => 0x01
                         //     Enable Internal VDD Regulator
@@ -143,22 +126,19 @@ static void Set_Function_Selection(unsigned char d)
 
 
 
-static void Set_Display_On()
-{
+static void Set_Display_On() {
     write_c(0xAF);
 }
 
 
 
-static void Set_Display_Off()
-{
+static void Set_Display_Off() {
     write_c(0xAE);
 }
 
 
 
-static void Set_Phase_Length(unsigned char d)
-{
+static void Set_Phase_Length(unsigned char d) {
     write_c(0xB1);            // Phase 1 (Reset) & Phase 2 (Pre-Charge) Period Adjustment
     write_d(d);              //   Default => 0x82 (8 Display Clocks [Phase 2] / 5 Display Clocks [Phase 1])
                         //     D[3:0] => Phase 1 Period in 5~31 Display Clocks
@@ -166,8 +146,7 @@ static void Set_Phase_Length(unsigned char d)
 }
 
 
-static void Set_Display_Enhancement(unsigned char d)
-{
+static void Set_Display_Enhancement(unsigned char d) {
     write_c(0xB2);      // Display Enhancement
     write_d(d);         //   Default => 0x00 (Normal)
     write_d(0x00);
@@ -175,8 +154,7 @@ static void Set_Display_Enhancement(unsigned char d)
 }
 
 
-static void Set_Display_Clock(unsigned char d)
-{
+static void Set_Display_Clock(unsigned char d) {
     write_c(0xB3);   // Set Display Clock Divider / Oscillator Frequency
     write_d(d);      //   Default => 0x00
                      //     A[3:0] => Display Clock Divider
@@ -184,8 +162,7 @@ static void Set_Display_Clock(unsigned char d)
 }
 
 
-static void Set_VSL(unsigned char d)
-{
+static void Set_VSL(unsigned char d) {
     write_c(0xB4);   // Set Segment Low Voltage
     write_d(0xA0|d); //   Default => 0xA0
                      //     0xA0 (0x00) => Enable External VSL
@@ -195,22 +172,19 @@ static void Set_VSL(unsigned char d)
 }
 
 
-static void Set_GPIO(unsigned char d)
-{
+static void Set_GPIO(unsigned char d) {
     write_c(0xB5);            // General Purpose IO
     write_d(d);              //   Default => 0x0A (GPIO Pins output Low Level.)
 }
 
 
-static void Set_Precharge_Period(unsigned char d)
-{
+static void Set_Precharge_Period(unsigned char d) {
     write_c(0xB6);            // Set Second Pre-Charge Period
     write_d(d);              //   Default => 0x08 (8 Display Clocks)
 }
 
 
-static void Set_Precharge_Voltage(unsigned char d)
-{
+static void Set_Precharge_Voltage(unsigned char d) {
     write_c(0xBB);            // Set Pre-Charge Voltage Level
     write_d(d);              //   Default => 0x17 (0.50*VCC)
 }
@@ -223,10 +197,10 @@ static void Set_VCOMH(unsigned char d) {
 
 //=========================================================
 // Clear OLED GDRAM
-//========================================================= 
+//=========================================================
 void CLS(uint16 color) {
   Home();
-  write_c(0x5C);    // Enable MCU to Read from RAM
+  write_c(SSD1351_CMD_WRITERAM);    // Enable MCU to Write to RAM
 
   uint8_t c[256];
   for(uint32_t i=0;i<256;i++) c[i] = color;
@@ -400,7 +374,7 @@ void oled_init(void) {
                                     //     65,536 Colors Mode (0x74)
                                     //     * 262,144 Colors Mode (0xB4)
     Set_GPIO(0x00);                 // Disable GPIO Pins Input
-    
+
     Set_Function_Selection(0x01);   // Disable Internal VDD Regulator
                                     // Select 8-bit Parallel Interface
     Set_VSL(0x01);                  // Enable External VSL
@@ -424,7 +398,7 @@ void oled_init(void) {
     Set_Display_Mode(0x02);         // Normal Display Mode (0x00/0x01/0x02/0x03)
 
     CLS(0);                          // Clear Screen
- 
+
     delay_us(1000);
 
     Set_Display_On();
@@ -499,7 +473,7 @@ void oled_reinit(uint8_t clock,uint8_t multiplex,uint8_t functionselect,uint8_t 
                                     //     65,536 Colors Mode (0x74)
                                     //     * 262,144 Colors Mode (0xB4)
     Set_GPIO(0x00);                 // Disable GPIO Pins Input
-    
+
     Set_Function_Selection(functionselect);   // Disable Internal VDD Regulator
                                     // Select 8-bit Parallel Interface
     Set_VSL(vsl);                  // Enable External VSL
@@ -507,12 +481,12 @@ void oled_reinit(uint8_t clock,uint8_t multiplex,uint8_t functionselect,uint8_t 
     Set_Phase_Length(0x32);         // Set Phase 1 as 5 Clocks & Phase 2 as 3 Clocks
     Set_Display_Enhancement(0xA4);  // Enhance Display Performance
     Set_Precharge_Voltage(prechargevolt);    // Set Pre-Charge Voltage Level as 0.50*VCC, 1c in 4D
-    Set_Precharge_Period(prechargeperiod);     // Set Second Pre-Charge Period as 1 Clock,  
+    Set_Precharge_Period(prechargeperiod);     // Set Second Pre-Charge Period as 1 Clock,
     Set_VCOMH(vcomh);                // Set Common Pins Deselect Voltage Level as 0.82*VCC. 1F in 4D
     Set_Display_Mode(0x02);         // Normal Display Mode (0x00/0x01/0x02/0x03)
 
     CLS(0);                          // Clear Screen
- 
+
     delay_us(1000);
 
     Set_Display_On();
@@ -535,7 +509,7 @@ void oled_draw_rect(uint8 x, uint8 y, uint8 w, uint8 h, uint8 *data)
 {
     Set_Column_Address(x, x+w-1);
     Set_Row_Address(y, y+h-1);
-    write_c(0x5c);
+    write_c(SSD1351_CMD_WRITERAM);
     write_d_stream(data, w*h*BPP);
 }
 

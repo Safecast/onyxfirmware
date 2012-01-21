@@ -47,7 +47,7 @@ uint8 spi_aux_write(spi_dev *spi_device, const uint8 *data, uint32 length) {
       if(ret == -1) return 1;
       txed += ret;
     }
-   
+
     return 0;
 }
 

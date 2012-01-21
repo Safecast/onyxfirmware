@@ -16,10 +16,6 @@ A simple tool for updating to the latest firmware release and uploading logs for
 
 http://41j.com/OnyxLoader.zip
 
-Some users may have issues with previous FTDI drivers ( **Arduino** **users** **this** **means** **you** ), a version which unloads existing FTDI drivers is available here:
-
-http://41j.com/OnyxLoaderA.zip
-
 Source code for these firmware loaders is available here: http://github.com/new299/onyxloader
 
 
@@ -84,8 +80,9 @@ export PATH=$PATH:$HOME/armcompiler/arm/bin
 
 ```
 cd $HOME/gitcode # or whereever you want to keep your code 
-git clone git@github.com:Safecast/bunniegeiger.git
-git checkout release7 # work on a release branch
+git clone git@github.com:Safecast/onyxfirmware.git
+git checkout devel # work on development branch
 cd firmware
 make
+make upload # you may need to type make in ../firmware_loader first.
 ```

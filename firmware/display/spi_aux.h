@@ -61,7 +61,7 @@ struct spi_pins {
 
 #if CYCLES_PER_MICROSECOND != 72
 /* TODO [0.2.0?] something smarter than this */
-#warning "Unexpected clock speed; SPI frequency calculation will be incorrect"
+//#warning "Unexpected clock speed; SPI frequency calculation will be incorrect"
 #endif
 
 //const struct spi_pins *dev_to_spi_pins(spi_dev *dev);

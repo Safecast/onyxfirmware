@@ -19,6 +19,8 @@ uint16_t power_battery_level(void);
 int power_set_state(int state);
 int power_get_state(void);
 void power_standby(void);
+int power_charging();
+
 #define WAKEUP_NONE 0
 #define WAKEUP_RTC  1
 #define WAKEUP_WKUP 2

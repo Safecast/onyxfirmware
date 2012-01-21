@@ -4,6 +4,8 @@
 #include "utils.h"
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
+#include <stdint.h>
 
 #define to565(r,g,b)                                            \
     ((((r) >> 3) << 11) | (((g) >> 2) << 5) | ((b) >> 3))
@@ -55,7 +57,7 @@ void display_draw_line(int start_x,int start_y,int end_x,int end_y,uint16_t colo
     if(e2 < dx    ) { err = err + dx; cy = cy + sy; }
   }
 }
-  
+
 void display_draw_point(int x,int y,uint16_t color) {
   Set_Column_Address(x, x+1);
   Set_Row_Address(y, y+1);
@@ -77,12 +79,12 @@ void display_draw_rectangle(int start_x,int start_y,int end_x,int end_y,uint16_t
   Set_Row_Address   (start_y, end_y);
 
   uint32_t size = (end_x-start_x+1)*(end_y-start_y+1);
-   
+
   write_c(0x5C);    // Enable MCU to Read from RAM
   for (uint32_t i=0; i<size;i++) {
     write_d(color);
     write_d(color >> 8);
-  } 
+  }
 }
 
 void display_draw_text(int x,int y,const char *text,int16_t background) {
@@ -111,7 +113,7 @@ void display_draw_number(int x,int y,uint32_t number,int width,int16_t backgroun
 
 void display_draw_number_center(int x,int y,uint32_t number,int width,int16_t background) {
   char text[50];
-  sprintf(text,"%u",number);
+  sprintf(text,"%"PRIu32"",number);
   int len=strlen(text);
   int w = width*8;
   x+= (w-(len*8))/2;

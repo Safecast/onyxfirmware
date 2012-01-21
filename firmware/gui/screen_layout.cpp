@@ -1,6 +1,25 @@
 #include "screen_layout.h"
 #include "safecast_wirish_types.h"
-// types are: ITEM_TYPE_MENU, ITEM_TYPE_LABEL, ITEM_TYPE_SELECTNUM, ITEM_TYPE_SELECTION, ITEM_TYPE_VARLABEL, ITEM_TYPE_GRAPH
+
+
+// All ITEM_TYPES are defined in screen_layout.h
+
+
+// Note: all entries in screen_layout are stored in flash to avoid
+// wasting precious RAM with static data.
+
+/**
+ *  All entries in screens_layout follow this pattern (see screen_layout.h)
+ *
+ * {
+ *   item_count,
+ *   {
+ *     { item_type, val1, val2, text, kanji_image },
+ *     ...
+ *   },
+ *   help_menu
+ * }
+ */
 
 __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
@@ -8,7 +27,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
  4,
  {
-   { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"      , 255}, 
+   { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"      , 255},
    { ITEM_TYPE_MENU       , 1, 1, "Current Readings", 4  },
    { ITEM_TYPE_MENU       , 2, 2, "Advanced"        , 30 },
    { ITEM_TYPE_MENU       , 3, 3, "Settings"        , 0  }
@@ -20,7 +39,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   5,
   {
-    { ITEM_TYPE_HEAD        , 0 ,  0, "CPMDEADINT", 255}, 
+    { ITEM_TYPE_HEAD        , 0 ,  0, "CPMDEADINT", 255},
     { ITEM_TYPE_BIGVARLABEL , 0 , 26, "CPMDEAD"   , 255},
     { ITEM_TYPE_VARLABEL    ,104, 60, "CPMSLABEL" , 255},
     { ITEM_TYPE_BIGVARLABEL , 0 , 73, "SVREM"     , 255},
@@ -31,16 +50,17 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 2 - Advanced menu
 {
-  5,
+  6,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"     ,255 }, 
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"     ,255 },
     { ITEM_TYPE_MENU       , 4, 1, "Graphs"         ,1   },
     { ITEM_TYPE_MENU       ,15, 2, "Accumulate/Avg" ,6   },
     { ITEM_TYPE_MENU       ,21, 3, "Becquerel"      ,31  },
 //    { ITEM_TYPE_MENU_ACTION, 0, 4, "QR Transfer"    ,7   },
-    { ITEM_TYPE_MENU_ACTION, 0, 4, "QR Tweet"       ,32  }
-//    { ITEM_TYPE_MENU_ACTION, 0, 6, "Audio Xfer Mod" ,255 },
-//    { ITEM_TYPE_MENU_ACTION, 0, 7, "Audio Xfer Full",255 }
+    { ITEM_TYPE_MENU_ACTION, 0, 4, "QR Tweet"       ,32  },
+//    { ITEM_TYPE_MENU_ACTION, 0, 5, "Audio Xfer"     ,255 },
+//    { ITEM_TYPE_MENU_ACTION, 0, 7, "Audio Xfer Full",255 },
+    { ITEM_TYPE_MENU      , 25, 5, "Log status",255 },
   }
   ,7
 },
@@ -49,7 +69,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   5,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT", 255 }, 
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT", 255 },
     { ITEM_TYPE_MENU       ,16, 1, "Interface" , 8 },
     { ITEM_TYPE_MENU       ,17, 2, "Geiger"    , 9 },
     { ITEM_TYPE_MENU       , 9, 3, "Time/Date" , 13 },
@@ -63,7 +83,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD    , 0 , 0  , "CPMDEADINT"     , 255 }, 
+    { ITEM_TYPE_HEAD    , 0 , 0  , "CPMDEADINT"     , 255 },
     { ITEM_TYPE_GRAPH   , 4 , 110, "RECENTDATA"     , 255 },
     { ITEM_TYPE_LABEL   ,255, 112, "CPM last 2 mins", 17  }
   }
@@ -90,7 +110,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL,255, 64, "Please expose"   , 21  },
     { ITEM_TYPE_LABEL,255, 80, "to source."      , 22  },
     { ITEM_TYPE_DELAY, 60,100,"DELAYA\0 16,7"    , 255 } // 16 second delay, then go to screen 7
-  } 
+  }
   ,255
 },
 
@@ -100,10 +120,10 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   {
     { ITEM_TYPE_LABEL,255, 32, "Acquiring, 30s" , 23  },
     { ITEM_TYPE_DELAY, 60,100,"DELAYB\0 31,8"   , 255 } // 31 second delay
-  } 
+  }
   ,255
-}, 
-    
+},
+
 
 //Screen 8 - Calibration
 {
@@ -125,7 +145,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_HEAD,             0, 0, "CPMDEADINT"    , 255 }, 
+    { ITEM_TYPE_HEAD,             0, 0, "CPMDEADINT"    , 255 },
     { ITEM_TYPE_MENU,            10, 1, "Set Time (UTC)", 15  },
     { ITEM_TYPE_MENU,            11, 2, "Set Date (UTC)", 16  },
     { ITEM_TYPE_MENU,            20, 3, "Set UTC Offset", 33  }
@@ -137,7 +157,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   10,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0 , "CPMDEADINT" , 255 }, 
+    { ITEM_TYPE_HEAD       , 0 , 0 , "CPMDEADINT" , 255 },
     { ITEM_TYPE_VARNUM     , 10, 50, "TIMEHOUR1"  , 255 },
     { ITEM_TYPE_VARNUM     , 32, 50, "TIMEHOUR2"  , 255 },
     { ITEM_TYPE_VARNUM     , 54, 50, "TIMEMIN1"   , 255 },
@@ -155,7 +175,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   10,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT", 255 }, 
+    { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT", 255 },
     { ITEM_TYPE_VARNUM     , 10, 50 , "DATEMON1"  , 255 },
     { ITEM_TYPE_VARNUM     , 32, 50 , "DATEMON2"  , 255 },
     { ITEM_TYPE_VARNUM     , 54, 50 , "DATEDAY1"  , 255 },
@@ -173,7 +193,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   5,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT"    , 255 }, 
+    { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT"    , 255 },
     { ITEM_TYPE_VARNUM     , 64, 64 , "BRIGHTNESS"    , 255 },
     { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Brightness", 2  },
     { ITEM_TYPE_ACTION     ,  0,   0, "BrightnessSCN" , 255 },
@@ -186,7 +206,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   9,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT"  , 255 }, 
+    { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT"  , 255 },
     { ITEM_TYPE_VARNUM     , 10, 50 , "WARNCPM1"    , 255 },
     { ITEM_TYPE_VARNUM     , 32, 50 , "WARNCPM2"    , 255 },
     { ITEM_TYPE_VARNUM     , 54, 50 , "WARNCPM3"    , 255 },
@@ -198,7 +218,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   }
   ,7
 },
-  
+
 //Screen 14 - Language Selection Screen
 {
   3,
@@ -224,13 +244,14 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 16 - User interface settings
 {
-  4,
+  5,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"   , 255}, 
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"   , 255},
     { ITEM_TYPE_MENU       ,12, 1, "Brightness"   , 10 },
     { ITEM_TYPE_MENU_ACTION, 0, 2, "Geiger Beep"  , 11 },
-    { ITEM_TYPE_MENU       ,24, 3, "Geiger Pulse" , 255},
-    { ITEM_TYPE_MENU       ,14, 4, "Language"     , 12 }
+//    { ITEM_TYPE_MENU       ,24, 3, "Geiger Pulse" , 255},
+    { ITEM_TYPE_MENU       ,14, 3, "Language"     , 12 },
+    { ITEM_TYPE_MENU_ACTION, 0, 4, "Never Dim"    , 0  }
   }
   ,7
 },
@@ -255,7 +276,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0, "CPMDEADINT"        , 255}, 
+    { ITEM_TYPE_HEAD       , 0 , 0, "CPMDEADINT"        , 255},
     { ITEM_TYPE_LABEL      , 0  ,32, "Firmware Release" , 37 },
     { ITEM_TYPE_LABEL      , 255,64, OS100VERSION       , 255}
   }
@@ -266,7 +287,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT", 255}, 
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT", 255},
     { ITEM_TYPE_MENU_ACTION, 1, 1, "\x80Sv"    , 38 },
     { ITEM_TYPE_MENU_ACTION, 2, 2, "\x80R"     , 39 }
   }
@@ -277,7 +298,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   9,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0 , "CPMDEADINT" , 255 }, 
+    { ITEM_TYPE_HEAD       , 0 , 0 , "CPMDEADINT" , 255 },
     { ITEM_TYPE_VARNUM     , 10, 50, "SIGN:-,+,"  , 255 },
     { ITEM_TYPE_VARNUM     , 32, 50, "OFFHOUR1"   , 255 },
     { ITEM_TYPE_VARNUM     , 54, 50, "OFFHOUR2"   , 255 },
@@ -295,7 +316,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_HEAD        , 0  ,  0, "CPMDEADINT", 255}, 
+    { ITEM_TYPE_HEAD        , 0  ,  0, "CPMDEADINT", 255},
     { ITEM_TYPE_VARLABEL    , 0  , 30, "BECQINFO"  , 255},
     { ITEM_TYPE_BIGVARLABEL , 0  , 43, "BECQ"      , 255},
     { ITEM_TYPE_LABEL        ,81 , 74, "Bq/m2"     , 255}
@@ -307,7 +328,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   7,
   {
-    { ITEM_TYPE_HEAD       , 0 ,  0 , "CPMDEADINT", 255 }, 
+    { ITEM_TYPE_HEAD       , 0 ,  0 , "CPMDEADINT", 255 },
     { ITEM_TYPE_VARNUM     , 38, 50 , "BECQ1"     , 255 },
     { ITEM_TYPE_VARNUM     , 56, 50 , "BECQ2"     , 255 },
     { ITEM_TYPE_VARNUM     , 74, 50 , "BECQ3"     , 255 },
@@ -322,7 +343,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   7,
   {
-    { ITEM_TYPE_HEAD       , 0 ,  0 , "CPMDEADINT"    , 255 }, 
+    { ITEM_TYPE_HEAD       , 0 ,  0 , "CPMDEADINT"    , 255 },
     { ITEM_TYPE_VARNUM     , 38, 50 , "LOGINTER1"     , 255 },
     { ITEM_TYPE_VARNUM     , 56, 50 , "LOGINTER2"     , 255 },
     { ITEM_TYPE_VARNUM     , 74, 50 , "LOGINTER3"     , 255 },
@@ -337,9 +358,24 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD       , 0 ,  0 , "CPMDEADINT"      , 255 }, 
+    { ITEM_TYPE_HEAD       , 0 ,  0 , "CPMDEADINT"      , 255 },
     { ITEM_TYPE_VARNUM     , 38, 50 , "PULSEWIDTH1"     , 255 },
     { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:PulseWidth" ,2    },
+  }
+  ,7
+},
+
+
+//Screen 25 - Log status
+{
+  6,
+  {
+    { ITEM_TYPE_HEAD       ,  0 ,  0 , "CPMDEADINT"    , 255 },
+    { ITEM_TYPE_LABEL      ,  0 , 20 , "Log storage"   , 255 },
+    { ITEM_TYPE_VARLABEL   ,255 , 36, "LOGPERCENT"     , 255 },
+    { ITEM_TYPE_VARLABEL   ,  0 , 52, "LOGREMAIN"      , 255 },
+    { ITEM_TYPE_VARLABEL   ,255 , 68, "LOGREMAIN2"     , 255 },
+    { ITEM_TYPE_VARLABEL   ,  0 ,100, "LOGREMAIN3"     , 255 },
   }
   ,7
 },

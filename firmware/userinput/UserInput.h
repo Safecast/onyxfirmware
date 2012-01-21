@@ -26,7 +26,7 @@ public:
   int last_key() {
     return cap_lastkey();
   }
-  
+
   void clear_last_key() {
     cap_clearlastkey();
   }

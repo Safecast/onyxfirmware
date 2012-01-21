@@ -28,7 +28,9 @@
 
 #include "beecrypt/beecrypt.h"
 
+#ifndef HAVE_INLINE
 #define HAVE_INLINE 0
+#endif 
 
 #if defined(__cplusplus) || HAVE_INLINE
 

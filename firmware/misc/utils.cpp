@@ -2,8 +2,7 @@
 #include <stdint.h>
 
 uint32_t str_to_uint(const char *text) {
-  
-  uint32_t position=0;
+
   uint8_t digits[10];
 
   uint32_t size=0;
@@ -24,7 +23,7 @@ uint32_t str_to_uint(const char *text) {
   return value;
 }
 
-void float_to_char(float number,char *text,uint32_t width) {
+void float_to_char(float number,char *text,int32_t width) {
 
   float original_number=number;
 
@@ -39,8 +38,8 @@ void float_to_char(float number,char *text,uint32_t width) {
   }
   text[position]='.';
   position++;
-  
-  current=100; 
+
+  current=100;
   number=original_number;
   uint32_t fractional_part = (number*(float)1000)- ((float)(((uint32_t)number)*1000)) ;
   for(;position<12;position++) {
@@ -59,10 +58,10 @@ void float_to_char(float number,char *text,uint32_t width) {
   }
 
   if(text[last_leading_zero+1] == '.') {text[last_leading_zero]='0'; last_leading_zero--;}
-  
+
   if(last_leading_zero != -1) {
     int m=0;
-    for(uint32_t n=last_leading_zero+1;n<=position;n++) {
+    for(int32_t n=last_leading_zero+1;n<=position;n++) {
       text[m] = text[n];
       m++;
     }
@@ -73,9 +72,9 @@ void float_to_char(float number,char *text,uint32_t width) {
   if(width != -1) {
 
     text[width] = 0;
-    for(uint32_t n=0;n<width;n++) {
+    for(int32_t n=0;n<width;n++) {
       if(text[n]==0) {
-        for(uint32_t i=n;i<width;i++) text[i] = ' ';
+        for(int32_t i=n;i<width;i++) text[i] = ' ';
         break;
       }
     }
@@ -83,10 +82,10 @@ void float_to_char(float number,char *text,uint32_t width) {
 
 }
 
-void int_to_char(uint32_t number,char *text,uint32_t width) {
+void int_to_char(uint32_t number,char *text,int32_t width) {
 
   if(number == 0) {
-    for(uint32_t n=0;n<width;n++) text[n]=' ';
+    for(int32_t n=0;n<width;n++) text[n]=' ';
     text[0]='0';
     text[width]=0;
     return;
@@ -111,7 +110,7 @@ void int_to_char(uint32_t number,char *text,uint32_t width) {
 
   if(last_leading_zero != -1) {
     int m=0;
-    for(uint32_t n=last_leading_zero+1;n<=position;n++) {
+    for(int32_t n=last_leading_zero+1;n<=position;n++) {
       text[m] = text[n];
       m++;
     }
@@ -122,46 +121,20 @@ void int_to_char(uint32_t number,char *text,uint32_t width) {
   if(width != -1) {
 
     text[width] = 0;
-    for(uint32_t n=0;n<width;n++) {
+    for(int32_t n=0;n<width;n++) {
       if(text[n]==0) {
-        for(uint32_t i=n;i<width;i++) text[i] = ' ';
+        for(int32_t i=n;i<width;i++) text[i] = ' ';
         break;
       }
     }
   }
 
 }
-/*
-bool strcmp(const char *i,const char *j) {
-  for(uint32_t n=0;;n++) {
-    if(i[n] != j[n]) return false;
-    if((i[n] == 0) && (j[n] == 0)) return true;
-  }
-}
-*/
+
 bool strcmpl(const char *i,const char *j,uint32_t len) {
   for(uint32_t n=0;n<len;n++) {
     if(i[n] != j[n]) return false;
     if((i[n] == 0) && (j[n] == 0)) return true;
   }
+  return true;
 }
-
-/*
-int32_t strlen(const char *i) {
-
-  for(uint32_t n=0;n<100;n++) {
-    if(i[n] == 0) return n;
-  }
-  return 0;
-}
-*/
-/*
-void strcpy(char *i,const char *j) {
-
-  for(uint32_t n=0;;n++) {
-    i[n] = j[n];
-    if(j[n] == 0) return;
-  }
-
-}
-*/
