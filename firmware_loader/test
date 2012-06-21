@@ -1,0 +1,7 @@
+#!/bin/sh
+
+sudo rmmod ftdi_sio
+sudo rmmod usbserial
+./fwload -f safecast.bin
+sudo modprobe usbserial
+sudo modprobe ftdi_sio
