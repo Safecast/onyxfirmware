@@ -3,10 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "gpio.h"
 //#include "wirish.h"
 #include "oled.h"
 #include "spi_aux.h"
 #include "delay.h"
+#include "safecast_config.h"
 //#include "HardwareSPI.h"
 //#include "wirish_time.h"
 
@@ -26,7 +28,10 @@
 static void
 write_c(unsigned char out_command)
 {	
-    digitalWrite(LCD_DC_GPIO, 0);
+    gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
+                   PIN_MAP[LCD_DC_GPIO].gpio_bit,
+                   0);
+    //digitalWrite(LCD_DC_GPIO, 0);
 
     spi_aux_write(LCD_SPI,&out_command,1);
     delay_us(70);
@@ -35,7 +40,10 @@ write_c(unsigned char out_command)
 static void
 write_d_stream(void *data, unsigned int count)
 {
-    digitalWrite(LCD_DC_GPIO, 1);
+    gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
+                   PIN_MAP[LCD_DC_GPIO].gpio_bit,
+                   1);
+    //digitalWrite(LCD_DC_GPIO, 1);
     spi_aux_write(LCD_SPI,(uint8 *)data, count);
     delay_us(70);
 }
@@ -43,7 +51,10 @@ write_d_stream(void *data, unsigned int count)
 static void
 write_d(unsigned char out_data)
 {
-    digitalWrite(LCD_DC_GPIO, 1);
+    gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
+                   PIN_MAP[LCD_DC_GPIO].gpio_bit,
+                   1);
+    //digitalWrite(LCD_DC_GPIO, 1);
     spi_aux_write(LCD_SPI,&out_data,1);
     delay_us(70);
 }
@@ -57,23 +68,50 @@ platform_init(void)
     spi_aux_enable_device(SPI2,true,SPI_9MHZ,SPI_FRAME_MSB,SPI_MODE_3);
     
     /* Set the data/command pin to be a GPIO */
-    pinMode(LCD_DC_GPIO, OUTPUT);
-    digitalWrite(LCD_DC_GPIO, 0);
+    gpio_set_mode(PIN_MAP[LCD_DC_GPIO].gpio_device,
+                  PIN_MAP[LCD_DC_GPIO].gpio_bit,
+                  GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
+                   PIN_MAP[LCD_DC_GPIO].gpio_bit,
+                   0);
+//    pinMode(LCD_DC_GPIO, OUTPUT);
+//    digitalWrite(LCD_DC_GPIO, 0);
 
     /* Set chip-select to be a GPIO */
-    pinMode(LCD_CS_GPIO, OUTPUT);
-    digitalWrite(LCD_CS_GPIO, 0);
+    gpio_set_mode(PIN_MAP[LCD_CS_GPIO].gpio_device,
+                  PIN_MAP[LCD_CS_GPIO].gpio_bit,
+                  GPIO_OUTPUT_PP);
+    //pinMode(LCD_CS_GPIO, OUTPUT);
+    gpio_write_bit(PIN_MAP[LCD_CS_GPIO].gpio_device,
+                   PIN_MAP[LCD_CS_GPIO].gpio_bit,
+                   0);
+//    digitalWrite(LCD_CS_GPIO, 0);
 
     /* Turn the display on */
-    pinMode(LCD_PWR_GPIO, OUTPUT);
-    digitalWrite(LCD_PWR_GPIO, 1);
+//    pinMode(LCD_PWR_GPIO, OUTPUT);
+    gpio_set_mode(PIN_MAP[LCD_PWR_GPIO].gpio_device,
+                  PIN_MAP[LCD_PWR_GPIO].gpio_bit,
+                  GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[LCD_PWR_GPIO].gpio_device,
+                   PIN_MAP[LCD_PWR_GPIO].gpio_bit,
+                   1);
+    //digitalWrite(LCD_PWR_GPIO, 1);
     delay_us(2000); /* Documentation says at least 1ms */
 
     /* Reset the display */
-    pinMode(LCD_RES_GPIO, OUTPUT);
-    digitalWrite(LCD_RES_GPIO, 0);
+    gpio_set_mode(PIN_MAP[LCD_RES_GPIO].gpio_device,
+                  PIN_MAP[LCD_RES_GPIO].gpio_bit,
+                  GPIO_OUTPUT_PP);
+//    pinMode(LCD_RES_GPIO, OUTPUT);
+    gpio_write_bit(PIN_MAP[LCD_RES_GPIO].gpio_device,
+                   PIN_MAP[LCD_RES_GPIO].gpio_bit,
+                   0);
+//    digitalWrite(LCD_RES_GPIO, 0);
     delay_us(20); /* Documentation says at least 2us */
-    digitalWrite(LCD_RES_GPIO, 1);
+    gpio_write_bit(PIN_MAP[LCD_RES_GPIO].gpio_device,
+		   PIN_MAP[LCD_RES_GPIO].gpio_bit,
+		   1);
+//    digitalWrite(LCD_RES_GPIO, 1);
 }
 
 
@@ -419,7 +457,10 @@ void oled_deinit(void)
     //Serial1.println("Turning display off...");
     //==============================
     Set_Display_Off();
-    digitalWrite(LCD_PWR_GPIO, 0); // cuts power to the display
+    gpio_write_bit(PIN_MAP[LCD_PWR_GPIO].gpio_device,
+                   PIN_MAP[LCD_PWR_GPIO].gpio_bit,
+                   0);
+    //digitalWrite(LCD_PWR_GPIO, 0); // cuts power to the display
     delay_us(250000); // give it 250ms to discharge, hard wait; prevent issues with switch bounce
 }
 

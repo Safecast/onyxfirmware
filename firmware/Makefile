@@ -8,7 +8,6 @@ LDFLAGS  = -mcpu=cortex-m3 -mthumb -Xlinker     \
             --gc-sections --print-gc-sections --march=armv7-m -Wall
 
 firmware: main.cpp
-	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -I./display -c main.cpp -I./libmaple -I./wirish -I./wirish/boards -I./buzzer -o main.o
 	arm-none-eabi-gcc $(GLOBAL_CFLAGS) -c libmaple/spi.c -o spi.o
 	arm-none-eabi-gcc $(GLOBAL_CFLAGS) -c libmaple/rcc.c -o rcc.o
 	arm-none-eabi-gcc $(GLOBAL_CFLAGS) -c libmaple/timer.c -o timer.o
@@ -24,12 +23,14 @@ firmware: main.cpp
 	arm-none-eabi-gcc $(GLOBAL_CFLAGS) -c libmaple/flash.c -o flash.o
 	arm-none-eabi-gcc $(GLOBAL_CFLAGS) -c ./display/spi_aux.c -I./libmaple -I. -o spi_aux.o
 
+	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -I./libmaple -I./wirish -I./wirish/boards -c captouch.cpp -I./wirish/comm -o ./captouch.o
+	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -I./libmaple -I. -c display/oled.cpp -o oled.o
+	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -c power.cpp -I./wirish -I./libmaple -I./wirish/boards -I./wirish/comm -o power.o
+	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -I./display -c main.cpp -I./libmaple -I./wirish -I./wirish/boards -I./buzzer -o main.o
+
 	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -I./libmaple -I./wirish -I./wirish/boards -I./wirish/comm -c wirish/boards.cpp -o ./boards.o
 	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -I./libmaple -I./wirish -I./wirish/boards -I./wirish/comm -c wirish/ext_interrupts.cpp -o ./ext_interrupts.o
-	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -I./libmaple -I./wirish -I./wirish/boards -c captouch.cpp -I./wirish/comm -o ./captouch.o
 	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -I./libmaple -I./wirish -c ./wirish/boards/safecast.cpp -o ./boards_safecast.o
-	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -c power.cpp -I./wirish -I./libmaple -I./wirish/boards -I./wirish/comm -o power.o
-	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -Iwirish -Iwirish/comm -I./libmaple -I./wirish/boards -c display/oled.cpp -o oled.o
 	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -Iwirish -Iwirish/comm -I./libmaple -I./wirish/boards -c wirish/wirish_digital.cpp -o wirish_digital.o
 	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -Iwirish -Iwirish/comm -I./libmaple -I./wirish/boards -c ./wirish/comm/HardwareSPI.cpp -o HardwareSPI.o
 	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -Iwirish -Iwirish/comm -I./libmaple -I./wirish/boards -c ./wirish/HardwareTimer.cpp -o HardwareTimer.o

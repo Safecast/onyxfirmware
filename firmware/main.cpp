@@ -4,10 +4,12 @@
 *                                                 *
 **************************************************/
 
+#include "boards.h"
 #include "Display.h"
-#include "Buzzer.h"
+//#include "Buzzer.h"
 #include "power.h"
 #include "captouch.h"
+#include "safecast_config.h"
 
 #define LED_GPIO 25       // PD2
 
@@ -23,15 +25,16 @@
 
 void setup_gpio() {
     // setup the inputs
-    pinMode(UART_CTS_GPIO, INPUT);
-    pinMode(UART_RTS_GPIO, INPUT);
-    pinMode(UART_TXD_GPIO, INPUT);
-    pinMode(UART_RXD_GPIO, INPUT);
+    gpio_set_mode(PIN_MAP[UART_CTS_GPIO].gpio_device,PIN_MAP[UART_CTS_GPIO].gpio_bit,GPIO_INPUT_PD);
+    gpio_set_mode(PIN_MAP[UART_RTS_GPIO].gpio_device,PIN_MAP[UART_RTS_GPIO].gpio_bit,GPIO_INPUT_PD);
+    gpio_set_mode(PIN_MAP[UART_TXD_GPIO].gpio_device,PIN_MAP[UART_TXD_GPIO].gpio_bit,GPIO_INPUT_PD);
+    gpio_set_mode(PIN_MAP[UART_RXD_GPIO].gpio_device,PIN_MAP[UART_RXD_GPIO].gpio_bit,GPIO_INPUT_PD);
 
-    pinMode(GEIGER_PULSE_GPIO, INPUT);
+    gpio_set_mode(PIN_MAP[GEIGER_PULSE_GPIO].gpio_device,PIN_MAP[GEIGER_PULSE_GPIO].gpio_bit,GPIO_INPUT_PD);
 
-    pinMode(LED_GPIO, OUTPUT);
-    digitalWrite(LED_GPIO, 1);
+    gpio_set_mode(PIN_MAP[LED_GPIO].gpio_device,PIN_MAP[LED_GPIO].gpio_bit,GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[LED_GPIO].gpio_device,PIN_MAP[LED_GPIO].gpio_bit,1);
+//    digitalWrite(LED_GPIO, 1);
 }
 
 // Force init to be called *first*, i.e. before static object allocation.
@@ -40,26 +43,26 @@ __attribute__((constructor)) void
 premain()
 {
     init();
-    delay(100);
+    delay_us(100000);
 }
 
 
 int main(void) {
 
     Display d;
-    Buzzer b;
+ //   Buzzer b;
 
     power_set_debug(0);
     cap_init();
     power_init();
     setup_gpio();
     
-    b.initialise();
+    //b.initialise();
     power_set_debug(1);
-    b.buzz();
-    b.buzz();
-    b.buzz();
-    b.buzz();
+//    b.buzz();
+//    b.buzz();
+//    b.buzz();
+//    b.buzz();
 
     power_set_state(PWRSTATE_USER);
     d.initialise();

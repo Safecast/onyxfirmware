@@ -64,7 +64,7 @@ struct spi_pins {
 #warning "Unexpected clock speed; SPI frequency calculation will be incorrect"
 #endif
 
-static const struct spi_pins *dev_to_spi_pins(spi_dev *dev);
+//const struct spi_pins *dev_to_spi_pins(spi_dev *dev);
 
 void spi_aux_enable_device(spi_dev *dev,
                           bool as_master,
