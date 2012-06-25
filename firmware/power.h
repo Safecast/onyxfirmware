@@ -7,7 +7,7 @@
 #define PWRSTATE_BOOT  3   // during boot
 #define PWRSTATE_OFF   4   // power is simply off, or cold reset
 #define PWRSTATE_ERROR 5   // an error conditions state
-
+#include <stdint.h>
 
 int power_init(void);
 int power_deinit(void);
@@ -16,7 +16,7 @@ int power_switch_state(void);
 
 void power_set_debug(int level);
 int power_is_battery_low(void);
-uint16 power_battery_level(void);
+uint16_t power_battery_level(void);
 int power_set_state(int state);
 int power_get_state(void);
 

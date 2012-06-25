@@ -32,14 +32,16 @@
 
 #ifdef BOARD_safecast
 
-#include "safecast.h"
+#include "safecast_config.h"
 
 #include "gpio.h"
 #include "timer.h"
-#include "wirish_types.h"
+#include "safecast_wirish_types.h"
 
 void boardInit(void) {
 }
+
+
 
 extern const stm32_pin_info PIN_MAP[BOARD_NR_GPIO_PINS] = {
 

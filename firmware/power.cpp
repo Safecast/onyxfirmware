@@ -1,9 +1,9 @@
 // Sample main.cpp file. Blinks the built-in LED, sends a message out
 // USART1.
 
-#include "wirish.h"
+//#include "wirish.h"
 #include "power.h"
-
+#include "safecast_config.h"
 
 // for power control support
 #include "pwr.h"
@@ -65,36 +65,54 @@ static uint8 dbg_batt = 0;
 int
 power_init(void)
 {
-    pinMode(MANUAL_WAKEUP_GPIO, INPUT);
-    pinMode(CHG_STAT2_GPIO, INPUT);
-    pinMode(CHG_STAT1_GPIO, INPUT);
-    pinMode(WAKEUP_GPIO, INPUT);
-    pinMode(BATT_MEASURE_ADC, INPUT_ANALOG);
-    pinMode(MAGSENSE_GPIO, INPUT);
+    gpio_set_mode (PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit,GPIO_INPUT_PD);
+    gpio_set_mode (PIN_MAP[CHG_STAT2_GPIO]    .gpio_device,PIN_MAP[CHG_STAT2_GPIO]    .gpio_bit,GPIO_INPUT_PD);
+    gpio_set_mode (PIN_MAP[CHG_STAT1_GPIO]    .gpio_device,PIN_MAP[CHG_STAT1_GPIO]    .gpio_bit,GPIO_INPUT_PD);
+    gpio_set_mode (PIN_MAP[WAKEUP_GPIO]       .gpio_device,PIN_MAP[WAKEUP_GPIO]       .gpio_bit,GPIO_INPUT_PD);
+    gpio_set_mode (PIN_MAP[BATT_MEASURE_ADC]  .gpio_device,PIN_MAP[BATT_MEASURE_ADC]  .gpio_bit,GPIO_INPUT_ANALOG);
+    gpio_set_mode (PIN_MAP[MAGSENSE_GPIO]     .gpio_device,PIN_MAP[MAGSENSE_GPIO]     .gpio_bit,GPIO_INPUT_PD);
+
+//    pinMode(MANUAL_WAKEUP_GPIO, INPUT);
+//    pinMode(CHG_STAT2_GPIO, INPUT);
+//    pinMode(CHG_STAT1_GPIO, INPUT);
+//    pinMode(WAKEUP_GPIO, INPUT);
+//    pinMode(BATT_MEASURE_ADC, INPUT_ANALOG);
+//    pinMode(MAGSENSE_GPIO, INPUT);
 
     // setup and initialize the outputs
     // initially, don't measure battery voltage
-    pinMode(MEASURE_FET_GPIO, OUTPUT);
-    digitalWrite(MEASURE_FET_GPIO, 0);
+//    pinMode(MEASURE_FET_GPIO, OUTPUT);
+//    digitalWrite(MEASURE_FET_GPIO, 0);
+    gpio_set_mode (PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
+    
 
     // initially, turn off the hall effect sensor
-    pinMode(MAGPOWER_GPIO, OUTPUT);
-    digitalWrite(MAGPOWER_GPIO, 0);
+//    pinMode(MAGPOWER_GPIO, OUTPUT);
+//    digitalWrite(MAGPOWER_GPIO, 0);
+    gpio_set_mode (PIN_MAP[MAGPOWER_GPIO].gpio_device,PIN_MAP[MAGPOWER_GPIO].gpio_bit,GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[MAGPOWER_GPIO].gpio_device,PIN_MAP[MAGPOWER_GPIO].gpio_bit,0);
 
 
 
     // as a hack, tie this low to reduce current consumption
     // until we hook it up to a proper DAC output
-    pinMode(LIMIT_VREF_DAC, OUTPUT);
-    digitalWrite(LIMIT_VREF_DAC, 0);
+    gpio_set_mode (PIN_MAP[LIMIT_VREF_DAC].gpio_device,PIN_MAP[LIMIT_VREF_DAC].gpio_bit,GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[LIMIT_VREF_DAC].gpio_device,PIN_MAP[LIMIT_VREF_DAC].gpio_bit,0);
+    //pinMode(LIMIT_VREF_DAC, OUTPUT);
+    //digitalWrite(LIMIT_VREF_DAC, 0);
     
     // initially, charge timer is enabled (active low)
-    pinMode(CHG_TIMEREN_N_GPIO, OUTPUT);
-    digitalWrite(CHG_TIMEREN_N_GPIO, 0);
+    gpio_set_mode (PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_device,PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_bit,GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_device,PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_bit,0);
+    //pinMode(CHG_TIMEREN_N_GPIO, OUTPUT);
+    //digitalWrite(CHG_TIMEREN_N_GPIO, 0);
 
     // initially OLED is off
-    pinMode(LED_PWR_ENA_GPIO, OUTPUT);
-    digitalWrite(LED_PWR_ENA_GPIO, 0);
+    //pinMode(LED_PWR_ENA_GPIO, OUTPUT);
+    //digitalWrite(LED_PWR_ENA_GPIO, 0);
+    gpio_set_mode (PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,0);
 
     return 0;
 }
@@ -117,9 +135,12 @@ power_battery_level(void) {
     cr2 |= ADC_CR2_TSEREFE; // enable reference voltage only for this measurement
     ADC1->regs->CR2 = cr2;
 
-    digitalWrite(MEASURE_FET_GPIO, 1);
-    battVal = (uint32) analogRead(BATT_MEASURE_ADC) * 1000;
-    digitalWrite(MEASURE_FET_GPIO, 0);
+    //digitalWrite(MEASURE_FET_GPIO, 1);
+    gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,1);
+//    battVal = (uint32) analogRead(BATT_MEASURE_ADC) * 1000;
+    battVal = (uint32) adc_read(PIN_MAP[BATT_MEASURE_ADC].adc_device,PIN_MAP[BATT_MEASURE_ADC].adc_channel);
+    //digitalWrite(MEASURE_FET_GPIO, 0);
+    gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
 
     vrefVal = (uint32) adc_read(ADC1, 17);
 
@@ -132,27 +153,27 @@ power_battery_level(void) {
     // we want to indicate system should shut down at 3.1V; 4.2V is full
     // this is a ratio from 1750 (= 4.2V) to 1292 (=3.1V)
     ratio = battVal / vrefVal;
-    if (dbg_batt) {
+  /*  if (dbg_batt) {
         Serial1.print( "BattVal: " );
         Serial1.println( battVal );
         Serial1.print( "VrefVal: " );
         Serial1.println( vrefVal );
         Serial1.print( "Raw ratio: " );
         Serial1.println( ratio );
-    }
+    }*/
     if( ratio < 1292 )
         return 0;
     ratio = ratio - 1292; // should always be positive now due to test above
 
     retcode = ratio / (459 / BATT_RANGE);
-
+/*
     if (dbg_batt) {
         Serial1.print( "Rebased ratio: " );
         Serial1.println( ratio );
         Serial1.print( "Retcode: " );
         Serial1.println( retcode );
     }
-
+*/
     return retcode;
 }
 
@@ -190,9 +211,13 @@ power_is_battery_low(void)
 
             // again, a minimal set of operations done to save power; these are lifted from
             // setup_gpio()
-            pinMode(BATT_MEASURE_ADC, INPUT_ANALOG);
-            pinMode(MEASURE_FET_GPIO, OUTPUT);
-            digitalWrite(MEASURE_FET_GPIO, 0);
+            gpio_set_mode(PIN_MAP[BATT_MEASURE_ADC].gpio_device,PIN_MAP[BATT_MEASURE_ADC].gpio_bit,GPIO_INPUT_ANALOG);
+//            pinMode(BATT_MEASURE_ADC, INPUT_ANALOG);
+            gpio_set_mode(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,GPIO_OUTPUT_PP);
+//            pinMode(MEASURE_FET_GPIO, OUTPUT);
+//            digitalWrite(MEASURE_FET_GPIO, 0);
+            gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
+ 
         } else {
             // on the fall-through just lie and assume battery isn't low. close enough.
             return 0;
@@ -218,8 +243,7 @@ power_standby(void) {
     power_wfi();
 }
 
-void
-power_wfi(void)
+void power_wfi(void)
 {
     // request wait for interrupt (in-line assembly)
     asm volatile (
@@ -228,8 +252,7 @@ power_wfi(void)
         );
 }
 
-int
-power_deinit(void)
+int power_deinit(void)
 {
     // disable wake on interrupt
     PWR_BASE->CSR &= ~PWR_CSR_EWUP;
@@ -237,164 +260,16 @@ power_deinit(void)
     return 0;
 }
 
-int
-power_switch_state(void)
+int power_switch_state(void)
 {
-    return digitalRead(MANUAL_WAKEUP_GPIO) == HIGH;
+
+   int bit = gpio_read_bit(PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit);
+   if(bit == 1) return true; else return false;
+   
+   // return digitalRead(MANUAL_WAKEUP_GPIO) == HIGH;
 }
 
-#if 0
-int
-main(void)
-{
-    int t = 0;
-
-    while (true) {
-        switch(powerState) {
-        case PWRSTATE_DOWN:  /////////// PWRSTATE_DOWN TEST STATUS: THIS CODE FUNCTIONS BUT NEEDS VALIDATION WITH AMMETER TO CONFIRM LOW POWER OPERATION.
-            Serial1.println ( "Entering DOWN powerstate." );
-            while(1) {
-                powerDown();
-
-                // system resets when power is plugged in no matter what, so this is sort of irrelevant
-                lastPowerState = PWRSTATE_DOWN;
-                powerState = PWRSTATE_DOWN;
-            }
-            break;
-        case PWRSTATE_LOG:   ////////// PWRSTATE_LOG TEST STATUS: THIS CODE IS UNTESTED
-            if( isBattLow() ) {
-                lastPowerState = PWRSTATE_LOG;
-                powerState = PWRSTATE_DOWN;
-                break;
-            }
-            
-            if( lastPowerState != PWRSTATE_LOG ) {
-                Serial1.println ( "Entering LOG powerstate." );
-                // we are just entering, so do things like turn off beeping, LED flashing, etc.
-                prepSleep();
-
-                // once it's all setup, re-enter the loop so we go into the next branch
-                lastPowerState = PWRSTATE_LOG;
-                powerState = PWRSTATE_LOG;
-                break;
-            } else {
-                // first, we sleep and wait for an interrupt
-                logStandby();
-
-                // when we get here, we got a wakeup event
-                // we'll wake up due to a switch or geiger event, so determine which and
-                // then re-enter the loop
-                gpio_init(GPIOC); // just init the bare minimum to read the GPIO
-                pinMode(MANUAL_WAKEUP_GPIO, INPUT);
-
-                // test code
-                gpio_init(GPIOD); 
-                pinMode(LED_GPIO, OUTPUT); 
-                digitalWrite(LED_GPIO, 1);
-                // end test code
-
-                if( digitalRead(MANUAL_WAKEUP_GPIO) == HIGH ) {
-                    init();  // need to clean up everything we shut down
-                    setup_gpio();
-                    touchInit = 0;  // can't assume anything about the touch interface
-                    setup();
-
-                    powerState = PWRSTATE_USER;
-                    lastPowerState = PWRSTATE_LOG;
-                    break;
-                } else {
-                    // this is a geiger event. for now, just make a beep and go back to sleep
-                    // eventually, we'll want to log the vent with a timestamp to flash
-                    short_init(); // special-case init for minimal operational parameters
-
-                    setup_buzzer();
-                    blockingBeep();
-
-                    // TODO: put logging infos here...
-
-                    powerState = PWRSTATE_LOG;
-                    lastPowerState = PWRSTATE_LOG;
-                    break;
-                }
-            }
-            break;
-        case PWRSTATE_USER:   ////////// PWRSTATE_LOG TEST STATUS: THIS CODE IS ROUTINELY USED FOR DEVELOPMENT AND IS LIGHTLY TESTED
-            // check for events from the touchscreen
-            if( lastPowerState != PWRSTATE_USER ) {
-                Serial1.println ( "Entering USER powerstate." );
-                // setup anything specific to this state, i.e. turn on LED flashing and beeping on
-                // radiation events
-                setup_lcd();
-                fill_oled(0); // eventually this can go away i think.
-                /* Set up PB11 to be an IRQ that triggers cap_down */
-                attachInterrupt(CAPTOUCH_GPIO, cap_down, FALLING);
-                allowBeep = 1;
-            }
-            if( !touchInit ) {
-                Serial1.println("Initializing captouch..." );
-                setup_captouch();
-                Serial1.println("Done.");
-                delay(100);
-            } else {
-                if(touchService) {
-                    touchStat = 0;
-                    touchStat = mpr121Read(TCH_STATL);
-                    touchStat |= mpr121Read(TCH_STATH) << 8;
-                    touchService = 0;
-                }
-            }
-
-            // call the event loop
-            loop(t++);
-
-            if( isBattLow() ) {
-                powerState = PWRSTATE_DOWN;
-                lastPowerState = PWRSTATE_USER;
-                break;
-            } else if( digitalRead(MANUAL_WAKEUP_GPIO) == HIGH ) {
-                powerState = PWRSTATE_USER;
-                lastPowerState = PWRSTATE_USER;
-            } else {
-                powerState = PWRSTATE_LOG;
-                lastPowerState = PWRSTATE_USER;
-            }
-            break;
-        case PWRSTATE_BOOT:   ////////// PWRSTATE_BOOT TEST STATUS: THIS CODE HAS BEEN LIGHTLY TESTED
-            Serial1.begin(115200);
-            Serial1.println(FIRMWARE_VERSION);
-            
-            Serial1.println ( "Entering BOOT powerstate." );
-
-            dbg_batt = 0;
-            setup();
-            allowBeep = 1;
-            blockingBeep();
-
-            // set up Flash, etc. and interrupt handlers for logging. At this point
-            // we can start receiving radiation events
-            setupLogging();
-
-            if( digitalRead(MANUAL_WAKEUP_GPIO) == HIGH ) {
-                powerState = PWRSTATE_USER;
-            } else {
-                powerState = PWRSTATE_LOG;
-                touchInit = 0;
-            }
-            lastPowerState = PWRSTATE_BOOT;
-            break;
-        default:
-            Serial1.println("Entering ERROR powerstate." );
-            powerState = PWRSTATE_BOOT;
-            lastPowerState = PWRSTATE_ERROR;
-        }
-    }
-
-    return 0;
-}
-#endif
-
-int
-power_get_state(void)
+int power_get_state(void)
 {
     return powerState;
 }

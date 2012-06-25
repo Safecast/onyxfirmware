@@ -4,7 +4,8 @@
 *                                                 *
 **************************************************/
 
-#include "boards.h"
+#include "wirish_boards.h"
+//#include "boards.h"
 #include "Display.h"
 //#include "Buzzer.h"
 #include "power.h"
@@ -53,7 +54,7 @@ int main(void) {
  //   Buzzer b;
 
     power_set_debug(0);
-    cap_init();
+    //cap_init();
     power_init();
     setup_gpio();
     

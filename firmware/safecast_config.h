@@ -33,6 +33,12 @@
 #ifndef _BOARD_SAFECAST_H_
 #define _BOARD_SAFECAST_H_
 
+#include "safecast_wirish_types.h"
+
+extern const stm32_pin_info PIN_MAP[];
+extern const uint8 boardUsedPins[];
+
+
 #define CYCLES_PER_MICROSECOND  36
 #define SYSTICK_RELOAD_VAL      35999 /* takes a cycle to reload */
 

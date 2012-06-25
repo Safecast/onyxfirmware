@@ -32,7 +32,8 @@
  * at 72MHz.  APB1 is clocked at 36MHz.
  */
 
-#include "boards.h"
+#include "wirish_boards.h"
+#include "safecast_config.h"
 
 #include "flash.h"
 #include "rcc.h"
@@ -68,7 +69,7 @@ void init(void) {
     setupADC();
     setupTimers();
     //    usb_cdcacm_enable(BOARD_USB_DISC_DEV, BOARD_USB_DISC_BIT);
-    boardInit();
+    // boardInit();
 }
 
 /* You could farm this out to the files in boards/ if e.g. it takes

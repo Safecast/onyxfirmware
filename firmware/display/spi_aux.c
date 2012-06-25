@@ -71,6 +71,7 @@ void spi_aux_enable_device(spi_dev *dev,
 
 
 //TODO: if merged back to libmaple, this will need fixing for different board types.
+
 static const struct spi_pins board_spi_pins[2] __attr_flash = {
     {BOARD_SPI1_NSS_PIN,
      BOARD_SPI1_SCK_PIN,
@@ -118,8 +119,8 @@ static void configure_gpios(spi_dev *dev, bool as_master) {
         return;
     }
 
-    const stm32_pin_info *nssi = &PIN_MAP[pins->nss];
-    const stm32_pin_info *scki = &PIN_MAP[pins->sck];
+    const stm32_pin_info *nssi  = &PIN_MAP[pins->nss];
+    const stm32_pin_info *scki  = &PIN_MAP[pins->sck];
     const stm32_pin_info *misoi = &PIN_MAP[pins->miso];
     const stm32_pin_info *mosii = &PIN_MAP[pins->mosi];
 
