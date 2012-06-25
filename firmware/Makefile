@@ -22,4 +22,4 @@ firmware: main.cpp $(LIBMAPLEOBJS) $(OUROBJS)
 	arm-none-eabi-objcopy -v -Obinary safecast.elf safecast.bin
 
 clean:
-	rm safecast.bin safecast.elf safecast.map $(LIBMAPLEOBJS) $(OUTOBJS)
+	rm safecast.bin safecast.elf safecast.map $(LIBMAPLEOBJS) $(OUROBJS)
