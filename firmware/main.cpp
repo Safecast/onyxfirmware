@@ -9,7 +9,7 @@
 #include "Display.h"
 //#include "Buzzer.h"
 #include "power.h"
-#include "captouch.h"
+//#include "captouch.h"
 #include "safecast_config.h"
 
 #define LED_GPIO 25       // PD2
