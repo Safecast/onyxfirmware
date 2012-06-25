@@ -3,6 +3,6 @@
 sudo rmmod ftdi_sio
 sudo rmmod usbserial
 ./fwload -f ../firmware/safecast.bin
-#./fwload -f ~/gitcode/libmaple/build/safecast.bin
+#./fwload -f ../bins/safecast_oled.bin
 sudo modprobe usbserial
 sudo modprobe ftdi_sio

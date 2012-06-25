@@ -11,6 +11,8 @@ public:
   void initialise() {
     oled_init();
   }
-  void test() {}
+
+  void test() {
+  }
 
 };

@@ -22,6 +22,7 @@ firmware: main.cpp
 	arm-none-eabi-gcc $(GLOBAL_CFLAGS) -c libmaple/nvic.c -o nvic.o
 	arm-none-eabi-gcc $(GLOBAL_CFLAGS) -c libmaple/exti.c -o exti.o
 	arm-none-eabi-gcc $(GLOBAL_CFLAGS) -c libmaple/flash.c -o flash.o
+	arm-none-eabi-gcc $(GLOBAL_CFLAGS) -c ./display/spi_aux.c -I./libmaple -I. -o spi_aux.o
 
 	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -I./libmaple -I./wirish -I./wirish/boards -I./wirish/comm -c wirish/boards.cpp -o ./boards.o
 	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -I./libmaple -I./wirish -I./wirish/boards -I./wirish/comm -c wirish/ext_interrupts.cpp -o ./ext_interrupts.o
@@ -34,7 +35,7 @@ firmware: main.cpp
 	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -Iwirish -Iwirish/comm -I./libmaple -I./wirish/boards -c ./wirish/HardwareTimer.cpp -o HardwareTimer.o
 	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -Iwirish -Iwirish/comm -I./libmaple -I./wirish/boards -c ./wirish/Print.cpp -o Print.o
 	arm-none-eabi-g++ $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS) -Iwirish -Iwirish/comm -I./libmaple -I./wirish/boards -c wirish/wirish_time.cpp -o ./wirish_time.o
-	arm-none-eabi-g++ -T./jtag.ld -mcpu=cortex-m3 -mthumb -Xlinker --gc-sections --print-gc-sections --march=armv7-m -Wall main.o oled.o spi.o power.o wirish_digital.o HardwareSPI.o wirish_time.o gpio.o rcc.o boards_safecast.o timer.o adc.o util.o syscalls.o usart.o HardwareTimer.o captouch.o i2c.o ext_interrupts.o systick.o nvic.o exti.o boards.o flash.o -o safecast.elf -Wl,-Map,safecast.map 
+	arm-none-eabi-g++ -T./jtag.ld -mcpu=cortex-m3 -mthumb -Xlinker --gc-sections --print-gc-sections --march=armv7-m -Wall spi.o spi_aux.o oled.o main.o power.o wirish_digital.o HardwareSPI.o wirish_time.o gpio.o rcc.o boards_safecast.o timer.o adc.o util.o syscalls.o usart.o HardwareTimer.o captouch.o i2c.o ext_interrupts.o systick.o nvic.o exti.o boards.o flash.o -o safecast.elf -Wl,-Map,safecast.map 
 
 	arm-none-eabi-objcopy -v -Obinary safecast.elf safecast.bin
 

@@ -3,13 +3,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "wirish.h"
+//#include "wirish.h"
 #include "oled.h"
-#include "HardwareSPI.h"
-#include "wirish_time.h"
+#include "spi_aux.h"
+#include "delay.h"
+//#include "HardwareSPI.h"
+//#include "wirish_time.h"
 
-#define LCD_DC_GPIO 31
-#define LCD_CS_GPIO 33
+#define LCD_SPI      SPI2
+#define LCD_DC_GPIO  31
+#define LCD_CS_GPIO  33
 #define LCD_PWR_GPIO 16
 #define LCD_RES_GPIO 17
 
@@ -18,39 +21,41 @@
 #define NOTE(x) Serial1.print(__FILE__); Serial1.print(":"); Serial1.print(__LINE__); Serial1.print(" "); Serial1.println(x);
 #define RGB16(r, b, g) ((((r)<<11L)&0x1fL) | (((g)<<5L)&0x3fL) | (((b)<<0L)&0x1fL))
 
-static HardwareSPI *spi;
+//static HardwareSPI *spi;
 
 static void
 write_c(unsigned char out_command)
 {	
     digitalWrite(LCD_DC_GPIO, 0);
-    spi->write(out_command);
-    delayMicroseconds(70);
+
+    spi_aux_write(LCD_SPI,&out_command,1);
+    delay_us(70);
 }
 
 static void
 write_d_stream(void *data, unsigned int count)
 {
     digitalWrite(LCD_DC_GPIO, 1);
-    spi->write((uint8 *)data, count);
-    delayMicroseconds(70);
+    spi_aux_write(LCD_SPI,(uint8 *)data, count);
+    delay_us(70);
 }
 
 static void
 write_d(unsigned char out_data)
 {
     digitalWrite(LCD_DC_GPIO, 1);
-    spi->write(out_data);
-    delayMicroseconds(70);
+    spi_aux_write(LCD_SPI,&out_data,1);
+    delay_us(70);
 }
 
 
 static void
 platform_init(void)
 {
-    spi = new HardwareSPI(2);
-    spi->begin(SPI_9MHZ, MSBFIRST, SPI_MODE_3);
-
+    //spi = new HardwareSPI(2);
+    //spi->begin(SPI_9MHZ, MSBFIRST, SPI_MODE_3);
+    spi_aux_enable_device(SPI2,true,SPI_9MHZ,SPI_FRAME_MSB,SPI_MODE_3);
+    
     /* Set the data/command pin to be a GPIO */
     pinMode(LCD_DC_GPIO, OUTPUT);
     digitalWrite(LCD_DC_GPIO, 0);
@@ -62,12 +67,12 @@ platform_init(void)
     /* Turn the display on */
     pinMode(LCD_PWR_GPIO, OUTPUT);
     digitalWrite(LCD_PWR_GPIO, 1);
-    delayMicroseconds(2000); /* Documentation says at least 1ms */
+    delay_us(2000); /* Documentation says at least 1ms */
 
     /* Reset the display */
     pinMode(LCD_RES_GPIO, OUTPUT);
     digitalWrite(LCD_RES_GPIO, 0);
-	delayMicroseconds(20); /* Documentation says at least 2us */
+    delay_us(20); /* Documentation says at least 2us */
     digitalWrite(LCD_RES_GPIO, 1);
 }
 
@@ -402,7 +407,7 @@ void oled_init(void)
     Set_VCOMH(0x05);                // Set Common Pins Deselect Voltage Level as 0.82*VCC
     Set_Display_Mode(0x02);         // Normal Display Mode (0x00/0x01/0x02/0x03)
     CLS();                          // Clear Screen
-    delayMicroseconds(1000);
+    delay_us(1000);
     Set_Display_On();
 }
 
@@ -415,7 +420,7 @@ void oled_deinit(void)
     //==============================
     Set_Display_Off();
     digitalWrite(LCD_PWR_GPIO, 0); // cuts power to the display
-    delay(250); // give it 250ms to discharge, hard wait; prevent issues with switch bounce
+    delay_us(250000); // give it 250ms to discharge, hard wait; prevent issues with switch bounce
 }
 
 void oled_draw_rect(uint8 x, uint8 y, uint8 w, uint8 h, uint8 *data)

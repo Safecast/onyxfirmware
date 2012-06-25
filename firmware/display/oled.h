@@ -16,7 +16,7 @@
 
 #include "io.h"
 #include "spi.h"
-#include "boards.h"
+//#include "boards.h"
 #include <stdint.h>
 
 //#define SSD1339
