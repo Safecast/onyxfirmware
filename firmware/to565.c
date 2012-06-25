@@ -32,8 +32,8 @@ void to_565_raw(void)
     unsigned short out;
 
     while(read(0, in, 3) == 3) {
-        //out = to565(in[0],in[1],in[2]);
-        out = to565(0,0,in[0]);
+        out = to565(in[0],in[1],in[2]);
+        //out = to565(0,0,in[0]);
         write(1, &out, 2);
     }
     return;

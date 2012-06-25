@@ -1,7 +1,7 @@
 #include "oled.h"
 
-extern uint8_t _binary_image_data_start;
-extern uint8_t _binary_image_data_size;
+extern uint8_t _binary_image_1_data_start;
+extern uint8_t _binary_image_1_data_size;
 
 class Display {
 
@@ -26,7 +26,7 @@ public:
   }
 
   void dump_image() {
-    oled_draw_rect(0,0,128,128,(uint8_t *) &_binary_image_data_start);
+    oled_draw_rect(0,0,128,127,((uint8_t *) &_binary_image_1_data_start)+1);
   }
 
 };

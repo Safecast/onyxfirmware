@@ -422,7 +422,7 @@ void oled_init(void)
     Set_Multiplex_Ratio(0x7F);      // 1/128 Duty (0x0F~0x7F)
     Set_Display_Offset(0x00);       // Shift Mapping RAM Counter (0x00~0x7F)
     Set_Start_Line(0x00);           // Set Mapping RAM Display Start Line (0x00~0x7F)
-    Set_Remap_Format(0x70);         // Set Horizontal Address Increment
+    Set_Remap_Format(0x74);         // Set Horizontal Address Increment
                                     //     Column Address 0 Mapped to SEG0
                                     //     Color Sequence D[15:0]=[RRRRR:GGGGGG:BBBBB]
                                     //     Scan from COM127 to COM0
