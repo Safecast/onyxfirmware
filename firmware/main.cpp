@@ -64,7 +64,7 @@ int main(void) {
 
     d.test();
     for(int n=0;n<10;n++) {
-      delay_us(100000);
+      delay_us(1000000);
       b.buzz();
     }
 
@@ -72,5 +72,6 @@ int main(void) {
     b.powerdown();
     u.powerdown();
 
+    for(;;);
     return 0;
 }

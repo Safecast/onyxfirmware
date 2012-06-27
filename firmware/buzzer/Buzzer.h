@@ -2,6 +2,7 @@
 
 #define BUZZER_PWM   24 // PB9
 #define BUZZ_RATE    250  // in microseconds; set to 4kHz = 250us
+#define MAX_RELOAD ((1 << 16) - 1)
 
 void handler_buzz(void) {
     gpio_toggle_bit(PIN_MAP[BUZZER_PWM].gpio_device, PIN_MAP[BUZZER_PWM].gpio_bit);
@@ -37,11 +38,11 @@ public:
     //setup period
 
     //TODO: fix this so it uses both prescaler and reload...
-    timer_set_prescaler(TIMER4,freq*CYCLES_PER_MICROSECOND);
-    timer_set_reload(TIMER4,1);
+    timer_set_prescaler(TIMER4,(freq*CYCLES_PER_MICROSECOND)/MAX_RELOAD);
+    timer_set_reload(TIMER4,MAX_RELOAD);
   }
 
-  void buzz(uint16_t time=5000) {
+  void buzz(uint16_t time=50000) {
     timer_resume(TIMER4);
     delay_us(time);
     timer_pause(TIMER4);

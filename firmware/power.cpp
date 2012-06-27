@@ -72,24 +72,13 @@ power_init(void)
     gpio_set_mode (PIN_MAP[BATT_MEASURE_ADC]  .gpio_device,PIN_MAP[BATT_MEASURE_ADC]  .gpio_bit,GPIO_INPUT_ANALOG);
     gpio_set_mode (PIN_MAP[MAGSENSE_GPIO]     .gpio_device,PIN_MAP[MAGSENSE_GPIO]     .gpio_bit,GPIO_INPUT_PD);
 
-//    pinMode(MANUAL_WAKEUP_GPIO, INPUT);
-//    pinMode(CHG_STAT2_GPIO, INPUT);
-//    pinMode(CHG_STAT1_GPIO, INPUT);
-//    pinMode(WAKEUP_GPIO, INPUT);
-//    pinMode(BATT_MEASURE_ADC, INPUT_ANALOG);
-//    pinMode(MAGSENSE_GPIO, INPUT);
-
     // setup and initialize the outputs
     // initially, don't measure battery voltage
-//    pinMode(MEASURE_FET_GPIO, OUTPUT);
-//    digitalWrite(MEASURE_FET_GPIO, 0);
     gpio_set_mode (PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,GPIO_OUTPUT_PP);
     gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
     
 
     // initially, turn off the hall effect sensor
-//    pinMode(MAGPOWER_GPIO, OUTPUT);
-//    digitalWrite(MAGPOWER_GPIO, 0);
     gpio_set_mode (PIN_MAP[MAGPOWER_GPIO].gpio_device,PIN_MAP[MAGPOWER_GPIO].gpio_bit,GPIO_OUTPUT_PP);
     gpio_write_bit(PIN_MAP[MAGPOWER_GPIO].gpio_device,PIN_MAP[MAGPOWER_GPIO].gpio_bit,0);
 
@@ -99,18 +88,12 @@ power_init(void)
     // until we hook it up to a proper DAC output
     gpio_set_mode (PIN_MAP[LIMIT_VREF_DAC].gpio_device,PIN_MAP[LIMIT_VREF_DAC].gpio_bit,GPIO_OUTPUT_PP);
     gpio_write_bit(PIN_MAP[LIMIT_VREF_DAC].gpio_device,PIN_MAP[LIMIT_VREF_DAC].gpio_bit,0);
-    //pinMode(LIMIT_VREF_DAC, OUTPUT);
-    //digitalWrite(LIMIT_VREF_DAC, 0);
     
     // initially, charge timer is enabled (active low)
     gpio_set_mode (PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_device,PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_bit,GPIO_OUTPUT_PP);
     gpio_write_bit(PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_device,PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_bit,0);
-    //pinMode(CHG_TIMEREN_N_GPIO, OUTPUT);
-    //digitalWrite(CHG_TIMEREN_N_GPIO, 0);
 
     // initially OLED is off
-    //pinMode(LED_PWR_ENA_GPIO, OUTPUT);
-    //digitalWrite(LED_PWR_ENA_GPIO, 0);
     gpio_set_mode (PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,GPIO_OUTPUT_PP);
     gpio_write_bit(PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,0);
 
@@ -135,11 +118,8 @@ power_battery_level(void) {
     cr2 |= ADC_CR2_TSEREFE; // enable reference voltage only for this measurement
     ADC1->regs->CR2 = cr2;
 
-    //digitalWrite(MEASURE_FET_GPIO, 1);
     gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,1);
-//    battVal = (uint32) analogRead(BATT_MEASURE_ADC) * 1000;
     battVal = (uint32) adc_read(PIN_MAP[BATT_MEASURE_ADC].adc_device,PIN_MAP[BATT_MEASURE_ADC].adc_channel);
-    //digitalWrite(MEASURE_FET_GPIO, 0);
     gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
 
     vrefVal = (uint32) adc_read(ADC1, 17);
@@ -212,10 +192,7 @@ power_is_battery_low(void)
             // again, a minimal set of operations done to save power; these are lifted from
             // setup_gpio()
             gpio_set_mode(PIN_MAP[BATT_MEASURE_ADC].gpio_device,PIN_MAP[BATT_MEASURE_ADC].gpio_bit,GPIO_INPUT_ANALOG);
-//            pinMode(BATT_MEASURE_ADC, INPUT_ANALOG);
             gpio_set_mode(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,GPIO_OUTPUT_PP);
-//            pinMode(MEASURE_FET_GPIO, OUTPUT);
-//            digitalWrite(MEASURE_FET_GPIO, 0);
             gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
  
         } else {
@@ -262,11 +239,8 @@ int power_deinit(void)
 
 int power_switch_state(void)
 {
-
    int bit = gpio_read_bit(PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit);
    if(bit == 1) return true; else return false;
-   
-   // return digitalRead(MANUAL_WAKEUP_GPIO) == HIGH;
 }
 
 int power_get_state(void)
