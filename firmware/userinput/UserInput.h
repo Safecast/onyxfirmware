@@ -8,6 +8,7 @@ public:
   }
 
   void initialise() {
+    cap_init();
   }
 
   void powerup() {}
