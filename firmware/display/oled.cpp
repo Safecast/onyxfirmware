@@ -457,10 +457,12 @@ void oled_deinit(void)
     //Serial1.println("Turning display off...");
     //==============================
     Set_Display_Off();
+
+    // cuts power to the display
     gpio_write_bit(PIN_MAP[LCD_PWR_GPIO].gpio_device,
                    PIN_MAP[LCD_PWR_GPIO].gpio_bit,
                    0);
-    //digitalWrite(LCD_PWR_GPIO, 0); // cuts power to the display
+
     delay_us(250000); // give it 250ms to discharge, hard wait; prevent issues with switch bounce
 }
 

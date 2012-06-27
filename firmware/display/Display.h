@@ -30,5 +30,7 @@ public:
   }
 
   void powerup  () {}
-  void powerdown() {}
+  void powerdown() {
+    oled_deinit();
+  }
 };
