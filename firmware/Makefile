@@ -12,7 +12,7 @@ CXX = arm-none-eabi-g++
 
 LIBMAPLEOBJS = libmaple/spi.o libmaple/rcc.o libmaple/timer.o libmaple/adc.o libmaple/util.o libmaple/syscalls.o libmaple/usart.o libmaple/gpio.o libmaple/i2c.o libmaple/systick.o libmaple/nvic.o libmaple/exti.o libmaple/flash.o
 
-OUROBJS = ./display/spi_aux.o ./display/oled.o ./power.o ./wirish_boards.o ./safecast_config.o ./main.o
+OUROBJS = ./display/spi_aux.o ./display/oled.o ./userinput/captouch.o ./power.o ./wirish_boards.o ./safecast_config.o ./main.o 
 
 firmware: main.cpp $(LIBMAPLEOBJS) $(OUROBJS) to565
 	convert safemed128.png -depth 8 RGB:image_1_data888

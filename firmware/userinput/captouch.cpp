@@ -2,8 +2,10 @@
 // USART1.
 
 //#include "wirish.h"
+#include "safecast_config.h"
 #include "mpr121.h"
 #include "i2c.h"
+#include "exti.h"
 
 #define CAPTOUCH_ADDR 0x5A
 #define CAPTOUCH_I2C I2C1
@@ -39,13 +41,14 @@ mpr121Write(uint8 addr, uint8 value)
     msg.data = bytes;
 
     result = i2c_master_xfer(i2c, &msg, 1, 100);
+/*
     if (!result) {
         Serial1.print(addr, 16); Serial1.print(" -> "); Serial1.print(value); Serial1.print("\r\n");
     }
     else {
         Serial1.print(addr, 16); Serial1.print(" err "); Serial1.print(result); Serial1.print("\r\n");
     }
-
+*/
     return;
 }
 
@@ -79,7 +82,7 @@ cap_change(void)
     if(touchInit) {
         touchService = 1; // flag that we're ready to be serviced
 
-        toggleLED();
+       // toggleLED();
     }
 
     board_state = mpr121Read(TCH_STATL);
@@ -95,10 +98,10 @@ cap_init(void)
     i2c = CAPTOUCH_I2C;
     i2c_init(i2c);
     i2c_master_enable(i2c, 0);
-    Serial1.print(".");
+    //Serial1.print(".");
 
     mpr121Write(ELE_CFG, 0x00);   // disable electrodes for config
-    delay(100);
+    delay_us(100000);
 
     // Section A
     // This group controls filtering when data is > baseline.
@@ -166,7 +169,7 @@ cap_init(void)
     // Enable Auto Config and auto Reconfig
     mpr121Write(ATO_CFG0, 0x3B); // must match AFE_CONF setting of 6 samples, retry enabled
 
-    delay(100);
+    delay_us(100000);
 
     // Section E
     // Electrode Configuration
@@ -174,11 +177,16 @@ cap_init(void)
     // Set ELE_CFG to 0x00 to return to standby mode
     mpr121Write(ELE_CFG, 0x0C);   // Enables all 12 Electrodes
     //mpr121Write(ELE_CFG, 0x06);     // Enable first 6 electrodes
-    delay(100);
+    delay_us(100000);
 
-    pinMode(CAPTOUCH_GPIO, INPUT);  
-    attachInterrupt(CAPTOUCH_GPIO, cap_change, FALLING);
-    attachInterrupt(CAPTOUCH_GPIO, cap_change, RISING);
+//    pinMode(CAPTOUCH_GPIO, INPUT);
+    gpio_set_mode(PIN_MAP[CAPTOUCH_GPIO].gpio_device,PIN_MAP[CAPTOUCH_GPIO].gpio_bit,GPIO_INPUT_PD);
+    
+    exti_attach_interrupt((afio_exti_num)(PIN_MAP[CAPTOUCH_GPIO].gpio_bit), gpio_exti_port(PIN_MAP[CAPTOUCH_GPIO].gpio_device), cap_change, EXTI_FALLING);
+    exti_attach_interrupt((afio_exti_num)(PIN_MAP[CAPTOUCH_GPIO].gpio_bit), gpio_exti_port(PIN_MAP[CAPTOUCH_GPIO].gpio_device), cap_change, EXTI_RISING);
+
+//    attachInterrupt(CAPTOUCH_GPIO, cap_change, FALLING);
+//    attachInterrupt(CAPTOUCH_GPIO, cap_change, RISING);
 
     touchInit = 1;
     return;
@@ -187,7 +195,9 @@ cap_init(void)
 void
 cap_deinit(void)
 {
-    detachInterrupt(CAPTOUCH_GPIO);
+ //   detachInterrupt(CAPTOUCH_GPIO);
+    exti_detach_interrupt((afio_exti_num)(PIN_MAP[CAPTOUCH_GPIO].gpio_bit));
+
 
     // Disable MPR121 scanning, in case the chip is on
     mpr121Write(ELE_CFG, 0x00);
@@ -209,7 +219,7 @@ cap_setkeyup(void (*new_keyup)(int key))
 }
 
 
-
+/*
 void
 cap_debug(void)
 {
@@ -305,3 +315,4 @@ cap_debug(void)
 
     delay(500);
 }
+*/
