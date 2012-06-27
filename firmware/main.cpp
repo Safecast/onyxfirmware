@@ -5,11 +5,13 @@
 **************************************************/
 
 #include "wirish_boards.h"
-#include "Display.h"
-#include "UserInput.h"
 #include "power.h"
 #include "safecast_config.h"
+
 #include "Buzzer.h"
+#include "Accelerometer.h"
+#include "Display.h"
+#include "UserInput.h"
 
 #define LED_GPIO 25       // PD2
 
@@ -47,9 +49,10 @@ premain()
 
 int main(void) {
 
-    Display   d;
-    Buzzer    b;
-    UserInput u;
+    Display       d;
+    Buzzer        b;
+    UserInput     u;
+    Accelerometer a;
 
     power_set_debug(0);
     power_init();
@@ -61,6 +64,7 @@ int main(void) {
     d.initialise();
     b.initialise();
     u.initialise();
+    a.initialise();
 
     d.test();
     for(int n=0;n<10;n++) {
@@ -71,6 +75,7 @@ int main(void) {
     d.powerdown();
     b.powerdown();
     u.powerdown();
+    a.powerdown();
 
     for(;;);
     return 0;

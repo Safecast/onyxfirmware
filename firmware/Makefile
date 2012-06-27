@@ -1,6 +1,6 @@
 CFLAGS   := -Os -g3 -gdwarf-2  -mcpu=cortex-m3 -mthumb -march=armv7-m \
 		   -nostdlib -ffunction-sections -fdata-sections	     \
-		   -Wl,--gc-sections -DBOARD_safecast -DMCU_STM32F101RE -DSTM32_HIGH_DENSITY -DVECT_TAB_BASE -I. -I./libmaple -I./display -I./userinput -I./buzzer
+		   -Wl,--gc-sections -DBOARD_safecast -DMCU_STM32F101RE -DSTM32_HIGH_DENSITY -DVECT_TAB_BASE -I. -I./libmaple -I./display -I./userinput -I./buzzer -I./accelerometer
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -Wall 
 ASFLAGS  := -mcpu=cortex-m3 -march=armv7-m -mthumb		     \
 		   -x assembler-with-cpp 
@@ -12,7 +12,7 @@ CXX = arm-none-eabi-g++
 
 LIBMAPLEOBJS = libmaple/spi.o libmaple/rcc.o libmaple/timer.o libmaple/adc.o libmaple/util.o libmaple/syscalls.o libmaple/usart.o libmaple/gpio.o libmaple/i2c.o libmaple/systick.o libmaple/nvic.o libmaple/exti.o libmaple/flash.o
 
-OUROBJS = ./display/spi_aux.o ./display/oled.o ./userinput/captouch.o ./power.o ./wirish_boards.o ./safecast_config.o ./main.o 
+OUROBJS = ./display/spi_aux.o ./display/oled.o ./userinput/captouch.o ./accelerometer/accel.o ./power.o ./wirish_boards.o ./safecast_config.o ./main.o 
 
 firmware: main.cpp $(LIBMAPLEOBJS) $(OUROBJS) to565
 	convert safemed128.png -depth 8 RGB:image_1_data888

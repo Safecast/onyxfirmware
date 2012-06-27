@@ -3,11 +3,9 @@
     relies on i2c init by captouch
  ***/
 
-//#include "wirish.h"
-#include "device.h"
+//#include "device.h"
 #include "i2c.h"
-//#include "switch.h"
-
+#include <stdint.h>
 #define ACCEL_I2C I2C1
 #define ACCEL_ADDR 0x1D
 
@@ -29,7 +27,6 @@ accel_write(uint8 addr, uint8 value)
     msg.xferred = 0;
     msg.data    = bytes;
 
-//    if (switch_state(&back_switch))
     result = i2c_master_xfer(i2c, &msg, 1, 1);
 
     return result;
@@ -47,8 +44,7 @@ accel_read(uint8 addr)
     msgs[0].data   = msgs[1].data   = &byte;
     msgs[0].flags = 0;
     msgs[1].flags = I2C_MSG_READ;
-    if (switch_state(&back_switch))
-        i2c_master_xfer(i2c, msgs, 2, 1);
+    i2c_master_xfer(i2c, msgs, 2, 1);
     return byte;
 }
 
@@ -86,7 +82,7 @@ accel_read_state(int *x, int *y, int *z)
         delay_us(1000);
 
     msgs[0].addr   = ACCEL_ADDR;
-    msgs[0].length = sizeof(byte);
+    msgs[0].length = sizeof(uint8_t);
     msgs[0].data   = &addr;
     msgs[0].flags  = 0;
 
@@ -95,8 +91,8 @@ accel_read_state(int *x, int *y, int *z)
     msgs[1].data   = (uint8 *)values;
     msgs[1].flags  = I2C_MSG_READ;
 
-    if (switch_state(&back_switch))
-        result = i2c_master_xfer(i2c, msgs, 2, 1);
+    //if (switch_state(&back_switch))
+    result = i2c_master_xfer(i2c, msgs, 2, 1);
 
     if (x)
         *x = (values[1]<<2) | (values[0]);
@@ -112,22 +108,23 @@ accel_read_state(int *x, int *y, int *z)
 
 
 
-static int
-accel_init(void)
+int accel_init(void)
 {
     return 0;
 }
 
 
+/*
 static int
 accel_resume(struct device *dev)
 {
     return 0;
 }
+*/
 
 
 static int
-accel_suspend(struct device *dev) {
+accel_suspend() {
     /* Set the "mode" to "Standby" */
 //#if WAKEUP_PATCHED
 //#warning Need hardware patch to get this working
@@ -139,14 +136,14 @@ accel_suspend(struct device *dev) {
 
 
 static int
-accel_deinit(struct device *dev)
+accel_deinit()
 {
 //    Serial1.println("De-init accelerometer");
     accel_write(0x16, 0);
     return 0;
 }
 
-
+/*
 struct device accel = {
     accel_init,
     accel_deinit,
@@ -155,3 +152,4 @@ struct device accel = {
 
     "Accelerometer",
 };
+*/
