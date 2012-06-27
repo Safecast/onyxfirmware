@@ -29,4 +29,6 @@ public:
     oled_draw_rect(0,0,128,127,((uint8_t *) &_binary_image_1_data_start)+1);
   }
 
+  void powerup  () {}
+  void powerdown() {}
 };

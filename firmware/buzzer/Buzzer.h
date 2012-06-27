@@ -47,4 +47,7 @@ public:
     timer_pause(TIMER4);
   }
 
+  void powerup() {}
+  void powerdown() {}
+
 };

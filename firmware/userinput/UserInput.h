@@ -10,4 +10,7 @@ public:
   void initialise() {
   }
 
+  void powerup() {}
+  void powerdown() {}
+
 };

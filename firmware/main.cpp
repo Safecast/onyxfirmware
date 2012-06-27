@@ -47,25 +47,30 @@ premain()
 
 int main(void) {
 
-    Display d;
- //   Buzzer b;
+    Display   d;
+    Buzzer    b;
+    UserInput u;
 
     power_set_debug(0);
-    //cap_init();
     power_init();
     setup_gpio();
     
-    //b.initialise();
     power_set_debug(1);
-//    b.buzz();
-//    b.buzz();
-//    b.buzz();
-//    b.buzz();
 
     power_set_state(PWRSTATE_USER);
     d.initialise();
-    d.test();
+    b.initialise();
+    u.initialise();
 
+    d.test();
+    for(int n=0;n<10;n++) {
+      delay_us(100000);
+      b.buzz();
+    }
+
+    d.powerdown();
+    b.powerdown();
+    u.powerdown();
 
     return 0;
 }
