@@ -5,12 +5,11 @@
 **************************************************/
 
 #include "wirish_boards.h"
-//#include "boards.h"
 #include "Display.h"
-//#include "Buzzer.h"
+#include "UserInput.h"
 #include "power.h"
-//#include "captouch.h"
 #include "safecast_config.h"
+#include "Buzzer.h"
 
 #define LED_GPIO 25       // PD2
 
@@ -23,7 +22,6 @@
 #define GEIGER_PULSE_GPIO 42 // PB3
 #define GEIGER_ON_GPIO    4  // PB5
 
-
 void setup_gpio() {
     // setup the inputs
     gpio_set_mode(PIN_MAP[UART_CTS_GPIO].gpio_device,PIN_MAP[UART_CTS_GPIO].gpio_bit,GPIO_INPUT_PD);
@@ -33,9 +31,8 @@ void setup_gpio() {
 
     gpio_set_mode(PIN_MAP[GEIGER_PULSE_GPIO].gpio_device,PIN_MAP[GEIGER_PULSE_GPIO].gpio_bit,GPIO_INPUT_PD);
 
-    gpio_set_mode(PIN_MAP[LED_GPIO].gpio_device,PIN_MAP[LED_GPIO].gpio_bit,GPIO_OUTPUT_PP);
+    gpio_set_mode (PIN_MAP[LED_GPIO].gpio_device,PIN_MAP[LED_GPIO].gpio_bit,GPIO_OUTPUT_PP);
     gpio_write_bit(PIN_MAP[LED_GPIO].gpio_device,PIN_MAP[LED_GPIO].gpio_bit,1);
-//    digitalWrite(LED_GPIO, 1);
 }
 
 // Force init to be called *first*, i.e. before static object allocation.

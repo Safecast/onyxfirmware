@@ -1,6 +1,6 @@
 CFLAGS   := -Os -g3 -gdwarf-2  -mcpu=cortex-m3 -mthumb -march=armv7-m \
 		   -nostdlib -ffunction-sections -fdata-sections	     \
-		   -Wl,--gc-sections -DBOARD_safecast -DMCU_STM32F101RE -DSTM32_HIGH_DENSITY -DVECT_TAB_BASE -I. -I./libmaple -I./display
+		   -Wl,--gc-sections -DBOARD_safecast -DMCU_STM32F101RE -DSTM32_HIGH_DENSITY -DVECT_TAB_BASE -I. -I./libmaple -I./display -I./userinput -I./buzzer
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -Wall 
 ASFLAGS  := -mcpu=cortex-m3 -march=armv7-m -mthumb		     \
 		   -x assembler-with-cpp 
@@ -28,3 +28,4 @@ to565: to565.c
 
 clean:
 	rm safecast.bin safecast.elf safecast.map $(LIBMAPLEOBJS) $(OUROBJS)
+	rm image_1_data*

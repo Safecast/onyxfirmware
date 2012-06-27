@@ -1,7 +1,7 @@
 // Sample main.cpp file. Blinks the built-in LED, sends a message out
 // USART1.
 
-#include "wirish.h"
+//#include "wirish.h"
 #include "mpr121.h"
 #include "i2c.h"
 
@@ -16,8 +16,6 @@
 #define D_KEY (1 << 2)
 #define Q_KEY (1 << 8)
 #define E_KEY (1 << 0)
-
-#define FIRMWARE_VERSION "Safecast firmware v0.1 Jan 28 2012"
 
 static struct i2c_dev *i2c;
 static uint8 touchInit = 0;
