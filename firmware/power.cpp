@@ -65,10 +65,10 @@ static uint8 dbg_batt = 0;
 int
 power_init(void)
 {
-    gpio_set_mode (PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit,GPIO_INPUT_PD);
+//    gpio_set_mode (PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit,GPIO_INPUT_PD);
     gpio_set_mode (PIN_MAP[CHG_STAT2_GPIO]    .gpio_device,PIN_MAP[CHG_STAT2_GPIO]    .gpio_bit,GPIO_INPUT_PD);
     gpio_set_mode (PIN_MAP[CHG_STAT1_GPIO]    .gpio_device,PIN_MAP[CHG_STAT1_GPIO]    .gpio_bit,GPIO_INPUT_PD);
-    gpio_set_mode (PIN_MAP[WAKEUP_GPIO]       .gpio_device,PIN_MAP[WAKEUP_GPIO]       .gpio_bit,GPIO_INPUT_PD);
+//    gpio_set_mode (PIN_MAP[WAKEUP_GPIO]       .gpio_device,PIN_MAP[WAKEUP_GPIO]       .gpio_bit,GPIO_INPUT_PD);
     gpio_set_mode (PIN_MAP[BATT_MEASURE_ADC]  .gpio_device,PIN_MAP[BATT_MEASURE_ADC]  .gpio_bit,GPIO_INPUT_ANALOG);
     gpio_set_mode (PIN_MAP[MAGSENSE_GPIO]     .gpio_device,PIN_MAP[MAGSENSE_GPIO]     .gpio_bit,GPIO_INPUT_PD);
 
@@ -94,8 +94,8 @@ power_init(void)
     gpio_write_bit(PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_device,PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_bit,0);
 
     // initially OLED is off
-    gpio_set_mode (PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,GPIO_OUTPUT_PP);
-    gpio_write_bit(PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,0);
+//    gpio_set_mode (PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,GPIO_OUTPUT_PP);
+//    gpio_write_bit(PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,0);
 
     return 0;
 }
@@ -237,11 +237,12 @@ int power_deinit(void)
     return 0;
 }
 
-int power_switch_state(void)
-{
-   int bit = gpio_read_bit(PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit);
-   if(bit == 1) return true; else return false;
-}
+
+//int power_switch_state(void)
+//{
+//   int bit = gpio_read_bit(PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit);
+//   if(bit == 1) return true; else return false;
+//}
 
 int power_get_state(void)
 {

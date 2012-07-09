@@ -13,7 +13,7 @@ MEMORY
 }
 
 /*
- * Use medium density device vector table
+ * Use high density device vector table
  */
 GROUP(libcs3_stm32_high_density.a)
 

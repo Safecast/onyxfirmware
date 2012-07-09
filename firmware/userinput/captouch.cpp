@@ -1,4 +1,4 @@
-// Sample main.cpp file. Blinks the built-in LED, sends a message out
+// Captouch
 // USART1.
 
 //#include "wirish.h"
@@ -37,10 +37,9 @@ mpr121Write(uint8 addr, uint8 value)
     msg.addr = CAPTOUCH_ADDR;
     msg.flags = 0;
     msg.length = sizeof(bytes);
-    msg.xferred = 0;
     msg.data = bytes;
 
-    result = i2c_master_xfer(i2c, &msg, 1, 100);
+    result = i2c_master_xfer(i2c, &msg, 1, 2000);
 /*
     if (!result) {
         Serial1.print(addr, 16); Serial1.print(" -> "); Serial1.print(value); Serial1.print("\r\n");
@@ -82,6 +81,15 @@ cap_change(void)
     if(touchInit) {
         touchService = 1; // flag that we're ready to be serviced
 
+  for(int i=0;i<1;i++) {
+    for(int n=0;n<1000;n++) {
+      gpio_toggle_bit(GPIOB,9);
+      delay_us(1000);
+    }
+    delay_us(100000);
+  }
+
+
        // toggleLED();
     }
 
@@ -95,13 +103,24 @@ cap_change(void)
 void
 cap_init(void)
 {
+
+    gpio_write_bit(PIN_MAP[9].gpio_device,PIN_MAP[9].gpio_bit,1);
+    gpio_write_bit(PIN_MAP[9].gpio_device,PIN_MAP[5].gpio_bit,1);
+    gpio_set_mode(PIN_MAP[9].gpio_device,PIN_MAP[5].gpio_bit,GPIO_OUTPUT_PP);
+    gpio_set_mode(PIN_MAP[9].gpio_device,PIN_MAP[5].gpio_bit,GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[9].gpio_device,PIN_MAP[9].gpio_bit,1);
+    gpio_write_bit(PIN_MAP[9].gpio_device,PIN_MAP[5].gpio_bit,1);
+    delay_us(1000);
+    gpio_set_mode(PIN_MAP[9].gpio_device,PIN_MAP[5].gpio_bit,GPIO_INPUT_PD);
+    gpio_set_mode(PIN_MAP[9].gpio_device,PIN_MAP[5].gpio_bit,GPIO_INPUT_PD);
+
     i2c = CAPTOUCH_I2C;
     i2c_init(i2c);
     i2c_master_enable(i2c, 0);
     //Serial1.print(".");
 
     mpr121Write(ELE_CFG, 0x00);   // disable electrodes for config
-    delay_us(100000);
+    delay_us(100);
 
     // Section A
     // This group controls filtering when data is > baseline.
@@ -169,7 +188,7 @@ cap_init(void)
     // Enable Auto Config and auto Reconfig
     mpr121Write(ATO_CFG0, 0x3B); // must match AFE_CONF setting of 6 samples, retry enabled
 
-    delay_us(100000);
+    delay_us(100);
 
     // Section E
     // Electrode Configuration
@@ -177,16 +196,19 @@ cap_init(void)
     // Set ELE_CFG to 0x00 to return to standby mode
     mpr121Write(ELE_CFG, 0x0C);   // Enables all 12 Electrodes
     //mpr121Write(ELE_CFG, 0x06);     // Enable first 6 electrodes
-    delay_us(100000);
+    delay_us(100);
 
 //    pinMode(CAPTOUCH_GPIO, INPUT);
     gpio_set_mode(PIN_MAP[CAPTOUCH_GPIO].gpio_device,PIN_MAP[CAPTOUCH_GPIO].gpio_bit,GPIO_INPUT_PD);
     
-    exti_attach_interrupt((afio_exti_num)(PIN_MAP[CAPTOUCH_GPIO].gpio_bit), gpio_exti_port(PIN_MAP[CAPTOUCH_GPIO].gpio_device), cap_change, EXTI_FALLING);
-    exti_attach_interrupt((afio_exti_num)(PIN_MAP[CAPTOUCH_GPIO].gpio_bit), gpio_exti_port(PIN_MAP[CAPTOUCH_GPIO].gpio_device), cap_change, EXTI_RISING);
+    exti_attach_interrupt((afio_exti_num)(PIN_MAP[CAPTOUCH_GPIO].gpio_bit), gpio_exti_port(PIN_MAP[CAPTOUCH_GPIO].gpio_device), cap_change, EXTI_RISING_FALLING);
+//    exti_attach_interrupt((afio_exti_num)(PIN_MAP[CAPTOUCH_GPIO].gpio_bit), gpio_exti_port(PIN_MAP[CAPTOUCH_GPIO].gpio_device), cap_change, EXTI_RISING);
 
 //    attachInterrupt(CAPTOUCH_GPIO, cap_change, FALLING);
 //    attachInterrupt(CAPTOUCH_GPIO, cap_change, RISING);
+
+    mpr121Read(TCH_STATL);
+    mpr121Read(TCH_STATH);
 
     touchInit = 1;
     return;

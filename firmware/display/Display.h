@@ -1,4 +1,5 @@
 #include "oled.h"
+#include "nfont.h"
 
 extern uint8_t _binary_image_1_data_start;
 extern uint8_t _binary_image_1_data_size;
@@ -23,6 +24,10 @@ public:
 
     oled_draw_rect(10,10,20,20,data);
 */
+  }
+
+  void draw_text(int x,int y,char *text,int16_t background) {
+    ::draw_text(x,y,text,background);
   }
 
   void dump_image() {

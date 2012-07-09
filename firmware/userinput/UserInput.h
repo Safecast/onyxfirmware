@@ -12,6 +12,7 @@ public:
   }
 
   void powerup() {}
+
   void powerdown() {
     cap_deinit();
   }

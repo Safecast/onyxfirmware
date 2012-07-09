@@ -1,3 +1,6 @@
+#ifndef BUZZER_H
+#define BUZZER_H
+
 #include "delay.h"
 
 #define BUZZER_PWM   24 // PB9
@@ -21,34 +24,37 @@ public:
     gpio_write_bit(PIN_MAP[BUZZER_PWM].gpio_device,PIN_MAP[BUZZER_PWM].gpio_bit,0);
 
     // pause timer during setup
-    timer_pause(TIMER4);
 
     set_frequency(BUZZ_RATE);
+  }
+
+  void set_frequency(uint16_t freq) {
+    m_frequency = freq;
+  }
+
+  void buzz(uint16_t time=50000) {
+    timer_pause(TIMER4);
+    //TODO: fix this so it uses both prescaler and reload...
+    timer_set_prescaler(TIMER4,(m_frequency*CYCLES_PER_MICROSECOND)/MAX_RELOAD);
+    timer_set_reload(TIMER4,MAX_RELOAD);
 
     // setup interrupt on channel 4
     timer_set_mode(TIMER4,TIMER_CH4,TIMER_OUTPUT_COMPARE);
     timer_set_compare(TIMER4,TIMER_CH4,1);
     timer_attach_interrupt(TIMER4,TIMER_CH4,handler_buzz);
-    
-    // refresh timer count, prescale, overflow
-    timer_generate_update(TIMER4);
-  }
 
-  void set_frequency(uint16_t freq) {
-    //setup period
+    timer_generate_update(TIMER4); // refresh timer count, prescale, overflow
 
-    //TODO: fix this so it uses both prescaler and reload...
-    timer_set_prescaler(TIMER4,(freq*CYCLES_PER_MICROSECOND)/MAX_RELOAD);
-    timer_set_reload(TIMER4,MAX_RELOAD);
-  }
-
-  void buzz(uint16_t time=50000) {
+    // buzz
     timer_resume(TIMER4);
     delay_us(time);
-    timer_pause(TIMER4);
+    timer_disable(TIMER4);
   }
 
   void powerup() {}
   void powerdown() {}
 
+  uint16_t m_frequency;
 };
+
+#endif

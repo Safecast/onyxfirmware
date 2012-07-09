@@ -186,6 +186,7 @@ static inline void clear_pending_msk(uint32 exti_msk) {
 /* This dispatch routine is for non-multiplexed EXTI lines only; i.e.,
  * it doesn't check EXTI_PR. */
 static inline void dispatch_single_exti(uint32 exti) {
+
     voidFuncPtr handler = exti_channels[exti].handler;
 
     if (!handler) {
