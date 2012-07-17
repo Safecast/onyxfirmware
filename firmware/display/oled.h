@@ -89,5 +89,11 @@ void oled_draw_rect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t *data);
 
 void oled_blank(void);
 void oled_unblank(void);
+void Set_Row_Address(unsigned char a, unsigned char b);
+void Set_Column_Address(unsigned char a, unsigned char b);
+void write_d(unsigned char out_data);
+void write_c(unsigned char out_command);
+
+void CLS(void);
 
 #endif

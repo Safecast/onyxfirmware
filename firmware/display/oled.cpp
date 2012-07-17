@@ -25,7 +25,7 @@
 
 //static HardwareSPI *spi;
 
-static void
+void
 write_c(unsigned char out_command)
 {	
     gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
@@ -37,7 +37,7 @@ write_c(unsigned char out_command)
     delay_us(70);
 }
 
-static void
+void
 write_d_stream(void *data, unsigned int count)
 {
     gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
@@ -48,8 +48,7 @@ write_d_stream(void *data, unsigned int count)
     delay_us(70);
 }
 
-static void
-write_d(unsigned char out_data)
+void write_d(unsigned char out_data)
 {
     gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
                    PIN_MAP[LCD_DC_GPIO].gpio_bit,
@@ -129,7 +128,7 @@ platform_init(void)
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //  Instruction Setting
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-static void Set_Column_Address(unsigned char a, unsigned char b)
+void Set_Column_Address(unsigned char a, unsigned char b)
 {
     write_c(0x15);            // Set Column Address
     write_d(a);              //   Default => 0x00 (Start Address)
@@ -137,7 +136,7 @@ static void Set_Column_Address(unsigned char a, unsigned char b)
 }
 
 
-static void Set_Row_Address(unsigned char a, unsigned char b)
+void Set_Row_Address(unsigned char a, unsigned char b)
 {
     write_c(0x75);            // Set Row Address
     write_d(a);              //   Default => 0x00 (Start Address)
@@ -285,13 +284,13 @@ static void Set_VCOMH(unsigned char d)
 //=========================================================
 // Clear OLED GDRAM
 //========================================================= 
-static void CLS(void)
+void CLS(void)
 {
     unsigned int i;
     Home();
     write_c(0x5C);    // Enable MCU to Read from RAM
     for (i=1; i<=((Max_Column+1)*(Max_Row+1)) * 2;i++)
-        write_d(0x7f);
+        write_d(0xff);// was 7f 
 }
 
 
@@ -433,6 +432,7 @@ void oled_init(void)
     //Set_Function_Selection(0x00);   // Disable Internal VDD Regulator
                                     // Select 8-bit Parallel Interface
     Set_VSL(0xA0);                  // Enable External VSL
+    //Set_Contrast_Color(0x80,0x80,0x80); // Set Contrast of Color A (Red)
     Set_Contrast_Color(0xC8,0x80,0xC8); // Set Contrast of Color A (Red)
                                     // Set Contrast of Color B (Green)
                                     // Set Contrast of Color C (Blue)

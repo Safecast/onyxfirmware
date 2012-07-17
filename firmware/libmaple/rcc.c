@@ -183,6 +183,24 @@ void rcc_clk_enable(rcc_clk_id id) {
 }
 
 /**
+ * @brief Turn off the clock line on a peripheral
+ * @param id Clock ID of the peripheral to turn off.
+ */
+void rcc_clk_disable(rcc_clk_id id) {
+    static const __io uint32* enable_regs[] = {
+        [APB1] = &RCC_BASE->APB1ENR,
+        [APB2] = &RCC_BASE->APB2ENR,
+        [AHB] = &RCC_BASE->AHBENR,
+    };
+
+    rcc_clk_domain clk_domain = rcc_dev_clk(id);
+    __io uint32* enr = (__io uint32*)enable_regs[clk_domain];
+    uint8 lnum = rcc_dev_table[id].line_num;
+
+    bb_peri_set_bit(enr, lnum, 0);
+}
+
+/**
  * @brief Reset a peripheral.
  * @param id Clock ID of the peripheral to reset.
  */

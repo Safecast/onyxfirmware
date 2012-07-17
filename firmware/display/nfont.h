@@ -10,10 +10,11 @@ extern uint8_t _binary_font_data_size;
 #define to565(r,g,b)                                            \
     ((((r) >> 3) << 11) | (((g) >> 2) << 5) | ((b) >> 3))
 
-int16_t get_pixel(char c,int c_x,int c_y) {
+uint16_t get_pixel(char c,int c_x,int c_y) {
   
   int ypos = (c/(128/8)) * 16;
   int xpos = (c%(128/8)) * 8;
+  ypos+=1;
 
   int bitposition = ((ypos*128)+(c_y*128) + (xpos)+c_x) *2;
 
@@ -43,14 +44,19 @@ int16_t get_pixel(char c,int c_x,int c_y) {
  // return 0;
 }
 
-void draw_character(int x,int y,char c,int16_t background) {
+void draw_character(int x,int y,char c,uint16_t background) {
 
   uint16_t character_data[8*16];
   for(int n=0;n<(8*16);n++) character_data[n]=n;
 
   for(size_t c_y=0;c_y<16;c_y++) {
     for(size_t c_x=0;c_x<8;c_x++) {
-      character_data[(c_y*8)+c_x] = get_pixel(c-32,c_x,c_y);
+      int32_t value = get_pixel(c-32,c_x,c_y) - background;
+      if(value < 0) value=0;
+
+      if(background == 65535) value = background ^ get_pixel(c-32,c_x,c_y); 
+
+      character_data[(c_y*8)+c_x] = value;
     }
   }
 

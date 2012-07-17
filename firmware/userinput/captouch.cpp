@@ -1,4 +1,4 @@
-// Captouch
+// Sample main.cpp file. Blinks the built-in LED, sends a message out
 // USART1.
 
 //#include "wirish.h"
@@ -6,6 +6,7 @@
 #include "mpr121.h"
 #include "i2c.h"
 #include "exti.h"
+#include <stdio.h>
 
 #define CAPTOUCH_ADDR 0x5A
 #define CAPTOUCH_I2C I2C1
@@ -37,9 +38,10 @@ mpr121Write(uint8 addr, uint8 value)
     msg.addr = CAPTOUCH_ADDR;
     msg.flags = 0;
     msg.length = sizeof(bytes);
+    msg.xferred = 0;
     msg.data = bytes;
 
-    result = i2c_master_xfer(i2c, &msg, 1, 2000);
+    result = i2c_master_xfer(i2c, &msg, 1, 100);
 /*
     if (!result) {
         Serial1.print(addr, 16); Serial1.print(" -> "); Serial1.print(value); Serial1.print("\r\n");
@@ -67,43 +69,71 @@ mpr121Read(uint8 addr)
     return byte;
 }
 
-static void
-cap_change(void)
-{
-    int board_state;
+int last_key;
+
+int cap_lastkey() {
+  return last_key;
+}
+
+int cap_clearlastkey() {
+  last_key = -1;
+}
+
+
+char c[100];
+char *diag_data() {
+
+ // int elec2h = mpr121Read(0x08);
+ // int elec2l = mpr121Read(0x09);
+
+ // int elec2_base = mpr121Read(0x20);
+ // int bs = mpr121Read(TCH_STATL);
+c[0]=0;
+  //sprintf(c,"%d %d %d %d",elec2h,elec2l,elec2_base,bs);
+
+  return c; 
+}
+
+static void cap_change(void) {
     /*
     if( digitalRead(MANUAL_WAKEUP_GPIO) == LOW ) {
         touchInit = 0;
         return; // don't initiate service if the unit is powered down
     }
     */
+/*
+  gpio_set_mode (GPIOB,9, GPIO_OUTPUT_PP);
+  for(int n=0;n<100;n++) {
+    gpio_toggle_bit(GPIOB,9);
+    delay_us(1000);
+  }
+  gpio_write_bit(GPIOB,9,0);
+*/
+
 
     if(touchInit) {
         touchService = 1; // flag that we're ready to be serviced
 
-  for(int i=0;i<1;i++) {
-    for(int n=0;n<1000;n++) {
-      gpio_toggle_bit(GPIOB,9);
-      delay_us(1000);
     }
-    delay_us(100000);
-  }
-
-
-       // toggleLED();
-    }
-
+    
+    int board_state=0;
     board_state = mpr121Read(TCH_STATL);
     board_state |= mpr121Read(TCH_STATH) << 8;
+
+    for (int key=0; key<16; key++) {
+      if (board_state&(1<<key)) {
+        last_key = key;
+        return;
+      }
+    }
+
+
     touchService = 0;
 
     return;
 }
 
-void
-cap_init(void)
-{
-
+void cap_init(void) {
     gpio_write_bit(PIN_MAP[9].gpio_device,PIN_MAP[9].gpio_bit,1);
     gpio_write_bit(PIN_MAP[9].gpio_device,PIN_MAP[5].gpio_bit,1);
     gpio_set_mode(PIN_MAP[9].gpio_device,PIN_MAP[5].gpio_bit,GPIO_OUTPUT_PP);
@@ -199,9 +229,9 @@ cap_init(void)
     delay_us(100);
 
 //    pinMode(CAPTOUCH_GPIO, INPUT);
-    gpio_set_mode(PIN_MAP[CAPTOUCH_GPIO].gpio_device,PIN_MAP[CAPTOUCH_GPIO].gpio_bit,GPIO_INPUT_PD);
+    gpio_set_mode(PIN_MAP[CAPTOUCH_GPIO].gpio_device,PIN_MAP[CAPTOUCH_GPIO].gpio_bit,GPIO_INPUT_PU);
     
-    exti_attach_interrupt((afio_exti_num)(PIN_MAP[CAPTOUCH_GPIO].gpio_bit), gpio_exti_port(PIN_MAP[CAPTOUCH_GPIO].gpio_device), cap_change, EXTI_RISING_FALLING);
+    exti_attach_interrupt((afio_exti_num)(PIN_MAP[CAPTOUCH_GPIO].gpio_bit), gpio_exti_port(PIN_MAP[CAPTOUCH_GPIO].gpio_device), cap_change, EXTI_FALLING);
 //    exti_attach_interrupt((afio_exti_num)(PIN_MAP[CAPTOUCH_GPIO].gpio_bit), gpio_exti_port(PIN_MAP[CAPTOUCH_GPIO].gpio_device), cap_change, EXTI_RISING);
 
 //    attachInterrupt(CAPTOUCH_GPIO, cap_change, FALLING);
@@ -212,6 +242,7 @@ cap_init(void)
 
     touchInit = 1;
     return;
+
 }
 
 void
@@ -250,34 +281,6 @@ cap_debug(void)
     int i;
 
     bytes[0] = mpr121Read(TCH_STATL);
-    bytes[1] = mpr121Read(TCH_STATH);
-
-    Serial1.print("Values: [");
-    Serial1.print(bytes[0]&(1<<0)?"1":"0");
-    Serial1.print(" ");
-    Serial1.print(bytes[0]&(1<<2)?"1":"0");
-    Serial1.print(" ");
-    Serial1.print(bytes[0]&(1<<3)?"1":"0");
-    Serial1.print(" ");
-    Serial1.print(bytes[0]&(1<<4)?"1":"0");
-    Serial1.print(" ");
-    Serial1.print(bytes[0]&(1<<6)?"1":"0");
-    Serial1.print(" ");
-    Serial1.print(bytes[1]&(1<<0)?"1":"0");
-
-    Serial1.print(" ");
-    Serial1.print(bytes[1]&(1<<1)?"1":"0");  // 9, a dummy electrode
-
-    //    Serial1.print("]\r");
-    Serial1.println("]\r");
-    
-    Serial1.print("OOR: ");
-    temp = mpr121Read(TCH_OORL);
-    temp |= mpr121Read(TCH_OORH) << 8;
-    Serial1.print( temp, 16 );
-    Serial1.println( "\r" );
-
-    Serial1.print("FIL_CFG: ");
     temp = mpr121Read(FIL_CFG);
     Serial1.print( temp, 16 );
     Serial1.println( "\r" );

@@ -42,6 +42,7 @@
 #include "gpio.h"
 #include "adc.h"
 #include "timer.h"
+#include "power.h"
 //#include "usb_cdcacm.h"
 
 static void setupFlash(void);
@@ -61,15 +62,20 @@ void short_init(void) {
 
 void init(void) {
     setupFlash();
+// ok
     setupClocks();
+// ok
     setupNVIC();
+// ok
     systick_init(SYSTICK_RELOAD_VAL);
+// ok
     gpio_init_all();
+// ok
     afio_init();
+// ok
     setupADC();
+// adcs increase mA!
     setupTimers();
-    //    usb_cdcacm_enable(BOARD_USB_DISC_DEV, BOARD_USB_DISC_BIT);
-    // boardInit();
 }
 
 /* You could farm this out to the files in boards/ if e.g. it takes
@@ -119,6 +125,7 @@ static void adcDefaultConfig(const adc_dev* dev);
 
 static void setupADC() {
     rcc_set_prescaler(RCC_PRESCALER_ADC, RCC_ADCPRE_PCLK_DIV_6);
+    // ok
     adc_foreach(adcDefaultConfig);
 }
 
@@ -130,13 +137,19 @@ static void setupTimers() {
 
 static void adcDefaultConfig(const adc_dev *dev) {
     adc_init(dev);
+    // ok
 
     adc_set_extsel(dev, ADC_SWSTART);
+    // ok
     adc_set_exttrig(dev, true);
+    // ok
 
     adc_enable(dev);
+    // up to 1mA
     adc_calibrate(dev);
+    // stick at 1mA
     adc_set_sample_rate(dev, ADC_SMPR_55_5);
+    // stick at 1mA
 }
 
 static void timerDefaultConfig(timer_dev *dev) {

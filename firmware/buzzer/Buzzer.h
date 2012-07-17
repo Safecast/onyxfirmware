@@ -49,6 +49,7 @@ public:
     timer_resume(TIMER4);
     delay_us(time);
     timer_disable(TIMER4);
+    gpio_write_bit(PIN_MAP[BUZZER_PWM].gpio_device,PIN_MAP[BUZZER_PWM].gpio_bit,0);
   }
 
   void powerup() {}

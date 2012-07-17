@@ -75,7 +75,7 @@ typedef struct scb_reg_map {
 } scb_reg_map;
 
 /** System control block register map base pointer */
-#define SCB_BASE                        ((struct scb_reg_map*)0xE000ED00)
+#define SCB_BASE                        ((volatile struct scb_reg_map*)0xE000ED00)
 
 /*
  * Register bit definitions

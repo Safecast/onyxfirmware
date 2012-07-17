@@ -8,6 +8,8 @@
 // for power control support
 #include "pwr.h"
 #include "scb.h"
+#include "exti.h"
+#include "adc.h"
 
 #define CAPTOUCH_ADDR 0x5A
 #define CAPTOUCH_I2C I2C1
@@ -65,10 +67,12 @@ static uint8 dbg_batt = 0;
 int
 power_init(void)
 {
-//    gpio_set_mode (PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit,GPIO_INPUT_PD);
+    gpio_set_mode (PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit,GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit,0);
+
     gpio_set_mode (PIN_MAP[CHG_STAT2_GPIO]    .gpio_device,PIN_MAP[CHG_STAT2_GPIO]    .gpio_bit,GPIO_INPUT_PD);
     gpio_set_mode (PIN_MAP[CHG_STAT1_GPIO]    .gpio_device,PIN_MAP[CHG_STAT1_GPIO]    .gpio_bit,GPIO_INPUT_PD);
-//    gpio_set_mode (PIN_MAP[WAKEUP_GPIO]       .gpio_device,PIN_MAP[WAKEUP_GPIO]       .gpio_bit,GPIO_INPUT_PD);
+    gpio_set_mode (PIN_MAP[WAKEUP_GPIO]       .gpio_device,PIN_MAP[WAKEUP_GPIO]       .gpio_bit,GPIO_INPUT_PD);
     gpio_set_mode (PIN_MAP[BATT_MEASURE_ADC]  .gpio_device,PIN_MAP[BATT_MEASURE_ADC]  .gpio_bit,GPIO_INPUT_ANALOG);
     gpio_set_mode (PIN_MAP[MAGSENSE_GPIO]     .gpio_device,PIN_MAP[MAGSENSE_GPIO]     .gpio_bit,GPIO_INPUT_PD);
 
@@ -94,8 +98,8 @@ power_init(void)
     gpio_write_bit(PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_device,PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_bit,0);
 
     // initially OLED is off
-//    gpio_set_mode (PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,GPIO_OUTPUT_PP);
-//    gpio_write_bit(PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,0);
+    gpio_set_mode (PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,0);
 
     return 0;
 }
@@ -207,17 +211,111 @@ power_is_battery_low(void)
         return 0;
 }
 
-void
-power_standby(void) {
+void _set_CONTROL()
+{
+    asm volatile (
+        "mov r0,#0\r\n"
+        "msr control,r0\r\n"
+        "bx r14"
+        );
+}
+
+uint32_t  _get_CONTROL()
+{
+  asm volatile (
+    "mrs r0, control\r\n"
+    "bx lr\r\n"
+  );
+}
+
+
+
+#define RCC_APB1Periph_PWR               ((uint32_t)0x10000000)
+#define RCC_APB1Periph_BKP               ((uint32_t)0x08000000)
+
+void power_standby(void) {
+
+  adc_foreach(adc_disable);
+  timer_foreach(timer_disable);
+
+  //RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
+    // RCC->AHBENR |= RCC_AHBPeriph;
+  
+  uint32_t val = RCC_APB1Periph_PWR | RCC_APB1Periph_BKP;
+  volatile uint32_t *rcc_ahbenr = (uint32_t *) 0x40021000;
+  *rcc_ahbenr |= val;
+
+
+  //PWR_BackupAccessCmd(ENABLE);
+  //*(__IO uint32_t *) CR_DBP_BB = (uint32_t)NewState;
+  volatile uint32_t *cr_dbp_bb = (uint32_t *) ((0x42000000 + (0x7000) * 32) + (0x08 * 4));
+  *cr_dbp_bb = !0;
+
+  delay_us(100);
+
+
+
+   _set_CONTROL();
+   // EXTI_BASE->PR = 0;
+
+   /* Clear Wake-up flag */
+   //PWR->CR |= CR_CWUF_Set;
+   /* Select STANDBY mode */
+   //PWR->CR |= CR_PDDS_Set;
+   /* Set SLEEPDEEP bit of Cortex System Control Register */
+//   *(__IO uint32_t *) SCB_SysCtrl |= SysCtrl_SLEEPDEEP_Set;
+
+    volatile uint32_t *pwr_cr   = (uint32_t *) 0x40007000;
+    volatile uint32_t *pwr_csr  = (uint32_t *) 0x40007004;
+    volatile uint32_t *scb_scr  = (uint32_t *) 0xE000ED10; 
+
+    *pwr_csr |= (uint16_t) 256; // EWUP (enable wakeup)
+    *pwr_cr  |= (uint8_t) 0x06; //PWR_CR_PDDS);  // set PDDS
+
+    uint32_t temp = *pwr_cr;
+    temp |= 6;
+    *pwr_cr = temp;
+    *pwr_cr  |= (uint16_t) 0x04; //PWR_CSR_WUF; // clear WUF
+
+
+//    int t=_get_CONTROL();
+/*   if(*pwr_cr == 0) {
+ 
+      for(int i=0;i<8;i++) {
+      for(int n=0;n<100;n++) {
+        gpio_toggle_bit(GPIOB,9);
+        delay_us(1000);
+      }
+        delay_us(100000);
+      }
+    }
+*/
+ /////////////   
+ // *scb_scr |= (uint16_t) 0x04; // SCB_SCR_SLEEPDEEP; // set deepsleep
+
+//    PWR_BASE->CR = PWR_BASE->CR | (1 << PWR_CR_LPDS);
+
+
     // clear wakup flag
-    PWR_BASE->CR |= PWR_CR_CWUF;
-    // select standby mode
-    PWR_BASE->CR |= PWR_CR_PDDS;
+    
+    // set low power sleep
     
     // set sleepdeep in cortex system control register
-    SCB_BASE->SCR |= SCB_SCR_SLEEPDEEP;
+  delay_us(100);
 
-    power_wfi();
+    asm volatile (
+        "WFI\n\t" // note for WFE, just replace this with WFE
+//        "BX r14"
+        );
+
+ /*     for(int i=0;i<11;i++) {
+      for(int n=0;n<100;n++) {
+        gpio_toggle_bit(GPIOB,9);
+        delay_us(1000);
+      }
+        delay_us(100000);
+      }
+*/
 }
 
 void power_wfi(void)

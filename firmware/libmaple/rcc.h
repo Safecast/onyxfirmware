@@ -348,7 +348,7 @@ typedef struct rcc_reg_map {
 #define RCC_BDCR_LSEON_BIT              0
 
 #define RCC_BDCR_BDRST                  BIT(RCC_BDCR_BDRST_BIT)
-#define RCC_BDCR_RTCEN                  BIT(RCC_BDCR_RTC_BIT)
+#define RCC_BDCR_RTCEN                  BIT(RCC_BDCR_RTCEN_BIT)
 #define RCC_BDCR_RTCSEL                 (0x3 << 8)
 #define RCC_BDCR_RTCSEL_NONE            (0x0 << 8)
 #define RCC_BDCR_RTCSEL_LSE             (0x1 << 8)
@@ -487,6 +487,7 @@ void rcc_clk_init(rcc_sysclk_src sysclk_src,
                   rcc_pllsrc pll_src,
                   rcc_pll_multiplier pll_mul);
 void rcc_clk_enable(rcc_clk_id device);
+void rcc_clk_disable(rcc_clk_id device);
 void rcc_reset_dev(rcc_clk_id device);
 
 typedef enum rcc_clk_domain {
