@@ -35,8 +35,6 @@
 #include "util.h"
 #include "rcc.h"
 #include "safecast_wirish_types.h"
-//#include "wirish.h"
-//#include "boards.h"
 
 static void configure_gpios(spi_dev *dev, bool as_master);
 static spi_baud_rate determine_baud_rate(spi_dev *dev, SPIFrequency freq);
@@ -44,7 +42,9 @@ static spi_baud_rate determine_baud_rate(spi_dev *dev, SPIFrequency freq);
 void spi_aux_write(spi_dev *spi_device, const uint8 *data, uint32 length) {
     uint32 txed = 0;
     while (txed < length) {
-        txed += spi_tx(spi_device, data + txed, length - txed);
+        uint32 ret = spi_tx(spi_device, data + txed, length - txed);
+        if(ret == -1) return;
+        txed += ret;
     }
 }
 

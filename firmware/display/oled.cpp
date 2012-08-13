@@ -4,13 +4,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include "gpio.h"
-//#include "wirish.h"
 #include "oled.h"
 #include "spi_aux.h"
 #include "delay.h"
 #include "safecast_config.h"
-//#include "HardwareSPI.h"
-//#include "wirish_time.h"
+#include <stdint.h>
+
 
 #define LCD_SPI      SPI2
 #define LCD_DC_GPIO  31
@@ -23,16 +22,12 @@
 #define NOTE(x) Serial1.print(__FILE__); Serial1.print(":"); Serial1.print(__LINE__); Serial1.print(" "); Serial1.println(x);
 #define RGB16(r, b, g) ((((r)<<11L)&0x1fL) | (((g)<<5L)&0x3fL) | (((b)<<0L)&0x1fL))
 
-//static HardwareSPI *spi;
-
 void
 write_c(unsigned char out_command)
 {	
     gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
                    PIN_MAP[LCD_DC_GPIO].gpio_bit,
                    0);
-    //digitalWrite(LCD_DC_GPIO, 0);
-
     spi_aux_write(LCD_SPI,&out_command,1);
     delay_us(70);
 }
@@ -43,9 +38,8 @@ write_d_stream(void *data, unsigned int count)
     gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
                    PIN_MAP[LCD_DC_GPIO].gpio_bit,
                    1);
-    //digitalWrite(LCD_DC_GPIO, 1);
     spi_aux_write(LCD_SPI,(uint8 *)data, count);
-    delay_us(70);
+    delay_us(10);
 }
 
 void write_d(unsigned char out_data)
@@ -53,64 +47,14 @@ void write_d(unsigned char out_data)
     gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
                    PIN_MAP[LCD_DC_GPIO].gpio_bit,
                    1);
-    //digitalWrite(LCD_DC_GPIO, 1);
     spi_aux_write(LCD_SPI,&out_data,1);
-    delay_us(70);
+    delay_us(10);
 }
 
 
-static void
-platform_init(void)
-{
-    //spi = new HardwareSPI(2);
-    //spi->begin(SPI_9MHZ, MSBFIRST, SPI_MODE_3);
-    spi_aux_enable_device(SPI2,true,SPI_9MHZ,SPI_FRAME_MSB,SPI_MODE_3);
-    
-    /* Set the data/command pin to be a GPIO */
-    gpio_set_mode(PIN_MAP[LCD_DC_GPIO].gpio_device,
-                  PIN_MAP[LCD_DC_GPIO].gpio_bit,
-                  GPIO_OUTPUT_PP);
-    gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
-                   PIN_MAP[LCD_DC_GPIO].gpio_bit,
-                   0);
-//    pinMode(LCD_DC_GPIO, OUTPUT);
-//    digitalWrite(LCD_DC_GPIO, 0);
+void oled_platform_init(void) {
+    spi_aux_enable_device(SPI2,true,SPI_18MHZ,SPI_FRAME_MSB,SPI_MODE_3);
 
-    /* Set chip-select to be a GPIO */
-    gpio_set_mode(PIN_MAP[LCD_CS_GPIO].gpio_device,
-                  PIN_MAP[LCD_CS_GPIO].gpio_bit,
-                  GPIO_OUTPUT_PP);
-    //pinMode(LCD_CS_GPIO, OUTPUT);
-    gpio_write_bit(PIN_MAP[LCD_CS_GPIO].gpio_device,
-                   PIN_MAP[LCD_CS_GPIO].gpio_bit,
-                   0);
-//    digitalWrite(LCD_CS_GPIO, 0);
-
-    /* Turn the display on */
-//    pinMode(LCD_PWR_GPIO, OUTPUT);
-    gpio_set_mode(PIN_MAP[LCD_PWR_GPIO].gpio_device,
-                  PIN_MAP[LCD_PWR_GPIO].gpio_bit,
-                  GPIO_OUTPUT_PP);
-    gpio_write_bit(PIN_MAP[LCD_PWR_GPIO].gpio_device,
-                   PIN_MAP[LCD_PWR_GPIO].gpio_bit,
-                   1);
-    //digitalWrite(LCD_PWR_GPIO, 1);
-    delay_us(2000); /* Documentation says at least 1ms */
-
-    /* Reset the display */
-    gpio_set_mode(PIN_MAP[LCD_RES_GPIO].gpio_device,
-                  PIN_MAP[LCD_RES_GPIO].gpio_bit,
-                  GPIO_OUTPUT_PP);
-//    pinMode(LCD_RES_GPIO, OUTPUT);
-    gpio_write_bit(PIN_MAP[LCD_RES_GPIO].gpio_device,
-                   PIN_MAP[LCD_RES_GPIO].gpio_bit,
-                   0);
-//    digitalWrite(LCD_RES_GPIO, 0);
-    delay_us(20); /* Documentation says at least 2us */
-    gpio_write_bit(PIN_MAP[LCD_RES_GPIO].gpio_device,
-		   PIN_MAP[LCD_RES_GPIO].gpio_bit,
-		   1);
-//    digitalWrite(LCD_RES_GPIO, 1);
 }
 
 
@@ -120,7 +64,7 @@ platform_init(void)
 //--------------------------------------
 #define Max_Column  0x7f            // 128-1
 #define Max_Row     0x7f            // 128-1
-#define Brightness  0x0F
+#define Brightness  0x0E
 
 
 
@@ -284,13 +228,16 @@ static void Set_VCOMH(unsigned char d)
 //=========================================================
 // Clear OLED GDRAM
 //========================================================= 
-void CLS(void)
-{
-    unsigned int i;
-    Home();
-    write_c(0x5C);    // Enable MCU to Read from RAM
-    for (i=1; i<=((Max_Column+1)*(Max_Row+1)) * 2;i++)
-        write_d(0xff);// was 7f 
+void CLS(void) {
+  Home();
+  write_c(0x5C);    // Enable MCU to Read from RAM
+
+  uint8_t c[256];
+  for(uint32_t i=0;i<256;i++) c[i] = 0xff;
+
+  for(uint32_t j=0;j<128;j++) {
+    oled_draw_rect(j,127,128,1,c);
+  }
 }
 
 
@@ -409,16 +356,52 @@ static void Set_Gray_Scale_Table()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //  Initialization
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void oled_init(void)
-{
-    platform_init();
+void oled_init(void) {
+    /* Set the data/command pin to be a GPIO */
+    gpio_set_mode(PIN_MAP[LCD_DC_GPIO].gpio_device,
+                  PIN_MAP[LCD_DC_GPIO].gpio_bit,
+                  GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
+                   PIN_MAP[LCD_DC_GPIO].gpio_bit,
+                   0);
+
+    /* Set chip-select to be a GPIO */
+    gpio_set_mode(PIN_MAP[LCD_CS_GPIO].gpio_device,
+                  PIN_MAP[LCD_CS_GPIO].gpio_bit,
+                  GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[LCD_CS_GPIO].gpio_device,
+                   PIN_MAP[LCD_CS_GPIO].gpio_bit,
+                   0);
+
+    /* Turn the display on */
+    gpio_set_mode(PIN_MAP[LCD_PWR_GPIO].gpio_device,
+                  PIN_MAP[LCD_PWR_GPIO].gpio_bit,
+                  GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[LCD_PWR_GPIO].gpio_device,
+                   PIN_MAP[LCD_PWR_GPIO].gpio_bit,
+                   1);
+
+    delay_us(2000); /* Documentation says at least 1ms */
+
+    /* Reset the display */
+    gpio_set_mode(PIN_MAP[LCD_RES_GPIO].gpio_device,
+                  PIN_MAP[LCD_RES_GPIO].gpio_bit,
+                  GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[LCD_RES_GPIO].gpio_device,
+                   PIN_MAP[LCD_RES_GPIO].gpio_bit,
+                   0);
+    delay_us(20); /* Documentation says at least 2us */
+    gpio_write_bit(PIN_MAP[LCD_RES_GPIO].gpio_device,
+		   PIN_MAP[LCD_RES_GPIO].gpio_bit,
+		   1);
+
     //==============================
 
     Set_Command_Lock(0x12);         // Unlock Driver IC (0x12/0x16/0xB0/0xB1)
     Set_Command_Lock(0xB1);         // Unlock All Commands (0x12/0x16/0xB0/0xB1)
     Set_Display_Off();
     Set_Display_Clock(0xF1);        // Set Clock as 90 Frames/Sec
-    Set_Multiplex_Ratio(0x7F);      // 1/128 Duty (0x0F~0x7F)
+    Set_Multiplex_Ratio(0x7F);      // 1/128 Duty (0x0F~0x7F)// 7F
     Set_Display_Offset(0x00);       // Shift Mapping RAM Counter (0x00~0x7F)
     Set_Start_Line(0x00);           // Set Mapping RAM Display Start Line (0x00~0x7F)
     Set_Remap_Format(0x74);         // Set Horizontal Address Increment
@@ -429,33 +412,35 @@ void oled_init(void)
                                     //     65,536 Colors Mode (0x74)
                                     //     * 262,144 Colors Mode (0xB4)
     Set_GPIO(0x00);                 // Disable GPIO Pins Input
-    //Set_Function_Selection(0x00);   // Disable Internal VDD Regulator
+    
+///M
+    Set_Function_Selection(0x01);   // Disable Internal VDD Regulator
                                     // Select 8-bit Parallel Interface
-    Set_VSL(0xA0);                  // Enable External VSL
+    Set_VSL(0x01);                  // Enable External VSL
     //Set_Contrast_Color(0x80,0x80,0x80); // Set Contrast of Color A (Red)
     Set_Contrast_Color(0xC8,0x80,0xC8); // Set Contrast of Color A (Red)
                                     // Set Contrast of Color B (Green)
                                     // Set Contrast of Color C (Blue)
     Set_Master_Current(Brightness);     // Set Scale Factor of Segment Output Current Control
     Set_Gray_Scale_Table();         // Set Pulse Width for Gray Scale Table
+///M
     Set_Phase_Length(0x32);         // Set Phase 1 as 5 Clocks & Phase 2 as 3 Clocks
+ //   Set_Display_Enhancement(0xA4);      // Enhance Display Performance
     Set_Precharge_Voltage(0x17);        // Set Pre-Charge Voltage Level as 0.50*VCC
-    Set_Display_Enhancement(0xA4);      // Enhance Display Performance
     Set_Precharge_Period(0x01);     // Set Second Pre-Charge Period as 1 Clock
     Set_VCOMH(0x05);                // Set Common Pins Deselect Voltage Level as 0.82*VCC
+//M
     Set_Display_Mode(0x02);         // Normal Display Mode (0x00/0x01/0x02/0x03)
+
     CLS();                          // Clear Screen
+ 
     delay_us(1000);
+
     Set_Display_On();
+
 }
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//  Initialization
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void oled_deinit(void)
-{
-    //Serial1.println("Turning display off...");
-    //==============================
+void oled_deinit(void) {
     Set_Display_Off();
 
     // cuts power to the display

@@ -158,12 +158,16 @@ void spi_slave_enable(spi_dev *dev, spi_mode mode, uint32 flags) {
 uint32 spi_tx(spi_dev *dev, const void *buf, uint32 len) {
     uint32 txed = 0;
     uint8 byte_frame = spi_dff(dev) == SPI_DFF_8_BIT;
+
+    uint32 loop_count=0;
     while (spi_is_tx_empty(dev) && (txed < len)) {
         if (byte_frame) {
             dev->regs->DR = ((const uint8*)buf)[txed++];
         } else {
             dev->regs->DR = ((const uint16*)buf)[txed++];
         }
+        loop_count++;
+        if(loop_count > 100000) return -1;
     }
     return txed;
 }

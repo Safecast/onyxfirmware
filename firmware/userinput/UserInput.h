@@ -1,10 +1,16 @@
+#ifndef USERINPUT
+#define USERINPUT
+
 #include "captouch.h"
+
+class GUI;
 
 class UserInput {
 
 public:
 
-  UserInput() {
+  UserInput(GUI &r) : receiver(r) {
+    system_gui = &r;
   }
 
   void initialise() {
@@ -24,4 +30,8 @@ public:
   void clear_last_key() {
     cap_clearlastkey();
   }
+
+  GUI &receiver;
 };
+
+#endif

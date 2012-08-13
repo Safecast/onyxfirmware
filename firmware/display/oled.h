@@ -82,6 +82,7 @@
 #define RGB16(r, b, g) ((((r)<<11L)&0x1fL) | (((g)<<5L)&0x3fL) | (((b)<<0L)&0x1fL))
 
 // inialize OLED
+void oled_platform_init(void);
 void oled_init(void);
 void oled_deinit(void);
 void oled_TurnOn(void);

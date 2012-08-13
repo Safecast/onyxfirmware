@@ -510,7 +510,8 @@ int32 i2c_master_xfer(i2c_dev *dev,
                       uint32 timeout) {
     int32 rc;
 
-    ASSERT(dev->state == I2C_STATE_IDLE);
+    gpio_write_bit(GPIOD,2,0);
+    if(dev->state != I2C_STATE_IDLE) { return -1; }
 
     dev->msg = msgs;
     dev->msgs_left = num;

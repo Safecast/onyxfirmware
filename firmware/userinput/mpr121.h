@@ -60,7 +60,9 @@
 
 
 // Global Constants
-//#define TOU_THRESH 0x92
-//#define REL_THRESH 0xaA
-#define TOU_THRESH 0xb0  // this seems to work better
-#define REL_THRESH 0xa0
+//#define TOU_THRESH 0x10 // 0x10, 0x0b
+//#define REL_THRESH 0x0b
+#define TOU_THRESH 0x10 // 0x10, 0x0b
+#define REL_THRESH 0x0b
+//#define TOU_THRESH 0xff
+//#define REL_THRESH 0xf0
