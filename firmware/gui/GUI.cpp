@@ -54,18 +54,16 @@ void render_item_graph(screen_item &item, bool selected) {
     if(n >= m_size) {
       display_draw_point(m_x+(n*4),80-source_graph_data[n],0x0000);
     } else {
- //     if((m_graph_data[n] != source_graph_data[n]) || graph_first) {
-        int cx = m_x+(n*4);
-        int oy = 80-m_graph_data[n];
-        int ny = 80-source_graph_data[n];
-        if(!((lastoy == lastny) && (oy == ny) && !graph_first)) {
-	  display_draw_line(lastx,lastoy,cx,oy,BACKGROUND_COLOR);
-	  display_draw_line(lastx,lastny,cx,ny,0x0000);
-        }
-        lastx=cx;
-        lastoy=oy;
-        lastny=ny;
- //     }
+      int cx = m_x+(n*4);
+      int oy = 80-m_graph_data[n];
+      int ny = 80-source_graph_data[n];
+      if(!((lastoy == lastny) && (oy == ny) && !graph_first)) {
+	display_draw_line(lastx,lastoy,cx,oy,BACKGROUND_COLOR);
+	display_draw_line(lastx,lastny,cx,ny,0x0000);
+      }
+      lastx=cx;
+      lastoy=oy;
+      lastny=ny;
     }
   }
 
@@ -121,18 +119,15 @@ void clear_item_graph(screen_item &item, bool selected) {
   int32_t m_size=30;
 
   int32_t lastx=0;
-  int32_t lastcy=80;
   int32_t lastoy=80;
   for(uint32_t n=0;n<size;n++) {
     if(n >= m_size) {
     } else {
-    //  if((m_graph_data[n] != source_graph_data[n]) || graph_first) {
-        int cx = m_x+(n*4);
-        int oy = 80-m_graph_data[n];
-	display_draw_line(lastx,lastcy,cx,oy,BACKGROUND_COLOR);
-        lastx=cx;
-        lastoy=oy;
-   //   }
+      int cx = m_x+(n*4);
+      int oy = 80-m_graph_data[n];
+      display_draw_line(lastx,lastoy,cx,oy,BACKGROUND_COLOR);
+      lastx=cx;
+      lastoy=oy;
     }
   }
 }
