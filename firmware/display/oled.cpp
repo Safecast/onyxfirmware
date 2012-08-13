@@ -236,7 +236,7 @@ void CLS(void) {
   for(uint32_t i=0;i<256;i++) c[i] = 0xff;
 
   for(uint32_t j=0;j<128;j++) {
-    oled_draw_rect(j,127,128,1,c);
+    oled_draw_rect(0,j,128,1,c);
   }
 }
 

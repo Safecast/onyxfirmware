@@ -1,6 +1,3 @@
-#ifndef DISPLAY_H
-#define DISPLAY_H
-
 #include "oled.h"
 #include "nfont.h"
 #include "display.h"
@@ -18,14 +15,41 @@ void display_clear() {
   CLS();
 }
 
-void display_draw_line(int start_x,int start_y,int end_x,int end_y,uint16_t color=65535) {
-  Set_Column_Address(start_x, end_x+1);
-  Set_Row_Address   (start_y, end_y+1);
-  write_c(0x5c);
-  for(uint32_t n=0;n<((end_x-start_x)*(end_y*start_y));n++) write_d(color);
+void display_draw_line(int start_x,int start_y,int end_x,int end_y,uint16_t color) {
+/*
+  if((start_x == end_x) || (start_y == end_y)) {
+    Set_Column_Address(start_x, end_x+1);
+    Set_Row_Address   (start_y, end_y+1);
+    write_c(0x5c);
+    for(uint32_t n=0;n<((end_x-start_x)*(end_y*start_y));n++) write_d(color); //TODO: use stream
+    return;
+  }
+*/
+  // Bresenham's
+
+  int cx = start_x;
+  int cy = start_y;
+
+  int dx = end_x - cx;
+  int dy = end_y - cy;
+  if(dx<0) dx = 0-dx;
+  if(dy<0) dy = 0-dy;
+
+  int sx=0; int sy=0;
+  if(cx < end_x) sx = 1; else sx = -1;
+  if(cy < end_y) sy = 1; else sy = -1;
+  int err = dx-dy;
+
+  for(int n=0;n<100000;n++) {
+    display_draw_point(cx,cy,color);
+    if((cx==end_x) && (cy==end_y)) return;
+    int e2 = 2*err;
+    if(e2 > (0-dy)) { err = err - dy; cx = cx + sx; }
+    if(e2 < dx    ) { err = err + dx; cy = cy + sy; }
+  }
 }
   
-void display_draw_point(int x,int y,uint16_t color=65535) {
+void display_draw_point(int x,int y,uint16_t color) {
   Set_Column_Address(x, x+1);
   Set_Row_Address(y, y+1);
   write_c(0x5c);
@@ -69,4 +93,3 @@ void display_powerdown() {
   oled_deinit();
 }
 
-#endif
