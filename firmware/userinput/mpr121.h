@@ -10,6 +10,43 @@
 #define TCH_OORL  0x02
 #define TCH_OORH  0x03
 
+#define ELE0_DATAL 0x04
+#define ELE0_DATAH 0x05
+#define ELE1_DATAL 0x06
+#define ELE1_DATAH 0x07
+#define ELE2_DATAL 0x08
+#define ELE2_DATAH 0x09
+#define ELE3_DATAL 0x0A
+#define ELE3_DATAH 0x0B
+#define ELE4_DATAL 0x0C
+#define ELE4_DATAH 0x0D
+#define ELE5_DATAL 0x0E
+#define ELE5_DATAH 0x0F
+#define ELE6_DATAL 0x10
+#define ELE6_DATAH 0x11
+#define ELE7_DATAL 0x12
+#define ELE7_DATAH 0x13
+#define ELE8_DATAL 0x14
+#define ELE8_DATAH 0x15
+#define ELE9_DATAL 0x16
+#define ELE9_DATAH 0x1A
+#define ELE10_DATAL 0x1B
+#define ELE10_DATAH 0x1C
+#define ELE11_DATAL 0x1D
+#define ELE11_DATAH 0x1E
+
+#define ELE0_BASE 0x1E
+#define ELE1_BASE 0x1F
+#define ELE2_BASE 0x20
+#define ELE3_BASE 0x21
+#define ELE4_BASE 0x22
+#define ELE5_BASE 0x23
+#define ELE6_BASE 0x24
+#define ELE7_BASE 0x25
+#define ELE8_BASE 0x26
+#define ELE9_BASE 0x27
+#define ELE10_BASE 0x28
+
 #define MHD_R     0x2B
 #define NHD_R     0x2C
 #define NCL_R     0x2D
@@ -62,7 +99,7 @@
 // Global Constants
 //#define TOU_THRESH 0x10 // 0x10, 0x0b
 //#define REL_THRESH 0x0b
-#define TOU_THRESH 0x10 // 0x10, 0x0b
-#define REL_THRESH 0x0b
+#define TOU_THRESH 0x04 // 0x10, 0x0b
+#define REL_THRESH 0x05
 //#define TOU_THRESH 0xff
 //#define REL_THRESH 0xf0

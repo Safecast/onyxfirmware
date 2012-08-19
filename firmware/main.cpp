@@ -90,9 +90,35 @@ int main(void) {
     c.set_gui(m_gui);
     UserInput  u(m_gui);
     u.initialise();
+    int n=0;
     for(;;) {
-      m_gui.render();
       c.update();
+      m_gui.render();
+      power_wfi();
+/*
+      char *c;
+      delay_us(1000);
+ //   c = diag_data(8);
+ //   display_draw_text(0,0,c,0);
+
+      c = diag_data(3);
+      display_draw_text(0,16,c,0);
+
+      c = diag_data(0);
+      display_draw_text(0,32,c,0);
+
+      c = diag_data(6);
+      display_draw_text(0,48,c,0);
+
+      c = diag_data(4);
+      display_draw_text(0,64,c,0);
+
+      c = diag_data(2);
+      display_draw_text(0,80,c,0);
+
+      display_draw_number(0,100,n,5,0);
+      n++;
+*/
     }
 
     // should never get here

@@ -55,11 +55,16 @@ public:
     text_cpm[0]     =0;
     text_seiverts[0]=0;
     int_to_char(m_geiger.get_cpm(),text_cpm,4);
-    int_to_char(m_geiger.get_seiverts(),text_seiverts,4);
+    float_to_char(m_geiger.get_microseiverts(),text_seiverts,6);
+    text_seiverts[6] = ' ';
+    text_seiverts[7] = 'u';
+    text_seiverts[8] = 'S';
+    text_seiverts[9] = 'v';
+    text_seiverts[10] = 0;
 
 
     float *graph_data;
-    graph_data = m_geiger.get_cpm_last_30mins();
+    graph_data = m_geiger.get_cpm_last_min();
 
     m_gui->receive_update("CPM",text_cpm);
     m_gui->receive_update("SEIVERTS",text_seiverts);

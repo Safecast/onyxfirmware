@@ -55,36 +55,61 @@ static uint8 mpr121Read(uint8 addr) {
   return byte;
 }
 
-/*
 char c[100];
-char *diag_data() {
+char *diag_data(int e) {
 
-  int elec2h = mpr121Read(0x09);
-  int elec2l = mpr121Read(0x08);
+  int elech;
+  int elecl;
+  if(e==0)  elecl = mpr121Read(ELE0_DATAL);
+  if(e==0)  elech = mpr121Read(ELE0_DATAH);
+  if(e==1)  elecl = mpr121Read(ELE1_DATAL);
+  if(e==1)  elech = mpr121Read(ELE1_DATAH);
+  if(e==2)  elecl = mpr121Read(ELE2_DATAL);
+  if(e==2)  elech = mpr121Read(ELE2_DATAH);
+  if(e==3)  elecl = mpr121Read(ELE3_DATAL);
+  if(e==3)  elech = mpr121Read(ELE3_DATAH);
+  if(e==4)  elecl = mpr121Read(ELE4_DATAL);
+  if(e==4)  elech = mpr121Read(ELE4_DATAH);
+  if(e==5)  elecl = mpr121Read(ELE5_DATAL);
+  if(e==5)  elech = mpr121Read(ELE5_DATAH);
+  if(e==6)  elecl = mpr121Read(ELE6_DATAL);
+  if(e==6)  elech = mpr121Read(ELE6_DATAH);
+  if(e==7)  elecl = mpr121Read(ELE7_DATAL);
+  if(e==7)  elech = mpr121Read(ELE7_DATAH);
+  if(e==8)  elecl = mpr121Read(ELE8_DATAL);
+  if(e==8)  elech = mpr121Read(ELE8_DATAH);
+  if(e==9)  elecl = mpr121Read(ELE9_DATAL);
+  if(e==9)  elech = mpr121Read(ELE9_DATAH);
+  if(e==10) elecl = mpr121Read(ELE10_DATAL);
+  if(e==10) elech = mpr121Read(ELE10_DATAH);
 
-  int elec2 = ((int)elec2h << 8) | (int)elec2l;
+  elech = elech & 0x3;
+  uint32_t elecv = ((uint32_t)elech << 8) | (uint32_t)elecl;
 
-  int elec2_base = ((int)mpr121Read(0x20)) << 2;
+  uint32_t elec_base;
+  if(e==0)  elec_base = ((uint32_t)((uint8_t)mpr121Read(ELE0_BASE)))  << 2;
+  if(e==1)  elec_base = ((uint32_t)((uint8_t)mpr121Read(ELE1_BASE)))  << 2;
+  if(e==2)  elec_base = ((int)mpr121Read(ELE2_BASE))  << 2;
+  if(e==3)  elec_base = ((int)mpr121Read(ELE3_BASE))  << 2;
+  if(e==4)  elec_base = ((int)mpr121Read(ELE4_BASE))  << 2;
+  if(e==5)  elec_base = ((int)mpr121Read(ELE5_BASE))  << 2;
+  if(e==6)  elec_base = ((int)mpr121Read(ELE6_BASE))  << 2;
+  if(e==7)  elec_base = ((int)mpr121Read(ELE7_BASE))  << 2;
+  if(e==8)  elec_base = ((int)mpr121Read(ELE8_BASE))  << 2;
+  if(e==9)  elec_base = ((int)mpr121Read(ELE9_BASE))  << 2;
+  if(e==10) elec_base = ((int)mpr121Read(ELE10_BASE)) << 2;
+
   int bs = mpr121Read(TCH_STATL);
-  sprintf(c,"%d %d %d  ",elec2,elec2_base,bs);
+      bs = bs | ((0x1F & mpr121Read(TCH_STATH)) << 8);
+  sprintf(c,"%d %d %d  ",elecv,elec_base,bs);
 
   return c; 
 }
-*/
 
 static void cap_change(void) {
 
-  // manual beep 
-  
   gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,1);
-  
-  gpio_set_mode (GPIOB,9, GPIO_OUTPUT_PP);
-  for(int n=0;n<50;n++) {
-   // gpio_toggle_bit(GPIOB,9);
-    delay_us(1000);
-  }
-  gpio_write_bit(GPIOB,9,0);
- 
+  delay_us(100);
   
   int key_state=0;
   key_state  = mpr121Read(TCH_STATL);
@@ -112,92 +137,79 @@ static void cap_change(void) {
 
 
 void cap_init(void) {
+    gpio_set_mode(PIN_MAP[9].gpio_device,PIN_MAP[9].gpio_bit,GPIO_OUTPUT_PP);
+    gpio_set_mode(PIN_MAP[5].gpio_device,PIN_MAP[5].gpio_bit,GPIO_OUTPUT_PP);
     gpio_write_bit(PIN_MAP[9].gpio_device,PIN_MAP[9].gpio_bit,1);
-    gpio_write_bit(PIN_MAP[9].gpio_device,PIN_MAP[5].gpio_bit,1);
-    gpio_set_mode(PIN_MAP[9].gpio_device,PIN_MAP[5].gpio_bit,GPIO_OUTPUT_PP);
-    gpio_set_mode(PIN_MAP[9].gpio_device,PIN_MAP[5].gpio_bit,GPIO_OUTPUT_PP);
-    gpio_write_bit(PIN_MAP[9].gpio_device,PIN_MAP[9].gpio_bit,1);
-    gpio_write_bit(PIN_MAP[9].gpio_device,PIN_MAP[5].gpio_bit,1);
+    gpio_write_bit(PIN_MAP[5].gpio_device,PIN_MAP[5].gpio_bit,1);
     delay_us(1000);
-    gpio_set_mode(PIN_MAP[9].gpio_device,PIN_MAP[5].gpio_bit,GPIO_INPUT_PD);
-    gpio_set_mode(PIN_MAP[9].gpio_device,PIN_MAP[5].gpio_bit,GPIO_INPUT_PD);
+    gpio_set_mode(PIN_MAP[9].gpio_device,PIN_MAP[9].gpio_bit,GPIO_INPUT_PD);
+    gpio_set_mode(PIN_MAP[5].gpio_device,PIN_MAP[5].gpio_bit,GPIO_INPUT_PD);
 
     i2c = CAPTOUCH_I2C;
     i2c_init(i2c);
     i2c_master_enable(i2c, 0);
-    //Serial1.print(".");
 
+    mpr121Write(0x80,0x63); // soft reset
+    delay_us(1000);
     mpr121Write(ELE_CFG, 0x00);   // disable electrodes for config
     delay_us(100);
 
     // Section A
-    // This group controls filtering when data is > baseline.
-    mpr121Write(MHD_R, 0x02); // was 0x01 
-    mpr121Write(NHD_R, 0x02);
-    //    mpr121Write(NCL_R, 0x50);
-    //    mpr121Write(FDL_R, 0x50);
-    mpr121Write(NCL_R, 0x02); //was 0x00 
-    mpr121Write(FDL_R, 0x02);
+    mpr121Write(MHD_R, 0x3F); // was 0x01 
+    mpr121Write(NHD_R, 0x02); // was 0x01
+    mpr121Write(NCL_R, 0xFF); // was 0x00 
+    mpr121Write(FDL_R, 0x08); // was 0x00
 
     // Section B
-    // This group controls filtering when data is < baseline.
-    mpr121Write(MHD_F, 0x02); // was 0x01
+    mpr121Write(MHD_F, 0x3F); // was 0x01
     mpr121Write(NHD_F, 0x02); // was 0x01
-    mpr121Write(NCL_F, 0x10); // was 0xFF
-    //    mpr121Write(FDL_F, 0x52);
-    mpr121Write(FDL_F, 0x02); // was 0x02
-
-    // Section C
-    // This group sets touch and release thresholds for each electrode
-    mpr121Write(ELE0_T, TOU_THRESH);
-    mpr121Write(ELE0_R, REL_THRESH);
-    mpr121Write(ELE1_T, TOU_THRESH);
-    mpr121Write(ELE1_R, REL_THRESH);
-    mpr121Write(ELE2_T, TOU_THRESH);
-    mpr121Write(ELE2_R, REL_THRESH);
-    mpr121Write(ELE3_T, TOU_THRESH);
-    mpr121Write(ELE3_R, REL_THRESH);
-    mpr121Write(ELE4_T, TOU_THRESH);
-    mpr121Write(ELE4_R, REL_THRESH);
-    mpr121Write(ELE5_T, TOU_THRESH);
-    mpr121Write(ELE5_R, REL_THRESH);
-    mpr121Write(ELE6_T, TOU_THRESH);
-    mpr121Write(ELE6_R, REL_THRESH);
-    mpr121Write(ELE7_T, TOU_THRESH);
-    mpr121Write(ELE7_R, REL_THRESH);
-    mpr121Write(ELE8_T, TOU_THRESH);
-    mpr121Write(ELE8_R, REL_THRESH);
-    mpr121Write(ELE9_T, TOU_THRESH);
-    mpr121Write(ELE9_R, REL_THRESH);
-    mpr121Write(ELE10_T, TOU_THRESH);
-    mpr121Write(ELE10_R, REL_THRESH);
-    mpr121Write(ELE11_T, TOU_THRESH);
-    mpr121Write(ELE11_R, REL_THRESH);
+    mpr121Write(NCL_F, 0xFF); // was 0xFF
+    mpr121Write(FDL_F, 0x08); // was 0x02
 
     // Section D
     // Set the Filter Configuration
     // Set ESI2
-    mpr121Write(FIL_CFG, 0xC3);  // set CDT to 32us, ESI (sampling interval) to 8 ms
-    //mpr121Write(FIL_CFG, 0x03);  // set CDT to 32us, ESI (sampling interval) to 8 ms
-    mpr121Write(AFE_CONF, 0xBF); // 6 samples, 63uA <-- will be overridden by auto-config i think
-    //orignialmpr121Write(AFE_CONF, 0x3F); // 6 samples, 63uA <-- will be overridden by auto-config i think
+
+    // was 0x01, 0x25
+    mpr121Write(AFE_CONF, 0x01); //AFE_CONF  0x5C
+    mpr121Write(FIL_CFG , 0x25); //FIL_CFG   0x5D
 
     // Section F
-    mpr121Write(ATO_CFGU, 0xC9);  // USL = (Vdd-0.7)/vdd*256 = 0xC9 @3.3V
-    mpr121Write(ATO_CFGL, 0x82);  // LSL = 0.65*USL = 0x82 @3.3V
-    mpr121Write(ATO_CFGT, 0xB5);    // Target = 0.9*USL = 0xB5 @3.3V
+    //mpr121Write(ATO_CFG0, 0x05); // ATO_CFG0 0x7B
+    mpr121Write(ATO_CFG0, 0x05); // ATO_CFG0 0x7B
 
-    // mpr121Write(ATO_CFGU, 0xC0);  // VSL = (Vdd-0.7)/vdd*256 = 0xC0 @2.8V
-    // mpr121Write(ATO_CFGL, 0x7D);  // LSL = 0.65*USL = 0x7D @2.8V
-    // mpr121Write(ATO_CFGT, 0xB2);    // Target = 0.9*USL = 0xB2 @2.8V
+    // limits
+    // was0xFF,0x00,0x0E
+    mpr121Write(ATO_CFGU, 0x9C); // ATO_CFGU 0x7D
+    mpr121Write(ATO_CFGL, 0x65); // ATO_CFGL 0x7E
+    mpr121Write(ATO_CFGT, 0x8C); // ATO_CFGT 0x7F
 
-    //    mpr121Write(ATO_CFGU, 0x9C);  // USL = (Vdd-0.7)/vdd*256 = 0xC9 @1.8V
-    //    mpr121Write(ATO_CFGL, 0x65);  // LSL = 0.65*USL = 0x82 @1.8V
-    //    mpr121Write(ATO_CFGT, 0x8C);    // Target = 0.9*USL = 0xB5 @1.8V
-
-    // Enable Auto Config and auto Reconfig
-//// original   mpr121Write(ATO_CFG0, 0x3B); // must match AFE_CONF setting of 6 samples, retry enabled
-    mpr121Write(ATO_CFG0, 0xBF); // must match AFE_CONF setting of 6 samples, retry enabled
+    // Section C
+    // This group sets touch and release thresholds for each electrode
+    mpr121Write(ELE0_T , TOU_THRESH);
+    mpr121Write(ELE0_R , REL_THRESH);
+    mpr121Write(ELE1_T , TOU_THRESH);
+    mpr121Write(ELE1_R , REL_THRESH);
+    mpr121Write(ELE2_T , TOU_THRESH);
+    mpr121Write(ELE2_R , REL_THRESH);
+    mpr121Write(ELE3_T , TOU_THRESH);
+    mpr121Write(ELE3_R , REL_THRESH);
+    mpr121Write(ELE4_T , TOU_THRESH);
+    mpr121Write(ELE4_R , REL_THRESH);
+    mpr121Write(ELE5_T , TOU_THRESH);
+    mpr121Write(ELE5_R , REL_THRESH);
+    mpr121Write(ELE6_T , TOU_THRESH);
+    mpr121Write(ELE6_R , REL_THRESH);
+    mpr121Write(ELE7_T , TOU_THRESH);
+    mpr121Write(ELE7_R , REL_THRESH);
+    mpr121Write(ELE8_T , TOU_THRESH);
+    mpr121Write(ELE8_R , REL_THRESH);
+    mpr121Write(ELE9_T , TOU_THRESH);
+    mpr121Write(ELE9_R , REL_THRESH);
+    mpr121Write(ELE10_T, TOU_THRESH);
+    mpr121Write(ELE10_R, REL_THRESH);
+    mpr121Write(ELE11_T, TOU_THRESH);
+    mpr121Write(ELE11_R, REL_THRESH);
 
     delay_us(100);
 
@@ -214,10 +226,9 @@ void cap_init(void) {
     exti_attach_interrupt((afio_exti_num)(PIN_MAP[CAPTOUCH_GPIO].gpio_bit), gpio_exti_port(PIN_MAP[CAPTOUCH_GPIO].gpio_device), cap_change, EXTI_FALLING);
 
     // Clears the first interrupt
-    mpr121Read(TCH_STATL);
-    mpr121Read(TCH_STATH);
+ //   mpr121Read(TCH_STATL);
+ //   mpr121Read(TCH_STATH);
 
-    touchInit = 1;
     return;
 }
 

@@ -1,6 +1,65 @@
 #include "utils.h"
 #include <stdint.h>
 
+void float_to_char(float number,char *text,uint32_t width) {
+
+  float original_number=number;
+
+  uint32_t current=1000000;
+  int position = 0;
+  uint32_t int_part = number;
+  for(;position<7;position++) {
+    int v = int_part/current;
+    text[position] = '0'+v;
+    int_part = int_part - (v*current);
+    current=current/10;
+  }
+  text[position]='.';
+  position++;
+  
+  current=100; 
+  number=original_number;
+  uint32_t fractional_part = (number*(float)1000)- ((float)(((uint32_t)number)*1000)) ;
+  for(;position<12;position++) {
+    int v = fractional_part/current;
+    text[position] = '0'+v;
+    fractional_part = fractional_part - (v*current);
+    current=current/10;
+  }
+  text[position]=0;
+
+  int last_leading_zero=-1;
+  for(uint32_t n=0;n<50;n++) {
+    if(text[n]=='0') {
+      last_leading_zero=n;
+    } else break;
+  }
+
+  if(text[last_leading_zero+1] == '.') {text[last_leading_zero]='0'; last_leading_zero--;}
+  
+  if(last_leading_zero != -1) {
+    int m=0;
+    for(uint32_t n=last_leading_zero+1;n<=position;n++) {
+      text[m] = text[n];
+      m++;
+    }
+    position=m;
+    text[position+1]=0;
+  }
+
+  if(width != -1) {
+
+    text[width] = 0;
+    for(uint32_t n=0;n<width;n++) {
+      if(text[n]==0) {
+        for(uint32_t i=n;i<width;i++) text[i] = ' ';
+        break;
+      }
+    }
+  }
+
+}
+
 void int_to_char(uint32_t number,char *text,uint32_t width) {
 
   if(number == 0) {

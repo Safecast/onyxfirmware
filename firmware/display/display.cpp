@@ -16,17 +16,8 @@ void display_clear() {
 }
 
 void display_draw_line(int start_x,int start_y,int end_x,int end_y,uint16_t color) {
-/*
-  if((start_x == end_x) || (start_y == end_y)) {
-    Set_Column_Address(start_x, end_x+1);
-    Set_Row_Address   (start_y, end_y+1);
-    write_c(0x5c);
-    for(uint32_t n=0;n<((end_x-start_x)*(end_y*start_y));n++) write_d(color); //TODO: use stream
-    return;
-  }
-*/
-  // Bresenham's
 
+  // Bresenham's
   int cx = start_x;
   int cy = start_y;
 
@@ -40,7 +31,7 @@ void display_draw_line(int start_x,int start_y,int end_x,int end_y,uint16_t colo
   if(cy < end_y) sy = 1; else sy = -1;
   int err = dx-dy;
 
-  for(int n=0;n<100000;n++) {
+  for(int n=0;n<1000;n++) {
     display_draw_point(cx,cy,color);
     if((cx==end_x) && (cy==end_y)) return;
     int e2 = 2*err;

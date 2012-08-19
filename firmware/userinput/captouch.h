@@ -14,5 +14,5 @@ int cap_setkeydown(void (*new_keydown)(int key));
 int cap_setkeyup(void (*new_keyup)(int key));
 int cap_lastkey();
 void cap_clearlastkey();
-char *diag_data();
+char *diag_data(int e);
 #endif /* __CAPTOUCH_H__ */

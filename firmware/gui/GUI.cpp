@@ -12,6 +12,7 @@
 #define KEY_DOWN   4
 #define KEY_UP     3
 #define KEY_SELECT 2
+#define KEY_HELP   0
 #define KEY_PRESSED  0
 #define KEY_RELEASED 1
 #define BACKGROUND_COLOR 65535
@@ -34,7 +35,7 @@ void render_item_head(screen_item &item, bool selected) {
   display_draw_text(0,0,"os100   CPM ",0x001F);
 }
 
-float m_graph_data[30];
+float m_graph_data[120];
 float *source_graph_data;
 bool  graph_first;
 
@@ -44,33 +45,29 @@ void render_item_graph(screen_item &item, bool selected) {
   int32_t m_y = item.val2;
   
   graph_first = first_render;
-  int32_t size=30;
-  int32_t m_size=30;
+  int32_t size=60;
 
-  int32_t lastx=0;
-  int32_t lastoy=80;
-  int32_t lastny=80;
+  int offset=60;
+  int32_t lastx=m_x;
+  int32_t lastoy=m_y-m_graph_data[offset];
+  int32_t lastny=m_y-source_graph_data[offset];
   for(uint32_t n=0;n<size;n++) {
-    if(n >= m_size) {
-      display_draw_point(m_x+(n*4),80-source_graph_data[n],0x0000);
-    } else {
-      int cx = m_x+(n*4);
-      int oy = 80-m_graph_data[n];
-      int ny = 80-source_graph_data[n];
-      if(!((lastoy == lastny) && (oy == ny) && !graph_first)) {
-	display_draw_line(lastx,lastoy,cx,oy,BACKGROUND_COLOR);
-	display_draw_line(lastx,lastny,cx,ny,0x0000);
-      }
-      lastx=cx;
-      lastoy=oy;
-      lastny=ny;
+    int cx = m_x+n;
+    int oy = m_y-m_graph_data[n+offset];
+    int ny = m_y-source_graph_data[n+offset];
+    if(!((lastoy == lastny) && (oy == ny) && !graph_first)) {
+      if(!first_render) display_draw_line(lastx,lastoy,cx,oy,BACKGROUND_COLOR);
+      display_draw_line(lastx,lastny,cx,ny,0x0000);
+   //   display_draw_point(cx,ny,0x000);
     }
+    lastx=cx;
+    lastoy=oy;
+    lastny=ny;
   }
 
-  for(int32_t n=0;n<size;n++) {
+  for(int32_t n=0;n<120;n++) {
     m_graph_data[n] = source_graph_data[n];
   }
-  m_size = size;
 }
 
 void clear_item_menu(screen_item &item, bool selected) {
@@ -115,20 +112,17 @@ void clear_item_graph(screen_item &item, bool selected) {
   int32_t m_y = item.val2;
   
   graph_first = true;
-  int32_t size=30;
-  int32_t m_size=30;
+  int32_t size=60;
 
-  int32_t lastx=0;
-  int32_t lastoy=80;
+  int offset=60;
+  int32_t lastx=m_x;
+  int32_t lastoy=m_y-m_graph_data[offset];
   for(uint32_t n=0;n<size;n++) {
-    if(n >= m_size) {
-    } else {
-      int cx = m_x+(n*4);
-      int oy = 80-m_graph_data[n];
-      display_draw_line(lastx,lastoy,cx,oy,BACKGROUND_COLOR);
-      lastx=cx;
-      lastoy=oy;
-    }
+    int cx = m_x+n;
+    int oy = m_y-m_graph_data[n+offset];
+    display_draw_line(lastx,lastoy,cx,oy,BACKGROUND_COLOR);
+    lastx=cx;
+    lastoy=oy;
   }
 }
 
@@ -216,17 +210,22 @@ void GUI::push_stack(int current_screen,int selected_item) {
 
 GUI::GUI(Controller &r) : receive_gui_events(r) {
 
+  new_keys_size = 0;
   clear_next_render=false;
   current_screen = 0;
   selected_item=1;
   clear_stack();
   m_trigger_any_key=false;
+  m_sleeping=false;
 }
 
 
 void GUI::render() {
 
-  if(m_sleeping) return;  
+  if(m_sleeping) {
+     process_keys();
+     return;  
+  }
 
   // following two items really need to be atomic...
   int32_t cscreen = current_screen;
@@ -255,6 +254,7 @@ void GUI::render() {
     }
   }
   first_render=false;
+  process_keys();
 }
 
 void GUI::clear_screen(int32_t c_screen,int32_t c_selected) {
@@ -278,6 +278,24 @@ void GUI::redraw() {
 }
 
 void GUI::receive_key(int key_id,int type) {
+
+  if(new_keys_size > NEW_KEYS_MAX_SIZE) return;
+
+  new_keys_key [new_keys_size] = key_id;
+  new_keys_type[new_keys_size] = type;
+  new_keys_size++;
+}
+
+void GUI::process_keys() {
+
+  //TODO: if a key press happens while we are in this loop, it will be lost
+  for(uint32_t n=0;n<new_keys_size;n++) {
+    process_key(new_keys_key[n],new_keys_type[n]);
+  }
+  new_keys_size=0;
+}
+
+void GUI::process_key(int key_id,int type) {
 
   if(m_trigger_any_key) {
     receive_gui_events.receive_gui_event("KEYPRESS","any");
@@ -336,11 +354,11 @@ void GUI::receive_key(int key_id,int type) {
       clear_next_render = true;
       clear_screen_screen   = current_screen;
       clear_screen_selected = selected_item;
+      clear_stack();
+      current_screen = 0;
+      selected_item  = 1;
     }
 
-    clear_stack();
-    current_screen = 0;
-    selected_item  = 1;
   }
   
 }

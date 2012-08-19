@@ -3,20 +3,28 @@
 
 #include <stdint.h>
 
+#define COUNTS_PER_SECOND 2
+#define COUNTS_PER_MIN    120
+
 class Geiger {
 
 public:
 
   Geiger();
   void initialise();
-  uint32_t get_count();
   float get_cpm();
-  float get_seiverts();
+  float get_cpm_deadtime_compenstated();
+  float get_microseiverts();
 
-  float *get_cpm_last_30mins();
+  float *get_cpm_last_min();
   void powerup  ();
   void powerdown();
-  float cpm_last_30min[30];
+  float cpm_last_min[COUNTS_PER_MIN];
+  void update_last_min();
+
+  uint16_t last_min_position;
+  uint16_t last_min[COUNTS_PER_MIN];
+  uint16_t averaging_period;
 };
 
 #endif

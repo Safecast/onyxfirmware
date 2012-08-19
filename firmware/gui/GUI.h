@@ -7,6 +7,7 @@
 #include "UserInput.h"
 
 #define MAX_SCREEN_STACK 10
+#define NEW_KEYS_MAX_SIZE 10
 
 class Controller;
 
@@ -38,12 +39,20 @@ private:
   void push_stack(int current_screen,int selected_item);
   void clear_stack();
 
+  void process_key(int key_id,int type);
+  void process_keys();
+
   void clear_screen(int32_t c_screen,int32_t c_selected);
   int32_t clear_screen_selected;
   int32_t clear_screen_screen;
   bool    clear_next_render;
   bool    m_trigger_any_key;
   bool    m_sleeping;
+
+  int new_keys_size;
+  int new_keys_key [NEW_KEYS_MAX_SIZE];
+  int new_keys_type[NEW_KEYS_MAX_SIZE];
 };
+
 
 #endif
