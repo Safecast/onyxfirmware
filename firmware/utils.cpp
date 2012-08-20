@@ -124,3 +124,12 @@ int32_t strlen(const char *i) {
   }
   return 0;
 }
+
+void strcpy(char *i,const char *j) {
+
+  for(uint32_t n=0;;n++) {
+    i[n] = j[n];
+    if(j[n] == 0) return;
+  }
+
+}

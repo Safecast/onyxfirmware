@@ -74,7 +74,7 @@ screen screens_layout[SCREEN_COUNT] = {
   {
     { ITEM_TYPE_HEAD   , 0 , 0  , "CPM"  },
     { ITEM_TYPE_VARNUM , 50, 50 , "CAL1" },
-    { ITEM_TYPE_VARNUM , 76, 50 , "CAL3" },
+    { ITEM_TYPE_VARNUM , 76, 50 , "CAL2" },
     { ITEM_TYPE_VARNUM , 94, 50 , "CAL3" },
     { ITEM_TYPE_VARNUM ,112, 50 , "CAL4" },
     { ITEM_TYPE_LABEL  , 60, 60 , "."    }

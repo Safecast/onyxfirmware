@@ -57,21 +57,52 @@ void render_item_menu(screen_item &item, bool selected) {
   display_draw_text(0,item.val2*16,item.text,highlight);
 }
 
-uint8_t varval=0;
+#define VARNUM_MAXSIZE 10
+
+char    varnum_names[VARNUM_MAXSIZE][10];
+uint8_t varnum_values[VARNUM_MAXSIZE];
+uint8_t varnum_size = 0;
+
+uint8_t get_varnum_value(char *name) {
+
+  for(uint32_t n=0;n<varnum_size;n++) {
+    if(strcmp(varnum_names[n],name) == true) {
+      return varnum_values[n];
+    }
+  }
+  return 0;
+}
+
+void set_varnum_value(char *name,uint8_t value) {
+  for(uint32_t n=0;n<varnum_size;n++) {
+    if(strcmp(varnum_names[n],name) == true) {
+      varnum_values[n] = value;
+      return;
+    }
+  }
+  
+  if(varnum_size >= VARNUM_MAXSIZE) return;
+  strcpy(varnum_names[varnum_size],name);
+  varnum_values[varnum_size] = value;
+  varnum_size++;
+}
+
 void render_item_varnum(screen_item &item, bool selected) {
 
   uint8_t x = item.val1;
   uint8_t y = item.val2;
 
+  uint8_t val = get_varnum_value(item.text);
+
   uint16_t color;
   if(selected) color = 0xcccc; else color = 0;
   display_draw_equtriangle(x,y,9,color);
   display_draw_equtriangle_inv(x,y+33,9,color);
-  display_draw_number(x-4,y+9,varval,1,0);
+  display_draw_number(x-4,y+9,val,1,0);
 }
       
 uint8_t get_item_state_varnum(screen_item &item) {
-  return varval;
+  return get_varnum_value(item.text);
 }
 
 void clear_item_varnum(screen_item &item, bool selected) {
@@ -240,7 +271,7 @@ void update_item_head(screen_item &item,void *value) {
 }
 
 void update_item_varnum(screen_item &item,void *value) {
-  varval = ((uint8_t *) value)[0];
+  set_varnum_value(item.text,((uint8_t *) value)[0]);
 }
 
 void update_item(screen_item &item,void *value) {
@@ -337,6 +368,7 @@ void GUI::clear_screen(int32_t c_screen,int32_t c_selected) {
 
     clear_item(screens_layout[c_screen].items[n],selected);
   }
+  varnum_size=0;
 }
 
 void GUI::set_key_trigger() {
