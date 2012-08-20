@@ -110,6 +110,9 @@ float Geiger::get_cpm() {
 }
 
 float Geiger::get_cpm_deadtime_compenstated() {
+  float cpm = get_cpm();
+  float deadtime_us = cpm*40;
+  return (cpm/((60*1000000)-deadtime_us))*(60*1000000);
 }
 
 float Geiger::get_microseiverts() {

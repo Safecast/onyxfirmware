@@ -18,14 +18,16 @@ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 1 - Current readings screen
 {
-  6,
+  8,
   {
     { ITEM_TYPE_HEAD    , 0 ,  0, "CPM" }, 
     { ITEM_TYPE_LABEL   , 0 , 30, "Current Reading" },
     { ITEM_TYPE_LABEL   , 0 , 46, "CPM" },
-    { ITEM_TYPE_LABEL   , 0 , 66, "Svrt" },
+    { ITEM_TYPE_LABEL   , 0 , 66, "CPMd" },
+    { ITEM_TYPE_LABEL   , 0 , 82, "Svrt" },
     { ITEM_TYPE_VARLABEL, 32, 46, "CPM" },
-    { ITEM_TYPE_VARLABEL, 40, 66, "SEIVERTS" }
+    { ITEM_TYPE_VARLABEL, 40, 66, "CPMDEAD" },
+    { ITEM_TYPE_VARLABEL, 40, 82, "SEIVERTS" }
   }
 },
 

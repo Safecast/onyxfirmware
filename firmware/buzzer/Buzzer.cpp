@@ -32,25 +32,13 @@ void Buzzer::set_frequency(uint16_t freq) {
 }
 
 void Buzzer::buzz(uint16_t time) {
-/*
-  timer_pause(TIMER4);
-  //TODO: fix this so it uses both prescaler and reload...
-  timer_set_prescaler(TIMER4,(m_frequency*CYCLES_PER_MICROSECOND)/MAX_RELOAD);
-  timer_set_reload(TIMER4,MAX_RELOAD);
-
-  // setup interrupt on channel 4
-  timer_set_mode(TIMER4,TIMER_CH4,TIMER_OUTPUT_COMPARE);
-  timer_set_compare(TIMER4,TIMER_CH4,1);
-  timer_attach_interrupt(TIMER4,TIMER_CH4,handler_buzz);
-
-  timer_generate_update(TIMER4); // refresh timer count, prescale, overflow
-
   // buzz
-  timer_resume(TIMER4);
-  delay_us(time);
-  timer_disable(TIMER4);
+  uint32_t t = (time*1000000)/m_frequency;
+  for(uint32_t n=0;n<t;n++) {
+    gpio_toggle_bit(PIN_MAP[BUZZER_PWM].gpio_device, PIN_MAP[BUZZER_PWM].gpio_bit);
+    delay_us(m_frequency);
+  }
   gpio_write_bit(PIN_MAP[BUZZER_PWM].gpio_device,PIN_MAP[BUZZER_PWM].gpio_bit,0);
-*/
 }
 
 void Buzzer::powerup() {}
