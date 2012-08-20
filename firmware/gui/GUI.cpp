@@ -63,15 +63,15 @@ void render_item_varnum(screen_item &item, bool selected) {
   uint8_t x = item.val1;
   uint8_t y = item.val2;
 
-  display_draw_equtriangle(x,y,9,0);
-  display_draw_equtriangle_inv(x,y+33,9,0);
+  uint16_t color;
+  if(selected) color = 0xcccc; else color = 0;
+  display_draw_equtriangle(x,y,9,color);
+  display_draw_equtriangle_inv(x,y+33,9,color);
   display_draw_number(x-4,y+9,varval,1,0);
 }
       
 uint8_t get_item_state_varnum(screen_item &item) {
-
   return varval;
-
 }
 
 void clear_item_varnum(screen_item &item, bool selected) {
@@ -412,6 +412,19 @@ void GUI::process_key(int key_id,int type) {
   }
 
   if((key_id == KEY_SELECT) && (type == KEY_RELEASED)) {
+
+    // if a VARNUM is selected...
+    if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_VARNUM) {
+      if(selected_item != 0) {
+        if((selected_item+1) < screens_layout[current_screen].item_count) {
+          if(screens_layout[current_screen].items[selected_item+1].type == ITEM_TYPE_VARNUM) {
+            selected_item++;
+            return;
+          }
+        }
+      }
+    }
+
     if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_MENU) {
       if(screens_layout[current_screen].items[selected_item].val1 != INVALID_SCREEN) {
         
@@ -433,6 +446,18 @@ void GUI::process_key(int key_id,int type) {
   }
 
   if((key_id == KEY_BACK) && (type == KEY_RELEASED)) {
+
+    // if a varnum is selected
+    if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_VARNUM) {
+      if(selected_item != 0) {
+        if((selected_item-1) >= 0) {
+          if(screens_layout[current_screen].items[selected_item-1].type == ITEM_TYPE_VARNUM) {
+            selected_item--;
+            return;
+          }
+        }
+      }
+    }
 
     if(selected_stack_size !=0) {
       clear_next_render = true; 
