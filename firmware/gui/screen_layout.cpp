@@ -53,19 +53,31 @@ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU,INVALID_SCREEN, 3, "Logging Inverval" },
     { ITEM_TYPE_MENU,INVALID_SCREEN, 4, "Warning Levels" },
     { ITEM_TYPE_MENU,INVALID_SCREEN, 5, "Audio" },
-    { ITEM_TYPE_MENU,INVALID_SCREEN, 6, "Calibration" },
+    { ITEM_TYPE_MENU,             5, 6, "Calibration" },
     { ITEM_TYPE_MENU,INVALID_SCREEN, 7, "Language" }
   }
 },
 
 // Screen 4 - Graph display
 {
-  4,
+  3,
   {
     { ITEM_TYPE_HEAD    , 0 , 0  , "CPM" }, 
     { ITEM_TYPE_GRAPH   , 34, 110, "RECENTDATA" },
-    { ITEM_TYPE_LABEL   , 4 , 112, "Last 30 seconds" },
-    { ITEM_TYPE_VARLABEL, 30, 10 , "test" }
+    { ITEM_TYPE_LABEL   , 4 , 112, "Last 30 seconds" }
+  }
+},
+
+//Screen 5 - Calibration
+{
+  6,
+  {
+    { ITEM_TYPE_HEAD   , 0 , 0  , "CPM"  },
+    { ITEM_TYPE_VARNUM , 50, 50 , "CAL1" },
+    { ITEM_TYPE_LABEL  , 60, 60 , "."    },
+    { ITEM_TYPE_VARNUM , 76, 50 , "CAL3" },
+    { ITEM_TYPE_VARNUM , 94, 50 , "CAL3" },
+    { ITEM_TYPE_VARNUM ,112, 50 , "CAL4" }
   }
 }
 

@@ -156,15 +156,15 @@ void cap_init(void) {
 
     // Section A
     mpr121Write(MHD_R, 0x3F); // was 0x01 
-    mpr121Write(NHD_R, 0x02); // was 0x01
+    mpr121Write(NHD_R, 0x02); // was 0x02
     mpr121Write(NCL_R, 0xFF); // was 0x00 
-    mpr121Write(FDL_R, 0x08); // was 0x00
+    mpr121Write(FDL_R, 0x00); // was 0x08
 
     // Section B
-    mpr121Write(MHD_F, 0x3F); // was 0x01
-    mpr121Write(NHD_F, 0x02); // was 0x01
+    mpr121Write(MHD_F, 0x3F); // was 0x01 , largest value to pass through filer
+    mpr121Write(NHD_F, 0x02); // was 0x02 , maximum change allowed
     mpr121Write(NCL_F, 0xFF); // was 0xFF
-    mpr121Write(FDL_F, 0x08); // was 0x02
+    mpr121Write(FDL_F, 0x00); // was 0x08
 
     // Section D
     // Set the Filter Configuration
