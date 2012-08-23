@@ -216,6 +216,16 @@ void clear_item_graph(screen_item &item, bool selected) {
   }
 }
 
+void clear_item_delay(screen_item &item, bool selected) {
+  display_draw_rectangle(item.val1,item.val2,item.val1+24,item.val2+16,BACKGROUND_COLOR);
+}
+
+uint32_t delay_time;
+uint32_t delay_destination_screen;
+void render_item_delay(screen_item &item,bool selected) {
+  display_draw_number(item.val1,item.val2,delay_time,3,0);
+}
+
 void render_item(screen_item &item,bool selected) {
   if(item.type == ITEM_TYPE_MENU) {
     render_item_menu(item,selected);
@@ -234,8 +244,10 @@ void render_item(screen_item &item,bool selected) {
   } else 
   if(item.type == ITEM_TYPE_VARNUM) {
     render_item_varnum(item,selected);
+  } else 
+  if(item.type == ITEM_TYPE_DELAY) {
+    render_item_delay(item,selected);
   }
-  
 }
 
 void clear_item(screen_item &item,bool selected) {
@@ -259,6 +271,9 @@ void clear_item(screen_item &item,bool selected) {
   } else
   if(item.type == ITEM_TYPE_VARNUM) {
     clear_item_varnum(item,selected);
+  } else
+  if(item.type == ITEM_TYPE_DELAY) {
+    clear_item_delay(item,selected);
   }
 }
 
@@ -274,6 +289,39 @@ void update_item_varnum(screen_item &item,void *value) {
   set_varnum_value(item.text,((uint8_t *) value)[0]);
 }
 
+void update_item_delay(screen_item &item,void *value) {
+
+  if(first_render == true) {
+    // parse out delay time
+    delay_time = str_to_uint(item.text+8);
+
+    // parse out destination screen
+    uint32_t destination_screen_start=0;
+    for(int n=8;n<50;n++) {
+      if(!((item.text[n] >= '0') && (item.text[n] <= '9'))) {
+        destination_screen_start = n+1;
+      }
+    }
+    delay_destination_screen = str_to_uint(item.text+destination_screen_start);
+  }
+
+  delay_time--;
+  delay_us(1000000);
+  display_draw_number(item.val1,item.val2,delay_time,3,0);
+  if(delay_time == 0) {
+    delay_time = 1;
+/*
+    clear_next_render = true;
+    clear_screen_screen   = current_screen;
+    clear_screen_selected = selected_item;
+
+    current_screen = destination_screen; 
+    selected_item  = 1;
+*/
+  }
+
+}
+
 void update_item(screen_item &item,void *value) {
   if(item.type == ITEM_TYPE_VARLABEL) {
     display_draw_text(item.val1,item.val2,(char *)value,0);
@@ -286,6 +334,9 @@ void update_item(screen_item &item,void *value) {
   } else 
   if(item.type == ITEM_TYPE_VARNUM) {
     update_item_varnum(item,value);
+  } else 
+  if(item.type == ITEM_TYPE_DELAY) {
+    update_item_delay(item,value);
   }
 }
   
@@ -379,6 +430,7 @@ void GUI::set_key_trigger() {
 
 void GUI::redraw() {
   clear_next_render = true;
+  first_render=true;
 }
 
 void GUI::receive_key(int key_id,int type) {
@@ -462,6 +514,7 @@ void GUI::process_key(int key_id,int type) {
         
         if(clear_next_render == false) {
           clear_next_render = true;
+          first_render=true;
           clear_screen_screen   = current_screen;
           clear_screen_selected = selected_item;
         }
@@ -493,6 +546,7 @@ void GUI::process_key(int key_id,int type) {
 
     if(selected_stack_size !=0) {
       clear_next_render = true; 
+      first_render=true;
       clear_screen_screen   = current_screen;
       clear_screen_selected = selected_item;
 
@@ -504,6 +558,7 @@ void GUI::process_key(int key_id,int type) {
 
     if(current_screen != 0) {
       clear_next_render = true;
+      first_render=true;
       clear_screen_screen   = current_screen;
       clear_screen_selected = selected_item;
       clear_stack();

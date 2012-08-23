@@ -68,7 +68,39 @@ screen screens_layout[SCREEN_COUNT] = {
   }
 },
 
-//Screen 5 - Calibration
+//Screen 5 - Calibration Confirmation
+{
+  4,
+  {
+    { ITEM_TYPE_HEAD , 0 , 0  , "CPM"  },
+    { ITEM_TYPE_LABEL, 12, 16 , "Are you sure?" },
+    { ITEM_TYPE_MENU , 6 , 3  , "       OK       " },
+    { ITEM_TYPE_MENU , 3 , 4  , "     Cancel     " }
+  }
+},
+
+//Screen 6 - Calibration Wait 1
+{
+  4,
+  {
+    { ITEM_TYPE_LABEL, 4, 32, "Waiting for 15s" },
+    { ITEM_TYPE_LABEL, 0, 64, "Please expose"   },
+    { ITEM_TYPE_LABEL, 0, 80, "to source."      },
+    { ITEM_TYPE_DELAY, 60,100,"DELAYA\0 15,7"   }
+  } 
+},
+
+//Screen 7 - Calibration Wait 2
+{
+  2,
+  {
+    { ITEM_TYPE_LABEL, 4, 32, "Acquiring for 30" },
+    { ITEM_TYPE_DELAY, 60,100,"30,8"              }
+  } 
+},
+    
+
+//Screen 8 - Calibration
 {
   6,
   {

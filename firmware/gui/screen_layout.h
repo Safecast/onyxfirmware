@@ -4,17 +4,18 @@
 #include <stdint.h>
 
 #define TEXT_LENGTH 17
-#define SCREEN_COUNT 6
+#define SCREEN_COUNT 9
 
-#define ITEM_TYPE_MENU         0
-#define ITEM_TYPE_LABEL        1
-#define ITEM_TYPE_SELECTNUM    2
-#define ITEM_TYPE_SELECTION    3
-#define ITEM_TYPE_VARLABEL     4
-#define ITEM_TYPE_GRAPH        5
-#define ITEM_TYPE_HEAD         6
-#define ITEM_TYPE_MENU_ACTION  7
-#define ITEM_TYPE_VARNUM       8
+#define ITEM_TYPE_MENU         0  // A normal menu item
+#define ITEM_TYPE_LABEL        1  // A static label, can not be changed
+#define ITEM_TYPE_SELECTION    3  // An item selection, currently not implemented
+#define ITEM_TYPE_VARLABEL     4  // A variable label, can be set to a value in software
+#define ITEM_TYPE_GRAPH        5  // System graph.
+#define ITEM_TYPE_HEAD         6  // Display HUD. Shows CPM etc.
+#define ITEM_TYPE_MENU_ACTION  7  // selection triggers a GUI event, which the Controller receives.
+#define ITEM_TYPE_VARNUM       8  // Variable single number
+#define ITEM_TYPE_DELAY        9  // A delay, basically a countdown timer.
+
 
 #define INVALID_SCREEN 255
 

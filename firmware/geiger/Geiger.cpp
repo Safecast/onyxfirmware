@@ -109,7 +109,7 @@ float Geiger::get_cpm() {
   return (sum/((float)averaging_period))*((float)COUNTS_PER_MIN);
 }
 
-float Geiger::get_cpm_deadtime_compenstated() {
+float Geiger::get_cpm_deadtime_compensated() {
   float cpm = get_cpm();
   float deadtime_us = cpm*40;
   return (cpm/((60*1000000)-deadtime_us))*(60*1000000);
@@ -117,7 +117,7 @@ float Geiger::get_cpm_deadtime_compenstated() {
 
 float Geiger::get_microseiverts() {
   float conversionCoefficient = 0.0029;
-  return get_cpm() * conversionCoefficient;
+  return get_cpm_deadtime_compensated() * conversionCoefficient;
 }
 
 float *Geiger::get_cpm_last_min() {

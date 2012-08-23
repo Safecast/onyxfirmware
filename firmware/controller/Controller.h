@@ -57,7 +57,7 @@ public:
     text_seiverts[0]=0;
     int_to_char(m_geiger.get_cpm(),text_cpm,4);
     float_to_char(m_geiger.get_microseiverts(),text_seiverts,6);
-    float_to_char(m_geiger.get_cpm_deadtime_compenstated(),text_cpmd,6);
+    float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,6);
 
     text_seiverts[6] = ' ';
     text_seiverts[7] = 'u';
@@ -73,6 +73,7 @@ public:
     m_gui->receive_update("CPMDEAD",text_cpmd);
     m_gui->receive_update("SEIVERTS",text_seiverts);
     m_gui->receive_update("RECENTDATA",graph_data);
+    m_gui->receive_update("DELAYA",NULL);
   }
 
   GUI    *m_gui;

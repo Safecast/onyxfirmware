@@ -13,7 +13,7 @@ public:
   Geiger();
   void initialise();
   float get_cpm();
-  float get_cpm_deadtime_compenstated();
+  float get_cpm_deadtime_compensated();
   float get_microseiverts();
 
   float *get_cpm_last_min();

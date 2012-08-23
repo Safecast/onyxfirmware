@@ -1,6 +1,29 @@
 #include "utils.h"
 #include <stdint.h>
 
+uint32_t str_to_uint(const char *text) {
+  
+  uint32_t position=0;
+  uint8_t digits[10];
+
+  uint32_t size=0;
+  for(size=0;size<10;size++) {
+    if((text[size] >= '0') && (text[size] <= '9')) {
+      digits[size] = text[size]-'0';
+    } else break;
+  }
+  if(size != 0) size--;
+
+  uint32_t place=1;
+  uint32_t value=0;
+  for(int32_t i=size;i>=0;i--) {
+    value += digits[i]*place;
+    place=place*10;
+  }
+
+  return value;
+}
+
 void float_to_char(float number,char *text,uint32_t width) {
 
   float original_number=number;
