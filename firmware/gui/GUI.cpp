@@ -19,6 +19,36 @@
 
 bool first_render=true;
 
+void display_draw_equtriangle(uint8_t x,uint8_t y,uint8_t s,uint16_t color) {
+
+  uint8_t start = x;
+  uint8_t end   = x;
+  for(uint8_t n=0;n<s;n++) {
+ 
+    for(uint8_t i=start;i<=end;i++) {
+      display_draw_point(i,y,color);
+    }
+    start--;
+    end++;
+    y++;
+  }
+}
+
+void display_draw_equtriangle_inv(uint8_t x,uint8_t y,uint8_t s,uint16_t color) {
+
+  uint8_t start = x;
+  uint8_t end   = x;
+  for(uint8_t n=0;n<s;n++) {
+ 
+    for(uint8_t i=start;i<=end;i++) {
+      display_draw_point(i,y,color);
+    }
+    start--;
+    end++;
+    y--;
+  }
+}
+
 void render_item_menu(screen_item &item, bool selected) {
 
   uint16_t highlight = 0;
@@ -26,6 +56,66 @@ void render_item_menu(screen_item &item, bool selected) {
 
   display_draw_text(0,item.val2*16,item.text,highlight);
 }
+
+#define VARNUM_MAXSIZE 10
+
+char    varnum_names[VARNUM_MAXSIZE][10];
+uint8_t varnum_values[VARNUM_MAXSIZE];
+uint8_t varnum_size = 0;
+
+uint8_t get_item_state_varnum(const char *name) {
+
+  for(uint32_t n=0;n<varnum_size;n++) {
+    if(strcmp(varnum_names[n],name) == true) {
+      return varnum_values[n];
+    }
+  }
+  return 0;
+}
+
+void set_item_state_varnum(char *name,uint8_t value) {
+  for(uint32_t n=0;n<varnum_size;n++) {
+    if(strcmp(varnum_names[n],name) == true) {
+      varnum_values[n] = value;
+      return;
+    }
+  }
+  
+  if(varnum_size >= VARNUM_MAXSIZE) return;
+  strcpy(varnum_names[varnum_size],name);
+  varnum_values[varnum_size] = value;
+  varnum_size++;
+}
+
+void render_item_varnum(screen_item &item, bool selected) {
+
+  uint8_t x = item.val1;
+  uint8_t y = item.val2;
+
+  uint8_t val = get_item_state_varnum(item.text);
+
+  uint16_t color;
+  if(selected) color = 0xcccc; else color = 0;
+  display_draw_equtriangle(x,y,9,color);
+  display_draw_equtriangle_inv(x,y+33,9,color);
+  display_draw_number(x-4,y+9,val,1,0);
+}
+      
+uint8_t get_item_state_varnum(screen_item &item) {
+  return get_item_state_varnum(item.text);
+}
+
+uint32_t delay_time;
+uint32_t get_item_state_delay(screen_item &item) {
+  return delay_time;
+}
+
+void clear_item_varnum(screen_item &item, bool selected) {
+  uint8_t x = item.val1;
+  uint8_t y = item.val2;
+  display_draw_rectangle(x-8,y-2,x+8,y+40,BACKGROUND_COLOR);
+}
+
 
 void render_item_label(screen_item &item, bool selected) {
   display_draw_text(item.val1,item.val2,item.text,0);
@@ -74,7 +164,12 @@ void clear_item_menu(screen_item &item, bool selected) {
   int32_t text_len = strlen(item.text);
 
   if(text_len == 0) return;
-  display_draw_rectangle(0,item.val2*16,(text_len*8)-1,((item.val2+1)*16),BACKGROUND_COLOR);
+
+  
+  uint8_t x_max=127;
+  uint8_t y_max=(item.val2+1)*16;
+  if(y_max > 127) y_max=127;
+  display_draw_rectangle(0,item.val2*16,x_max,y_max,BACKGROUND_COLOR);
 }
 
 void clear_item_label(screen_item &item, bool selected) {
@@ -126,6 +221,15 @@ void clear_item_graph(screen_item &item, bool selected) {
   }
 }
 
+void clear_item_delay(screen_item &item, bool selected) {
+  display_draw_rectangle(item.val1,item.val2,item.val1+24,item.val2+16,BACKGROUND_COLOR);
+}
+
+void render_item_delay(screen_item &item,bool selected) {
+  display_draw_number(item.val1,item.val2,delay_time,3,0);
+}
+
+
 void render_item(screen_item &item,bool selected) {
   if(item.type == ITEM_TYPE_MENU) {
     render_item_menu(item,selected);
@@ -141,8 +245,13 @@ void render_item(screen_item &item,bool selected) {
   } else 
   if(item.type == ITEM_TYPE_MENU_ACTION) {
     render_item_menu(item,selected);
+  } else 
+  if(item.type == ITEM_TYPE_VARNUM) {
+    render_item_varnum(item,selected);
+  } else 
+  if(item.type == ITEM_TYPE_DELAY) {
+    render_item_delay(item,selected);
   }
-  
 }
 
 void clear_item(screen_item &item,bool selected) {
@@ -163,6 +272,12 @@ void clear_item(screen_item &item,bool selected) {
   } else
   if(item.type == ITEM_TYPE_MENU_ACTION) {
     clear_item_menu(item,selected);
+  } else
+  if(item.type == ITEM_TYPE_VARNUM) {
+    clear_item_varnum(item,selected);
+  } else
+  if(item.type == ITEM_TYPE_DELAY) {
+    clear_item_delay(item,selected);
   }
 }
 
@@ -174,6 +289,36 @@ void update_item_head(screen_item &item,void *value) {
   draw_text(128-16-16,0,(char *)value,0x001F);
 }
 
+void update_item_varnum(screen_item &item,void *value) {
+  set_item_state_varnum(item.text,((uint8_t *) value)[0]);
+}
+
+void update_item_delay(screen_item &item,void *value) {
+
+  if(first_render == true) {
+    // parse out delay time
+    delay_time = str_to_uint(item.text+8);
+
+  }
+
+  if(delay_time >= 1) delay_time--;
+  delay_us(1000000);
+  display_draw_number(item.val1,item.val2,delay_time,3,0);
+}
+
+int get_item_state_delay_destination(screen_item &item) {
+  // parse out destination screen
+
+  for(int n=9;n<50;n++) {
+    if(!((item.text[n] >= '0') && (item.text[n] <= '9'))) {
+      uint32_t destination_screen_start = n+1;
+      int dest = str_to_uint(item.text+destination_screen_start);
+      return dest;
+    }
+  }
+  return 0;
+}
+
 void update_item(screen_item &item,void *value) {
   if(item.type == ITEM_TYPE_VARLABEL) {
     display_draw_text(item.val1,item.val2,(char *)value,0);
@@ -183,6 +328,12 @@ void update_item(screen_item &item,void *value) {
   } else 
   if(item.type == ITEM_TYPE_HEAD) {
     update_item_head(item,value);
+  } else 
+  if(item.type == ITEM_TYPE_VARNUM) {
+    update_item_varnum(item,value);
+  } else 
+  if(item.type == ITEM_TYPE_DELAY) {
+    update_item_delay(item,value);
   }
 }
   
@@ -240,6 +391,13 @@ void GUI::render() {
 
   for(uint32_t n=0;n<screens_layout[cscreen].item_count;n++) {
 
+    if(first_render) {
+      if(screens_layout[current_screen].items[n].type == ITEM_TYPE_ACTION) {
+        receive_gui_events.receive_gui_event(screens_layout[cscreen].items[n].text,
+                                             screens_layout[cscreen].items[n].text);
+      }
+    }
+
     bool selected = false;
     bool near_selected = false;
     if(n == citem) selected = true;
@@ -252,6 +410,8 @@ void GUI::render() {
     if(first_render || (selected) || (near_selected)) {
       render_item(screens_layout[cscreen].items[n],selected);
     }
+
+
   }
   first_render=false;
   process_keys();
@@ -265,6 +425,7 @@ void GUI::clear_screen(int32_t c_screen,int32_t c_selected) {
 
     clear_item(screens_layout[c_screen].items[n],selected);
   }
+  varnum_size=0;
 }
 
 void GUI::set_key_trigger() {
@@ -275,6 +436,7 @@ void GUI::set_key_trigger() {
 
 void GUI::redraw() {
   clear_next_render = true;
+  first_render=true;
 }
 
 void GUI::receive_key(int key_id,int type) {
@@ -305,6 +467,19 @@ void GUI::process_key(int key_id,int type) {
   if(m_sleeping) return;
 
   if((key_id == KEY_DOWN) && (type == KEY_RELEASED)) {
+
+    if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_VARNUM) {
+      uint8_t current = get_item_state_varnum(screens_layout[current_screen].items[selected_item]);
+
+      int8_t val[1];
+      val[0] = current-1;
+      if(val[0] < 0) val[0] = 0;
+      update_item(screens_layout[current_screen].items[selected_item],val);
+  
+      receive_gui_events.receive_gui_event("varnumchange",screens_layout[current_screen].items[selected_item].text);
+      return;
+    }
+
     selected_item++;
     if(selected_item >= screens_layout[current_screen].item_count) {
       selected_item = screens_layout[current_screen].item_count-1;
@@ -312,16 +487,41 @@ void GUI::process_key(int key_id,int type) {
   }
 
   if((key_id == KEY_UP) && (type == KEY_RELEASED)) {
+
+    if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_VARNUM) {
+      uint8_t current = get_item_state_varnum(screens_layout[current_screen].items[selected_item]);
+
+      int8_t val[1];
+      val[0] = current+1;
+      if(val[0] > 9) val[0] = 9;
+      update_item(screens_layout[current_screen].items[selected_item],val);
+      receive_gui_events.receive_gui_event("varnumchange",screens_layout[current_screen].items[selected_item].text);
+      return;
+    }
+
+
     if(selected_item == 1) return;
     selected_item--;
   }
 
   if((key_id == KEY_SELECT) && (type == KEY_RELEASED)) {
+
+    // if a VARNUM is selected...
+    if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_VARNUM) {
+      if(selected_item != 0) {
+        if((selected_item+1) < screens_layout[current_screen].item_count) {
+          selected_item++;
+          return;
+        }
+      }
+    }
+
     if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_MENU) {
       if(screens_layout[current_screen].items[selected_item].val1 != INVALID_SCREEN) {
         
         if(clear_next_render == false) {
           clear_next_render = true;
+          first_render=true;
           clear_screen_screen   = current_screen;
           clear_screen_selected = selected_item;
         }
@@ -339,8 +539,22 @@ void GUI::process_key(int key_id,int type) {
 
   if((key_id == KEY_BACK) && (type == KEY_RELEASED)) {
 
+    // if a varnum is selected
+    if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_VARNUM) {
+      if(selected_item != 0) {
+        if((selected_item-1) >= 0) {
+          if(screens_layout[current_screen].items[selected_item-1].type == ITEM_TYPE_VARNUM) {
+            selected_item--;
+            receive_gui_events.receive_gui_event("varnumchange",screens_layout[current_screen].items[selected_item].text);
+            return;
+          }
+        }
+      }
+    }
+
     if(selected_stack_size !=0) {
       clear_next_render = true; 
+      first_render=true;
       clear_screen_screen   = current_screen;
       clear_screen_selected = selected_item;
 
@@ -352,6 +566,7 @@ void GUI::process_key(int key_id,int type) {
 
     if(current_screen != 0) {
       clear_next_render = true;
+      first_render=true;
       clear_screen_screen   = current_screen;
       clear_screen_selected = selected_item;
       clear_stack();
@@ -363,15 +578,36 @@ void GUI::process_key(int key_id,int type) {
   
 }
 
+void GUI::jump_to_screen(const char screen) {
+    clear_next_render = true;
+    first_render = true;
+    clear_screen_screen   = current_screen;
+    clear_screen_selected = selected_item;
+
+    current_screen = screen; 
+    selected_item  = 1;
+}
 
 void GUI::receive_update(const char *tag,void *value) {
   for(uint32_t n=0;n<screens_layout[current_screen].item_count;n++) {
     if(strcmp(tag,screens_layout[current_screen].items[n].text) == true) {
       update_item(screens_layout[current_screen].items[n],value);
+
+      // has to be in the GUI object, because we don't have access to current_screen outside it.
+      if(screens_layout[current_screen].items[n].type == ITEM_TYPE_DELAY) {
+        if(get_item_state_delay(screens_layout[current_screen].items[n]) == 0) {
+          jump_to_screen(get_item_state_delay_destination(screens_layout[current_screen].items[n]));
+        }
+      }
     }
   }
 }
 
 void GUI::set_sleeping(bool v) {
   m_sleeping = v;
+}
+
+uint8_t GUI::get_item_state_uint8(const char *tag) {
+  // should check item type and repsond appropriately, however only varnum currently returns uint8_t
+  return get_item_state_varnum(tag);
 }
