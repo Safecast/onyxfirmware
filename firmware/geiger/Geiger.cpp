@@ -7,6 +7,7 @@
 #include "power.h"
 #include "safecast_config.h"
 #include "display.h"
+#include "utils.h"
 
 #define GEIGER_PULSE_GPIO 42 // PB3
 #define GEIGER_ON_GPIO    4  // PB5
@@ -43,6 +44,8 @@ Geiger::Geiger() {
 }
 
 void Geiger::initialise() {
+
+  calibration_offset=0;
 
   system_geiger = this;
   for(uint32_t n=0;n<(60*COUNTS_PER_SECOND);n++) {
@@ -115,9 +118,12 @@ float Geiger::get_cpm_deadtime_compensated() {
   return (cpm/((60*1000000)-deadtime_us))*(60*1000000);
 }
 
-float Geiger::get_microseiverts() {
+float Geiger::get_microsieverts() {
   float conversionCoefficient = 0.0029;
-  return get_cpm_deadtime_compensated() * conversionCoefficient;
+  float microsieverts =  (get_cpm_deadtime_compensated() * conversionCoefficient) + calibration_offset;
+  char t[50];
+  float_to_char(microsieverts,t,6);
+  return microsieverts;
 }
 
 float *Geiger::get_cpm_last_min() {
@@ -146,6 +152,10 @@ float *Geiger::get_cpm_last_min() {
   }
 
   return cpm_last_min;
+}
+
+void  Geiger::set_calibration(float c) {
+  calibration_offset = c;
 }
 
 void Geiger::powerup  () {}

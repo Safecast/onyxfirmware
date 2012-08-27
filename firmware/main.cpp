@@ -83,14 +83,12 @@ int main(void) {
     uint16_t h[6];
     for(uint32_t n=0;n<6;n++) h[n]=0;
     h[0]=65535;
-    int highlight=0;
 
     Controller c(g);
     GUI m_gui(c);
     c.set_gui(m_gui);
     UserInput  u(m_gui);
     u.initialise();
-    int n=0;
     for(;;) {
       c.update();
       m_gui.render();

@@ -14,7 +14,8 @@ public:
   void initialise();
   float get_cpm();
   float get_cpm_deadtime_compensated();
-  float get_microseiverts();
+  float get_microsieverts();
+  void  set_calibration(float c);
 
   float *get_cpm_last_min();
   void powerup  ();
@@ -25,6 +26,7 @@ public:
   uint16_t last_min_position;
   uint16_t last_min[COUNTS_PER_MIN];
   uint16_t averaging_period;
+  float    calibration_offset;
 };
 
 #endif

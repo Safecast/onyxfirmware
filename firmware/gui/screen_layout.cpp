@@ -27,7 +27,7 @@ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL   , 0 , 82, "Svrt" },
     { ITEM_TYPE_VARLABEL, 32, 46, "CPM" },
     { ITEM_TYPE_VARLABEL, 40, 66, "CPMDEAD" },
-    { ITEM_TYPE_VARLABEL, 40, 82, "SEIVERTS" }
+    { ITEM_TYPE_VARLABEL, 40, 82, "SIEVERTS" }
   }
 },
 
@@ -73,9 +73,9 @@ screen screens_layout[SCREEN_COUNT] = {
   4,
   {
     { ITEM_TYPE_HEAD , 0 , 0  , "CPM"  },
-    { ITEM_TYPE_LABEL, 12, 16 , "Are you sure?" },
     { ITEM_TYPE_MENU , 6 , 3  , "       OK       " },
-    { ITEM_TYPE_MENU , 3 , 4  , "     Cancel     " }
+    { ITEM_TYPE_MENU , 3 , 4  , "     Cancel     " },
+    { ITEM_TYPE_LABEL, 12, 16 , "Are you sure?" }
   }
 },
 
@@ -86,7 +86,7 @@ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL, 4, 32, "Waiting for 15s" },
     { ITEM_TYPE_LABEL, 0, 64, "Please expose"   },
     { ITEM_TYPE_LABEL, 0, 80, "to source."      },
-    { ITEM_TYPE_DELAY, 60,100,"DELAYA\0 15,7"   }
+    { ITEM_TYPE_DELAY, 60,100,"DELAYA\0 16,7"   } // 16 second delay
   } 
 },
 
@@ -94,22 +94,24 @@ screen screens_layout[SCREEN_COUNT] = {
 {
   2,
   {
-    { ITEM_TYPE_LABEL, 4, 32, "Acquiring for 30" },
-    { ITEM_TYPE_DELAY, 60,100,"30,8"              }
+    { ITEM_TYPE_LABEL, 4, 32, "Acquiring, 30s" },
+    { ITEM_TYPE_DELAY, 60,100,"DELAYB\0 31,8"  } // 31 second delay
   } 
-},
+}, 
     
 
 //Screen 8 - Calibration
 {
-  6,
+  8,
   {
-    { ITEM_TYPE_HEAD   , 0 , 0  , "CPM"  },
-    { ITEM_TYPE_VARNUM , 50, 50 , "CAL1" },
-    { ITEM_TYPE_VARNUM , 76, 50 , "CAL2" },
-    { ITEM_TYPE_VARNUM , 94, 50 , "CAL3" },
-    { ITEM_TYPE_VARNUM ,112, 50 , "CAL4" },
-    { ITEM_TYPE_LABEL  , 60, 60 , "."    }
+    { ITEM_TYPE_VARLABEL   , 0 , 0  , "FIXEDSV"   },
+    { ITEM_TYPE_VARNUM     , 20, 50 , "CAL1"      },
+    { ITEM_TYPE_VARNUM     , 56, 50 , "CAL2"      },
+    { ITEM_TYPE_VARNUM     , 74, 50 , "CAL3"      },
+    { ITEM_TYPE_VARNUM     , 92, 50 , "CAL4"      },
+  //  { ITEM_TYPE_VARNUM     ,110, 50 , "CAL5"      },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save"      },
+    { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE" }
   }
 }
 

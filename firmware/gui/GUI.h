@@ -28,8 +28,10 @@ public:
   void set_key_trigger();
   void redraw();
   void set_sleeping(bool sleeping);
+  void jump_to_screen(const char screen);
   Controller &receive_gui_events;
 
+  uint8_t get_item_state_uint8(const char *tag);
 private:
   int32_t selected_screen_stack[MAX_SCREEN_STACK];
   int32_t selected_item_stack  [MAX_SCREEN_STACK];
