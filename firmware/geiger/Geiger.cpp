@@ -2,7 +2,6 @@
 #include "exti.h"
 #include "Geiger.h"
 #include "power.h"
-#include "RealTime.h"
 #include "wirish_boards.h"
 #include "power.h"
 #include "safecast_config.h"

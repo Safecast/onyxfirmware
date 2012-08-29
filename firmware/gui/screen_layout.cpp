@@ -20,14 +20,12 @@ screen screens_layout[SCREEN_COUNT] = {
 {
   8,
   {
-    { ITEM_TYPE_HEAD    , 0 ,  0, "CPM" }, 
-    { ITEM_TYPE_LABEL   , 0 , 30, "Current Reading" },
-    { ITEM_TYPE_LABEL   , 0 , 46, "CPM" },
-    { ITEM_TYPE_LABEL   , 0 , 66, "CPMd" },
-    { ITEM_TYPE_LABEL   , 0 , 82, "Svrt" },
-    { ITEM_TYPE_VARLABEL, 32, 46, "CPM" },
-    { ITEM_TYPE_VARLABEL, 40, 66, "CPMDEAD" },
-    { ITEM_TYPE_VARLABEL, 40, 82, "SIEVERTS" }
+    { ITEM_TYPE_HEAD        , 0,  0, "CPM"      }, 
+    { ITEM_TYPE_VARLABEL    , 0, 30, "TIME"     },
+    { ITEM_TYPE_VARLABEL    , 0, 46, "DATE"     },
+    { ITEM_TYPE_VARLABEL    , 0, 62, "CPM"      },
+    { ITEM_TYPE_VARLABEL    , 0, 76, "CPMDEAD"  },
+    { ITEM_TYPE_VARLABEL    , 0, 92, "SIEVERTS" }
   }
 },
 
@@ -48,7 +46,7 @@ screen screens_layout[SCREEN_COUNT] = {
   8,
   {
     { ITEM_TYPE_HEAD,             0, 0, "CPM" }, 
-    { ITEM_TYPE_MENU,INVALID_SCREEN, 1, "Time/Date" },
+    { ITEM_TYPE_MENU,             9, 1, "Time/Date" },
     { ITEM_TYPE_MENU,INVALID_SCREEN, 2, "Averaging Period" },
     { ITEM_TYPE_MENU,INVALID_SCREEN, 3, "Logging Inverval" },
     { ITEM_TYPE_MENU,INVALID_SCREEN, 4, "Warning Levels" },
@@ -62,8 +60,8 @@ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD    , 0 , 0  , "CPM" }, 
-    { ITEM_TYPE_GRAPH   , 34, 110, "RECENTDATA" },
+    { ITEM_TYPE_HEAD    , 0 , 0  , "CPM"             }, 
+    { ITEM_TYPE_GRAPH   , 34, 110, "RECENTDATA"      },
     { ITEM_TYPE_LABEL   , 4 , 112, "Last 30 seconds" }
   }
 },
@@ -72,10 +70,10 @@ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_HEAD , 0 , 0  , "CPM"  },
+    { ITEM_TYPE_HEAD , 0 , 0  , "CPM"              },
     { ITEM_TYPE_MENU , 6 , 3  , "       OK       " },
     { ITEM_TYPE_MENU , 3 , 4  , "     Cancel     " },
-    { ITEM_TYPE_LABEL, 12, 16 , "Are you sure?" }
+    { ITEM_TYPE_LABEL, 12, 16 , "Are you sure?"    }
   }
 },
 
@@ -109,9 +107,48 @@ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 56, 50 , "CAL2"      },
     { ITEM_TYPE_VARNUM     , 74, 50 , "CAL3"      },
     { ITEM_TYPE_VARNUM     , 92, 50 , "CAL4"      },
-  //  { ITEM_TYPE_VARNUM     ,110, 50 , "CAL5"      },
     { ITEM_TYPE_MENU_ACTION,  0,   7, "Save"      },
     { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE" }
+  }
+},
+
+//Screen 9 - Set time/date
+{
+  8,
+  {
+    { ITEM_TYPE_HEAD,             0, 0, "CPM"           }, 
+    { ITEM_TYPE_MENU,            10, 1, "Set Time"      },
+    { ITEM_TYPE_MENU,            11, 2, "Set Date/Zone" }
+  }
+},
+
+//Screen 10 - Set time
+{
+  8,
+  {
+    { ITEM_TYPE_HEAD       , 0 , 0 , "CPM"       }, 
+    { ITEM_TYPE_VARNUM     , 10, 50, "TIMEHOUR1" },
+    { ITEM_TYPE_VARNUM     , 32, 50, "TIMEHOUR2" },
+    { ITEM_TYPE_VARNUM     , 54, 50, "TIMEMIN1"  },
+    { ITEM_TYPE_VARNUM     , 76, 50, "TIMEMIN2"  },
+    { ITEM_TYPE_VARNUM     , 98, 50, "TIMESEC1"  },
+    { ITEM_TYPE_VARNUM     ,120, 50, "TIMESEC2"  },
+    { ITEM_TYPE_MENU_ACTION,  0,  7, "SaveTime"  }
+  }
+},
+
+//Screen 11 - Set date
+{
+  8,
+  {
+    { ITEM_TYPE_HEAD       , 0 , 0  , "CPM"       }, 
+    { ITEM_TYPE_VARNUM     , 10, 50 , "DATEDAY1"  },
+    { ITEM_TYPE_VARNUM     , 32, 50 , "DATEDAY2"  },
+    { ITEM_TYPE_VARNUM     , 54, 50 , "DATEMON1"  },
+    { ITEM_TYPE_VARNUM     , 76, 50 , "DATEMON2"  },
+    { ITEM_TYPE_VARNUM     , 98, 50 , "DATEYEAR1" },
+    { ITEM_TYPE_VARNUM     ,120, 50 , "DATEYEAR2" },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveDate"  }
   }
 }
 

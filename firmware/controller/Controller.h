@@ -5,6 +5,7 @@
 #include "GUI.h"
 #include "utils.h"
 #include "display.h"
+#include "realtime.h"
 
 class Controller {
 
@@ -17,6 +18,102 @@ public:
 
   void set_gui(GUI &g) {
     m_gui = &g;
+  }
+
+  void update_calibration() {
+    int c1 = m_gui->get_item_state_uint8("CAL1");
+    int c2 = m_gui->get_item_state_uint8("CAL2");
+    int c3 = m_gui->get_item_state_uint8("CAL3");
+    int c4 = m_gui->get_item_state_uint8("CAL4");
+    float calibration_offset = ((float)c1) + (((float)c2)/10) + (((float)c3)/100) + (((float)c4)/1000);
+
+    char text_sieverts[50];
+    float_to_char(m_calibration_base+calibration_offset,text_sieverts,5);
+    text_sieverts[5] = ' ';
+    text_sieverts[6] = 'u';
+    text_sieverts[7] = 'S';
+    text_sieverts[8] = 'v';
+    text_sieverts[9] = 0;
+    m_gui->receive_update("FIXEDSV",text_sieverts);
+  }
+ 
+  void save_calibration() {
+    int c1 = m_gui->get_item_state_uint8("CAL1");
+    int c2 = m_gui->get_item_state_uint8("CAL2");
+    int c3 = m_gui->get_item_state_uint8("CAL3");
+    int c4 = m_gui->get_item_state_uint8("CAL4");
+    float calibration_offset = ((float)c1) + (((float)c2)/10) + (((float)c3)/100) + (((float)c4)/1000);
+    float base_sieverts = m_geiger.get_microsieverts();    
+
+    char text_sieverts[50];
+    float_to_char(base_sieverts+calibration_offset,text_sieverts,5);
+    text_sieverts[5] = ' ';
+    text_sieverts[6] = 'u';
+    text_sieverts[7] = 'S';
+    text_sieverts[8] = 'v';
+    text_sieverts[9] = 0;
+
+    m_gui->receive_update("Sieverts",text_sieverts);
+    m_geiger.set_calibration(calibration_offset);
+    m_gui->jump_to_screen(0);
+  }
+
+  void initialise_calibration() {
+    m_calibration_base = m_geiger.get_microsieverts();
+    char text_sieverts[50];
+    float_to_char(m_calibration_base,text_sieverts,5);
+    text_sieverts[5] = ' ';
+    text_sieverts[6] = 'u';
+    text_sieverts[7] = 'S';
+    text_sieverts[8] = 'v';
+    text_sieverts[9] = 0;
+    m_gui->receive_update("FIXEDSV",text_sieverts);
+  }
+
+  void save_time() {
+    int h1 = m_gui->get_item_state_uint8("TIMEHOUR1");
+    int h2 = m_gui->get_item_state_uint8("TIMEHOUR2");
+    int m1 = m_gui->get_item_state_uint8("TIMEMIN1");
+    int m2 = m_gui->get_item_state_uint8("TIMEMIN2");
+    int s1 = m_gui->get_item_state_uint8("TIMESEC1");
+    int s2 = m_gui->get_item_state_uint8("TIMESEC2");
+
+    int new_hours = h2 + (h1*10);
+    int new_min   = m2 + (m1*10);
+    int new_sec   = s2 + (s1*10);
+
+    uint8_t hours,min,sec,day,month;
+    uint16_t year;
+    realtime_getdate(hours,min,sec,day,month,year);
+    hours = new_hours;
+    min   = new_min;
+    sec   = new_sec;
+    realtime_setdate(hours,min,sec,day,month,year);
+
+    m_gui->jump_to_screen(0);
+  }
+
+  void save_date() {
+    int d1 = m_gui->get_item_state_uint8("DATEDAY1");
+    int d2 = m_gui->get_item_state_uint8("DATEDAY2");
+    int m1 = m_gui->get_item_state_uint8("DATEMON1");
+    int m2 = m_gui->get_item_state_uint8("DATEMON2");
+    int y1 = m_gui->get_item_state_uint8("DATEYEAR1");
+    int y2 = m_gui->get_item_state_uint8("DATEYEAR2");
+
+    int new_day  = d2 + (d1*10);
+    int new_mon  = m2 + (m1*10);
+    int new_year = y2 + (y1*10);
+
+    uint8_t hours,min,sec,day,month;
+    uint16_t year;
+    realtime_getdate(hours,min,sec,day,month,year);
+    day   = new_day;
+    month = new_mon-1;
+    year  = (2000+new_year)-1900;
+    realtime_setdate(hours,min,sec,day,month,year);
+
+    m_gui->jump_to_screen(0);
   }
 
   void receive_gui_event(char *event,char *value) {
@@ -33,51 +130,21 @@ public:
       m_powerup=true;
     } else
     if(strcmp(event,"Save")) {
-      int c1 = m_gui->get_item_state_uint8("CAL1");
-      int c2 = m_gui->get_item_state_uint8("CAL2");
-      int c3 = m_gui->get_item_state_uint8("CAL3");
-      int c4 = m_gui->get_item_state_uint8("CAL4");
-      float calibration_offset = ((float)c1) + (((float)c2)/10) + (((float)c3)/100) + (((float)c4)/1000);
-      float base_sieverts = m_geiger.get_microsieverts();    
-
-      char text_sieverts[50];
-      float_to_char(base_sieverts+calibration_offset,text_sieverts,5);
-      text_sieverts[5] = ' ';
-      text_sieverts[6] = 'u';
-      text_sieverts[7] = 'S';
-      text_sieverts[8] = 'v';
-      text_sieverts[9] = 0;
-
-      m_gui->receive_update("Sieverts",text_sieverts);
-      m_geiger.set_calibration(calibration_offset);
-      m_gui->jump_to_screen(0);
+      save_calibration();
+    } else
+    if(strcmp(event,"SaveTime")) {
+      save_time();
+    } else
+    if(strcmp(event,"SaveDate")) {
+      save_date();
     } else
     if(strcmp(event,"CALIBRATE")) {
-      m_calibration_base = m_geiger.get_microsieverts();
-      char text_sieverts[50];
-      float_to_char(m_calibration_base,text_sieverts,5);
-      text_sieverts[5] = ' ';
-      text_sieverts[6] = 'u';
-      text_sieverts[7] = 'S';
-      text_sieverts[8] = 'v';
-      text_sieverts[9] = 0;
-      m_gui->receive_update("FIXEDSV",text_sieverts);
+      initialise_calibration();
     } else
     if(strcmp(event,"varnumchange")) {
-      int c1 = m_gui->get_item_state_uint8("CAL1");
-      int c2 = m_gui->get_item_state_uint8("CAL2");
-      int c3 = m_gui->get_item_state_uint8("CAL3");
-      int c4 = m_gui->get_item_state_uint8("CAL4");
-      float calibration_offset = ((float)c1) + (((float)c2)/10) + (((float)c3)/100) + (((float)c4)/1000);
-
-      char text_sieverts[50];
-      float_to_char(m_calibration_base+calibration_offset,text_sieverts,5);
-      text_sieverts[5] = ' ';
-      text_sieverts[6] = 'u';
-      text_sieverts[7] = 'S';
-      text_sieverts[8] = 'v';
-      text_sieverts[9] = 0;
-      m_gui->receive_update("FIXEDSV",text_sieverts);
+      if(strcmpl("CAL",value,3)) {
+        update_calibration();
+      }
     }
 
 
@@ -118,12 +185,34 @@ public:
     float *graph_data;
     graph_data = m_geiger.get_cpm_last_min();
 
+    uint8_t hours,min,sec,day,month;
+    uint16_t year;
+    realtime_getdate(hours,min,sec,day,month,year);
+
+    char text_time[50];
+    int_to_char(hours,text_time,3);
+    text_time[3]=' ';
+    int_to_char(min  ,text_time+4,3);
+    text_time[6]=' ';
+    int_to_char(sec  ,text_time+7,3);
+    text_time[10] = 0;
+
+    char text_date[50];
+    int_to_char(day,text_date,3);
+    text_date[3]=' ';
+    int_to_char(month+1,text_date+4,3);
+    text_date[6]=' ';
+    int_to_char(year+1900,text_date+7,4);
+    text_date[11] = 0;
+
     m_gui->receive_update("CPM",text_cpm);
     m_gui->receive_update("CPMDEAD",text_cpmd);
     m_gui->receive_update("SIEVERTS",text_sieverts);
     m_gui->receive_update("RECENTDATA",graph_data);
     m_gui->receive_update("DELAYA",NULL);
     m_gui->receive_update("DELAYB",NULL);
+    m_gui->receive_update("TIME",text_time);
+    m_gui->receive_update("DATE",text_date);
   }
 
   GUI    *m_gui;
