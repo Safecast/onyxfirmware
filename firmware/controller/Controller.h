@@ -172,15 +172,33 @@ public:
 
     text_cpm[0]     =0;
     text_sieverts[0]=0;
-    int_to_char(m_geiger.get_cpm(),text_cpm,4);
-    float_to_char(m_geiger.get_microsieverts(),text_sieverts,5);
-    float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,5);
+    int_to_char(m_geiger.get_cpm(),text_cpm+5,4);
+    float_to_char(m_geiger.get_microsieverts(),text_sieverts+5,5);
+    float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd+5,5);
+    
+    text_cpmd[0]      = 'C';
+    text_cpmd[1]      = 'P';
+    text_cpmd[2]      = 'M';
+    text_cpmd[3]      = 'd';
+    text_cpmd[4]      = ':';
 
-    text_sieverts[5] = ' ';
-    text_sieverts[6] = 'u';
-    text_sieverts[7] = 'S';
-    text_sieverts[8] = 'v';
-    text_sieverts[9] = 0;
+    text_cpm[0]      = 'C';
+    text_cpm[1]      = 'P';
+    text_cpm[2]      = 'M';
+    text_cpm[3]      = ' ';
+    text_cpm[4]      = ':';
+
+    text_sieverts[0]  = 'S';
+    text_sieverts[1]  = 'v';
+    text_sieverts[2]  = 't';
+    text_sieverts[3]  = ' ';
+    text_sieverts[4]  = ':';
+
+    text_sieverts[10] = ' ';
+    text_sieverts[11] = 'u';
+    text_sieverts[12] = 'S';
+    text_sieverts[13] = 'v';
+    text_sieverts[14] = 0;
 
     float *graph_data;
     graph_data = m_geiger.get_cpm_last_min();
@@ -191,17 +209,17 @@ public:
 
     char text_time[50];
     int_to_char(hours,text_time,3);
-    text_time[3]=' ';
+    text_time[3]=':';
     int_to_char(min  ,text_time+4,3);
-    text_time[6]=' ';
+    text_time[6]=':';
     int_to_char(sec  ,text_time+7,3);
     text_time[10] = 0;
 
     char text_date[50];
     int_to_char(day,text_date,3);
-    text_date[3]=' ';
+    text_date[3]='/';
     int_to_char(month+1,text_date+4,3);
-    text_date[6]=' ';
+    text_date[6]='/';
     int_to_char(year+1900,text_date+7,4);
     text_date[11] = 0;
 

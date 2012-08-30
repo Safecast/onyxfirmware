@@ -286,7 +286,7 @@ void update_item_graph(screen_item &item,void *value) {
 }
 
 void update_item_head(screen_item &item,void *value) {
-  draw_text(128-16-16,0,(char *)value,0x001F);
+  draw_text(128-16-16,0,((char *)value)+5,0x001F);
 }
 
 void update_item_varnum(screen_item &item,void *value) {
