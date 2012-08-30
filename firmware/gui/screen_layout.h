@@ -1,6 +1,7 @@
 #ifndef OS100_LAYOUT_H
 #define OS100_LAYOUT_H
 
+#include "safecast_wirish_types.h"
 #include <stdint.h>
 
 #define TEXT_LENGTH 17
@@ -31,6 +32,6 @@ struct screen {
   screen_item   items[8];
 };
 
-extern screen screens_layout[SCREEN_COUNT];
+extern __FLASH__ screen screens_layout[SCREEN_COUNT];
 
 #endif

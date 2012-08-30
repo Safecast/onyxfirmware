@@ -1,8 +1,8 @@
 #include "screen_layout.h"
-
+#include "safecast_wirish_types.h"
 // types are: ITEM_TYPE_MENU, ITEM_TYPE_LABEL, ITEM_TYPE_SELECTNUM, ITEM_TYPE_SELECTION, ITEM_TYPE_VARLABEL, ITEM_TYPE_GRAPH
 
-screen screens_layout[SCREEN_COUNT] = {
+__FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 0 - main screen
 {

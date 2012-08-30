@@ -16,6 +16,8 @@
 #include "GUI.h"
 #include "Controller.h"
 #include <stdint.h>
+#include "flashstorage.h"
+
 
 // Force init to be called *first*, i.e. before static object allocation.
 // Otherwise, statically allocated objects that need libmaple may fail.
@@ -76,6 +78,10 @@ int main(void) {
     u.initialise();
     realtime_init();
     realtime_set_unixtime(0);
+
+
+    char *str = flashstorage_getstring(0);
+
     for(;;) {
       c.update();
       m_gui.render();
