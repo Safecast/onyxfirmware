@@ -61,7 +61,7 @@ void display_draw_rectangle(int start_x,int start_y,int end_x,int end_y,uint16_t
   } 
 }
 
-void display_draw_text(int x,int y,char *text,int16_t background) {
+void display_draw_text(int x,int y,const char *text,int16_t background) {
   ::draw_text(x,y,text,background);
 }
 

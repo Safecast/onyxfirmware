@@ -18,7 +18,6 @@
 #include <stdint.h>
 #include "flashstorage.h"
 
-
 // Force init to be called *first*, i.e. before static object allocation.
 // Otherwise, statically allocated objects that need libmaple may fail.
 __attribute__((constructor)) void
@@ -77,15 +76,15 @@ int main(void) {
     UserInput  u(m_gui);
     u.initialise();
     realtime_init();
-    realtime_set_unixtime(0);
-
-
-    char *str = flashstorage_getstring(0);
+    flashstorage_initialise();
 
     for(;;) {
       c.update();
       m_gui.render();
       power_wfi();
+      flashstorage_keyval_set("nicethings","i like cakes ");
+      const char* flashstr = flashstorage_keyval_get("nicethings");
+      display_draw_text(0,80,flashstr,0);
     }
 
     // should never get here

@@ -3,6 +3,6 @@
 
 #include <stdint.h>
 
-void draw_text(int x,int y,char *text,int16_t background);
+void draw_text(int x,int y,const char *text,int16_t background);
 
 #endif

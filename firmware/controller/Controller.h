@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "display.h"
 #include "realtime.h"
+#include "flashstorage.h"
 
 class Controller {
 
@@ -25,10 +26,10 @@ public:
     int c2 = m_gui->get_item_state_uint8("CAL2");
     int c3 = m_gui->get_item_state_uint8("CAL3");
     int c4 = m_gui->get_item_state_uint8("CAL4");
-    float calibration_offset = ((float)c1) + (((float)c2)/10) + (((float)c3)/100) + (((float)c4)/1000);
+    float calibration_scaling = ((float)c1) + (((float)c2)/10) + (((float)c3)/100) + (((float)c4)/1000);
 
     char text_sieverts[50];
-    float_to_char(m_calibration_base+calibration_offset,text_sieverts,5);
+    float_to_char(m_calibration_base*calibration_scaling,text_sieverts,5);
     text_sieverts[5] = ' ';
     text_sieverts[6] = 'u';
     text_sieverts[7] = 'S';
@@ -42,11 +43,11 @@ public:
     int c2 = m_gui->get_item_state_uint8("CAL2");
     int c3 = m_gui->get_item_state_uint8("CAL3");
     int c4 = m_gui->get_item_state_uint8("CAL4");
-    float calibration_offset = ((float)c1) + (((float)c2)/10) + (((float)c3)/100) + (((float)c4)/1000);
+    float calibration_scaling = ((float)c1) + (((float)c2)/10) + (((float)c3)/100) + (((float)c4)/1000);
     float base_sieverts = m_geiger.get_microsieverts();    
 
     char text_sieverts[50];
-    float_to_char(base_sieverts+calibration_offset,text_sieverts,5);
+    float_to_char(base_sieverts*calibration_scaling,text_sieverts,5);
     text_sieverts[5] = ' ';
     text_sieverts[6] = 'u';
     text_sieverts[7] = 'S';
@@ -54,7 +55,7 @@ public:
     text_sieverts[9] = 0;
 
     m_gui->receive_update("Sieverts",text_sieverts);
-    m_geiger.set_calibration(calibration_offset);
+    m_geiger.set_calibration(calibration_scaling);
     m_gui->jump_to_screen(0);
   }
 
@@ -68,6 +69,8 @@ public:
     text_sieverts[8] = 'v';
     text_sieverts[9] = 0;
     m_gui->receive_update("FIXEDSV",text_sieverts);
+    uint8_t val=1;
+    m_gui->receive_update("CAL1",&val);
   }
 
   void save_time() {
@@ -152,6 +155,7 @@ public:
 
   
   void update() {
+
 
     //TODO: I should change this so it only sends the messages the GUI currently needs.
 

@@ -66,7 +66,7 @@ void draw_character(int x,int y,char c,uint16_t background) {
   oled_draw_rect(x,y,8,16,(uint8_t *) character_data);
 }
 
-void draw_text(int x,int y,char *text,int16_t background) {
+void draw_text(int x,int y,const char *text,int16_t background) {
 
   int length = strlen(text);
   if(length < 0    ) return;

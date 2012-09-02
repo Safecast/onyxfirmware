@@ -26,7 +26,7 @@ public:
   uint16_t last_min_position;
   uint16_t last_min[COUNTS_PER_MIN];
   uint16_t averaging_period;
-  float    calibration_offset;
+  float    calibration_scaling;
 };
 
 #endif

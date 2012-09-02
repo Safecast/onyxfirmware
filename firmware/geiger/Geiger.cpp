@@ -44,7 +44,7 @@ Geiger::Geiger() {
 
 void Geiger::initialise() {
 
-  calibration_offset=0;
+  calibration_scaling=1;
 
   system_geiger = this;
   for(uint32_t n=0;n<(60*COUNTS_PER_SECOND);n++) {
@@ -119,7 +119,7 @@ float Geiger::get_cpm_deadtime_compensated() {
 
 float Geiger::get_microsieverts() {
   float conversionCoefficient = 0.0029;
-  float microsieverts =  (get_cpm_deadtime_compensated() * conversionCoefficient) + calibration_offset;
+  float microsieverts =  (get_cpm_deadtime_compensated() * conversionCoefficient) * calibration_scaling;
   char t[50];
   float_to_char(microsieverts,t,6);
   return microsieverts;
@@ -154,7 +154,7 @@ float *Geiger::get_cpm_last_min() {
 }
 
 void  Geiger::set_calibration(float c) {
-  calibration_offset = c;
+  calibration_scaling = c;
 }
 
 void Geiger::powerup  () {}

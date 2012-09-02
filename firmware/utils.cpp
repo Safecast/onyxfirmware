@@ -92,9 +92,9 @@ void int_to_char(uint32_t number,char *text,uint32_t width) {
     return;
   }
 
-  uint32_t current=1000000;
+  uint32_t current=1000000000;
   int position=0;
-  for(;position<7;position++) {
+  for(;position<10;position++) {
     int v = number/current;
     text[position] = '0'+v;
     number = number - (v*current);
