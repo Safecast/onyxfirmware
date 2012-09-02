@@ -80,14 +80,15 @@ int main(void) {
 
     flashstorage_keyval_set("nicethings","i like cakes ");
     flashstorage_keyval_set("nicerthings","working code");
+    flashstorage_log_pushback((uint8_t *) "t ",2);
     for(;;) {
       c.update();
       m_gui.render();
       power_wfi();
-      const char* flashstr1 = flashstorage_keyval_get("nicethings");
       const char* flashstr2 = flashstorage_keyval_get("nicerthings");
-      display_draw_text(0,80,flashstr1,0);
-      display_draw_text(0,100,flashstr2,0);
+      display_draw_text(0,80,flashstr2,0);
+      uint8_t *log = flashstorage_log_get();
+      display_draw_text(0,100,(char *)log,0);
     }
 
     // should never get here

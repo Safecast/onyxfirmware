@@ -232,7 +232,7 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
   uint32_t flash_data_size = flashstorage_log_size();
 
   // 1. Identify current page.
-  uint8_t *address      = flash_data_area_aligned+flash_log_base+1+flash_data_size;
+  uint8_t *address      = flash_data_area_aligned+flash_log_base+4+flash_data_size;
   uint32_t excess       = ((uint32_t) address)%1024;
   uint8_t *page_address = address-excess;
 
@@ -242,6 +242,7 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
 
   // 2. Write data segment covering current page.
   if(excess != 0) {
+    display_draw_text(0,110,"excess",0);
     uint8_t pagedata[1024];
     flashstorage_readpage(page_address,pagedata);
 
@@ -286,5 +287,9 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
 
 
 uint32_t flashstorage_log_size() {
-  return ((uint32_t *)(flash_data_area_aligned+(flash_log_base+1)))[0];
+  return ((uint32_t *)(flash_data_area_aligned+flash_log_base))[0];
+}
+
+uint8_t *flashstorage_log_get() {
+  return flash_data_area_aligned+(flash_log_base+4);
 }
