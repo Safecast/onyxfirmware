@@ -10,7 +10,7 @@ extern uint8_t _binary_flash_data_size;
 uint8_t  *flash_data_area_aligned;
 uint32_t  flash_data_area_aligned_size;
 
-#define flash_log_base 10000
+#define flash_log_base 10240
 #define keyval_size     50
 #define keyval_size_all 100
 
@@ -169,7 +169,7 @@ void flashstorage_keyval_set(const char *key,const char *value) {
   new_keyval_data[99] = 0;
 
   // read original page data
-  const char *kvaddr       = flashstorage_keyval_get_address(key);
+  const char *kvaddr     = flashstorage_keyval_get_address(key);
 
   if(kvaddr == 0) kvaddr = flashstorage_keyval_get_unalloced();
 
@@ -191,16 +191,100 @@ void flashstorage_keyval_set(const char *key,const char *value) {
   flashstorage_lock();
 }
 
-// zero out flash area
+// zero out flash logging area (only the first page as this resets the size)
 void flashstorage_log_clear() {
+
+  uint8_t pagedata[1024];
+
+  for(uint32_t n=0;n<1024;n++) {
+    pagedata[n] = 0;
+  }
+
+  uint8_t *page_address = flash_data_area_aligned+flash_log_base;
+  
+  // write new page data
+  flashstorage_unlock();
+  bool eraseret = flashstorage_erasepage(page_address);
+  flashstorage_lock();
+  flashstorage_unlock();
+  flashstorage_writepage(pagedata,page_address);
+  flashstorage_lock();
 }
 
-void flashstorage_log_pushback(char *data,uint32_t size) {
+void flashstorage_log_size_set(uint32_t new_size) {
+
+  uint8_t pagedata[1024];
+  uint8_t *page_address = flash_data_area_aligned+flash_log_base;
+  flashstorage_readpage(page_address,pagedata);
+
+  ((uint32_t *) pagedata)[0] = new_size;
+
+  flashstorage_unlock();
+  flashstorage_erasepage(page_address);
+  flashstorage_lock();
+  flashstorage_unlock();
+  flashstorage_writepage(pagedata,page_address);
+  flashstorage_lock();
 }
+
+void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
+
+  uint32_t flash_data_size = flashstorage_log_size();
+
+  // 1. Identify current page.
+  uint8_t *address      = flash_data_area_aligned+flash_log_base+1+flash_data_size;
+  uint32_t excess       = ((uint32_t) address)%1024;
+  uint8_t *page_address = address-excess;
+
+  uint8_t  *data_position = data;
+  uint32_t write_size     = size;
+
+
+  // 2. Write data segment covering current page.
+  if(excess != 0) {
+    uint8_t pagedata[1024];
+    flashstorage_readpage(page_address,pagedata);
+
+    for(uint32_t n=excess;n<1024;n++) {
+      pagedata[n] = *data_position;
+      data_position++;
+      write_size--;
+      if(write_size==0) break;
+    }
+
+    flashstorage_unlock();
+    flashstorage_erasepage(page_address);
+    flashstorage_lock();
+    flashstorage_unlock();
+    flashstorage_writepage(pagedata,page_address);
+    flashstorage_lock();
+    page_address += 1024;
+  }
+
+  // 3. Write full pages until all data is written
+  for(;write_size != 0;) {
+    uint8_t pagedata[1024];
+    for(uint32_t n=0;n<1024;n++) {
+      pagedata[n] = *data_position;
+      data_position++;
+      write_size--;
+      if(write_size == 0) break;
+    }
+    
+    flashstorage_unlock();
+    flashstorage_erasepage(page_address);
+    flashstorage_lock();
+    flashstorage_unlock();
+    flashstorage_writepage(pagedata,page_address);
+    flashstorage_lock();
+    page_address += 1024;
+  }
+
+  // 4. Update log size
+  flashstorage_log_size_set(flash_data_size+size);
+}
+
 
 uint32_t flashstorage_log_size() {
-  return (flash_data_area_aligned+(flash_log_base+1))[0];
-}
-
-uint8_t *flashstorage_log_getbase() {
+  return ((uint32_t *)(flash_data_area_aligned+(flash_log_base+1)))[0];
 }
