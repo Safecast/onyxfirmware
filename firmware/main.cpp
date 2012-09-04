@@ -78,17 +78,17 @@ int main(void) {
     realtime_init();
     flashstorage_initialise();
 
-    flashstorage_keyval_set("nicethings","i like cakes ");
-    flashstorage_keyval_set("nicerthings","working code");
-    flashstorage_log_pushback((uint8_t *) "t ",2);
+    //flashstorage_keyval_set("nicethings","i like cakes ");
+    //flashstorage_keyval_set("nicerthings","working code");
+    //const char* flashstr2 = flashstorage_keyval_get("nicerthings");
+    //display_draw_text(0,80,flashstr2,0);
+    //flashstorage_log_pushback((uint8_t *) "t ",2);
+    //uint8_t *log = flashstorage_log_get();
+    //display_draw_text(0,100,(char *)log,0);
     for(;;) {
       c.update();
       m_gui.render();
       power_wfi();
-      const char* flashstr2 = flashstorage_keyval_get("nicerthings");
-      display_draw_text(0,80,flashstr2,0);
-      uint8_t *log = flashstorage_log_get();
-      display_draw_text(0,100,(char *)log,0);
     }
 
     // should never get here
