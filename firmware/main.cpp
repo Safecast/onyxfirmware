@@ -32,7 +32,6 @@ premain()
   }
   gpio_write_bit(GPIOB,9,0);
 
-/*
   for(int i=0;i<11;i++) {
     for(int n=0;n<100;n++) {
       gpio_toggle_bit(GPIOB,9);
@@ -40,7 +39,6 @@ premain()
     }
     delay_us(100000);
   }
-*/
 //  power_standby();
   init();
   delay_us(100000);
