@@ -22,7 +22,6 @@ Geiger *system_geiger;
 
 void static geiger_min_log(void) {
   gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,1);
-  delay_us(100);
   gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,0);
   system_geiger->update_last_min();
 }

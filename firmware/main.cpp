@@ -17,6 +17,7 @@
 #include "Controller.h"
 #include <stdint.h>
 #include "flashstorage.h"
+#include "rtc.h"
 
 // Force init to be called *first*, i.e. before static object allocation.
 // Otherwise, statically allocated objects that need libmaple may fail.
@@ -51,6 +52,7 @@ int main(void) {
 
     power_set_state(PWRSTATE_USER);
     display_initialise();
+    display_draw_text(0,0,"test",0);
     b.initialise();
     //a.initialise();
     l.initialise();
@@ -67,6 +69,11 @@ int main(void) {
     UserInput  u(m_gui);
     u.initialise();
     realtime_init();
+    rtc_set_time(RTC,0);
+    bool res1 = rtc_set_alarm(RTC,30);
+    rtc_alarm_on = 0;
+    bool res2 = rtc_enable_alarm(RTC);
+    display_draw_text(0,0,"test111",0);
     flashstorage_initialise();
 
     //flashstorage_keyval_set("nicethings","i like cakes ");
@@ -79,6 +86,11 @@ int main(void) {
     for(;;) {
       c.update();
       m_gui.render();
+      if(res1          == 0) display_draw_text(0,70,"alarmfail1",0);
+      if(res2          == 0) display_draw_text(0,70,"alarmfail2",0);
+      if(rtc_alarm_on == 1) display_draw_text(0,50,"alarm",0);
+      //if(rtc_alarmed() == 1) display_draw_text(0,70,"alarmflag",0);
+      display_draw_number(0,70,rtc_get_time(RTC),6,0);
       power_wfi();
     }
 
