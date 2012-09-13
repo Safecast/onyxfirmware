@@ -22,11 +22,14 @@ public:
   void powerdown();
   float cpm_last_min[COUNTS_PER_MIN];
   void update_last_min();
+  bool is_cpm_valid();
 
   uint16_t last_min_position;
   uint16_t last_min[COUNTS_PER_MIN];
   uint16_t averaging_period;
   float    calibration_scaling;
+  bool     m_acquire_and_log;
+  uint16_t m_samples_collected;
 };
 
 #endif

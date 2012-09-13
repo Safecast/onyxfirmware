@@ -1,6 +1,6 @@
 CFLAGS   := -Os -gdwarf-2  -mcpu=cortex-m3 -mthumb -march=armv7-m \
 		   -lnostdlib -ffunction-sections -fdata-sections	     \
-		   -Wl,--gc-sections -DBOARD_safecast -DMCU_STM32F101RE -DSTM32_HIGH_DENSITY -DVECT_TAB_BASE -I. -I./libmaple -I./display -I./userinput -I./buzzer -I./accelerometer -I./geiger -I./led -I./gui -I./realtime -I./controller -I./flash_storage
+		   -Wl,--gc-sections -DBOARD_safecast -DMCU_STM32F101RE -DSTM32_HIGH_DENSITY -DVECT_TAB_BASE -I. -I./libmaple -I./display -I./userinput -I./buzzer -I./accelerometer -I./geiger -I./led -I./gui -I./realtime -I./controller -I./flash_storage -I./serialinterface
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -Wall -lnostdlib
 ASFLAGS  := -mcpu=cortex-m3 -march=armv7-m -mthumb		     \
 		   -x assembler-with-cpp 
@@ -12,7 +12,7 @@ CXX = arm-none-eabi-g++
 
 LIBMAPLEOBJS = libmaple/spi.o libmaple/rcc.o libmaple/timer.o libmaple/adc.o libmaple/util.o libmaple/syscalls.o libmaple/usart.o libmaple/gpio.o libmaple/i2c.o libmaple/systick.o libmaple/nvic.o libmaple/exti.o libmaple/flash.o libmaple/bkp.o
 
-OUROBJS = ./display/display.o ./display/spi_aux.o ./display/oled.o ./userinput/captouch.o ./accelerometer/accel.o ./power.o ./wirish_boards.o ./safecast_config.o ./main.o ./realtime/realtime.o ./realtime/rtc.o ./gui/GUI.o ./display/nfont.o ./gui/screen_layout.o ./buzzer/Buzzer.o ./geiger/Geiger.o ./utils.o ./flash_storage/flashstorage.o
+OUROBJS = ./display/display.o ./display/spi_aux.o ./display/oled.o ./userinput/captouch.o ./accelerometer/accel.o ./power.o ./wirish_boards.o ./safecast_config.o ./main.o ./realtime/realtime.o ./realtime/rtc.o ./gui/GUI.o ./display/nfont.o ./gui/screen_layout.o ./buzzer/Buzzer.o ./geiger/Geiger.o ./utils.o ./flash_storage/flashstorage.o ./serialinterface/serialinterface.o
 
 firmware: main.cpp $(LIBMAPLEOBJS) $(OUROBJS) to565
 	##convert safemed128.png -depth 8 RGB:image_1_data888

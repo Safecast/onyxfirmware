@@ -10,7 +10,7 @@ extern uint8_t _binary_flash_data_size;
 uint8_t  *flash_data_area_aligned;
 uint32_t  flash_data_area_aligned_size;
 
-#define flash_log_base 10240
+#define flash_log_base  10240
 #define keyval_size     50
 #define keyval_size_all 100
 
@@ -242,7 +242,6 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
 
   // 2. Write data segment covering current page.
   if(excess != 0) {
-    display_draw_text(0,110,"excess",0);
     uint8_t pagedata[1024];
     flashstorage_readpage(page_address,pagedata);
 

@@ -228,12 +228,12 @@ static void Set_VCOMH(unsigned char d)
 //=========================================================
 // Clear OLED GDRAM
 //========================================================= 
-void CLS(void) {
+void CLS(uint16 color) {
   Home();
   write_c(0x5C);    // Enable MCU to Read from RAM
 
   uint8_t c[256];
-  for(uint32_t i=0;i<256;i++) c[i] = 0xff;
+  for(uint32_t i=0;i<256;i++) c[i] = color;
 
   for(uint32_t j=0;j<128;j++) {
     oled_draw_rect(0,j,128,1,c);
@@ -432,7 +432,7 @@ void oled_init(void) {
 //M
     Set_Display_Mode(0x02);         // Normal Display Mode (0x00/0x01/0x02/0x03)
 
-    CLS();                          // Clear Screen
+    CLS(0);                          // Clear Screen
  
     delay_us(1000);
 

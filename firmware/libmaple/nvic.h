@@ -234,6 +234,15 @@ static inline void nvic_irq_disable_all(void) {
     NVIC_BASE->ICER[1] = 0xFFFFFFFF;
 }
 
+static inline void nvic_clear_pending_msk(nvic_irq_num irq_num) {
+  if (irq_num < 0) {
+      return;
+  }
+  NVIC_BASE->ICPR[irq_num / 32] = BIT(irq_num % 32); 
+  asm volatile("nop");
+  asm volatile("nop");
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -8,6 +8,8 @@
 
 #define MAX_SCREEN_STACK 10
 #define NEW_KEYS_MAX_SIZE 10
+#define FOREGROUND_COLOR 65535
+#define BACKGROUND_COLOR 0
 
 class Controller;
 
