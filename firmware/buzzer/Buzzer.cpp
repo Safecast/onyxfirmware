@@ -23,7 +23,6 @@ void Buzzer::initialise() {
   gpio_write_bit(PIN_MAP[BUZZER_PWM].gpio_device,PIN_MAP[BUZZER_PWM].gpio_bit,0);
 
   // pause timer during setup
-
   set_frequency(BUZZ_RATE);
 }
 

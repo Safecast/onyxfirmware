@@ -7,6 +7,7 @@
 #include "display.h"
 #include "realtime.h"
 #include "flashstorage.h"
+#include "rtc.h"
 
 class Controller {
 
@@ -15,6 +16,10 @@ public:
   Controller(Geiger &g) : m_geiger(g) {
     m_sleeping=false;
     m_powerup=false;
+    m_log_period_seconds = 120;
+    rtc_clear_alarmed();
+    rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_period_seconds);
+    rtc_enable_alarm(RTC);
   }
 
   void set_gui(GUI &g) {
@@ -153,9 +158,24 @@ public:
 
   }
 
-  
   void update() {
 
+    if(rtc_alarmed()) {
+      // set new alarm for log_period_seconds from now.
+      rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_period_seconds);
+
+      if(m_geiger.is_cpm_valid()) {
+
+        uint32_t data[2];
+        data[0] = m_geiger.get_cpm();
+        data[1] = rtc_get_time(RTC);
+
+        flashstorage_log_pushback((uint8_t *) data,8);
+
+        rtc_clear_alarmed();
+        rtc_enable_alarm(RTC);
+      }
+    }
 
     //TODO: I should change this so it only sends the messages the GUI currently needs.
 
@@ -168,7 +188,10 @@ public:
     }
 
 
-    if(m_sleeping) return;
+    if(m_sleeping) {
+      if(!rtc_alarmed()) {} // go back to sleep.
+      return;
+    }
 
     char text_cpm[50];
     char text_cpmd[50];
@@ -227,6 +250,8 @@ public:
     int_to_char(year+1900,text_date+7,4);
     text_date[11] = 0;
 
+    //if(m_geiger.is_cpm_valid()) m_gui->receive_update("CPMVALID","true");
+    //                       else m_gui->receive_update("CPMVALID","false");
     m_gui->receive_update("CPM",text_cpm);
     m_gui->receive_update("CPMDEAD",text_cpmd);
     m_gui->receive_update("SIEVERTS",text_sieverts);
@@ -242,6 +267,7 @@ public:
   bool    m_sleeping;
   bool    m_powerup;
   float   m_calibration_base;
+  int32_t m_log_period_seconds;
 };
 
 #endif

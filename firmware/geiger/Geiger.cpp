@@ -85,6 +85,7 @@ void Geiger::initialise() {
   timer_generate_update(TIMER4); // refresh timer count, prescale, overflow
 
   timer_resume(TIMER4);
+  m_samples_collected=0;
 }
 
 
@@ -93,6 +94,7 @@ void Geiger::update_last_min() {
   current_count=0;
   last_min_position++;
   if(last_min_position >= COUNTS_PER_MIN) last_min_position=0;
+  m_samples_collected++;
 }
 
 float Geiger::get_cpm() {
@@ -152,7 +154,14 @@ float *Geiger::get_cpm_last_min() {
   return cpm_last_min;
 }
 
-void  Geiger::set_calibration(float c) {
+bool Geiger::is_cpm_valid() {
+
+  if(m_samples_collected > averaging_period) return true;
+
+  return false;
+}
+
+void Geiger::set_calibration(float c) {
   calibration_scaling = c;
 }
 

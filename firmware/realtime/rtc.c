@@ -69,8 +69,11 @@ void rtc_sync(rtc_dev *dev) {
 }
 
 int rtc_alarmed() {
+  return rtc_alarm_on;
+}
 
-  return RTC->regs->CRL & RTC_CRL_ALRF;
+void rtc_clear_alarmed() {
+  rtc_alarm_on = 0;
 }
 
 /*
@@ -111,70 +114,33 @@ void rtc_init(rtc_dev *dev) {
 }
 
 
-// this int is not called.
-void __irq_rtcalarm(void) {
-  rtc_alarm_on=1;
-}
-
 // This int is called
 void __irq_rtc(void) {
   nvic_clear_pending_msk(NVIC_RTC);
   nvic_irq_disable(NVIC_RTC);
   rtc_alarm_on=1;
- // gpio_write_bit(GPIOD,2,1);
- // gpio_write_bit(GPIOD,2,0);
 }
 
 
 int rtc_set_alarm(rtc_dev *dev, uint32 time) {
 
-    bkp_enable_writes();
-
-    /* Wait for RTC writes to stabilize */
-    rtoff_wait(dev);
-    dev->regs->CRL |= RTC_CRL_CNF;
-    rtoff_wait(dev);
-
-  //  dev->regs->CNTH = (time >> 16);
-  //  dev->regs->CNTL = (time & 0xffff);
-  dev->regs->ALRH = (uint32) 0;
-  dev->regs->ALRL = (uint32) 5;//(uint16) (time & 0x00FF);
-
-    /* Flush the config to the analog domain and wait for sync */
-    dev->regs->CRL &= ~RTC_CRL_CNF;
-    rtoff_wait(dev);
-
-    /* Disable writes to the backup region */
-    bkp_disable_writes();
-
-
-/*
-
-
-
   bkp_enable_writes();
 
-  rtc_sync(dev);
-  int n=0;
-  // set the CNF bit in the RTC_CRL register.
+  /* Wait for RTC writes to stabilize */
   rtoff_wait(dev);
-  for(n=0;(n<=100000) && ((dev->regs->CRL & RTC_CRL_CNF) == 0);n++) dev->regs->CRL |= RTC_CRL_CNF;
-  if(n>=100000) return 0;
-
-  //dev->regs->ALRH = (uint16) (time >> 16);
-  //dev->regs->ALRL = (uint16) (time & 0x00FF);
-  rtoff_wait(dev);
-  dev->regs->ALRL = (uint32) 5;//(uint16) (time & 0x00FF);
-  rtoff_wait(dev);
-  dev->regs->ALRH = (uint32) 0;
+  dev->regs->CRL |= RTC_CRL_CNF;
   rtoff_wait(dev);
 
-  rtoff_wait(dev);
+  dev->regs->ALRH = (uint32) (time >> 16) & 0x0000FFFF;
+  dev->regs->ALRL = (uint32) (time & 0x0000FFFF);
+
+  /* Flush the config to the analog domain and wait for sync */
   dev->regs->CRL &= ~RTC_CRL_CNF;
   rtoff_wait(dev);
 
+  /* Disable writes to the backup region */
   bkp_disable_writes();
-*/
+
   return 1;
 }
 
@@ -183,24 +149,20 @@ int rtc_enable_alarm(rtc_dev *dev) {
   rtc_sync(dev);
   bkp_enable_writes();
   // enable in nvic
-////  nvic_irq_enable(NVIC_RTCALARM); // 41
   nvic_irq_enable(NVIC_RTC); // 3
-//    NVIC->ISER[0] |= (1 << (RTC_IRQChannel & 0x1F));            // enable interrupt
 
-
-    rtoff_wait(dev);
-    dev->regs->CRL |= RTC_CRL_CNF;
-    rtoff_wait(dev);
+  rtoff_wait(dev);
+  dev->regs->CRL |= RTC_CRL_CNF;
+  rtoff_wait(dev);
 
   // set can fail, only retry 100000 times.
 
   rtoff_wait(dev);
-//  for(n=0;((dev->regs->CRH & 2) == 0) && (n <= 100000);n++) dev->regs->CRH = dev->regs->CRH | 2; 
   dev->regs->CRH = 0x2;
- // if(n>=100000) return 0;
   rtoff_wait(dev);
-    dev->regs->CRL &= ~RTC_CRL_CNF;
-    rtoff_wait(dev);
+
+  dev->regs->CRL &= ~RTC_CRL_CNF;
+  rtoff_wait(dev);
 
   bkp_disable_writes();
   return 1;
