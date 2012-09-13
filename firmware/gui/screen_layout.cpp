@@ -33,11 +33,11 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   5,
   {
-    { ITEM_TYPE_HEAD,             0, 0, "CPM" }, 
-    { ITEM_TYPE_MENU,             4, 1, "Graphs" },
-    { ITEM_TYPE_MENU,INVALID_SCREEN, 2, "Visualisation" },
-    { ITEM_TYPE_MENU,INVALID_SCREEN, 3, "Total/Timer" },
-    { ITEM_TYPE_MENU,INVALID_SCREEN, 4, "Data Transfer" }
+    { ITEM_TYPE_HEAD       ,             0, 0, "CPM" }, 
+    { ITEM_TYPE_MENU       ,             4, 1, "Graphs" },
+    { ITEM_TYPE_MENU       ,INVALID_SCREEN, 2, "Visualisation" },
+    { ITEM_TYPE_MENU       ,INVALID_SCREEN, 3, "Total/Timer" },
+    { ITEM_TYPE_MENU_ACTION,             0, 4, "Data Transfer"}
   }
 },
 

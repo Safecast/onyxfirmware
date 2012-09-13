@@ -8,6 +8,7 @@
 #include "realtime.h"
 #include "flashstorage.h"
 #include "rtc.h"
+#include "serialinterface.h"
 
 class Controller {
 
@@ -20,6 +21,7 @@ public:
     rtc_clear_alarmed();
     rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_period_seconds);
     rtc_enable_alarm(RTC);
+    m_alarm_log = false;
   }
 
   void set_gui(GUI &g) {
@@ -153,26 +155,35 @@ public:
       if(strcmpl("CAL",value,3)) {
         update_calibration();
       }
+    } else
+    if(strcmp(event,"Data Transfer")) {
+      display_draw_text(0,64,"Sending Log",0);
+      serial_sendlog();
+      display_draw_text(0,64,"Xfer Complete",0);
     }
-
-
   }
 
   void update() {
 
     if(rtc_alarmed()) {
-      // set new alarm for log_period_seconds from now.
-      rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_period_seconds);
+      m_alarm_log = true;
+      m_last_alarm_time = rtc_get_time(RTC);
 
+      // set new alarm for log_period_seconds from now.
+      rtc_clear_alarmed();
+    }
+
+    if(m_alarm_log == true) {
       if(m_geiger.is_cpm_valid()) {
 
         uint32_t data[2];
-        data[0] = m_geiger.get_cpm();
-        data[1] = rtc_get_time(RTC);
+        data[0] = rtc_get_time(RTC);
+        data[1] = m_geiger.get_cpm();
 
         flashstorage_log_pushback((uint8_t *) data,8);
+        m_alarm_log = false;
 
-        rtc_clear_alarmed();
+        rtc_set_alarm(RTC,m_last_alarm_time+m_log_period_seconds);
         rtc_enable_alarm(RTC);
       }
     }
@@ -262,12 +273,14 @@ public:
     m_gui->receive_update("DATE",text_date);
   }
 
-  GUI    *m_gui;
-  Geiger &m_geiger;
-  bool    m_sleeping;
-  bool    m_powerup;
-  float   m_calibration_base;
-  int32_t m_log_period_seconds;
+  GUI     *m_gui;
+  Geiger  &m_geiger;
+  bool     m_sleeping;
+  bool     m_powerup;
+  float    m_calibration_base;
+  uint32_t m_log_period_seconds;
+  bool     m_alarm_log;
+  uint32_t m_last_alarm_time;
 };
 
 #endif

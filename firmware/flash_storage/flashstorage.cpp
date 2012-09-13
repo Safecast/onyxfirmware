@@ -10,7 +10,7 @@ extern uint8_t _binary_flash_data_size;
 uint8_t  *flash_data_area_aligned;
 uint32_t  flash_data_area_aligned_size;
 
-#define flash_log_base 10240
+#define flash_log_base  10240
 #define keyval_size     50
 #define keyval_size_all 100
 

@@ -33,6 +33,7 @@
 #include "rtc.h"
 #include "rcc.h"
 #include "bkp.h"
+#include "exti.h"
 
 int rtc_alarm_on;
 
@@ -114,13 +115,26 @@ void rtc_init(rtc_dev *dev) {
 }
 
 
-// This int is called
+// This interrupt handler is called
 void __irq_rtc(void) {
-  nvic_clear_pending_msk(NVIC_RTC);
+  EXTI_BASE->PR = 1 << 17;
+  RTC->regs->CRL &= (uint16)~2;
   nvic_irq_disable(NVIC_RTC);
+  nvic_clear_pending_msk(NVIC_RTC);
+
+  //rtc_disable_alarm(NVIC_RTC);
   rtc_alarm_on=1;
 }
 
+// This interrupt handler is not called
+void __irq_rtcalarm(void) {
+  EXTI_BASE->PR = 1 << 17;
+  RTC->regs->CRL &= (uint16)~2;
+  nvic_irq_disable(NVIC_RTCALARM);
+  nvic_clear_pending_msk(NVIC_RTCALARM);
+
+  rtc_alarm_on=1;
+}
 
 int rtc_set_alarm(rtc_dev *dev, uint32 time) {
 
@@ -144,6 +158,26 @@ int rtc_set_alarm(rtc_dev *dev, uint32 time) {
   return 1;
 }
 
+int rtc_disable_alarm(rtc_dev *dev) {
+  bkp_enable_writes();
+  // disable in nvic
+  nvic_irq_disable(NVIC_RTC); // 3
+
+  rtoff_wait(dev);
+  dev->regs->CRL |= RTC_CRL_CNF;
+  rtoff_wait(dev);
+
+  rtoff_wait(dev);
+  dev->regs->CRH = 0x0;
+  rtoff_wait(dev);
+
+  dev->regs->CRL &= ~RTC_CRL_CNF;
+  rtoff_wait(dev);
+
+  bkp_disable_writes();
+  return 1;
+}
+
 int rtc_enable_alarm(rtc_dev *dev) {
 
   rtc_sync(dev);
@@ -154,8 +188,6 @@ int rtc_enable_alarm(rtc_dev *dev) {
   rtoff_wait(dev);
   dev->regs->CRL |= RTC_CRL_CNF;
   rtoff_wait(dev);
-
-  // set can fail, only retry 100000 times.
 
   rtoff_wait(dev);
   dev->regs->CRH = 0x2;

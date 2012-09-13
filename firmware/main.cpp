@@ -71,12 +71,11 @@ int main(void) {
     //bool res1 = rtc_set_alarm(RTC,30);
     //bool res2 = rtc_enable_alarm(RTC);
     flashstorage_initialise();
-
+    serial_initialise();
     //flashstorage_keyval_set("nicethings","i like cakes ");
     //flashstorage_keyval_set("nicerthings","working code");
     //const char* flashstr2 = flashstorage_keyval_get("nicerthings");
     //display_draw_text(0,80,flashstr2,0);
-    //flashstorage_log_pushback((uint8_t *) "t ",2);
     //uint8_t *log = flashstorage_log_get();
     //display_draw_text(0,100,(char *)log,0);
     for(;;) {
