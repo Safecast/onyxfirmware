@@ -15,7 +15,6 @@
 #define KEY_HELP   0
 #define KEY_PRESSED  0
 #define KEY_RELEASED 1
-#define BACKGROUND_COLOR 65535
 
 bool first_render=true;
 
@@ -51,8 +50,8 @@ void display_draw_equtriangle_inv(uint8_t x,uint8_t y,uint8_t s,uint16_t color) 
 
 void render_item_menu(screen_item &item, bool selected) {
 
-  uint16_t highlight = 0;
-  if(selected) highlight = 65535;
+  uint16_t highlight = FOREGROUND_COLOR;
+  if(selected) highlight = BACKGROUND_COLOR;
 
   display_draw_text(0,item.val2*16,item.text,highlight);
 }
@@ -95,10 +94,10 @@ void render_item_varnum(screen_item &item, bool selected) {
   uint8_t val = get_item_state_varnum(item.text);
 
   uint16_t color;
-  if(selected) color = 0xcccc; else color = 0;
+  if(selected) color = 0xcccc; else color = FOREGROUND_COLOR;
   display_draw_equtriangle(x,y,9,color);
   display_draw_equtriangle_inv(x,y+33,9,color);
-  display_draw_number(x-4,y+9,val,1,0);
+  display_draw_number(x-4,y+9,val,1,FOREGROUND_COLOR);
 }
       
 uint8_t get_item_state_varnum(screen_item &item) {
@@ -118,7 +117,7 @@ void clear_item_varnum(screen_item &item, bool selected) {
 
 
 void render_item_label(screen_item &item, bool selected) {
-  display_draw_text(item.val1,item.val2,item.text,0);
+  display_draw_text(item.val1,item.val2,item.text,FOREGROUND_COLOR);
 }
 
 void render_item_head(screen_item &item, bool selected) {
@@ -147,7 +146,7 @@ void render_item_graph(screen_item &item, bool selected) {
     int ny = m_y-source_graph_data[n+offset];
     if(!((lastoy == lastny) && (oy == ny) && !graph_first)) {
       if(!first_render) display_draw_line(lastx,lastoy,cx,oy,BACKGROUND_COLOR);
-      display_draw_line(lastx,lastny,cx,ny,0x0000);
+      display_draw_line(lastx,lastny,cx,ny,FOREGROUND_COLOR);
    //   display_draw_point(cx,ny,0x000);
     }
     lastx=cx;
@@ -226,7 +225,7 @@ void clear_item_delay(screen_item &item, bool selected) {
 }
 
 void render_item_delay(screen_item &item,bool selected) {
-  display_draw_number(item.val1,item.val2,delay_time,3,0);
+  display_draw_number(item.val1,item.val2,delay_time,3,FOREGROUND_COLOR);
 }
 
 
@@ -303,7 +302,7 @@ void update_item_delay(screen_item &item,void *value) {
 
   if(delay_time >= 1) delay_time--;
   delay_us(1000000);
-  display_draw_number(item.val1,item.val2,delay_time,3,0);
+  display_draw_number(item.val1,item.val2,delay_time,3,FOREGROUND_COLOR);
 }
 
 int get_item_state_delay_destination(screen_item &item) {
@@ -321,7 +320,7 @@ int get_item_state_delay_destination(screen_item &item) {
 
 void update_item(screen_item &item,void *value) {
   if(item.type == ITEM_TYPE_VARLABEL) {
-    display_draw_text(item.val1,item.val2,(char *)value,0);
+    display_draw_text(item.val1,item.val2,(char *)value,FOREGROUND_COLOR);
   } else 
   if(item.type == ITEM_TYPE_GRAPH) {
     update_item_graph(item,value);

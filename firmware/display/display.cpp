@@ -11,8 +11,8 @@ void display_initialise() {
   oled_init();
 }
 
-void display_clear() {
-  CLS();
+void display_clear(int16 color) {
+  CLS(color);
 }
 
 void display_draw_line(int start_x,int start_y,int end_x,int end_y,uint16_t color) {
@@ -49,6 +49,12 @@ void display_draw_point(int x,int y,uint16_t color) {
 }
 
 void display_draw_rectangle(int start_x,int start_y,int end_x,int end_y,uint16_t color) {
+
+  if(start_x < 0  ) start_x = 0;
+  if(start_y < 0  ) start_y = 0;
+  if(end_x   > 127) end_x   = 127;
+  if(end_y   > 127) end_y   = 127;
+
   Set_Column_Address(start_x, end_x);
   Set_Row_Address   (start_y, end_y);
 

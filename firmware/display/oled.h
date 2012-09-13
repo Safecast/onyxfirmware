@@ -95,6 +95,6 @@ void Set_Column_Address(unsigned char a, unsigned char b);
 void write_d(unsigned char out_data);
 void write_c(unsigned char out_command);
 
-void CLS(void);
+void CLS(uint16 color);
 
 #endif
