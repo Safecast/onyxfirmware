@@ -8,8 +8,8 @@
 #include "power.h"
 #include "safecast_config.h"
 
+//#define DISABLE_ACCEL
 #include "Buzzer.h"
-#include "Accelerometer.h"
 #include "UserInput.h"
 #include "Geiger.h"
 #include "Led.h"
@@ -18,12 +18,13 @@
 #include <stdint.h>
 #include "flashstorage.h"
 #include "rtc.h"
+#include "accel.h"
+
 
 // Force init to be called *first*, i.e. before static object allocation.
 // Otherwise, statically allocated objects that need libmaple may fail.
 __attribute__((constructor)) void
-premain()
-{
+premain() {
   gpio_init_all();
   // manual power up beep
   gpio_set_mode (GPIOB,9, GPIO_OUTPUT_PP);
@@ -41,7 +42,6 @@ premain()
 int main(void) {
 
     Buzzer        b;
-    Accelerometer a;
     Geiger        g;
     Led           l;
 
@@ -63,6 +63,10 @@ int main(void) {
     l.set_on();
 
     realtime_init();
+    #ifndef DISABLE_ACCEL
+    accel_init();
+    #endif
+
     Controller c(g);
     GUI m_gui(c);
     c.set_gui(m_gui);

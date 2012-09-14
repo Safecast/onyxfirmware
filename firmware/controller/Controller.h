@@ -9,6 +9,10 @@
 #include "flashstorage.h"
 #include "rtc.h"
 #include "serialinterface.h"
+#include "power.h"
+#include <stdio.h>
+#include "accel.h"
+#include "log.h"
 
 class Controller {
 
@@ -168,6 +172,9 @@ public:
     if(rtc_alarmed()) {
       m_alarm_log = true;
       m_last_alarm_time = rtc_get_time(RTC);
+      #ifndef DISABLE_ACCEL
+      int8 res = accel_read_state(&m_accel_x_stored,&m_accel_y_stored,&m_accel_z_stored);
+      #endif
 
       // set new alarm for log_period_seconds from now.
       rtc_clear_alarmed();
@@ -176,11 +183,18 @@ public:
     if(m_alarm_log == true) {
       if(m_geiger.is_cpm_valid()) {
 
-        uint32_t data[2];
-        data[0] = rtc_get_time(RTC);
-        data[1] = m_geiger.get_cpm();
+        log_data_t data;
+        #ifndef DISABLE_ACCEL
+        int8 res = accel_read_state(&data.accel_x_end,&data.accel_y_end,&data.accel_z_end);
+        #endif
 
-        flashstorage_log_pushback((uint8_t *) data,8);
+        data.time  = rtc_get_time(RTC);
+        data.cpm   = m_geiger.get_cpm();
+        data.accel_x_start = m_accel_x_stored;
+        data.accel_y_start = m_accel_y_stored;
+        data.accel_z_start = m_accel_z_stored;
+ 
+        flashstorage_log_pushback((uint8_t *) &data,sizeof(log_data_t));
         m_alarm_log = false;
 
         rtc_set_alarm(RTC,m_last_alarm_time+m_log_period_seconds);
@@ -261,6 +275,20 @@ public:
     int_to_char(year+1900,text_date+7,4);
     text_date[11] = 0;
 
+    char text_bat[50];
+    uint16 bat = power_battery_level();
+    sprintf(text_bat,"BatLevel: %u",bat);
+
+    char text_acc[50];
+    int16 x,y,z;
+    int8 res=1;
+    //#ifndef DISABLE_ACCEL
+    //res = accel_read_state(&x,&y,&z);
+    //#endif
+
+    sprintf(text_acc,"%d %d %d    ",x,y,z);
+    if(res) sprintf(text_acc,"ACCERR %d    ",res);
+
     //if(m_geiger.is_cpm_valid()) m_gui->receive_update("CPMVALID","true");
     //                       else m_gui->receive_update("CPMVALID","false");
     m_gui->receive_update("CPM",text_cpm);
@@ -271,6 +299,8 @@ public:
     m_gui->receive_update("DELAYB",NULL);
     m_gui->receive_update("TIME",text_time);
     m_gui->receive_update("DATE",text_date);
+    m_gui->receive_update("BATLEVEL",text_bat);
+    //m_gui->receive_update("ACCEL",text_acc);
   }
 
   GUI     *m_gui;
@@ -281,6 +311,9 @@ public:
   uint32_t m_log_period_seconds;
   bool     m_alarm_log;
   uint32_t m_last_alarm_time;
+  int16    m_accel_x_stored;
+  int16    m_accel_y_stored;
+  int16    m_accel_z_stored;
 };
 
 #endif

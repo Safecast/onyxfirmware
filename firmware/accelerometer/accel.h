@@ -3,7 +3,7 @@
 
 //#include "device.h"
 
-uint8 accel_read_state(int *x, int *y, int *z);
+uint8 accel_read_state(int16 *x, int16 *y, int16 *z);
 
 void accel_init();
 

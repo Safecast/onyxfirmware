@@ -21,11 +21,13 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   8,
   {
     { ITEM_TYPE_HEAD        , 0,  0, "CPM"      }, 
-    { ITEM_TYPE_VARLABEL    , 0, 30, "TIME"     },
-    { ITEM_TYPE_VARLABEL    , 0, 46, "DATE"     },
-    { ITEM_TYPE_VARLABEL    , 0, 62, "CPM"      },
-    { ITEM_TYPE_VARLABEL    , 0, 76, "CPMDEAD"  },
-    { ITEM_TYPE_VARLABEL    , 0, 92, "SIEVERTS" }
+    { ITEM_TYPE_VARLABEL    , 0, 16, "TIME"     },
+    { ITEM_TYPE_VARLABEL    , 0, 32, "DATE"     },
+    { ITEM_TYPE_VARLABEL    , 0, 48, "CPM"      },
+    { ITEM_TYPE_VARLABEL    , 0, 64, "CPMDEAD"  },
+    { ITEM_TYPE_VARLABEL    , 0, 80, "SIEVERTS" },
+    { ITEM_TYPE_VARLABEL    , 0, 96, "BATLEVEL" },
+    { ITEM_TYPE_VARLABEL    , 0,112, "ACCEL"    }
   }
 },
 
