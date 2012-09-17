@@ -78,6 +78,10 @@ void display_draw_number(int x,int y,uint32_t number,int width,int16_t backgroun
   draw_text(x,y,text,background);
 }
 
+void display_draw_image(int x,int y,int width,int height, uint16 *image_data) {
+  oled_draw_rect(x,y,width,height,(uint8_t *) image_data);
+}
+
 void display_dump_image() {
   oled_draw_rect(0,0,128,127,((uint8_t *) &_binary_image_1_data_start)+1);
 }

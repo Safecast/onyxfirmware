@@ -121,7 +121,7 @@ void render_item_label(screen_item &item, bool selected) {
 }
 
 void render_item_head(screen_item &item, bool selected) {
-  display_draw_text(0,0,"os100   CPM ",0x001F);
+  display_draw_text(0,0,"CPM ",0x001F);
 }
 
 float m_graph_data[120];
@@ -284,8 +284,66 @@ void update_item_graph(screen_item &item,void *value) {
  source_graph_data = (float *)value;
 }
 
+
+uint8 battery_mask [16][24] = {
+
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+
+};
+
+void render_battery(int x,int y,int level) {
+
+  uint16 image_data[384]; // 24*16
+
+  level = (((float) level)/100)*24;
+
+  for(int x=0;x<24;x++) {
+    for(int y=0;y<16;y++) {
+      int16 render_value = battery_mask[y][x];
+
+      if(x <= level) {
+        if(render_value > 0)  render_value = 0xF1FF;
+                         else render_value = 0;
+      }
+
+      if(x > level) {
+        if(render_value > 0)  render_value = 0x1111;
+                         else render_value = 0;
+      }
+      image_data[(y*24)+x] = render_value;
+    }
+  }
+
+  display_draw_image(104,0,24,16,image_data);
+}
+
 void update_item_head(screen_item &item,void *value) {
-  draw_text(128-16-16,0,((char *)value)+5,0x001F);
+
+  int len = strlen((char *) value);
+  char v[50];
+  strcpy(v,(char *) value);
+  for(int n=len;n<13;n++) {
+    v[n  ] = ' ';
+    v[n+1]=0;
+  }
+
+  draw_text(0,0,v,0x001F);
+  render_battery(0,128-24,50);
 }
 
 void update_item_varnum(screen_item &item,void *value) {

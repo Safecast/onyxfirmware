@@ -102,17 +102,19 @@ uint16 power_battery_level(void) {
   cr2 &= ~ADC_CR2_TSEREFE; // power down reference to save battery power
   ADC1->regs->CR2 = cr2; 
 
+  return battVal;
   // calibrate
   // this is important because VDDA = VMCU which is proportional to battery voltage
   // VREF is independent of battery voltage, and is 1.2V +/- 3.4%
   // we want to indicate system should shut down at 3.1V; 4.2V is full
   // this is a ratio from 1750 (= 4.2V) to 1292 (=3.1V)
-  ratio = battVal / vrefVal;
-  if( ratio < 1292 ) return 0;
-  ratio = ratio - 1292; // should always be positive now due to test above
+  //ratio = battVal / vrefVal;
+  //return ratio;
+  //if( ratio < 1292 ) return 0;
+  //ratio = ratio - 1292; // should always be positive now due to test above
 
-  retcode = ratio / (459 / BATT_RANGE);
-  return retcode;
+  //retcode = ratio / (459 / BATT_RANGE);
+  //return retcode;
 }
 
 
@@ -188,7 +190,7 @@ void power_standby(void) {
   volatile uint32_t *pwr_csr  = (uint32_t *) 0x40007004;
   volatile uint32_t *scb_scr  = (uint32_t *) 0xE000ED10; 
 
-  *pwr_csr |= (uint16_t) 256; // EWUP (enable wakeup)
+  *pwr_csr |= (uint32_t) (1 << 8); // EWUP (enable wakeup pin (WKUP pin))
   *pwr_cr  |= (uint8_t) 0x06; //PWR_CR_PDDS);  // set PDDS
 
   uint32_t temp = *pwr_cr;
@@ -200,7 +202,7 @@ void power_standby(void) {
   delay_us(100);
 
   asm volatile (
-    "WFI\n\t" // note for WFE, just replace this with WFE
+    "WFI\n\t"
   );
 }
 

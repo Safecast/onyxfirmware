@@ -138,6 +138,7 @@ public:
         m_sleeping=true;
         m_gui->set_key_trigger();
         m_gui->set_sleeping(true);
+        power_standby();
       }
     } else
     if(strcmp(event,"KEYPRESS")) {

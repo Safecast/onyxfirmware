@@ -34,7 +34,6 @@ premain() {
   }
   gpio_write_bit(GPIOB,9,0);
 
-//  power_standby();
   init();
   delay_us(100000);
 }

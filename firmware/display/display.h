@@ -9,6 +9,7 @@ extern uint8_t _binary_image_1_data_size;
 
 void display_initialise();
 void display_clear();
+void display_draw_image(int x,int y,int width,int height, uint16 *image_data);
 void display_draw_line(int start_x,int start_y,int end_x,int end_y,uint16_t color=65535);
 void display_draw_point(int x,int y,uint16_t color=65535);
 void display_draw_rectangle(int start_x,int start_y,int end_x,int end_y,uint16_t color);
