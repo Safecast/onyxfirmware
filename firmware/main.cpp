@@ -65,6 +65,7 @@ int main(void) {
     #ifndef DISABLE_ACCEL
     accel_init();
     #endif
+    power_standby();
 
     Controller c(g);
     GUI m_gui(c);
