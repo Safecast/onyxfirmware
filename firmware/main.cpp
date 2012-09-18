@@ -101,7 +101,7 @@ int main(void) {
       c.update();
       m_gui.render();
       power_wfi();
-      display_draw_tinytext(0,100,"!\"#HELLO WORLD",65535);
+     // display_draw_tinytext(0,100,"!\"#HELLO WORLD",65535);
      // int wakeup = gpio_read_bit(PIN_MAP[18].gpio_device,PIN_MAP[18].gpio_bit);
      // display_draw_number(0,80,wakeup,5,0);
     }

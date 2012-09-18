@@ -136,24 +136,45 @@ void render_item_graph(screen_item &item, bool selected) {
   
   graph_first = first_render;
   int32_t size=60;
-
   int offset=60;
+
+  // find min and max in old data
+  int32_t omax = m_graph_data[offset];
+  int32_t omin = m_graph_data[offset];
+  for(uint32_t n=0;n<size;n++) {
+    if(m_graph_data[n+offset] > omax) omax = m_graph_data[n+offset];
+    if(m_graph_data[n+offset] < omin) omin = m_graph_data[n+offset];
+  }
+
+  // find min and max in new data
+  int32_t nmax = source_graph_data[offset];
+  int32_t nmin = source_graph_data[offset];
+  for(uint32_t n=0;n<size;n++) {
+    if(source_graph_data[n+offset] > nmax) nmax = source_graph_data[n+offset];
+    if(source_graph_data[n+offset] < nmin) nmin = source_graph_data[n+offset];
+  }
+
+  float height = 80;
+  display_draw_line(m_x,m_y,m_x+size,m_y       ,FOREGROUND_COLOR);
+  display_draw_line(m_x,m_y,m_x     ,m_y-height,FOREGROUND_COLOR);
+
   int32_t lastx=m_x;
-  int32_t lastoy=m_y-m_graph_data[offset];
-  int32_t lastny=m_y-source_graph_data[offset];
+  int32_t lastoy=m_y-((((float)     m_graph_data[offset]-(float)omin)/(float)(omax-omin))*height);
+  int32_t lastny=m_y-((((float)source_graph_data[offset]-(float)nmin)/(float)(nmax-nmin))*height);
   for(uint32_t n=0;n<size;n++) {
     int cx = m_x+n;
-    int oy = m_y-m_graph_data[n+offset];
-    int ny = m_y-source_graph_data[n+offset];
+    int oy = m_y-((((float)m_graph_data     [n+offset]-(float)omin)/(float)(omax-omin))*height);
+    int ny = m_y-((((float)source_graph_data[n+offset]-(float)nmin)/(float)(nmax-nmin))*height);
     if(!((lastoy == lastny) && (oy == ny) && !graph_first)) {
       if(!first_render) display_draw_line(lastx,lastoy,cx,oy,BACKGROUND_COLOR);
-      display_draw_line(lastx,lastny,cx,ny,FOREGROUND_COLOR);
-   //   display_draw_point(cx,ny,0x000);
+                        display_draw_line(lastx,lastny,cx,ny,FOREGROUND_COLOR);
     }
     lastx=cx;
     lastoy=oy;
     lastny=ny;
   }
+  display_draw_tinynumber(m_x-25,m_y-height,nmax,4,FOREGROUND_COLOR);
+  display_draw_tinynumber(m_x-25,m_y-10    ,nmin,4,FOREGROUND_COLOR);
 
   for(int32_t n=0;n<120;n++) {
     m_graph_data[n] = source_graph_data[n];
@@ -202,6 +223,8 @@ void clear_item_varlabel(screen_item &item, bool selected) {
 }
 
 void clear_item_graph(screen_item &item, bool selected) {
+
+  display_draw_rectangle(0,16,128,128,BACKGROUND_COLOR);
 
   int32_t m_x = item.val1;
   int32_t m_y = item.val2;
