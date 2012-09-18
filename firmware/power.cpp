@@ -39,6 +39,20 @@ static uint8 powerState = PWRSTATE_BOOT;
 static uint8 lastPowerState = PWRSTATE_OFF;
 static uint8 dbg_batt = 0;
 
+// return true if the current boot was a wakeup from the WKUP pin.
+int power_get_wakeup_source() {
+
+  gpio_set_mode (GPIOA,0, GPIO_INPUT_PD);
+  int wkup = gpio_read_bit(GPIOA,0);
+
+  volatile uint32_t *pwr_csr = (uint32_t *) 0x40007004;
+  bool wokeup = false;
+  if(*pwr_csr & 1) wokeup = true;
+
+  if(!wokeup           ) return 0;
+  if( wokeup && (!wkup)) return 1;
+  if( wokeup &&   wkup ) return 2;
+}
 
 int power_init(void) {
   gpio_set_mode (PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit,GPIO_OUTPUT_PP);
@@ -97,13 +111,19 @@ uint16 power_battery_level(void) {
 
   battVal = (uint32) adc_read(PIN_MAP[BATT_MEASURE_ADC].adc_device,PIN_MAP[BATT_MEASURE_ADC].adc_channel);
   gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
-
   vrefVal = (uint32) adc_read(ADC1, 17);
 
   cr2 &= ~ADC_CR2_TSEREFE; // power down reference to save battery power
   ADC1->regs->CR2 = cr2; 
 
-  return battVal;
+  float batvolts = ((((float)battVal)/(float)vrefVal)*1.2)+2.1;
+
+  float battery_min_voltage = 3.1;
+  float battery_max_voltage = 4.2;
+
+  int16 bat_percent = ((batvolts-battery_min_voltage)/(battery_max_voltage-battery_min_voltage))*100;
+  return bat_percent;
+  //return battVal;
   // calibrate
   // this is important because VDDA = VMCU which is proportional to battery voltage
   // VREF is independent of battery voltage, and is 1.2V +/- 3.4%
@@ -245,15 +265,15 @@ delay_us(100000);
         "WFI\n\t" // note for WFE, just replace this with WFE
 // "BX r14"
         );
-
- /* for(int i=0;i<11;i++) {
+// should never get here
+  for(int i=0;i<11;i++) {
 for(int n=0;n<100;n++) {
 gpio_toggle_bit(GPIOB,9);
 delay_us(1000);
 }
 delay_us(100000);
 }
-*/
+
 }
 
 void power_wfi(void) {

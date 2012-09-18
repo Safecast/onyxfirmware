@@ -19,7 +19,9 @@
 #include "flashstorage.h"
 #include "rtc.h"
 #include "accel.h"
-
+#include "realtime.h"
+#include "serialinterface.h"
+#include "switch.h"
 
 // Force init to be called *first*, i.e. before static object allocation.
 // Otherwise, statically allocated objects that need libmaple may fail.
@@ -65,31 +67,43 @@ int main(void) {
     #ifndef DISABLE_ACCEL
     accel_init();
     #endif
-    //power_standby();
 
     Controller c(g);
+    switch_init();
+
+
+    // if we woke up on an alarm, we're going to be sending the system back.
+    if(power_get_wakeup_source() == WAKEUP_RTC) {
+      c.m_sleeping = true;
+
+      // manual beep test
+      for(int n=0;n<5;n++) {
+	gpio_set_mode (GPIOB,9, GPIO_OUTPUT_PP);
+	for(int n=0;n<100;n++) {
+	  gpio_toggle_bit(GPIOB,9);
+	  delay_us(1000);
+	}
+	gpio_write_bit(GPIOB,9,0);
+	delay_us(1000000);
+      }
+    }
+
+    //TODO: if(rtc_alarmed() && (switch_mode() == SWITCH_SLEEP)) c.m_sleeping = true;
+
     GUI m_gui(c);
     c.set_gui(m_gui);
     UserInput  u(m_gui);
     u.initialise();
-    //bool res1 = rtc_set_alarm(RTC,30);
-    //bool res2 = rtc_enable_alarm(RTC);
     flashstorage_initialise();
     serial_initialise();
-    //flashstorage_keyval_set("nicethings","i like cakes ");
-    //flashstorage_keyval_set("nicerthings","working code");
-    //const char* flashstr2 = flashstorage_keyval_get("nicerthings");
-    //display_draw_text(0,80,flashstr2,0);
-    //uint8_t *log = flashstorage_log_get();
-    //display_draw_text(0,100,(char *)log,0);
+
     for(;;) {
       c.update();
       m_gui.render();
-     // if(res1          == 0) display_draw_text(0,70,"alarmfail1",0);
-      //if(res2          == 0) display_draw_text(0,70,"alarmfail2",0);
-      //if(rtc_alarmed() == 1) display_draw_text(0,70,"alarmflag",0);
-      //display_draw_number(0,70,rtc_get_time(RTC),6,0);
       power_wfi();
+      display_draw_tinytext(0,100,"!\"#HELLO WORLD",65535);
+     // int wakeup = gpio_read_bit(PIN_MAP[18].gpio_device,PIN_MAP[18].gpio_bit);
+     // display_draw_number(0,80,wakeup,5,0);
     }
 
     // should never get here

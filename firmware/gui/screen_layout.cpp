@@ -6,13 +6,13 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 0 - main screen
 {
- 5,
+ 4,
  {
    { ITEM_TYPE_HEAD       , 0, 0, "CPM" }, 
    { ITEM_TYPE_MENU       , 1, 1, "Current Readings" },
    { ITEM_TYPE_MENU       , 2, 2, "Reports"  },
-   { ITEM_TYPE_MENU       , 3, 3, "Settings" },
-   { ITEM_TYPE_MENU_ACTION, 0, 4, "Sleep" }
+   { ITEM_TYPE_MENU       , 3, 3, "Settings" }
+//   { ITEM_TYPE_MENU_ACTION, 0, 4, "Sleep" }
  }
 },
 

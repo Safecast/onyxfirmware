@@ -6,6 +6,7 @@
 #include "GUI.h"
 #include <stdint.h>
 #include "utils.h"
+#include "power.h"
 
 #define KEY_BACK   6
 #define KEY_HOME   8
@@ -121,7 +122,7 @@ void render_item_label(screen_item &item, bool selected) {
 }
 
 void render_item_head(screen_item &item, bool selected) {
-  display_draw_text(0,0,"CPM ",0x001F);
+  display_draw_text(0,0,"CPM ",HEADER_COLOR);
 }
 
 float m_graph_data[120];
@@ -288,20 +289,20 @@ void update_item_graph(screen_item &item,void *value) {
 uint8 battery_mask [16][24] = {
 
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},
-  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},
-  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},
-  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},
-  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},
-  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0},
+  {3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0,0},
+  {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0},
+  {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0},
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0},
+  {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0},
+  {3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0,0},
+  {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 
 };
@@ -310,20 +311,20 @@ void render_battery(int x,int y,int level) {
 
   uint16 image_data[384]; // 24*16
 
-  level = (((float) level)/100)*24;
+  level = (((float) level)/100)*23;
 
   for(int x=0;x<24;x++) {
     for(int y=0;y<16;y++) {
       int16 render_value = battery_mask[y][x];
 
       if(x <= level) {
-        if(render_value > 0)  render_value = 0xF1FF;
-                         else render_value = 0;
+        if(render_value > 0)  render_value = 0xF1FF - (2081*(render_value-1));
+                         else render_value = HEADER_COLOR; // header background
       }
 
       if(x > level) {
-        if(render_value > 0)  render_value = 0x1111;
-                         else render_value = 0;
+        if(render_value > 0)  render_value = BACKGROUND_COLOR;  //6243 - (2081*(render_value-1));
+                         else render_value = HEADER_COLOR; // header background
       }
       image_data[(y*24)+x] = render_value;
     }
@@ -342,8 +343,10 @@ void update_item_head(screen_item &item,void *value) {
     v[n+1]=0;
   }
 
-  draw_text(0,0,v,0x001F);
-  render_battery(0,128-24,50);
+  draw_text(0,0,v,HEADER_COLOR);
+  // a hack!
+  render_battery(0,128-24,power_battery_level());
+  //render_battery(0,128-24,50);
 }
 
 void update_item_varnum(screen_item &item,void *value) {
