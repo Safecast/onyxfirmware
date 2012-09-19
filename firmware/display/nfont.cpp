@@ -6,6 +6,7 @@
 #include "nfont.h"
 #include <stdint.h>
 #include "oled.h"
+#include "display.h"
 
 extern uint8_t _binary_font_data_start;
 extern uint8_t _binary_font_data_size;
@@ -152,6 +153,10 @@ void draw_tinytext(int x,int y,const char *text,int16_t background) {
   int c_y = y;
   for(size_t n=0;n<length;n++) {
     draw_tinycharacter(c_x,c_y,text[n],background);
+//    if(pad > 0) {
+      // fill space between chars
+//      display_draw_rectangle(c_x+5,c_y,c_x+6,c_y+5,background);
+//    }
     c_x+=6;
   }
 }

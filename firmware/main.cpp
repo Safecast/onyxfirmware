@@ -77,6 +77,7 @@ int main(void) {
       c.m_sleeping = true;
 
       // manual beep test
+      /*
       for(int n=0;n<5;n++) {
 	gpio_set_mode (GPIOB,9, GPIO_OUTPUT_PP);
 	for(int n=0;n<100;n++) {
@@ -86,6 +87,7 @@ int main(void) {
 	gpio_write_bit(GPIOB,9,0);
 	delay_us(1000000);
       }
+      */
     }
 
     //TODO: if(rtc_alarmed() && (switch_mode() == SWITCH_SLEEP)) c.m_sleeping = true;

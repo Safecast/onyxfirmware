@@ -7,6 +7,8 @@
 #include <stdint.h>
 #include "utils.h"
 #include "power.h"
+#include "realtime.h"
+#include <stdio.h>
 
 #define KEY_BACK   6
 #define KEY_HOME   8
@@ -122,7 +124,7 @@ void render_item_label(screen_item &item, bool selected) {
 }
 
 void render_item_head(screen_item &item, bool selected) {
-  display_draw_text(0,0,"CPM ",HEADER_COLOR);
+  draw_text(0,0,"                ",HEADER_COLOR);
 }
 
 float m_graph_data[120];
@@ -358,18 +360,46 @@ void render_battery(int x,int y,int level) {
 
 void update_item_head(screen_item &item,void *value) {
 
-  int len = strlen((char *) value);
+  int len = strlen((char *) value+5);
   char v[50];
-  strcpy(v,(char *) value);
-  for(int n=len;n<13;n++) {
+  strcpy(v,(char *) value+5);
+  for(int n=len;n<6;n++) {
     v[n  ] = ' ';
     v[n+1]=0;
   }
 
   draw_text(0,0,v,HEADER_COLOR);
+
   // a hack!
   render_battery(0,128-24,power_battery_level());
-  //render_battery(0,128-24,50);
+
+  uint8_t hours,min,sec,day,month;
+  uint16_t year;
+  realtime_getdate(hours,min,sec,day,month,year);
+  month+=1;
+  year+=1900;
+  year-=2000;
+
+  char time[50];
+  char date[50];
+  sprintf(time,"%u:%u:%u",hours,min,sec);
+  sprintf(date,"%u/%u/%u",month,day,year);
+
+  // pad out time and date
+  int tlen = strlen(time);
+  for(int n=tlen;n<8;n++) {
+    time[n  ] = ' ';
+    time[n+1]=0;
+  }
+
+  int dlen = strlen(date);
+  for(int n=dlen;n<8;n++) {
+    date[n  ] = ' ';
+    date[n+1]=0;
+  }
+
+  display_draw_tinytext(128-75,2,time,HEADER_COLOR);
+  display_draw_tinytext(128-75,9,date,HEADER_COLOR);
 }
 
 void update_item_varnum(screen_item &item,void *value) {
