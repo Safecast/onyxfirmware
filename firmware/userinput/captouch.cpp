@@ -108,9 +108,6 @@ char *diag_data(int e) {
 
 static void cap_change(void) {
 
-  gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,1);
-  delay_us(100);
-  
   int key_state=0;
   key_state  = mpr121Read(TCH_STATL);
   key_state |= mpr121Read(TCH_STATH) << 8;

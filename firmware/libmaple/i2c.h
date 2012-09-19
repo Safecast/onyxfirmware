@@ -269,9 +269,10 @@ static inline void i2c_set_trise(i2c_dev *dev, uint32 trise) {
  */
 static inline void i2c_start_condition(i2c_dev *dev) {
     uint32 cr1;
-    while ((cr1 = dev->regs->CR1) & (I2C_CR1_START |
+    int n=0;
+    for(n=0;((cr1 = dev->regs->CR1) & (I2C_CR1_START |
                                      I2C_CR1_STOP  |
-                                     I2C_CR1_PEC)) {
+                                     I2C_CR1_PEC)) && (n<1000000) ;n++) {
         ;
     }
     dev->regs->CR1 |= I2C_CR1_START;

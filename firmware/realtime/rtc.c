@@ -69,11 +69,24 @@ void rtc_sync(rtc_dev *dev) {
 
 }
 
+void rtc_set_alarmed() {
+  rtc_alarm_on = 1;
+}
+
 int rtc_alarmed() {
+
+  // woke from standby on alarm?
+  if(RTC->regs->CRL & 0x02) {
+    rtc_alarm_on = 1;
+    RTC->regs->CRL &= (uint16)~2;
+    return rtc_alarm_on;
+  }
+
   return rtc_alarm_on;
 }
 
 void rtc_clear_alarmed() {
+  RTC->regs->CRL &= (uint16)~2; // just to make sure.
   rtc_alarm_on = 0;
 }
 
@@ -121,7 +134,14 @@ void __irq_rtc(void) {
   RTC->regs->CRL &= (uint16)~2;
   nvic_irq_disable(NVIC_RTC);
   nvic_clear_pending_msk(NVIC_RTC);
-
+ /* int i;int n;for(i=0;i<31;i++) {
+for(n=0;n<100;n++) {
+gpio_toggle_bit(GPIOB,9);
+delay_us(1000);
+}
+delay_us(100000);
+}
+*/
   //rtc_disable_alarm(NVIC_RTC);
   rtc_alarm_on=1;
 }
@@ -132,6 +152,13 @@ void __irq_rtcalarm(void) {
   RTC->regs->CRL &= (uint16)~2;
   nvic_irq_disable(NVIC_RTCALARM);
   nvic_clear_pending_msk(NVIC_RTCALARM);
+/*  int i;int n;for(i=0;i<21;i++) {
+for(n=0;n<100;n++) {
+gpio_toggle_bit(GPIOB,9);
+delay_us(1000);
+}
+delay_us(100000);
+}*/
 
   rtc_alarm_on=1;
 }

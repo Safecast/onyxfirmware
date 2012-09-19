@@ -6,6 +6,9 @@
 #include "GUI.h"
 #include <stdint.h>
 #include "utils.h"
+#include "power.h"
+#include "realtime.h"
+#include <stdio.h>
 
 #define KEY_BACK   6
 #define KEY_HOME   8
@@ -121,7 +124,7 @@ void render_item_label(screen_item &item, bool selected) {
 }
 
 void render_item_head(screen_item &item, bool selected) {
-  display_draw_text(0,0,"os100   CPM ",0x001F);
+  draw_text(0,0,"                ",HEADER_COLOR);
 }
 
 float m_graph_data[120];
@@ -135,24 +138,45 @@ void render_item_graph(screen_item &item, bool selected) {
   
   graph_first = first_render;
   int32_t size=60;
-
   int offset=60;
+
+  // find min and max in old data
+  int32_t omax = m_graph_data[offset];
+  int32_t omin = m_graph_data[offset];
+  for(uint32_t n=0;n<size;n++) {
+    if(m_graph_data[n+offset] > omax) omax = m_graph_data[n+offset];
+    if(m_graph_data[n+offset] < omin) omin = m_graph_data[n+offset];
+  }
+
+  // find min and max in new data
+  int32_t nmax = source_graph_data[offset];
+  int32_t nmin = source_graph_data[offset];
+  for(uint32_t n=0;n<size;n++) {
+    if(source_graph_data[n+offset] > nmax) nmax = source_graph_data[n+offset];
+    if(source_graph_data[n+offset] < nmin) nmin = source_graph_data[n+offset];
+  }
+
+  float height = 80;
+  display_draw_line(m_x,m_y,m_x+size,m_y       ,FOREGROUND_COLOR);
+  display_draw_line(m_x,m_y,m_x     ,m_y-height,FOREGROUND_COLOR);
+
   int32_t lastx=m_x;
-  int32_t lastoy=m_y-m_graph_data[offset];
-  int32_t lastny=m_y-source_graph_data[offset];
+  int32_t lastoy=m_y-((((float)     m_graph_data[offset]-(float)omin)/(float)(omax-omin))*height);
+  int32_t lastny=m_y-((((float)source_graph_data[offset]-(float)nmin)/(float)(nmax-nmin))*height);
   for(uint32_t n=0;n<size;n++) {
     int cx = m_x+n;
-    int oy = m_y-m_graph_data[n+offset];
-    int ny = m_y-source_graph_data[n+offset];
+    int oy = m_y-((((float)m_graph_data     [n+offset]-(float)omin)/(float)(omax-omin))*height);
+    int ny = m_y-((((float)source_graph_data[n+offset]-(float)nmin)/(float)(nmax-nmin))*height);
     if(!((lastoy == lastny) && (oy == ny) && !graph_first)) {
       if(!first_render) display_draw_line(lastx,lastoy,cx,oy,BACKGROUND_COLOR);
-      display_draw_line(lastx,lastny,cx,ny,FOREGROUND_COLOR);
-   //   display_draw_point(cx,ny,0x000);
+                        display_draw_line(lastx,lastny,cx,ny,FOREGROUND_COLOR);
     }
     lastx=cx;
     lastoy=oy;
     lastny=ny;
   }
+  display_draw_tinynumber(m_x-25,m_y-height,nmax,4,FOREGROUND_COLOR);
+  display_draw_tinynumber(m_x-25,m_y-10    ,nmin,4,FOREGROUND_COLOR);
 
   for(int32_t n=0;n<120;n++) {
     m_graph_data[n] = source_graph_data[n];
@@ -201,6 +225,8 @@ void clear_item_varlabel(screen_item &item, bool selected) {
 }
 
 void clear_item_graph(screen_item &item, bool selected) {
+
+  display_draw_rectangle(0,16,128,128,BACKGROUND_COLOR);
 
   int32_t m_x = item.val1;
   int32_t m_y = item.val2;
@@ -284,8 +310,96 @@ void update_item_graph(screen_item &item,void *value) {
  source_graph_data = (float *)value;
 }
 
+
+uint8 battery_mask [16][24] = {
+
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0},
+  {3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0,0},
+  {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0},
+  {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0},
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0},
+  {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0},
+  {3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0,0},
+  {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+
+};
+
+void render_battery(int x,int y,int level) {
+
+  uint16 image_data[384]; // 24*16
+
+  level = (((float) level)/100)*23;
+
+  for(int x=0;x<24;x++) {
+    for(int y=0;y<16;y++) {
+      int16 render_value = battery_mask[y][x];
+
+      if(x <= level) {
+        if(render_value > 0)  render_value = 0xF1FF - (2081*(render_value-1));
+                         else render_value = HEADER_COLOR; // header background
+      }
+
+      if(x > level) {
+        if(render_value > 0)  render_value = BACKGROUND_COLOR;  //6243 - (2081*(render_value-1));
+                         else render_value = HEADER_COLOR; // header background
+      }
+      image_data[(y*24)+x] = render_value;
+    }
+  }
+
+  display_draw_image(104,0,24,16,image_data);
+}
+
 void update_item_head(screen_item &item,void *value) {
-  draw_text(128-16-16,0,((char *)value)+5,0x001F);
+
+  int len = strlen((char *) value+5);
+  char v[50];
+  strcpy(v,(char *) value+5);
+  for(int n=len;n<6;n++) {
+    v[n  ] = ' ';
+    v[n+1]=0;
+  }
+
+  draw_text(0,0,v,HEADER_COLOR);
+
+  // a hack!
+  render_battery(0,128-24,power_battery_level());
+
+  uint8_t hours,min,sec,day,month;
+  uint16_t year;
+  realtime_getdate(hours,min,sec,day,month,year);
+  month+=1;
+  year+=1900;
+  year-=2000;
+
+  char time[50];
+  char date[50];
+  sprintf(time,"%u:%u:%u",hours,min,sec);
+  sprintf(date,"%u/%u/%u",month,day,year);
+
+  // pad out time and date
+  int tlen = strlen(time);
+  for(int n=tlen;n<8;n++) {
+    time[n  ] = ' ';
+    time[n+1]=0;
+  }
+
+  int dlen = strlen(date);
+  for(int n=dlen;n<8;n++) {
+    date[n  ] = ' ';
+    date[n+1]=0;
+  }
+
+  display_draw_tinytext(128-75,2,time,HEADER_COLOR);
+  display_draw_tinytext(128-75,9,date,HEADER_COLOR);
 }
 
 void update_item_varnum(screen_item &item,void *value) {
