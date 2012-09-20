@@ -17,6 +17,7 @@
 #define ITEM_TYPE_VARNUM       8  // Variable single number
 #define ITEM_TYPE_DELAY        9  // A delay, basically a countdown timer.
 #define ITEM_TYPE_ACTION      10  // Generate an action as soon as the screen is created.
+#define ITEM_TYPE_BIGVARLABEL 11  // A bigfont variable label, currently only numeric.
 
 #define INVALID_SCREEN 255
 

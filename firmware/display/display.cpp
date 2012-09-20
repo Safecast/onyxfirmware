@@ -82,6 +82,10 @@ void display_draw_tinytext(int x,int y,const char *text,int16_t background) {
   ::draw_tinytext(x,y,text,background);
 }
 
+void display_draw_bigtext(int x,int y,const char *text,int16_t background) {
+  ::draw_bigtext(x,y,text,background);
+}
+
 
 void display_draw_tinynumber(int x,int y,uint32_t number,int width,int16_t background) {
   char text[50];

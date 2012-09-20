@@ -216,6 +216,14 @@ void clear_item_head(screen_item &item, bool selected) {
   int y_max=16;
   display_draw_rectangle(item.val1,item.val2,x_max,y_max,BACKGROUND_COLOR);
 }
+    
+void clear_item_bigvarlabel(screen_item &item, bool selected) {
+  int32_t text_len = strlen(item.text);
+
+  if(text_len == 0) return;
+  display_draw_rectangle(item.val1,item.val2,127,(item.val2+32),BACKGROUND_COLOR);
+}
+
 
 void clear_item_varlabel(screen_item &item, bool selected) {
   int32_t text_len = strlen(item.text);
@@ -303,6 +311,9 @@ void clear_item(screen_item &item,bool selected) {
   } else
   if(item.type == ITEM_TYPE_DELAY) {
     clear_item_delay(item,selected);
+  } else
+  if(item.type == ITEM_TYPE_BIGVARLABEL) {
+    clear_item_bigvarlabel(item,selected);
   }
 }
 
@@ -448,6 +459,9 @@ void update_item(screen_item &item,void *value) {
   } else 
   if(item.type == ITEM_TYPE_DELAY) {
     update_item_delay(item,value);
+  } else
+  if(item.type == ITEM_TYPE_BIGVARLABEL) {
+    display_draw_bigtext(item.val1,item.val2,(char *)value,FOREGROUND_COLOR);
   }
 }
   

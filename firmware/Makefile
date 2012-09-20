@@ -17,16 +17,19 @@ OUROBJS = ./display/display.o ./display/spi_aux.o ./display/oled.o ./userinput/c
 firmware: main.cpp $(LIBMAPLEOBJS) $(OUROBJS) to565
 	##convert safemed128.png -depth 8 RGB:image_1_data888
 	##./to565 < image_1_data888 > image_1_data
-	convert font.png -depth 2 gray:font_data
 	convert tinyfont.png -depth 1 gray:tinyfont_data
+	convert font.png -depth 2 gray:font_data
+	convert bignumbers.png -depth 2 gray:bignumbers_data
 	##arm-none-eabi-ld -r -b binary -o image_1_data.o image_1_data
 	arm-none-eabi-ld -r -b binary -o font_data.o font_data
+	arm-none-eabi-ld -r -b binary -o bignumbers_data.o bignumbers_data
 	arm-none-eabi-ld -r -b binary -o tinyfont_data.o tinyfont_data
 	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm --rename-section .data=.USER_FLASH,alloc,load,readonly,data,contents font_data font_data.o
+	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm --rename-section .data=.USER_FLASH,alloc,load,readonly,data,contents bignumbers_data bignumbers_data.o
 	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm --rename-section .data=.USER_FLASH,alloc,load,readonly,data,contents tinyfont_data tinyfont_data.o
 	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm --rename-section .data=.USER_FLASH,alloc,load,readonly,data,contents flash_data flash_data.o
 	# Final linker step
-	arm-none-eabi-g++ -T./linker_files/safecast_flash.ld -L./linker_files -mcpu=cortex-m3 -mthumb -Xlinker --gc-sections --print-gc-sections --march=armv7-m -Wall $(OUROBJS) $(LIBMAPLEOBJS) tinyfont_data.o font_data.o flash_data.o ./libcs3_stm32_src/*.o -o safecast.elf -Wl,-Map,safecast.map 
+	arm-none-eabi-g++ -T./linker_files/safecast_flash.ld -L./linker_files -mcpu=cortex-m3 -mthumb -Xlinker --gc-sections --print-gc-sections --march=armv7-m -Wall $(OUROBJS) $(LIBMAPLEOBJS) tinyfont_data.o font_data.o bignumbers_data.o flash_data.o ./libcs3_stm32_src/*.o -o safecast.elf -Wl,-Map,safecast.map 
 	# Convert elf to flat binary for programming.
 	arm-none-eabi-objcopy -v -Obinary safecast.elf safecast.bin
 

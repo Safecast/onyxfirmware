@@ -18,16 +18,14 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 1 - Current readings screen
 {
-  8,
+  5,
   {
     { ITEM_TYPE_HEAD        , 0,  0, "CPM"      }, 
-    { ITEM_TYPE_VARLABEL    , 0, 16, "TIME"     },
-    { ITEM_TYPE_VARLABEL    , 0, 32, "DATE"     },
-    { ITEM_TYPE_VARLABEL    , 0, 48, "CPM"      },
-    { ITEM_TYPE_VARLABEL    , 0, 64, "CPMDEAD"  },
-    { ITEM_TYPE_VARLABEL    , 0, 80, "SIEVERTS" },
-    { ITEM_TYPE_VARLABEL    , 0, 96, "BATLEVEL" },
-    { ITEM_TYPE_VARLABEL    , 0,112, "ACCEL"    }
+    { ITEM_TYPE_BIGVARLABEL , 5, 26, "CPMDEAD"  },
+    { ITEM_TYPE_LABEL       ,89, 60, " CPM"     },
+    { ITEM_TYPE_BIGVARLABEL , 0, 70, "SIEVERTS" },
+    { ITEM_TYPE_LABEL       ,89,104, " uSv"     }
+   // { ITEM_TYPE_VARLABEL    , 0, 96, "BATLEVEL" }
   }
 },
 

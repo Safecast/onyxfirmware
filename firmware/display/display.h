@@ -18,6 +18,7 @@ void display_draw_text(int x,int y,const char *text,int16_t background);
 void display_draw_number(int x,int y,uint32_t number,int width,int16_t background);
 void display_draw_tinytext(int x,int y,const char *text,int16_t background);
 void display_draw_tinynumber(int x,int y,uint32_t number,int width,int16_t background);
+void display_draw_bigtext(int x,int y,const char *text,int16_t background);
 void display_dump_image();
 void display_powerup();
 void display_powerdown();
