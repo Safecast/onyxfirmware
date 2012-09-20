@@ -378,7 +378,8 @@ void update_item_head(screen_item &item,void *value) {
   realtime_getdate(hours,min,sec,day,month,year);
   month+=1;
   year+=1900;
-  year-=2000;
+  if(year > 2000) {year-=2000;} else
+  if(year < 2000) {year-=1900;}
 
   char time[50];
   char date[50];
