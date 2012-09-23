@@ -8,14 +8,14 @@
 #include "oled.h"
 #include "display.h"
 
-extern uint8_t _binary_font_data_start;
-extern uint8_t _binary_font_data_size;
+extern uint8_t _binary___binary_data_font_data_start;
+extern uint8_t _binary___binary_data_font_data_size;
 
-extern uint8_t _binary_tinyfont_data_start;
-extern uint8_t _binary_tinyfont_data_size;
+extern uint8_t _binary___binary_data_tinyfont_data_start;
+extern uint8_t _binary___binary_data_tinyfont_data_size;
 
-extern uint8_t _binary_bignumbers_data_start;
-extern uint8_t _binary_bignumbers_data_size;
+extern uint8_t _binary___binary_data_bignumbers_data_start;
+extern uint8_t _binary___binary_data_bignumbers_data_size;
 
 #define to565(r,g,b)                                            \
     ((((r) >> 3) << 11) | (((g) >> 2) << 5) | ((b) >> 3))
@@ -35,7 +35,7 @@ uint16_t get_bigpixel(char c,int c_x,int c_y) {
   int byte_position = bitposition/8;
   int bit_in_byte   = 7-(bitposition%8);
 
-  uint8_t byte = ((uint8_t *) &_binary_bignumbers_data_start)[byte_position];
+  uint8_t byte = ((uint8_t *) &_binary___binary_data_bignumbers_data_start)[byte_position];
   
   uint8_t value=0;
   if((byte & (1 << bit_in_byte)) > 0) value += 2;
@@ -62,7 +62,7 @@ uint16_t get_pixel(char c,int c_x,int c_y) {
   int byte_position = bitposition/8;
   int bit_in_byte   = 7-(bitposition%8);
 
-  uint8_t byte = ((uint8_t *) &_binary_font_data_start)[byte_position];
+  uint8_t byte = ((uint8_t *) &_binary___binary_data_font_data_start)[byte_position];
   
   uint8_t value=0;
   if((byte & (1 << bit_in_byte)) > 0) value += 2;
@@ -87,8 +87,7 @@ uint16_t get_tinypixel(char c,int c_x,int c_y) {
 
   int byte_position = bitposition/8;
   int bit_in_byte   = 7-(bitposition%8);//was8-
-
-  uint8_t byte = ((uint8_t *) &_binary_tinyfont_data_start)[byte_position];
+  uint8_t byte = ((uint8_t *) &_binary___binary_data_tinyfont_data_start)[byte_position];
   
   uint8_t value=0;
   if((byte & (1 << bit_in_byte)) > 0) value = 1;

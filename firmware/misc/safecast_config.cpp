@@ -60,7 +60,7 @@ extern const stm32_pin_info PIN_MAP[BOARD_NR_GPIO_PINS] = {
     {GPIOA,   NULL, ADC1,  4, 0,    4}, /* D10/PA4 */
     {GPIOA, TIMER3, ADC1,  7, 2,    7}, /* D11/PA7 */
     {GPIOA, TIMER3, ADC1,  6, 1,    6}, /* D12/PA6 */
-    {GPIOA,   NULL, ADC1,  5, 0,    5}, /* D13/PA5 (LED) */
+    {GPIOA,   NULL, ADC1,  5, 0,    5}, /* D13/PA5 */
     {GPIOB, TIMER4, NULL,  8, 3, ADCx}, /* D14/PB8 */
 
     /* Little header */

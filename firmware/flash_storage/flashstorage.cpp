@@ -4,8 +4,8 @@
 #include "safecast_wirish_types.h"
 #include "display.h"
 
-extern uint8_t _binary_flash_data_start;
-extern uint8_t _binary_flash_data_size;
+extern uint8_t _binary___binary_data_flash_data_start;
+extern uint8_t _binary___binary_data_flash_data_size;
 
 uint8_t  *flash_data_area_aligned;
 uint32_t  flash_data_area_aligned_size;
@@ -95,7 +95,7 @@ bool flashstorage_writepage(uint8_t *new_data,uint8_t *pageaddr) {
 
 
 void flashstorage_initialise() {
-  uint32_t flash_addr = (uint32_t) &_binary_flash_data_start;
+  uint32_t flash_addr = (uint32_t) &_binary___binary_data_flash_data_start;
 
   uint32_t unusable = 0;
   if(flash_addr%1024 != 0) {
@@ -105,7 +105,7 @@ void flashstorage_initialise() {
 
 
   flash_data_area_aligned = (uint8_t *) flash_addr;
-  flash_data_area_aligned_size = _binary_flash_data_size - unusable;
+  flash_data_area_aligned_size = _binary___binary_data_flash_data_size - unusable;
 }
 
 const char *flashstorage_keyval_get_address(const char *key) {
