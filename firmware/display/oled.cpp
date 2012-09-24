@@ -245,7 +245,7 @@ void CLS(uint16 color) {
 
 static void Set_Contrast_Color(unsigned char a, unsigned char b, unsigned char c)
 {
-    write_c(0xC1);            // Set Contrast Current for Color A, B, C
+    write_c(0xC1);           // Set Contrast Current for Color A, B, C
     write_d(a);              //   Default => 0x8A (Color A)
     write_d(b);              //   Default => 0x51 (Color B)
     write_d(c);              //   Default => 0x8A (Color C)
@@ -413,7 +413,6 @@ void oled_init(void) {
                                     //     * 262,144 Colors Mode (0xB4)
     Set_GPIO(0x00);                 // Disable GPIO Pins Input
     
-///M
     Set_Function_Selection(0x01);   // Disable Internal VDD Regulator
                                     // Select 8-bit Parallel Interface
     Set_VSL(0x01);                  // Enable External VSL
@@ -423,13 +422,11 @@ void oled_init(void) {
                                     // Set Contrast of Color C (Blue)
     Set_Master_Current(Brightness);     // Set Scale Factor of Segment Output Current Control
     Set_Gray_Scale_Table();         // Set Pulse Width for Gray Scale Table
-///M
     Set_Phase_Length(0x32);         // Set Phase 1 as 5 Clocks & Phase 2 as 3 Clocks
- //   Set_Display_Enhancement(0xA4);      // Enhance Display Performance
-    Set_Precharge_Voltage(0x17);        // Set Pre-Charge Voltage Level as 0.50*VCC
+    Set_Display_Enhancement(0xA4);  // Enhance Display Performance
+    Set_Precharge_Voltage(0x17);    // Set Pre-Charge Voltage Level as 0.50*VCC
     Set_Precharge_Period(0x01);     // Set Second Pre-Charge Period as 1 Clock
     Set_VCOMH(0x05);                // Set Common Pins Deselect Voltage Level as 0.82*VCC
-//M
     Set_Display_Mode(0x02);         // Normal Display Mode (0x00/0x01/0x02/0x03)
 
     CLS(0);                          // Clear Screen

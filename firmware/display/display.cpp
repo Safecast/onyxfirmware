@@ -101,6 +101,9 @@ void display_dump_image() {
   oled_draw_rect(0,0,128,127,((uint8_t *) &_binary_image_1_data_start)+1);
 }
 
+void display_set_brightness(uint8 b) {
+}
+
 void display_powerup() {
   oled_init();
 }
