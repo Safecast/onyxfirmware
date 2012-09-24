@@ -389,13 +389,15 @@ void update_item_head(screen_item &item,void *value) {
   realtime_getdate(hours,min,sec,day,month,year);
   month+=1;
   year+=1900;
-  if(year > 2000) {year-=2000;} else
-  if(year < 2000) {year-=1900;}
+  if(year >= 2000) {year-=2000;} else
+  if(year <  2000) {year-=1900;}
 
   char time[50];
   char date[50];
   sprintf(time,"%u:%u:%u",hours,min,sec);
   sprintf(date,"%u/%u/%u",month,day,year);
+  if(year == 0) { sprintf(date,"%u/%u/00",month,day); }
+
 
   // pad out time and date
   int tlen = strlen(time);
@@ -496,6 +498,7 @@ GUI::GUI(Controller &r) : receive_gui_events(r) {
   clear_stack();
   m_trigger_any_key=false;
   m_sleeping=false;
+  m_redraw=false;
 }
 
 
@@ -516,6 +519,9 @@ void GUI::render() {
     first_render=true;
   }
 
+  bool do_redraw = false;
+  if(m_redraw) do_redraw = true;
+  m_redraw = false;
 
   for(uint32_t n=0;n<screens_layout[cscreen].item_count;n++) {
 
@@ -535,11 +541,9 @@ void GUI::render() {
 
     if(n==0) near_selected = false;
 
-    if(first_render || (selected) || (near_selected)) {
+    if(first_render || (selected) || (near_selected) || do_redraw) {
       render_item(screens_layout[cscreen].items[n],selected);
     }
-
-
   }
   first_render=false;
   process_keys();
@@ -563,8 +567,7 @@ void GUI::set_key_trigger() {
 }
 
 void GUI::redraw() {
-  clear_next_render = true;
-  first_render=true;
+  m_redraw = true;
 }
 
 void GUI::receive_key(int key_id,int type) {

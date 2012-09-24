@@ -25,7 +25,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL       ,89, 60, " CPM"     },
     { ITEM_TYPE_BIGVARLABEL , 0, 70, "SIEVERTS" },
     { ITEM_TYPE_LABEL       ,89,104, " uSv"     }
-   // { ITEM_TYPE_VARLABEL    , 0, 96, "BATLEVEL" }
   }
 },
 
@@ -139,16 +138,18 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 11 - Set date
 {
-  8,
+  10,
   {
     { ITEM_TYPE_HEAD       , 0 , 0  , "CPM"       }, 
-    { ITEM_TYPE_VARNUM     , 10, 50 , "DATEDAY1"  },
-    { ITEM_TYPE_VARNUM     , 32, 50 , "DATEDAY2"  },
-    { ITEM_TYPE_VARNUM     , 54, 50 , "DATEMON1"  },
-    { ITEM_TYPE_VARNUM     , 76, 50 , "DATEMON2"  },
+    { ITEM_TYPE_VARNUM     , 10, 50 , "DATEMON1"  },
+    { ITEM_TYPE_VARNUM     , 32, 50 , "DATEMON2"  },
+    { ITEM_TYPE_VARNUM     , 54, 50 , "DATEDAY1"  },
+    { ITEM_TYPE_VARNUM     , 76, 50 , "DATEDAY2"  },
     { ITEM_TYPE_VARNUM     , 98, 50 , "DATEYEAR1" },
     { ITEM_TYPE_VARNUM     ,120, 50 , "DATEYEAR2" },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveDate"  }
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveDate"  },
+    { ITEM_TYPE_LABEL      , 0 ,  20, "MM/DD/YY"  },
+    { ITEM_TYPE_ACTION     ,  0,   0, "DATESCREEN"}
   }
 }
 

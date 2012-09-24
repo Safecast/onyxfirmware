@@ -53,6 +53,7 @@ private:
   bool    clear_next_render;
   bool    m_trigger_any_key;
   bool    m_sleeping;
+  bool    m_redraw;
 
   int new_keys_size;
   int new_keys_key [NEW_KEYS_MAX_SIZE];

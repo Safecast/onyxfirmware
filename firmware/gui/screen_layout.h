@@ -30,7 +30,7 @@ struct screen_item {
 
 struct screen {
   uint8_t       item_count;
-  screen_item   items[8];
+  screen_item   items[10];
 };
 
 extern __FLASH__ screen screens_layout[SCREEN_COUNT];
