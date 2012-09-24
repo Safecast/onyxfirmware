@@ -46,6 +46,7 @@ int main(void) {
 
     power_init();
     
+    flashstorage_initialise();
     display_initialise();
     b.initialise();
     g.initialise();
@@ -69,7 +70,6 @@ int main(void) {
     c.set_gui(m_gui);
     UserInput  u(m_gui);
     u.initialise();
-    flashstorage_initialise();
     serial_initialise();
 
     for(;;) {
