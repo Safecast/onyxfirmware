@@ -41,8 +41,6 @@
 void boardInit(void) {
 }
 
-
-
 extern const stm32_pin_info PIN_MAP[BOARD_NR_GPIO_PINS] = {
 
     /* Top header */

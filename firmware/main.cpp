@@ -9,7 +9,6 @@
 #include "safecast_config.h"
 
 //#define DISABLE_ACCEL
-#include "Buzzer.h"
 #include "UserInput.h"
 #include "Geiger.h"
 #include "GUI.h"
@@ -21,45 +20,38 @@
 #include "realtime.h"
 #include "serialinterface.h"
 #include "switch.h"
+#include "buzzer.h"
+#include <stdio.h>
 
 // Force init to be called *first*, i.e. before static object allocation.
 // Otherwise, statically allocated objects that need libmaple may fail.
 __attribute__((constructor)) void
 premain() {
   gpio_init_all();
-  // manual power up beep
- /* gpio_set_mode (GPIOB,9, GPIO_OUTPUT_PP);
-  for(int n=0;n<100;n++) {
-    gpio_toggle_bit(GPIOB,9);
-    delay_us(1000);
-  }
-  gpio_write_bit(GPIOB,9,0);
-*/
   init();
   delay_us(100000);
 }
 
 int main(void) {
 
-    Buzzer        b;
-    Geiger        g;
-
-    power_init();
-    
+    Geiger g;
+    power_initialise();
     flashstorage_initialise();
     display_initialise();
-    b.initialise();
+    buzzer_initialise();
+    realtime_initialise();
     g.initialise();
+
+    buzzer_nonblocking_buzz(1);
 
     delay_us(10000);  // can be removed?
 
-    realtime_init();
     #ifndef DISABLE_ACCEL
     accel_init();
     #endif
 
     Controller c(g);
-    switch_init();
+    switch_initialise();
 
     // if we woke up on an alarm, we're going to be sending the system back.
     if(power_get_wakeup_source() == WAKEUP_RTC) {
@@ -71,6 +63,13 @@ int main(void) {
     UserInput  u(m_gui);
     u.initialise();
     serial_initialise();
+  
+    const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
+    if(sbright != 0) {
+      uint8 c;
+      sscanf(sbright, "%d", &c);
+      display_brightness(c+6);
+    }
 
     for(;;) {
       c.update();
@@ -81,7 +80,7 @@ int main(void) {
     // should never get here
     for(int n=0;n<60;n++) {
       delay_us(100000);
-      b.buzz();
+      buzzer_blocking_buzz(1000);
     }
     return 0;
 }

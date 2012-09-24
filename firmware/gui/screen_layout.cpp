@@ -42,16 +42,16 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 3 - Settings menu
 {
-  8,
+  6,
   {
-    { ITEM_TYPE_HEAD,             0, 0, "CPM" }, 
-    { ITEM_TYPE_MENU,             9, 1, "Time/Date" },
-    { ITEM_TYPE_MENU,INVALID_SCREEN, 2, "Averaging Period" },
-    { ITEM_TYPE_MENU,INVALID_SCREEN, 3, "Logging Inverval" },
-    { ITEM_TYPE_MENU,INVALID_SCREEN, 4, "Warning Levels" },
-    { ITEM_TYPE_MENU,INVALID_SCREEN, 5, "Audio" },
-    { ITEM_TYPE_MENU,             5, 6, "Calibration" },
-    { ITEM_TYPE_MENU,INVALID_SCREEN, 7, "Language" }
+    { ITEM_TYPE_HEAD,             0, 0, "CPM"            }, 
+    { ITEM_TYPE_MENU,             9, 1, "Time/Date"      },
+    { ITEM_TYPE_MENU,            12, 2, "Brightness"     },
+    { ITEM_TYPE_MENU,            13, 3, "Warning Levels" },
+    { ITEM_TYPE_MENU,             5, 4, "Calibration"    },
+    { ITEM_TYPE_MENU,INVALID_SCREEN, 5, "Language"       }
+//    { ITEM_TYPE_MENU,INVALID_SCREEN, 5, "Audio" },
+//    { ITEM_TYPE_MENU,INVALID_SCREEN, 2, "Averaging Period" },
   }
 },
 
@@ -113,7 +113,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 9 - Set time/date
 {
-  8,
+  3,
   {
     { ITEM_TYPE_HEAD,             0, 0, "CPM"           }, 
     { ITEM_TYPE_MENU,            10, 1, "Set Time"      },
@@ -151,7 +151,33 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL      , 0 ,  20, "MM/DD/YY"  },
     { ITEM_TYPE_ACTION     ,  0,   0, "DATESCREEN"}
   }
+},
+
+//Screen 12 - Brightness control
+{
+  3,
+  {
+    { ITEM_TYPE_HEAD       , 0 , 0  , "CPM"             }, 
+    { ITEM_TYPE_VARNUM     , 64, 64 , "BRIGHTNESS"      },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveBrightness"  }
+  }
+},
+
+//Screen 13 - Warning configuration
+{
+  8,
+  {
+    { ITEM_TYPE_HEAD       , 0 , 0  , "CPM"        }, 
+    { ITEM_TYPE_VARNUM     , 10, 50 , "WARNCPM1"   },
+    { ITEM_TYPE_VARNUM     , 32, 50 , "WARNCPM2"   },
+    { ITEM_TYPE_VARNUM     , 54, 50 , "WARNCPM3"   },
+    { ITEM_TYPE_VARNUM     , 76, 50 , "WARNCPM4"   },
+    { ITEM_TYPE_VARNUM     , 98, 50 , "WARNCPM5"   },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveWarnCPM"},
+    { ITEM_TYPE_LABEL      , 0 ,  20, "Warning CPM"}
+  }
 }
+  
 
 };
 

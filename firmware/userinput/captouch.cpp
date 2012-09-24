@@ -128,8 +128,10 @@ static void cap_change(void) {
   }
 
   last_key_state = key_state;
+}
 
-  // gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,0);
+int cap_lastkey() {
+  return last_key_state;
 }
 
 
@@ -236,13 +238,4 @@ void cap_deinit(void) {
   mpr121Write(ELE_CFG, 0x00);
 
   return;
-}
-
-
-int cap_setkeydown(void (*new_keydown)(int key)) {
-  return 0;
-}
-
-int cap_setkeyup(void (*new_keyup)(int key)) {
-  return 0;
 }

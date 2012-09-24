@@ -219,8 +219,7 @@ static void Set_Precharge_Voltage(unsigned char d)
 }
 
 
-static void Set_VCOMH(unsigned char d)
-{
+static void Set_VCOMH(unsigned char d) {
     write_c(0xBE);            // Set COM Deselect Voltage Level
     write_d(d);              //   Default => 0x05 (0.82*VCC)
 }
@@ -240,11 +239,7 @@ void CLS(uint16 color) {
   }
 }
 
-
-
-
-static void Set_Contrast_Color(unsigned char a, unsigned char b, unsigned char c)
-{
+static void Set_Contrast_Color(unsigned char a, unsigned char b, unsigned char c) {
     write_c(0xC1);           // Set Contrast Current for Color A, B, C
     write_d(a);              //   Default => 0x8A (Color A)
     write_d(b);              //   Default => 0x51 (Color B)
@@ -252,21 +247,19 @@ static void Set_Contrast_Color(unsigned char a, unsigned char b, unsigned char c
 }
 
 
-static void Set_Master_Current(unsigned char d)
-{
+void Set_Master_Current(unsigned char d) {
     write_c(0xC7);            // Master Contrast Current Control
     write_d(d);              //   Default => 0x0F (Maximum)
 }
 
 
-static void Set_Multiplex_Ratio(unsigned char d)
-{
+static void Set_Multiplex_Ratio(unsigned char d) {
     write_c(0xCA);            // Set Multiplex Ratio
     write_d(d);              //   Default => 0x7F (1/128 Duty)
 }
 
 
-static void Set_Command_Lock(unsigned char d)
+void Set_Command_Lock(unsigned char d)
 {
     write_c(0xFD);            // Set Command Lock
     write_d(d);              //   Default => 0x12
@@ -437,6 +430,7 @@ void oled_init(void) {
 
 }
 
+
 void oled_deinit(void) {
     Set_Display_Off();
 
@@ -464,4 +458,10 @@ void oled_blank(void)
 void oled_unblank(void)
 {
     Set_Display_Mode(2);
+}
+
+void oled_brightness(uint8 b) {
+    Set_Command_Lock(0x12);         // Unlock Driver IC (0x12/0x16/0xB0/0xB1)
+    Set_Command_Lock(0xB1);         // Unlock All Commands (0x12/0x16/0xB0/0xB1)
+    Set_Master_Current(b);     // Set Scale Factor of Segment Output Current Control
 }

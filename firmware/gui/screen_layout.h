@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #define TEXT_LENGTH 17
-#define SCREEN_COUNT 12
+#define SCREEN_COUNT 14
 
 #define ITEM_TYPE_MENU         0  // A normal menu item
 #define ITEM_TYPE_LABEL        1  // A static label, can not be changed

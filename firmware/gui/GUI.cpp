@@ -56,7 +56,15 @@ void render_item_menu(screen_item &item, bool selected) {
   uint16_t highlight = FOREGROUND_COLOR;
   if(selected) highlight = BACKGROUND_COLOR;
 
-  display_draw_text(0,item.val2*16,item.text,highlight);
+  int len = strlen(item.text);
+  char text[50];
+  strcpy(text,item.text);
+  for(int n=len;n<16;n++) {
+    text[n  ]=' ';
+    text[n+1]=0;
+  }
+
+  display_draw_text(0,item.val2*16,text,highlight);
 }
 
 #define VARNUM_MAXSIZE 10
