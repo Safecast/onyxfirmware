@@ -108,7 +108,7 @@ void flashstorage_initialise() {
   flash_data_area_aligned_size = _binary___binary_data_flash_data_size - unusable;
 }
 
-const char *flashstorage_keyval_get_address(const char *key) {
+char *flashstorage_keyval_get_address(const char *key) {
 
   for(uint32_t n=0;n<flash_log_base;n+=(keyval_size*2)) {
 
@@ -118,7 +118,7 @@ const char *flashstorage_keyval_get_address(const char *key) {
 
     if(strcmp(key, (const char *) (flash_data_area_aligned+n)) == true) {
       uint8_t *addr = ((flash_data_area_aligned)+n);
-      return (const char *) addr;
+      return (char *) addr;
     }
   }
 
@@ -136,7 +136,7 @@ char *flashstorage_keyval_get_unalloced() {
 
 const char *flashstorage_keyval_get(const char *key) {
 
-  const char *v = flashstorage_keyval_get_address(key);
+  char *v = flashstorage_keyval_get_address(key);
 
   if(v != 0) return v+keyval_size;
 
@@ -169,7 +169,7 @@ void flashstorage_keyval_set(const char *key,const char *value) {
   new_keyval_data[99] = 0;
 
   // read original page data
-  const char *kvaddr     = flashstorage_keyval_get_address(key);
+  char *kvaddr     = flashstorage_keyval_get_address(key);
 
   if(kvaddr == 0) kvaddr = flashstorage_keyval_get_unalloced();
 

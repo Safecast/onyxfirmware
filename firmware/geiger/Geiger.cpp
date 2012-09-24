@@ -7,6 +7,10 @@
 #include "safecast_config.h"
 #include "display.h"
 #include "utils.h"
+#include "dac.h"
+#include <stdlib.h>
+#include "flashstorage.h"
+#include <stdio.h>
 
 #define GEIGER_PULSE_GPIO 42 // PB3
 #define GEIGER_ON_GPIO    4  // PB5
@@ -21,9 +25,13 @@ Geiger *system_geiger;
 
 
 void static geiger_min_log(void) {
-  gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,1);
-  gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,0);
   system_geiger->update_last_min();
+}
+
+void pulse_output_end(void) {
+  gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,0);
+  dac_write_channel(DAC,2,0);
+  timer_pause(TIMER3);
 }
 
 void static geiger_rising(void) {
@@ -36,6 +44,12 @@ void static geiger_rising(void) {
   //  rcc_set_prescaler(RCC_PRESCALER_APB2, RCC_APB2_HCLK_DIV_1);
 
   current_count++;
+
+  gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,1);
+  dac_write_channel(DAC,2,255);
+
+  timer_generate_update(TIMER3); // refresh timer count, prescale, overflow
+  timer_resume(TIMER3);
 }
 
 Geiger::Geiger() {
@@ -44,6 +58,14 @@ Geiger::Geiger() {
 void Geiger::initialise() {
 
   calibration_scaling=1;
+
+  // load from flash
+  const char *sfloat = flashstorage_keyval_get("CALIBRATIONSCALING");
+  if(sfloat != 0) {
+    float c;
+    sscanf(sfloat, "%f", &c);
+    calibration_scaling = c+10;
+  }
 
   system_geiger = this;
   for(uint32_t n=0;n<(60*COUNTS_PER_SECOND);n++) {
@@ -70,6 +92,29 @@ void Geiger::initialise() {
   if(bit) geiger_rising();
   exti_attach_interrupt((afio_exti_num)PIN_MAP[GEIGER_PULSE_GPIO].gpio_bit,
 			gpio_exti_port(PIN_MAP[GEIGER_PULSE_GPIO].gpio_device),geiger_rising,EXTI_RISING);
+  
+  // flashing/buzz timer.
+  gpio_set_mode(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,GPIO_OUTPUT_PP);
+
+//  gpio_set_mode(PIN_MAP[10].gpio_device,PIN_MAP[10].gpio_bit,GPIO_OUTPUT_PP);
+//  gpio_set_mode (PIN_MAP[13].gpio_device,PIN_MAP[13].gpio_bit,GPIO_OUTPUT_PP);
+  dac_init(DAC,DAC_CH2);
+
+  gpio_set_mode (PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit,GPIO_OUTPUT_PP);
+  gpio_write_bit(PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit,1);
+
+  gpio_set_mode (PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,GPIO_OUTPUT_PP);
+  gpio_write_bit(PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,0);
+//  gpio_set_mode(PIN_MAP[6].gpio_device,PIN_MAP[6].gpio_bit,GPIO_INPUT_PD);
+
+  timer_pause(TIMER3);
+  timer_set_prescaler(TIMER3,((10000*CYCLES_PER_MICROSECOND)/MAX_RELOAD));
+  timer_set_reload(TIMER3,MAX_RELOAD);
+
+  // setup interrupt on channel 3
+  timer_set_mode(TIMER3,TIMER_CH3,TIMER_OUTPUT_COMPARE);
+  timer_set_compare(TIMER3,TIMER_CH3,MAX_RELOAD-1);
+  timer_attach_interrupt(TIMER3,TIMER_CH3,pulse_output_end);
 
   // initialise timer
   timer_pause(TIMER4);
@@ -79,7 +124,7 @@ void Geiger::initialise() {
 
   // setup interrupt on channel 4
   timer_set_mode(TIMER4,TIMER_CH4,TIMER_OUTPUT_COMPARE);
-  timer_set_compare(TIMER4,TIMER_CH4,1);
+  timer_set_compare(TIMER4,TIMER_CH4,MAX_RELOAD-1);
   timer_attach_interrupt(TIMER4,TIMER_CH4,geiger_min_log);
 
   timer_generate_update(TIMER4); // refresh timer count, prescale, overflow
@@ -162,6 +207,11 @@ bool Geiger::is_cpm_valid() {
 }
 
 void Geiger::set_calibration(float c) {
+  // save to flash
+  char sfloat[50];
+  sprintf(sfloat,"%f",c);
+  flashstorage_keyval_set("CALIBRATIONSCALING",sfloat);
+  
   calibration_scaling = c;
 }
 

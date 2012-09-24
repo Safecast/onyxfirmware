@@ -37,7 +37,6 @@
 
 static uint8 powerState = PWRSTATE_BOOT;
 static uint8 lastPowerState = PWRSTATE_OFF;
-static uint8 dbg_batt = 0;
 
 // return true if the current boot was a wakeup from the WKUP pin.
 int power_get_wakeup_source() {
@@ -88,10 +87,6 @@ int power_init(void) {
   gpio_write_bit(PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,0);
 
   return 0;
-}
-
-void power_set_debug(int level) {
-    dbg_batt = level;
 }
 
 // returns a calibrated ADC code for the current battery voltage
