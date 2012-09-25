@@ -24,7 +24,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_BIGVARLABEL , 0, 26, "CPMDEAD"  },
     { ITEM_TYPE_LABEL       ,89, 60, " CPM"     },
     { ITEM_TYPE_BIGVARLABEL , 0, 70, "SIEVERTS" },
-    { ITEM_TYPE_LABEL       ,89,104, " uSv"     }
+    { ITEM_TYPE_LABEL       ,79,104, "uSv/hr"  }
   }
 },
 
