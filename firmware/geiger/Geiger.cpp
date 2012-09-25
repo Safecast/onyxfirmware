@@ -17,14 +17,14 @@
 #define GEIGER_ON_GPIO    4  // PB5
 #define MAX_RELOAD ((1 << 16) - 1)
 
+Geiger *system_geiger;
+
 using namespace std;
 
 uint32_t current_count;
 bool enable_beep=false;
 
 uint32_t total_count;
-
-Geiger *system_geiger;
 
 
 void static geiger_min_log(void) {
@@ -159,7 +159,10 @@ float Geiger::get_cpm() {
     c_position--;
     if(c_position < 0) c_position = COUNTS_PER_MIN-1;
   }
-  return (sum/((float)averaging_period))*((float)COUNTS_PER_MIN);
+  if(m_samples_collected > averaging_period) return (sum/((float)averaging_period))*((float)COUNTS_PER_MIN);
+ 
+  // returns an estimation before enough data has been collected. 
+  return (sum/((float)m_samples_collected))*((float)COUNTS_PER_MIN);
 }
 
 float Geiger::get_cpm_deadtime_compensated() {

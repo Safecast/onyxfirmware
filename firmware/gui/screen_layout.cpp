@@ -41,7 +41,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 3 - Settings menu
 {
-  7,
+  8,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "CPM"            }, 
     { ITEM_TYPE_MENU       , 9, 1, "Time/Date"      },
@@ -49,7 +49,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU       ,13, 3, "Warning Levels" },
     { ITEM_TYPE_MENU       , 5, 4, "Calibration"    },
     { ITEM_TYPE_MENU_ACTION, 0, 5, "Geiger Beep"    },
-    { ITEM_TYPE_MENU       ,14, 6, "Language"       }
+    { ITEM_TYPE_MENU_ACTION, 0, 6, "Clear Log"      },
+    { ITEM_TYPE_MENU       ,14, 7, "Language"       }
 //    { ITEM_TYPE_MENU,INVALID_SCREEN, 2, "Averaging Period" },
   }
 },

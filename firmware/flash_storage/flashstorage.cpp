@@ -232,6 +232,9 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
 
   uint32_t flash_data_size = flashstorage_log_size();
 
+  // If we're falling off the end of the logging area just return, -2048 to cope with any potential edge case, TODO: more testing.
+  if((flash_data_size+size) > (flash_data_area_aligned_size-2048)) return;
+
   // 1. Identify current page.
   uint8_t *address      = flash_data_area_aligned+flash_log_base+4+flash_data_size;
   uint32_t excess       = ((uint32_t) address)%pagesize;

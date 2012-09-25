@@ -6,6 +6,7 @@
 #define COUNTS_PER_SECOND 2
 #define COUNTS_PER_MIN    120
 
+
 class Geiger {
 
 public:
@@ -36,5 +37,7 @@ public:
   bool     m_acquire_and_log;
   uint16_t m_samples_collected;
 };
+
+extern Geiger *system_geiger;
 
 #endif

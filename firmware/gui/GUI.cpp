@@ -9,6 +9,7 @@
 #include "power.h"
 #include "realtime.h"
 #include <stdio.h>
+#include "Geiger.h"
 
 #define KEY_BACK   6
 #define KEY_HOME   8
@@ -20,6 +21,9 @@
 #define KEY_RELEASED 1
 
 bool first_render=true;
+
+
+uint16 header_color;
 
 void display_draw_equtriangle(uint8_t x,uint8_t y,uint8_t s,uint16_t color) {
 
@@ -133,7 +137,7 @@ void render_item_label(screen_item &item, bool selected) {
 }
 
 void render_item_head(screen_item &item, bool selected) {
-  draw_text(0,0,"                ",HEADER_COLOR);
+  draw_text(0,0,"                ",header_color);
 }
 
 float m_graph_data[120];
@@ -370,12 +374,12 @@ void render_battery(int x,int y,int level) {
 
       if(x <= level) {
         if(render_value > 0)  render_value = 0xF1FF - (2081*(render_value-1));
-                         else render_value = HEADER_COLOR; // header background
+                         else render_value = header_color;// HEADER_COLOR; // header background
       }
 
       if(x > level) {
         if(render_value > 0)  render_value = BACKGROUND_COLOR;  //6243 - (2081*(render_value-1));
-                         else render_value = HEADER_COLOR; // header background
+                         else render_value = header_color;//HEADER_COLOR; // header background
       }
       image_data[(y*24)+x] = render_value;
     }
@@ -386,6 +390,15 @@ void render_battery(int x,int y,int level) {
 
 void update_item_head(screen_item &item,void *value) {
 
+  uint16_t new_header_color;
+  if(system_geiger->is_cpm_valid()) new_header_color = HEADER_COLOR_NORMAL;
+                               else new_header_color = HEADER_COLOR_CPMINVALID;
+
+  if(new_header_color != header_color) {
+    draw_text(0,0,"                ",new_header_color);
+  }
+  header_color = new_header_color;
+
   int len = strlen((char *) value+5);
   char v[50];
   strcpy(v,(char *) value+5);
@@ -394,7 +407,7 @@ void update_item_head(screen_item &item,void *value) {
     v[n+1]=0;
   }
 
-  draw_text(0,0,v,HEADER_COLOR);
+  draw_text(0,0,v,header_color);//HEADER_COLOR);
 
   // a hack!
   render_battery(0,128-24,power_battery_level());
@@ -427,8 +440,8 @@ void update_item_head(screen_item &item,void *value) {
     date[n+1]=0;
   }
 
-  display_draw_tinytext(128-75,2,time,HEADER_COLOR);
-  display_draw_tinytext(128-75,9,date,HEADER_COLOR);
+  display_draw_tinytext(128-75,2,time,header_color);//HEADER_COLOR);
+  display_draw_tinytext(128-75,9,date,header_color);//HEADER_COLOR);
 }
 
 void update_item_varnum(screen_item &item,void *value) {
@@ -726,13 +739,14 @@ void GUI::process_key(int key_id,int type) {
 }
 
 void GUI::jump_to_screen(const char screen) {
-    clear_next_render = true;
-    first_render = true;
-    clear_screen_screen   = current_screen;
-    clear_screen_selected = selected_item;
+  clear_next_render = true;
+  first_render = true;
+  clear_screen_screen   = current_screen;
+  clear_screen_selected = selected_item;
 
-    current_screen = screen; 
-    selected_item  = 1;
+  clear_stack();
+  current_screen = screen; 
+  selected_item  = 1;
 }
 
 void GUI::receive_update(const char *tag,void *value) {
