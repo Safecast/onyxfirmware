@@ -219,8 +219,7 @@ static void Set_Precharge_Voltage(unsigned char d)
 }
 
 
-static void Set_VCOMH(unsigned char d)
-{
+static void Set_VCOMH(unsigned char d) {
     write_c(0xBE);            // Set COM Deselect Voltage Level
     write_d(d);              //   Default => 0x05 (0.82*VCC)
 }
@@ -240,33 +239,27 @@ void CLS(uint16 color) {
   }
 }
 
-
-
-
-static void Set_Contrast_Color(unsigned char a, unsigned char b, unsigned char c)
-{
-    write_c(0xC1);            // Set Contrast Current for Color A, B, C
+static void Set_Contrast_Color(unsigned char a, unsigned char b, unsigned char c) {
+    write_c(0xC1);           // Set Contrast Current for Color A, B, C
     write_d(a);              //   Default => 0x8A (Color A)
     write_d(b);              //   Default => 0x51 (Color B)
     write_d(c);              //   Default => 0x8A (Color C)
 }
 
 
-static void Set_Master_Current(unsigned char d)
-{
+void Set_Master_Current(unsigned char d) {
     write_c(0xC7);            // Master Contrast Current Control
     write_d(d);              //   Default => 0x0F (Maximum)
 }
 
 
-static void Set_Multiplex_Ratio(unsigned char d)
-{
+static void Set_Multiplex_Ratio(unsigned char d) {
     write_c(0xCA);            // Set Multiplex Ratio
     write_d(d);              //   Default => 0x7F (1/128 Duty)
 }
 
 
-static void Set_Command_Lock(unsigned char d)
+void Set_Command_Lock(unsigned char d)
 {
     write_c(0xFD);            // Set Command Lock
     write_d(d);              //   Default => 0x12
@@ -413,7 +406,6 @@ void oled_init(void) {
                                     //     * 262,144 Colors Mode (0xB4)
     Set_GPIO(0x00);                 // Disable GPIO Pins Input
     
-///M
     Set_Function_Selection(0x01);   // Disable Internal VDD Regulator
                                     // Select 8-bit Parallel Interface
     Set_VSL(0x01);                  // Enable External VSL
@@ -423,13 +415,11 @@ void oled_init(void) {
                                     // Set Contrast of Color C (Blue)
     Set_Master_Current(Brightness);     // Set Scale Factor of Segment Output Current Control
     Set_Gray_Scale_Table();         // Set Pulse Width for Gray Scale Table
-///M
     Set_Phase_Length(0x32);         // Set Phase 1 as 5 Clocks & Phase 2 as 3 Clocks
- //   Set_Display_Enhancement(0xA4);      // Enhance Display Performance
-    Set_Precharge_Voltage(0x17);        // Set Pre-Charge Voltage Level as 0.50*VCC
+    Set_Display_Enhancement(0xA4);  // Enhance Display Performance
+    Set_Precharge_Voltage(0x17);    // Set Pre-Charge Voltage Level as 0.50*VCC
     Set_Precharge_Period(0x01);     // Set Second Pre-Charge Period as 1 Clock
     Set_VCOMH(0x05);                // Set Common Pins Deselect Voltage Level as 0.82*VCC
-//M
     Set_Display_Mode(0x02);         // Normal Display Mode (0x00/0x01/0x02/0x03)
 
     CLS(0);                          // Clear Screen
@@ -439,6 +429,7 @@ void oled_init(void) {
     Set_Display_On();
 
 }
+
 
 void oled_deinit(void) {
     Set_Display_Off();
@@ -467,4 +458,10 @@ void oled_blank(void)
 void oled_unblank(void)
 {
     Set_Display_Mode(2);
+}
+
+void oled_brightness(uint8 b) {
+    Set_Command_Lock(0x12);         // Unlock Driver IC (0x12/0x16/0xB0/0xB1)
+    Set_Command_Lock(0xB1);         // Unlock All Commands (0x12/0x16/0xB0/0xB1)
+    Set_Master_Current(b);     // Set Scale Factor of Segment Output Current Control
 }

@@ -13,6 +13,6 @@ int switch_state() {
   if(wakeup != 0) return 0; else return 1;
 }
 
-void switch_init(void) {
+void switch_initialise(void) {
   gpio_set_mode (PIN_MAP[18].gpio_device,PIN_MAP[18].gpio_bit, GPIO_INPUT_PD);
 }

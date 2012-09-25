@@ -18,6 +18,7 @@ public:
   void save_date();
   void receive_gui_event(char *event,char *value);
   void update();
+  void save_warncpm();
 
 
   GUI     *m_gui;
@@ -31,7 +32,11 @@ public:
   int16    m_accel_x_stored;
   int16    m_accel_y_stored;
   int16    m_accel_z_stored;
+  int32_t  m_warncpm;
   bool     m_last_switch_state;
+  bool     m_keytrigger;
+  bool     m_warning_raised;
+  uint32   m_total_timer_start;
 };
 
 #endif

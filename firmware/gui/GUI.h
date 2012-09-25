@@ -10,7 +10,8 @@
 #define NEW_KEYS_MAX_SIZE 10
 #define FOREGROUND_COLOR 65535
 #define BACKGROUND_COLOR 0
-#define HEADER_COLOR 0x3333
+#define HEADER_COLOR_NORMAL 0xF800
+#define HEADER_COLOR_CPMINVALID 0x00E0
 
 class Controller;
 
@@ -53,6 +54,7 @@ private:
   bool    clear_next_render;
   bool    m_trigger_any_key;
   bool    m_sleeping;
+  bool    m_redraw;
 
   int new_keys_size;
   int new_keys_key [NEW_KEYS_MAX_SIZE];

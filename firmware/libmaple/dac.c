@@ -75,11 +75,12 @@ void dac_init(const dac_dev *dev, uint32 flags) {
  */
 void dac_write_channel(const dac_dev *dev, uint8 channel, uint16 val) {
     switch(channel) {
+// WasR1 R2 not L1, L2
     case 1:
-        dev->regs->DHR12R1 = DAC_DHR12R1_DACC1DHR & val;
+        dev->regs->DHR8R1 = (uint32) val ; //DAC_DHR12R1_DACC1DHR & val;
         break;
     case 2:
-        dev->regs->DHR12R2 = DAC_DHR12R2_DACC2DHR & val;
+        dev->regs->DHR8R2 = (uint32) val ; //DAC_DHR12R2_DACC2DHR & val;
         break;
     }
 }
@@ -102,6 +103,7 @@ void dac_enable_channel(const dac_dev *dev, uint8 channel) {
         break;
     case 2:
         gpio_set_mode(GPIOA, 5, GPIO_INPUT_ANALOG);
+      // dev->regs->CR |= (DAC_CR_EN2 | DAC_CR_BOFF2);
         dev->regs->CR |= DAC_CR_EN2;
         break;
     }

@@ -9,6 +9,7 @@
 #include "power.h"
 #include "realtime.h"
 #include <stdio.h>
+#include "Geiger.h"
 
 #define KEY_BACK   6
 #define KEY_HOME   8
@@ -20,6 +21,9 @@
 #define KEY_RELEASED 1
 
 bool first_render=true;
+
+
+uint16 header_color;
 
 void display_draw_equtriangle(uint8_t x,uint8_t y,uint8_t s,uint16_t color) {
 
@@ -56,7 +60,15 @@ void render_item_menu(screen_item &item, bool selected) {
   uint16_t highlight = FOREGROUND_COLOR;
   if(selected) highlight = BACKGROUND_COLOR;
 
-  display_draw_text(0,item.val2*16,item.text,highlight);
+  int len = strlen(item.text);
+  char text[50];
+  strcpy(text,item.text);
+  for(int n=len;n<16;n++) {
+    text[n  ]=' ';
+    text[n+1]=0;
+  }
+
+  display_draw_text(0,item.val2*16,text,highlight);
 }
 
 #define VARNUM_MAXSIZE 10
@@ -113,18 +125,31 @@ uint32_t get_item_state_delay(screen_item &item) {
 }
 
 void clear_item_varnum(screen_item &item, bool selected) {
-  uint8_t x = item.val1;
-  uint8_t y = item.val2;
-  display_draw_rectangle(x-8,y-2,x+8,y+40,BACKGROUND_COLOR);
+  int x = item.val1;
+  int y = item.val2;
+  int start_x = x-9;
+  int end_x   = x+9;
+
+  int start_y = y-2;
+  int end_y   = y+40;
+
+  if(start_x <   0) start_x = 0;
+  if(  end_x > 127)   end_x = 127;
+
+  if(start_y <   0) start_y = 0;
+  if(  end_y > 127)   end_y = 127;
+  
+  display_draw_rectangle(start_x,start_y,end_x,end_y,BACKGROUND_COLOR);
 }
 
 
 void render_item_label(screen_item &item, bool selected) {
-  display_draw_text(item.val1,item.val2,item.text,FOREGROUND_COLOR);
+  if(item.val1 == 255) {display_draw_text_center          (item.val2,item.text,FOREGROUND_COLOR);}
+                  else {display_draw_text       (item.val1,item.val2,item.text,FOREGROUND_COLOR);}
 }
 
 void render_item_head(screen_item &item, bool selected) {
-  draw_text(0,0,"                ",HEADER_COLOR);
+  draw_text(0,0,"                ",header_color);
 }
 
 float m_graph_data[120];
@@ -199,12 +224,16 @@ void clear_item_label(screen_item &item, bool selected) {
   int32_t text_len = strlen(item.text);
 
   if(text_len == 0) return;
-
-  int x_max = item.val1+(text_len*8)-1;
+   
+  int x_max = 0;
+  if(item.val1 == 255) { x_max = 127;} else
+                       { x_max = item.val1+(text_len*8)-1;}
   int y_max = item.val2+16;
   if(x_max>=128) x_max=127;
   if(y_max>=128) y_max=127;
-  display_draw_rectangle(item.val1,item.val2,x_max,y_max,BACKGROUND_COLOR);
+  int x_min = 0;
+  if(item.val1 != 255) {x_min = item.val1; x_max=127;}
+  display_draw_rectangle(x_min,item.val2,x_max,y_max,BACKGROUND_COLOR);
 }
 
 void clear_item_head(screen_item &item, bool selected) {
@@ -216,12 +245,22 @@ void clear_item_head(screen_item &item, bool selected) {
   int y_max=16;
   display_draw_rectangle(item.val1,item.val2,x_max,y_max,BACKGROUND_COLOR);
 }
+    
+void clear_item_bigvarlabel(screen_item &item, bool selected) {
+  int32_t text_len = strlen(item.text);
+
+  if(text_len == 0) return;
+  display_draw_rectangle(item.val1,item.val2,127,(item.val2+32),BACKGROUND_COLOR);
+}
+
 
 void clear_item_varlabel(screen_item &item, bool selected) {
   int32_t text_len = strlen(item.text);
 
   if(text_len == 0) return;
-  display_draw_rectangle(item.val1,item.val2,127,(item.val2+16),BACKGROUND_COLOR);
+  int x=0;
+  if(item.val1 == 255) x = 0; else x = item.val1;
+  display_draw_rectangle(x,item.val2,127,(item.val2+16),BACKGROUND_COLOR);
 }
 
 void clear_item_graph(screen_item &item, bool selected) {
@@ -303,6 +342,9 @@ void clear_item(screen_item &item,bool selected) {
   } else
   if(item.type == ITEM_TYPE_DELAY) {
     clear_item_delay(item,selected);
+  } else
+  if(item.type == ITEM_TYPE_BIGVARLABEL) {
+    clear_item_bigvarlabel(item,selected);
   }
 }
 
@@ -344,12 +386,12 @@ void render_battery(int x,int y,int level) {
 
       if(x <= level) {
         if(render_value > 0)  render_value = 0xF1FF - (2081*(render_value-1));
-                         else render_value = HEADER_COLOR; // header background
+                         else render_value = header_color;// HEADER_COLOR; // header background
       }
 
       if(x > level) {
         if(render_value > 0)  render_value = BACKGROUND_COLOR;  //6243 - (2081*(render_value-1));
-                         else render_value = HEADER_COLOR; // header background
+                         else render_value = header_color;//HEADER_COLOR; // header background
       }
       image_data[(y*24)+x] = render_value;
     }
@@ -360,6 +402,15 @@ void render_battery(int x,int y,int level) {
 
 void update_item_head(screen_item &item,void *value) {
 
+  uint16_t new_header_color;
+  if(system_geiger->is_cpm_valid()) new_header_color = HEADER_COLOR_NORMAL;
+                               else new_header_color = HEADER_COLOR_CPMINVALID;
+
+  if(new_header_color != header_color) {
+    draw_text(0,0,"                ",new_header_color);
+  }
+  header_color = new_header_color;
+
   int len = strlen((char *) value+5);
   char v[50];
   strcpy(v,(char *) value+5);
@@ -368,7 +419,7 @@ void update_item_head(screen_item &item,void *value) {
     v[n+1]=0;
   }
 
-  draw_text(0,0,v,HEADER_COLOR);
+  draw_text(0,0,v,header_color);//HEADER_COLOR);
 
   // a hack!
   render_battery(0,128-24,power_battery_level());
@@ -378,12 +429,15 @@ void update_item_head(screen_item &item,void *value) {
   realtime_getdate(hours,min,sec,day,month,year);
   month+=1;
   year+=1900;
-  year-=2000;
+  if(year >= 2000) {year-=2000;} else
+  if(year <  2000) {year-=1900;}
 
   char time[50];
   char date[50];
   sprintf(time,"%u:%u:%u",hours,min,sec);
   sprintf(date,"%u/%u/%u",month,day,year);
+  if(year == 0) { sprintf(date,"%u/%u/00",month,day); }
+
 
   // pad out time and date
   int tlen = strlen(time);
@@ -398,8 +452,8 @@ void update_item_head(screen_item &item,void *value) {
     date[n+1]=0;
   }
 
-  display_draw_tinytext(128-75,2,time,HEADER_COLOR);
-  display_draw_tinytext(128-75,9,date,HEADER_COLOR);
+  display_draw_tinytext(128-75,2,time,header_color);//HEADER_COLOR);
+  display_draw_tinytext(128-75,9,date,header_color);//HEADER_COLOR);
 }
 
 void update_item_varnum(screen_item &item,void *value) {
@@ -434,7 +488,8 @@ int get_item_state_delay_destination(screen_item &item) {
 
 void update_item(screen_item &item,void *value) {
   if(item.type == ITEM_TYPE_VARLABEL) {
-    display_draw_text(item.val1,item.val2,(char *)value,FOREGROUND_COLOR);
+    if(item.val1 == 255) {display_draw_text_center          (item.val2,(char *)value,FOREGROUND_COLOR);}
+                    else {display_draw_text       (item.val1,item.val2,(char *)value,FOREGROUND_COLOR);}
   } else 
   if(item.type == ITEM_TYPE_GRAPH) {
     update_item_graph(item,value);
@@ -447,6 +502,9 @@ void update_item(screen_item &item,void *value) {
   } else 
   if(item.type == ITEM_TYPE_DELAY) {
     update_item_delay(item,value);
+  } else
+  if(item.type == ITEM_TYPE_BIGVARLABEL) {
+    display_draw_bigtext(item.val1,item.val2,(char *)value,FOREGROUND_COLOR);
   }
 }
   
@@ -481,6 +539,7 @@ GUI::GUI(Controller &r) : receive_gui_events(r) {
   clear_stack();
   m_trigger_any_key=false;
   m_sleeping=false;
+  m_redraw=false;
 }
 
 
@@ -501,6 +560,9 @@ void GUI::render() {
     first_render=true;
   }
 
+  bool do_redraw = false;
+  if(m_redraw) do_redraw = true;
+  m_redraw = false;
 
   for(uint32_t n=0;n<screens_layout[cscreen].item_count;n++) {
 
@@ -520,11 +582,9 @@ void GUI::render() {
 
     if(n==0) near_selected = false;
 
-    if(first_render || (selected) || (near_selected)) {
+    if(first_render || (selected) || (near_selected) || do_redraw) {
       render_item(screens_layout[cscreen].items[n],selected);
     }
-
-
   }
   first_render=false;
   process_keys();
@@ -548,8 +608,7 @@ void GUI::set_key_trigger() {
 }
 
 void GUI::redraw() {
-  clear_next_render = true;
-  first_render=true;
+  m_redraw = true;
 }
 
 void GUI::receive_key(int key_id,int type) {
@@ -692,13 +751,14 @@ void GUI::process_key(int key_id,int type) {
 }
 
 void GUI::jump_to_screen(const char screen) {
-    clear_next_render = true;
-    first_render = true;
-    clear_screen_screen   = current_screen;
-    clear_screen_selected = selected_item;
+  clear_next_render = true;
+  first_render = true;
+  clear_screen_screen   = current_screen;
+  clear_screen_selected = selected_item;
 
-    current_screen = screen; 
-    selected_item  = 1;
+  clear_stack();
+  current_screen = screen; 
+  selected_item  = 1;
 }
 
 void GUI::receive_update(const char *tag,void *value) {

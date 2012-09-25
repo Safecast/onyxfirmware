@@ -4,8 +4,8 @@
 #include "safecast_wirish_types.h"
 #include "display.h"
 
-extern uint8_t _binary_flash_data_start;
-extern uint8_t _binary_flash_data_size;
+extern uint8_t _binary___binary_data_flash_data_start;
+extern uint8_t _binary___binary_data_flash_data_size;
 
 uint8_t  *flash_data_area_aligned;
 uint32_t  flash_data_area_aligned_size;
@@ -13,6 +13,7 @@ uint32_t  flash_data_area_aligned_size;
 #define flash_log_base  10240
 #define keyval_size     50
 #define keyval_size_all 100
+#define pagesize        2048
 
 bool flashstorage_writewait() {
   // wait to write
@@ -68,7 +69,7 @@ bool flashstorage_erasepage(uint8_t *pageaddr) {
   if(flashstorage_writewait() == false) return false;
 
   // Verify erase
-  for(uint32_t i=0;i<1024;i++) {
+  for(uint32_t i=0;i<pagesize;i++) {
     if(flashstorage_writewait() == false) return false;
     if(pageaddr[i] != 0xFF) return false;
   }
@@ -82,7 +83,7 @@ bool flashstorage_writepage(uint8_t *new_data,uint8_t *pageaddr) {
 
   FLASH_BASE->CR  |= 1<<0;
 
-  for (uint32_t n=0;n<(1024/2);n++) {
+  for (uint32_t n=0;n<(pagesize/2);n++) {
 
     if(flashstorage_writewait() == false) return false;
 
@@ -95,20 +96,20 @@ bool flashstorage_writepage(uint8_t *new_data,uint8_t *pageaddr) {
 
 
 void flashstorage_initialise() {
-  uint32_t flash_addr = (uint32_t) &_binary_flash_data_start;
+  uint32_t flash_addr = (uint32_t) &_binary___binary_data_flash_data_start;
 
   uint32_t unusable = 0;
-  if(flash_addr%1024 != 0) {
-    unusable = 1024-(flash_addr%1024);
+  if((flash_addr%pagesize) != 0) {
+    unusable = pagesize-(flash_addr%pagesize);
     flash_addr += unusable;
   }
 
 
   flash_data_area_aligned = (uint8_t *) flash_addr;
-  flash_data_area_aligned_size = _binary_flash_data_size - unusable;
+  flash_data_area_aligned_size = _binary___binary_data_flash_data_size - unusable;
 }
 
-const char *flashstorage_keyval_get_address(const char *key) {
+char *flashstorage_keyval_get_address(const char *key) {
 
   for(uint32_t n=0;n<flash_log_base;n+=(keyval_size*2)) {
 
@@ -118,7 +119,7 @@ const char *flashstorage_keyval_get_address(const char *key) {
 
     if(strcmp(key, (const char *) (flash_data_area_aligned+n)) == true) {
       uint8_t *addr = ((flash_data_area_aligned)+n);
-      return (const char *) addr;
+      return (char *) addr;
     }
   }
 
@@ -136,7 +137,7 @@ char *flashstorage_keyval_get_unalloced() {
 
 const char *flashstorage_keyval_get(const char *key) {
 
-  const char *v = flashstorage_keyval_get_address(key);
+  char *v = flashstorage_keyval_get_address(key);
 
   if(v != 0) return v+keyval_size;
 
@@ -146,19 +147,19 @@ const char *flashstorage_keyval_get(const char *key) {
 
 uint8_t *flashstorage_get_pageaddr(uint8_t *keyaddr) {
 
-  uint32_t rem = ((uint32_t) keyaddr)%1024;
+  uint32_t rem = ((uint32_t) keyaddr)%pagesize;
   return keyaddr-rem;
 }
 
 void flashstorage_readpage(uint8_t *page_address,uint8_t *pagedata) {
-  for(uint32_t n=0;n<1024;n++) {
+  for(uint32_t n=0;n<pagesize;n++) {
     pagedata[n] = page_address[n];
   }
 }
 
 void flashstorage_keyval_set(const char *key,const char *value) {
 
-  uint8_t pagedata[1024];
+  uint8_t pagedata[pagesize];
   uint8_t new_keyval_data[keyval_size_all];
 
   strcpy((char *) new_keyval_data            ,(char *)key);
@@ -169,7 +170,7 @@ void flashstorage_keyval_set(const char *key,const char *value) {
   new_keyval_data[99] = 0;
 
   // read original page data
-  const char *kvaddr     = flashstorage_keyval_get_address(key);
+  char *kvaddr     = flashstorage_keyval_get_address(key);
 
   if(kvaddr == 0) kvaddr = flashstorage_keyval_get_unalloced();
 
@@ -194,9 +195,9 @@ void flashstorage_keyval_set(const char *key,const char *value) {
 // zero out flash logging area (only the first page as this resets the size)
 void flashstorage_log_clear() {
 
-  uint8_t pagedata[1024];
+  uint8_t pagedata[pagesize];
 
-  for(uint32_t n=0;n<1024;n++) {
+  for(uint32_t n=0;n<pagesize;n++) {
     pagedata[n] = 0;
   }
 
@@ -213,7 +214,7 @@ void flashstorage_log_clear() {
 
 void flashstorage_log_size_set(uint32_t new_size) {
 
-  uint8_t pagedata[1024];
+  uint8_t pagedata[pagesize];
   uint8_t *page_address = flash_data_area_aligned+flash_log_base;
   flashstorage_readpage(page_address,pagedata);
 
@@ -231,9 +232,12 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
 
   uint32_t flash_data_size = flashstorage_log_size();
 
+  // If we're falling off the end of the logging area just return, -2048 to cope with any potential edge case, TODO: more testing.
+  if((flash_data_size+size) > (flash_data_area_aligned_size-2048)) return;
+
   // 1. Identify current page.
   uint8_t *address      = flash_data_area_aligned+flash_log_base+4+flash_data_size;
-  uint32_t excess       = ((uint32_t) address)%1024;
+  uint32_t excess       = ((uint32_t) address)%pagesize;
   uint8_t *page_address = address-excess;
 
   uint8_t  *data_position = data;
@@ -242,10 +246,10 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
 
   // 2. Write data segment covering current page.
   if(excess != 0) {
-    uint8_t pagedata[1024];
+    uint8_t pagedata[pagesize];
     flashstorage_readpage(page_address,pagedata);
 
-    for(uint32_t n=excess;n<1024;n++) {
+    for(uint32_t n=excess;n<pagesize;n++) {
       pagedata[n] = *data_position;
       data_position++;
       write_size--;
@@ -258,13 +262,13 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
     flashstorage_unlock();
     flashstorage_writepage(pagedata,page_address);
     flashstorage_lock();
-    page_address += 1024;
+    page_address += pagesize;
   }
 
   // 3. Write full pages until all data is written
   for(;write_size != 0;) {
-    uint8_t pagedata[1024];
-    for(uint32_t n=0;n<1024;n++) {
+    uint8_t pagedata[pagesize];
+    for(uint32_t n=0;n<pagesize;n++) {
       pagedata[n] = *data_position;
       data_position++;
       write_size--;
@@ -277,7 +281,7 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
     flashstorage_unlock();
     flashstorage_writepage(pagedata,page_address);
     flashstorage_lock();
-    page_address += 1024;
+    page_address += pagesize;
   }
 
   // 4. Update log size

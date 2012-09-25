@@ -6,6 +6,7 @@
 #define COUNTS_PER_SECOND 2
 #define COUNTS_PER_MIN    120
 
+
 class Geiger {
 
 public:
@@ -23,6 +24,11 @@ public:
   float cpm_last_min[COUNTS_PER_MIN];
   void update_last_min();
   bool is_cpm_valid();
+  void toggle_beep();
+  void set_beep(bool b);
+  bool is_beeping();
+  void reset_total_count();
+  uint32_t get_total_count();
 
   uint16_t last_min_position;
   uint16_t last_min[COUNTS_PER_MIN];
@@ -31,5 +37,7 @@ public:
   bool     m_acquire_and_log;
   uint16_t m_samples_collected;
 };
+
+extern Geiger *system_geiger;
 
 #endif

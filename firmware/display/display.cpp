@@ -2,6 +2,7 @@
 #include "nfont.h"
 #include "display.h"
 #include "utils.h"
+#include <stdio.h>
 
 extern uint8_t _binary_image_1_data_start;
 extern uint8_t _binary_image_1_data_size;
@@ -58,7 +59,7 @@ void display_draw_rectangle(int start_x,int start_y,int end_x,int end_y,uint16_t
   Set_Column_Address(start_x, end_x);
   Set_Row_Address   (start_y, end_y);
 
-  uint32_t size = (end_x-start_x)*(end_y-start_y+1);
+  uint32_t size = (end_x-start_x+1)*(end_y-start_y+1);
    
   write_c(0x5C);    // Enable MCU to Read from RAM
   for (uint32_t i=1; i<=size;i++) {
@@ -71,6 +72,12 @@ void display_draw_text(int x,int y,const char *text,int16_t background) {
   ::draw_text(x,y,text,background);
 }
 
+void display_draw_text_center(int y,const char *text,int16_t background) {
+  int len=strlen(text);
+  int w = 128;
+  int x = (w-(len*8))/2;
+  draw_text(x,y,text,background);
+}
 
 void display_draw_number(int x,int y,uint32_t number,int width,int16_t background) {
   char text[50];
@@ -78,8 +85,21 @@ void display_draw_number(int x,int y,uint32_t number,int width,int16_t backgroun
   draw_text(x,y,text,background);
 }
 
+void display_draw_number_center(int x,int y,uint32_t number,int width,int16_t background) {
+  char text[50];
+  sprintf(text,"%u",number);
+  int len=strlen(text);
+  int w = width*8;
+  x+= (w-(len*8))/2;
+  draw_text(x,y,text,background);
+}
+
 void display_draw_tinytext(int x,int y,const char *text,int16_t background) {
   ::draw_tinytext(x,y,text,background);
+}
+
+void display_draw_bigtext(int x,int y,const char *text,int16_t background) {
+  ::draw_bigtext(x,y,text,background);
 }
 
 
@@ -97,11 +117,18 @@ void display_dump_image() {
   oled_draw_rect(0,0,128,127,((uint8_t *) &_binary_image_1_data_start)+1);
 }
 
+void display_set_brightness(uint8 b) {
+}
+
 void display_powerup() {
   oled_init();
 }
 
 void display_powerdown() {
   oled_deinit();
+}
+
+void display_brightness(uint8 b) {
+  oled_brightness(b);
 }
 

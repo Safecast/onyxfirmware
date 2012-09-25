@@ -10,16 +10,16 @@
 #include "bkp.h"
 
 #define MANUAL_WAKEUP_GPIO 18 // PC3
-#define CHG_STAT2_GPIO    44 // PC11
-#define CHG_STAT1_GPIO    26 // PC10
-#define MAGPOWER_GPIO     41 // PA15
-#define MEASURE_FET_GPIO  45 // PC12
-#define BATT_MEASURE_ADC  28 // PB1
-#define MAGSENSE_GPIO     29 // PB10
-#define LIMIT_VREF_DAC    10 // PA4 -- should be DAC eventually, but GPIO initially to tied own
+#define CHG_STAT2_GPIO     44 // PC11
+#define CHG_STAT1_GPIO     26 // PC10
+#define MAGPOWER_GPIO      41 // PA15
+#define MEASURE_FET_GPIO   45 // PC12
+#define BATT_MEASURE_ADC   28 // PB1
+#define MAGSENSE_GPIO      29 // PB10
+#define LIMIT_VREF_DAC     10 // PA4 -- should be DAC eventually, but GPIO initially to tied own
 #define CHG_TIMEREN_N_GPIO 37 // PC8
-#define LED_PWR_ENA_GPIO  16 // PC1 // handled in OLED platform_init
-#define WAKEUP_GPIO       2
+#define LED_PWR_ENA_GPIO   16 // PC1 // handled in OLED platform_init
+#define WAKEUP_GPIO        2
 
 #define PWRSTATE_DOWN  0   // everything off, no logging; entered when battery is low
 #define PWRSTATE_LOG   1   // system is on, listening to geiger and recording; but no UI
@@ -37,7 +37,6 @@
 
 static uint8 powerState = PWRSTATE_BOOT;
 static uint8 lastPowerState = PWRSTATE_OFF;
-static uint8 dbg_batt = 0;
 
 // return true if the current boot was a wakeup from the WKUP pin.
 int power_get_wakeup_source() {
@@ -54,7 +53,7 @@ int power_get_wakeup_source() {
   if( wokeup &&   wkup ) return 2;
 }
 
-int power_init(void) {
+int power_initialise(void) {
   gpio_set_mode (PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit,GPIO_OUTPUT_PP);
   gpio_write_bit(PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit,0);
 
@@ -90,10 +89,6 @@ int power_init(void) {
   return 0;
 }
 
-void power_set_debug(int level) {
-    dbg_batt = level;
-}
-
 // returns a calibrated ADC code for the current battery voltage
 uint16 power_battery_level(void) {
   uint32 battVal;
@@ -118,7 +113,7 @@ uint16 power_battery_level(void) {
 
   float batvolts = ((((float)battVal)/(float)vrefVal)*1.2)+2.1;
 
-  float battery_min_voltage = 3.1;
+  float battery_min_voltage = 3.7;
   float battery_max_voltage = 4.2;
 
   int16 bat_percent = ((batvolts-battery_min_voltage)/(battery_max_voltage-battery_min_voltage))*100;
@@ -212,67 +207,37 @@ void power_standby(void) {
 
   delay_us(100);
 
+  _set_CONTROL();
+
+  volatile uint32_t *pwr_cr = (uint32_t *) 0x40007000;
+  volatile uint32_t *pwr_csr = (uint32_t *) 0x40007004;
+  volatile uint32_t *scb_scr = (uint32_t *) 0xE000ED10;
+
+  *pwr_csr |= (uint16_t) 256; // EWUP (enable wakeup)
+  *pwr_cr |= (uint8_t) 0x06; //PWR_CR_PDDS); // set PDDS
+
+  uint32_t temp = *pwr_cr;
+  temp |= 6;
+  *pwr_cr = temp;
+  *pwr_cr |= (uint16_t) 0x04; //PWR_CSR_WUF; // clear WUF
 
 
-   _set_CONTROL();
-   // EXTI_BASE->PR = 0;
+  *scb_scr |= (uint16_t) 0x04; // SCB_SCR_SLEEPDEEP; // set deepsleep
 
-   /* Clear Wake-up flag */
-   //PWR->CR |= CR_CWUF_Set;
-   /* Select STANDBY mode */
-   //PWR->CR |= CR_PDDS_Set;
-   /* Set SLEEPDEEP bit of Cortex System Control Register */
-// *(__IO uint32_t *) SCB_SysCtrl |= SysCtrl_SLEEPDEEP_Set;
-
-    volatile uint32_t *pwr_cr = (uint32_t *) 0x40007000;
-    volatile uint32_t *pwr_csr = (uint32_t *) 0x40007004;
-    volatile uint32_t *scb_scr = (uint32_t *) 0xE000ED10;
-
-    *pwr_csr |= (uint16_t) 256; // EWUP (enable wakeup)
-    *pwr_cr |= (uint8_t) 0x06; //PWR_CR_PDDS); // set PDDS
-
-    uint32_t temp = *pwr_cr;
-    temp |= 6;
-    *pwr_cr = temp;
-    *pwr_cr |= (uint16_t) 0x04; //PWR_CSR_WUF; // clear WUF
-
-
-// int t=_get_CONTROL();
-/* if(*pwr_cr == 0) {
-for(int i=0;i<8;i++) {
-for(int n=0;n<100;n++) {
-gpio_toggle_bit(GPIOB,9);
-delay_us(1000);
-}
-delay_us(100000);
-}
-}
-*/
- /////////////
- *scb_scr |= (uint16_t) 0x04; // SCB_SCR_SLEEPDEEP; // set deepsleep
-
-// PWR_BASE->CR = PWR_BASE->CR | (1 << PWR_CR_LPDS);
-
-
-    // clear wakup flag
-    
-    // set low power sleep
-    
-    // set sleepdeep in cortex system control register
   delay_us(100);
 
-    asm volatile (
-        "WFI\n\t" // note for WFE, just replace this with WFE
-// "BX r14"
-        );
-// should never get here
+  asm volatile (
+    "WFI\n\t" // note for WFE, just replace this with WFE
+  );
+
+  // should never get here - manual beeps for debugging if we do.
   for(int i=0;i<11;i++) {
-for(int n=0;n<100;n++) {
-gpio_toggle_bit(GPIOB,9);
-delay_us(1000);
-}
-delay_us(100000);
-}
+    for(int n=0;n<100;n++) {
+      gpio_toggle_bit(GPIOB,9);
+      delay_us(1000);
+    }
+    delay_us(100000);
+  }
 
 }
 
@@ -291,12 +256,6 @@ int power_deinit(void) {
   return 0;
 }
 
-
-//int power_switch_state(void)
-//{
-//   int bit = gpio_read_bit(PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit);
-//   if(bit == 1) return true; else return false;
-//}
 
 int power_get_state(void) {
   return powerState;

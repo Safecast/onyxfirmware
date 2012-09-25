@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #define TEXT_LENGTH 17
-#define SCREEN_COUNT 12
+#define SCREEN_COUNT 19
 
 #define ITEM_TYPE_MENU         0  // A normal menu item
 #define ITEM_TYPE_LABEL        1  // A static label, can not be changed
@@ -17,6 +17,7 @@
 #define ITEM_TYPE_VARNUM       8  // Variable single number
 #define ITEM_TYPE_DELAY        9  // A delay, basically a countdown timer.
 #define ITEM_TYPE_ACTION      10  // Generate an action as soon as the screen is created.
+#define ITEM_TYPE_BIGVARLABEL 11  // A bigfont variable label, currently only numeric.
 
 #define INVALID_SCREEN 255
 
@@ -29,7 +30,7 @@ struct screen_item {
 
 struct screen {
   uint8_t       item_count;
-  screen_item   items[8];
+  screen_item   items[10];
 };
 
 extern __FLASH__ screen screens_layout[SCREEN_COUNT];
