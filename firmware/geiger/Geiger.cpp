@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include "flashstorage.h"
 #include <stdio.h>
+#include "buzzer.h"
 
 #define GEIGER_PULSE_GPIO 42 // PB3
 #define GEIGER_ON_GPIO    4  // PB5
@@ -19,6 +20,7 @@
 using namespace std;
 
 uint32_t current_count;
+bool enable_beep=false;
 
 
 Geiger *system_geiger;
@@ -50,6 +52,7 @@ void static geiger_rising(void) {
 
   timer_generate_update(TIMER3); // refresh timer count, prescale, overflow
   timer_resume(TIMER3);
+  if(enable_beep) buzzer_nonblocking_buzz(0.1);
 }
 
 Geiger::Geiger() {
@@ -213,6 +216,19 @@ void Geiger::set_calibration(float c) {
   flashstorage_keyval_set("CALIBRATIONSCALING",sfloat);
   
   calibration_scaling = c;
+}
+
+
+void Geiger::toggle_beep() {
+  enable_beep = !enable_beep;
+}
+
+bool Geiger::is_beeping() {
+  return enable_beep;
+}
+
+void Geiger::set_beep(bool b) {
+  enable_beep = b;
 }
 
 void Geiger::powerup  () {}

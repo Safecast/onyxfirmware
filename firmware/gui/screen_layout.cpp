@@ -30,27 +30,27 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 2 - Reports menu
 {
-  5,
+  4,
   {
     { ITEM_TYPE_HEAD       ,             0, 0, "CPM" }, 
     { ITEM_TYPE_MENU       ,             4, 1, "Graphs" },
-    { ITEM_TYPE_MENU       ,INVALID_SCREEN, 2, "Visualisation" },
-    { ITEM_TYPE_MENU       ,INVALID_SCREEN, 3, "Total/Timer" },
-    { ITEM_TYPE_MENU_ACTION,             0, 4, "Data Transfer"}
+ //   { ITEM_TYPE_MENU       ,INVALID_SCREEN, 2, "Visualisation" },
+    { ITEM_TYPE_MENU       ,INVALID_SCREEN, 2, "Total/Timer" },
+    { ITEM_TYPE_MENU_ACTION,             0, 3, "Data Transfer"}
   }
 },
 
 // Screen 3 - Settings menu
 {
-  6,
+  7,
   {
-    { ITEM_TYPE_HEAD,             0, 0, "CPM"            }, 
-    { ITEM_TYPE_MENU,             9, 1, "Time/Date"      },
-    { ITEM_TYPE_MENU,            12, 2, "Brightness"     },
-    { ITEM_TYPE_MENU,            13, 3, "Warning Levels" },
-    { ITEM_TYPE_MENU,             5, 4, "Calibration"    },
-    { ITEM_TYPE_MENU,INVALID_SCREEN, 5, "Language"       }
-//    { ITEM_TYPE_MENU,INVALID_SCREEN, 5, "Audio" },
+    { ITEM_TYPE_HEAD       , 0, 0, "CPM"            }, 
+    { ITEM_TYPE_MENU       , 9, 1, "Time/Date"      },
+    { ITEM_TYPE_MENU       ,12, 2, "Brightness"     },
+    { ITEM_TYPE_MENU       ,13, 3, "Warning Levels" },
+    { ITEM_TYPE_MENU       , 5, 4, "Calibration"    },
+    { ITEM_TYPE_MENU_ACTION, 0, 5, "Geiger Beep"    },
+    { ITEM_TYPE_MENU       ,14, 6, "Language"       }
 //    { ITEM_TYPE_MENU,INVALID_SCREEN, 2, "Averaging Period" },
   }
 },
@@ -176,8 +176,17 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveWarnCPM"},
     { ITEM_TYPE_LABEL      , 0 ,  20, "Warning CPM"}
   }
-}
+},
   
+//Screen 14 - Language Selection Screen
+{
+  3,
+  {
+    { ITEM_TYPE_HEAD       , 0, 0, "CPM"     }, 
+    { ITEM_TYPE_MENU_ACTION, 1, 1, "English" },
+    { ITEM_TYPE_MENU_ACTION, 2, 2, "Japanese"}
+  }
+}
 
 };
 

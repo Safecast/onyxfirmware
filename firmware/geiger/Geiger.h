@@ -23,6 +23,9 @@ public:
   float cpm_last_min[COUNTS_PER_MIN];
   void update_last_min();
   bool is_cpm_valid();
+  void toggle_beep();
+  void set_beep(bool b);
+  bool is_beeping();
 
   uint16_t last_min_position;
   uint16_t last_min[COUNTS_PER_MIN];

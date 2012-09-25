@@ -22,6 +22,7 @@
 #include "switch.h"
 #include "buzzer.h"
 #include <stdio.h>
+#include <string.h>
 
 // Force init to be called *first*, i.e. before static object allocation.
 // Otherwise, statically allocated objects that need libmaple may fail.
@@ -66,9 +67,17 @@ int main(void) {
   
     const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
     if(sbright != 0) {
-      uint8 c;
-      sscanf(sbright, "%d", &c);
+      unsigned int c;
+      sscanf(sbright, "%u", &c);
       display_brightness(c+6);
+    }
+ 
+    if(c.m_sleeping == false) {   
+      const char *sbeep = flashstorage_keyval_get("GEIGERBEEP");
+      if(sbeep != 0) {
+        if(strcmp(sbeep,"true") == 0) g.set_beep(true);
+                                 else g.set_beep(false);
+      }
     }
 
     for(;;) {
