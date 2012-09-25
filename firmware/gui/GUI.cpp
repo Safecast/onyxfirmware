@@ -125,9 +125,21 @@ uint32_t get_item_state_delay(screen_item &item) {
 }
 
 void clear_item_varnum(screen_item &item, bool selected) {
-  uint8_t x = item.val1;
-  uint8_t y = item.val2;
-  display_draw_rectangle(x-8,y-2,x+8,y+40,BACKGROUND_COLOR);
+  int x = item.val1;
+  int y = item.val2;
+  int start_x = x-9;
+  int end_x   = x+9;
+
+  int start_y = y-2;
+  int end_y   = y+40;
+
+  if(start_x <   0) start_x = 0;
+  if(  end_x > 127)   end_x = 127;
+
+  if(start_y <   0) start_y = 0;
+  if(  end_y > 127)   end_y = 127;
+  
+  display_draw_rectangle(start_x,start_y,end_x,end_y,BACKGROUND_COLOR);
 }
 
 

@@ -131,7 +131,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 54, 50, "TIMEMIN1"  },
     { ITEM_TYPE_VARNUM     , 76, 50, "TIMEMIN2"  },
     { ITEM_TYPE_VARNUM     , 98, 50, "TIMESEC1"  },
-    { ITEM_TYPE_VARNUM     ,120, 50, "TIMESEC2"  },
+    { ITEM_TYPE_VARNUM     ,118, 50, "TIMESEC2"  },
     { ITEM_TYPE_MENU_ACTION,  0,  7, "SaveTime"  }
   }
 },
@@ -146,7 +146,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 54, 50 , "DATEDAY1"  },
     { ITEM_TYPE_VARNUM     , 76, 50 , "DATEDAY2"  },
     { ITEM_TYPE_VARNUM     , 98, 50 , "DATEYEAR1" },
-    { ITEM_TYPE_VARNUM     ,120, 50 , "DATEYEAR2" },
+    { ITEM_TYPE_VARNUM     ,118, 50 , "DATEYEAR2" },
     { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveDate"  },
     { ITEM_TYPE_LABEL      , 0 ,  20, "MM/DD/YY"  },
     { ITEM_TYPE_ACTION     ,  0,   0, "DATESCREEN"}
