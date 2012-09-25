@@ -41,19 +41,16 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 3 - Settings menu
 {
-  8,
+  5,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "CPM"            }, 
-    { ITEM_TYPE_MENU       , 9, 1, "Time/Date"      },
-    { ITEM_TYPE_MENU       ,12, 2, "Brightness"     },
-    { ITEM_TYPE_MENU       ,13, 3, "Warning Levels" },
-    { ITEM_TYPE_MENU       , 5, 4, "Calibration"    },
-    { ITEM_TYPE_MENU_ACTION, 0, 5, "Geiger Beep"    },
-    { ITEM_TYPE_MENU_ACTION, 0, 6, "Clear Log"      },
-    { ITEM_TYPE_MENU       ,14, 7, "Language"       }
-//    { ITEM_TYPE_MENU,INVALID_SCREEN, 2, "Averaging Period" },
+    { ITEM_TYPE_MENU       ,16, 1, "Interface"      },
+    { ITEM_TYPE_MENU       ,17, 2, "Geiger"         },
+    { ITEM_TYPE_MENU       , 9, 3, "Time/Date"      },
+    { ITEM_TYPE_MENU       ,18, 4, "Version"        }
   }
 },
+
 
 // Screen 4 - Graph display
 {
@@ -197,7 +194,40 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARLABEL   ,255,90, "TTTIME"     },
     { ITEM_TYPE_ACTION     ,  2, 2, "TOTALTIMER" }
   }
-}
+},
+
+//Screen 16 - User interface settings
+{
+  4,
+  {
+    { ITEM_TYPE_HEAD       , 0, 0, "CPM"            }, 
+    { ITEM_TYPE_MENU       ,12, 1, "Brightness"     },
+    { ITEM_TYPE_MENU_ACTION, 0, 2, "Geiger Beep"    },
+    { ITEM_TYPE_MENU       ,14, 3, "Language"       }
+  }
+},
+
+//Screen 17 - Geiger settings
+{
+  4,
+  {
+    { ITEM_TYPE_HEAD       , 0, 0, "CPM"            }, 
+    { ITEM_TYPE_MENU       , 5, 1, "Calibration"    },
+    { ITEM_TYPE_MENU_ACTION, 0, 2, "Clear Log"      },
+    { ITEM_TYPE_MENU       ,13, 3, "Warning Levels" }
+//    { ITEM_TYPE_MENU,INVALID_SCREEN, 2, "Averaging Period" },
+  }
+},
+
+//Screen 18 - Version information
+{
+  3,
+  {
+    { ITEM_TYPE_HEAD       , 0  , 0, "CPM"              }, 
+    { ITEM_TYPE_LABEL      , 0  ,32, "Firmware Release" },
+    { ITEM_TYPE_LABEL      , 255,64, "5.0"              }
+  }
+},
 
 };
 
