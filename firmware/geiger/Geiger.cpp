@@ -22,6 +22,7 @@ using namespace std;
 uint32_t current_count;
 bool enable_beep=false;
 
+uint32_t total_count;
 
 Geiger *system_geiger;
 
@@ -46,6 +47,7 @@ void static geiger_rising(void) {
   //  rcc_set_prescaler(RCC_PRESCALER_APB2, RCC_APB2_HCLK_DIV_1);
 
   current_count++;
+  total_count++;
 
   gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,1);
   dac_write_channel(DAC,2,255);
@@ -229,6 +231,14 @@ bool Geiger::is_beeping() {
 
 void Geiger::set_beep(bool b) {
   enable_beep = b;
+}
+
+void Geiger::reset_total_count() {
+  total_count = 0;
+}
+
+uint32_t Geiger::get_total_count() {
+  return total_count;
 }
 
 void Geiger::powerup  () {}

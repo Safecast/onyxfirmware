@@ -32,11 +32,10 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_HEAD       ,             0, 0, "CPM" }, 
-    { ITEM_TYPE_MENU       ,             4, 1, "Graphs" },
- //   { ITEM_TYPE_MENU       ,INVALID_SCREEN, 2, "Visualisation" },
-    { ITEM_TYPE_MENU       ,INVALID_SCREEN, 2, "Total/Timer" },
-    { ITEM_TYPE_MENU_ACTION,             0, 3, "Data Transfer"}
+    { ITEM_TYPE_HEAD       , 0, 0, "CPM" }, 
+    { ITEM_TYPE_MENU       , 4, 1, "Graphs" },
+    { ITEM_TYPE_MENU       ,15, 2, "Total/Timer" },
+    { ITEM_TYPE_MENU_ACTION, 0, 3, "Data Transfer"}
   }
 },
 
@@ -72,7 +71,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD , 0 , 0  , "CPM"              },
     { ITEM_TYPE_MENU , 6 , 3  , "       OK       " },
     { ITEM_TYPE_MENU , 3 , 4  , "     Cancel     " },
-    { ITEM_TYPE_LABEL, 12, 16 , "Are you sure?"    }
+    { ITEM_TYPE_LABEL,255, 16 , "Are you sure?"    }
   }
 },
 
@@ -80,9 +79,9 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_LABEL, 4, 32, "Waiting for 15s" },
-    { ITEM_TYPE_LABEL, 0, 64, "Please expose"   },
-    { ITEM_TYPE_LABEL, 0, 80, "to source."      },
+    { ITEM_TYPE_LABEL,255, 32, "Waiting for 15s" },
+    { ITEM_TYPE_LABEL,255, 64, "Please expose"   },
+    { ITEM_TYPE_LABEL,255, 80, "to source."      },
     { ITEM_TYPE_DELAY, 60,100,"DELAYA\0 16,7"   } // 16 second delay
   } 
 },
@@ -91,7 +90,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   2,
   {
-    { ITEM_TYPE_LABEL, 4, 32, "Acquiring, 30s" },
+    { ITEM_TYPE_LABEL,255, 32, "Acquiring, 30s" },
     { ITEM_TYPE_DELAY, 60,100,"DELAYB\0 31,8"  } // 31 second delay
   } 
 }, 
@@ -185,6 +184,17 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD       , 0, 0, "CPM"     }, 
     { ITEM_TYPE_MENU_ACTION, 1, 1, "English" },
     { ITEM_TYPE_MENU_ACTION, 2, 2, "Japanese"}
+  }
+},
+
+//Screen 15 - Total/Timer mode
+{
+  4,
+  {
+    { ITEM_TYPE_LABEL      ,255,32, "Total Count"},
+    { ITEM_TYPE_VARLABEL   ,255,48, "TTCOUNT"    },
+    { ITEM_TYPE_VARLABEL   ,255,90, "TTTIME"     },
+    { ITEM_TYPE_ACTION     ,  2, 2, "TOTALTIMER" }
   }
 }
 

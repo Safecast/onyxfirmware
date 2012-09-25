@@ -36,6 +36,7 @@ public:
   bool     m_last_switch_state;
   bool     m_keytrigger;
   bool     m_warning_raised;
+  uint32   m_total_timer_start;
 };
 
 #endif

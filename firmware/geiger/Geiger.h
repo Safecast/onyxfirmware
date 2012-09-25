@@ -26,6 +26,8 @@ public:
   void toggle_beep();
   void set_beep(bool b);
   bool is_beeping();
+  void reset_total_count();
+  uint32_t get_total_count();
 
   uint16_t last_min_position;
   uint16_t last_min[COUNTS_PER_MIN];

@@ -128,7 +128,8 @@ void clear_item_varnum(screen_item &item, bool selected) {
 
 
 void render_item_label(screen_item &item, bool selected) {
-  display_draw_text(item.val1,item.val2,item.text,FOREGROUND_COLOR);
+  if(item.val1 == 255) {display_draw_text_center          (item.val2,item.text,FOREGROUND_COLOR);}
+                  else {display_draw_text       (item.val1,item.val2,item.text,FOREGROUND_COLOR);}
 }
 
 void render_item_head(screen_item &item, bool selected) {
@@ -207,12 +208,16 @@ void clear_item_label(screen_item &item, bool selected) {
   int32_t text_len = strlen(item.text);
 
   if(text_len == 0) return;
-
-  int x_max = item.val1+(text_len*8)-1;
+   
+  int x_max = 0;
+  if(item.val1 == 255) { x_max = 127;} else
+                       { x_max = item.val1+(text_len*8)-1;}
   int y_max = item.val2+16;
   if(x_max>=128) x_max=127;
   if(y_max>=128) y_max=127;
-  display_draw_rectangle(item.val1,item.val2,x_max,y_max,BACKGROUND_COLOR);
+  int x_min = 0;
+  if(item.val1 != 255) {x_min = item.val1; x_max=127;}
+  display_draw_rectangle(x_min,item.val2,x_max,y_max,BACKGROUND_COLOR);
 }
 
 void clear_item_head(screen_item &item, bool selected) {
@@ -237,7 +242,9 @@ void clear_item_varlabel(screen_item &item, bool selected) {
   int32_t text_len = strlen(item.text);
 
   if(text_len == 0) return;
-  display_draw_rectangle(item.val1,item.val2,127,(item.val2+16),BACKGROUND_COLOR);
+  int x=0;
+  if(item.val1 == 255) x = 0; else x = item.val1;
+  display_draw_rectangle(x,item.val2,127,(item.val2+16),BACKGROUND_COLOR);
 }
 
 void clear_item_graph(screen_item &item, bool selected) {
@@ -456,7 +463,8 @@ int get_item_state_delay_destination(screen_item &item) {
 
 void update_item(screen_item &item,void *value) {
   if(item.type == ITEM_TYPE_VARLABEL) {
-    display_draw_text(item.val1,item.val2,(char *)value,FOREGROUND_COLOR);
+    if(item.val1 == 255) {display_draw_text_center          (item.val2,(char *)value,FOREGROUND_COLOR);}
+                    else {display_draw_text       (item.val1,item.val2,(char *)value,FOREGROUND_COLOR);}
   } else 
   if(item.type == ITEM_TYPE_GRAPH) {
     update_item_graph(item,value);
