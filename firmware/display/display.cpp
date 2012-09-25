@@ -59,7 +59,7 @@ void display_draw_rectangle(int start_x,int start_y,int end_x,int end_y,uint16_t
   Set_Column_Address(start_x, end_x);
   Set_Row_Address   (start_y, end_y);
 
-  uint32_t size = (end_x-start_x)*(end_y-start_y+1);
+  uint32_t size = (end_x-start_x+1)*(end_y-start_y+1);
    
   write_c(0x5C);    // Enable MCU to Read from RAM
   for (uint32_t i=1; i<=size;i++) {
