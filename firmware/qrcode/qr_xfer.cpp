@@ -44,7 +44,7 @@ void qr_logxfer() {
 		uint8_t image[2048]; // can be smaller
 
 		int width=2;
-		int ok = qr_encode_data(0,0,0,1,(uint8_t *) inputdata,50,image,&outputdata_len,&width);
+		int ok = qr_encode_data(0,0,0,1,(uint8_t *) inputdata,55,image,&outputdata_len,&width);
 
 		display_clear(0xFFFF);
 	  if(ok != 0) display_draw_text(0,64-8,"QR Error",0);
@@ -74,7 +74,7 @@ void qr_logxfer() {
 			display_draw_image(0+pad,block_y+pad,(width*scale),block_size,block_data);
 			block_y += block_size;
 		}
-    delay_us(500000);
+    delay_us(200000);
 
   }
 
