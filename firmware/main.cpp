@@ -43,7 +43,7 @@ int main(void) {
     realtime_initialise();
     g.initialise();
 
-    buzzer_nonblocking_buzz(1);
+    //buzzer_nonblocking_buzz(1);
 
     delay_us(10000);  // can be removed?
 

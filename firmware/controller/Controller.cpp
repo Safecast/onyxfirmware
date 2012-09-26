@@ -12,6 +12,7 @@
 #include "accel.h"
 #include "log.h"
 #include "switch.h"
+#include "qr_xfer.h"
 #include "buzzer.h"
 
 Controller *system_controller;
@@ -318,10 +319,14 @@ void Controller::receive_gui_event(char *event,char *value) {
       m_gui->receive_update("TIMESEC2",&s2);
     } 
   } else
-  if(strcmp(event,"Data Transfer")) {
+  if(strcmp(event,"Serial Transfer")) {
     display_draw_text(0,48,"Sending Log",0);
     serial_sendlog();
     display_draw_text(0,48,"Xfer Complete",0);
+  } else 
+  if(strcmp(event,"QR Transfer")) {
+    display_draw_text(0,100,"QR Xfer",0);
+    qr_logxfer();
   }
 }
 
@@ -345,7 +350,6 @@ void Controller::update() {
       buzzer_nonblocking_buzz(1);
     }
     display_clear(0);
-
     m_gui->redraw();
     
     if(m_sleeping) display_powerdown();
