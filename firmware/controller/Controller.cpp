@@ -14,6 +14,7 @@
 #include "switch.h"
 #include "qr_xfer.h"
 #include "buzzer.h"
+//#define DISABLE_ACCEL
 
 Controller *system_controller;
 
@@ -332,7 +333,7 @@ void Controller::receive_gui_event(char *event,char *value) {
 
 void Controller::update() {
 
-  if((m_warncpm > 0) && (m_geiger.get_cpm() >= m_warncpm) && (m_warning_raised == false)) {
+  if((m_warncpm > 0) && (m_geiger.get_cpm() >= m_warncpm) && (m_warning_raised == false) && m_geiger.is_cpm_valid()) {
     m_warning_raised = true;
     if(m_sleeping) display_powerup();
 

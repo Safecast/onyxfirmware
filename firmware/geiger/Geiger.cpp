@@ -167,8 +167,12 @@ float Geiger::get_cpm() {
 
 float Geiger::get_cpm_deadtime_compensated() {
   float cpm = get_cpm();
-  float deadtime_us = cpm*40;
-  return (cpm/((60*1000000)-deadtime_us))*(60*1000000);
+ 
+  // CPM correction from Medcom
+  return cpm/(1-((cpm*1.8833e-6)));
+
+//  float deadtime_us = cpm*40;
+//  return (cpm/((60*1000000)-deadtime_us))*(60*1000000);
 }
 
 float Geiger::get_microsieverts() {

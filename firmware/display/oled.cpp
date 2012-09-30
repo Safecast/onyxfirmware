@@ -418,7 +418,7 @@ void oled_init(void) {
     Set_Phase_Length(0x32);         // Set Phase 1 as 5 Clocks & Phase 2 as 3 Clocks
     Set_Display_Enhancement(0xA4);  // Enhance Display Performance
     Set_Precharge_Voltage(0x17);    // Set Pre-Charge Voltage Level as 0.50*VCC
-    Set_Precharge_Period(0x01);     // Set Second Pre-Charge Period as 1 Clock
+    Set_Precharge_Period(0x08);     // Set Second Pre-Charge Period as 1 Clock
     Set_VCOMH(0x05);                // Set Common Pins Deselect Voltage Level as 0.82*VCC
     Set_Display_Mode(0x02);         // Normal Display Mode (0x00/0x01/0x02/0x03)
 

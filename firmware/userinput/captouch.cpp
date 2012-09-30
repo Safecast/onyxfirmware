@@ -51,6 +51,7 @@ static uint8 mpr121Read(uint8 addr) {
   for(int n=0;(result == -1) && (n<5);n++) {
     result = i2c_master_xfer(i2c, msgs, 2, 100);
   }
+  if(result == -1) return 255;
 
   return byte;
 }
@@ -106,6 +107,12 @@ char *diag_data(int e) {
   return c; 
 }
 
+bool cap_check() {
+  uint8 d = mpr121Read(ELE0_DATAL);
+  if(d == 255) return false;
+  return true;
+}
+
 static void cap_change(void) {
 
   int key_state=0;
@@ -141,7 +148,7 @@ void cap_init(void) {
     gpio_write_bit(PIN_MAP[9].gpio_device,PIN_MAP[9].gpio_bit,1);
     gpio_write_bit(PIN_MAP[5].gpio_device,PIN_MAP[5].gpio_bit,1);
     delay_us(1000);
-    gpio_set_mode(PIN_MAP[9].gpio_device,PIN_MAP[9].gpio_bit,GPIO_INPUT_PD);
+    gpio_set_mode(PIN_MAP[9].gpio_device,PIN_MAP[9].gpio_bit,GPIO_INPUT_PD); // Can also be floating, but PD is safer if components misplaced.
     gpio_set_mode(PIN_MAP[5].gpio_device,PIN_MAP[5].gpio_bit,GPIO_INPUT_PD);
 
     i2c = CAPTOUCH_I2C;
@@ -219,6 +226,7 @@ void cap_init(void) {
     mpr121Write(ELE_CFG, 0x0C);   // Enables all 12 Electrodes
     delay_us(100);
 
+    // This can also be FLOATING, but PU is safer if components misplaced.
     gpio_set_mode(PIN_MAP[CAPTOUCH_GPIO].gpio_device,PIN_MAP[CAPTOUCH_GPIO].gpio_bit,GPIO_INPUT_PU);
     //gpio_set_mode(PIN_MAP[CAPTOUCH_GPIO].gpio_device,PIN_MAP[CAPTOUCH_GPIO].gpio_bit,GPIO_INPUT_FLOATING);
     

@@ -8,7 +8,7 @@
 #include "power.h"
 #include "safecast_config.h"
 
-#define DISABLE_ACCEL
+//#define DISABLE_ACCEL
 #include "UserInput.h"
 #include "Geiger.h"
 #include "GUI.h"
@@ -43,7 +43,6 @@ int main(void) {
     realtime_initialise();
     g.initialise();
 
-    //buzzer_nonblocking_buzz(1);
 
     delay_us(10000);  // can be removed?
 
@@ -57,6 +56,8 @@ int main(void) {
     // if we woke up on an alarm, we're going to be sending the system back.
     if(power_get_wakeup_source() == WAKEUP_RTC) {
       c.m_sleeping = true;
+    } else {
+      buzzer_nonblocking_buzz(1);
     }
 
     GUI m_gui(c);
@@ -83,6 +84,11 @@ int main(void) {
     for(;;) {
       c.update();
       m_gui.render();
+      bool c = cap_check();
+      if(c == false) {
+        display_draw_text(0,90,"CAPFAIL",0);
+        cap_init(); 
+      }
       power_wfi();
     }
 

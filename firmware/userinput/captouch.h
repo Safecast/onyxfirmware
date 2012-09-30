@@ -13,4 +13,5 @@ void cap_deinit(void);
 int cap_lastkey();
 void cap_clearlastkey();
 char *diag_data(int e);
+bool cap_check();
 #endif /* __CAPTOUCH_H__ */
