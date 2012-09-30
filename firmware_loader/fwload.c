@@ -394,7 +394,7 @@ int main(int argc, char **argv)
     if( version != CHIP_ID )
     {
       fprintf( stderr, "Unsupported chip ID" );
-      exit( 1 );
+    /////////  exit( 1 );
     }
   }
   if( badness )

@@ -8,7 +8,7 @@
 #include "power.h"
 #include "safecast_config.h"
 
-//#define DISABLE_ACCEL
+#define DISABLE_ACCEL
 #include "UserInput.h"
 #include "Geiger.h"
 #include "GUI.h"

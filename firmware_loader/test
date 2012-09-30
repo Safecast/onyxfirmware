@@ -3,7 +3,7 @@
 sudo rmmod ftdi_sio
 sudo rmmod usbserial
 #./fwload -f ~/safecast.bin
-./fwload -f ../firmware/safecast.bin
+./fwload -f ../firmware/safecast_r5.bin
 #./fwload -f ../bins/safecast_oled.bin
 sudo modprobe usbserial
 sudo modprobe ftdi_sio
