@@ -33,6 +33,7 @@ public:
   void redraw();
   void set_sleeping(bool sleeping);
   void jump_to_screen(const char screen);
+  void push_stack(int current_screen,int selected_item);
   Controller &receive_gui_events;
 
   uint8_t get_item_state_uint8(const char *tag);
@@ -42,7 +43,6 @@ private:
   int32_t selected_stack_size;
 
   void pop_stack(int &current_screen,int &selected_item);
-  void push_stack(int current_screen,int selected_item);
   void clear_stack();
 
   void process_key(int key_id,int type);

@@ -64,7 +64,7 @@ void serial_sendlog() {
 
 void serial_writeprivatekey() {
 
-  // BUNNIE - Add code to read from serial and write data to flash region here.
+  // TODO: Will add code to read from serial and write data to flash region here.
 
 }
 
@@ -82,10 +82,6 @@ void serial_displaytest() {
 void serial_displaytest_run(char *line) {
 
   uint32_t clock, multiplex, functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh;
-
-  serial_write_string("llllinnnee: ");
-  serial_write_string(line);
-  serial_write_string("\r\n");
 
   sscanf(line,"%u %u %u %u %u %u %u %u",&clock,&multiplex,&functionselect,&vsl,&phaselen,&prechargevolt,&prechargeperiod,&vcomh);
 
@@ -121,6 +117,9 @@ void serial_process_command(char *line) {
   } else
   if(strcmp(line,"DISPLAYTEST") == 0) {
     serial_displaytest();
+  } else
+  if(strcmp(line,"HELP") == 0) {
+    serial_write_string("Available commands: HELP, LOGXFER, WRITEKEY, DISPLAYTEST");
   }
 
   serial_write_string("\r\n>");

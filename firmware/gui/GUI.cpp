@@ -148,64 +148,86 @@ void render_item_label(screen_item &item, bool selected) {
                   else {display_draw_text       (item.val1,item.val2,item.text,FOREGROUND_COLOR);}
 }
 
+void render_item_smalllabel(screen_item &item, bool selected) {
+  if(item.val1 == 255) {display_draw_tinytext_center          (item.val2,item.text,FOREGROUND_COLOR);}
+                  else {display_draw_tinytext       (item.val1,item.val2,item.text,FOREGROUND_COLOR);}
+}
+
 void render_item_head(screen_item &item, bool selected) {
   draw_text(0,0,"                ",header_color);
 }
 
-float m_graph_data[120];
+float m_graph_data[240];
 float *source_graph_data;
 bool  graph_first;
 
 void render_item_graph(screen_item &item, bool selected) {
 
+  int32_t data_size=240;
+  int32_t data_offset=600-240;
+  int32_t data_increment=2;
+  int32_t x_spacing=1;
+  float   max_height = 80;
+
   int32_t m_x = item.val1;
   int32_t m_y = item.val2;
   
   graph_first = first_render;
-  int32_t size=60;
-  int offset=60;
 
   // find min and max in old data
-  int32_t omax = m_graph_data[offset];
-  int32_t omin = m_graph_data[offset];
-  for(uint32_t n=0;n<size;n++) {
-    if(m_graph_data[n+offset] > omax) omax = m_graph_data[n+offset];
-    if(m_graph_data[n+offset] < omin) omin = m_graph_data[n+offset];
+  int32_t omax = m_graph_data[0];
+  int32_t omin = m_graph_data[0];
+  for(uint32_t n=0;n<(data_size/data_increment);n++) {
+    if(m_graph_data[n+data_offset] > omax) omax = m_graph_data[n+data_offset];
+    if(m_graph_data[n+data_offset] < omin) omin = m_graph_data[n+data_offset];
   }
 
   // find min and max in new data
-  int32_t nmax = source_graph_data[offset];
-  int32_t nmin = source_graph_data[offset];
-  for(uint32_t n=0;n<size;n++) {
-    if(source_graph_data[n+offset] > nmax) nmax = source_graph_data[n+offset];
-    if(source_graph_data[n+offset] < nmin) nmin = source_graph_data[n+offset];
+  int32_t nmax = source_graph_data[data_offset];
+  int32_t nmin = source_graph_data[data_offset];
+  for(uint32_t n=0;n<data_size;n++) {
+    if(source_graph_data[n+data_offset] > nmax) nmax = source_graph_data[n+data_offset];
+    if(source_graph_data[n+data_offset] < nmin) nmin = source_graph_data[n+data_offset];
   }
 
-  float height = 80;
-  display_draw_line(m_x,m_y,m_x+size,m_y       ,FOREGROUND_COLOR);
-  display_draw_line(m_x,m_y,m_x     ,m_y-height,FOREGROUND_COLOR);
+
+  display_draw_line(m_x,m_y           ,m_x+(data_size/data_increment),m_y           ,FOREGROUND_COLOR);
+  display_draw_line(m_x,m_y-max_height,m_x+(data_size/data_increment),m_y-max_height,FOREGROUND_COLOR);
+  
+  if((nmin == 0) && (nmax == 0)) {
+    display_draw_tinynumber(m_x+5,m_y-max_height+10,nmax,4,FOREGROUND_COLOR);
+    display_draw_tinynumber(m_x+5,m_y-10           ,nmin,4,FOREGROUND_COLOR);
+    return;
+  }
 
   int32_t lastx=m_x;
-  int32_t lastoy=m_y-((((float)     m_graph_data[offset]-(float)omin)/(float)(omax-omin))*height);
-  int32_t lastny=m_y-((((float)source_graph_data[offset]-(float)nmin)/(float)(nmax-nmin))*height);
-  for(uint32_t n=0;n<size;n++) {
-    int cx = m_x+n;
-    int oy = m_y-((((float)m_graph_data     [n+offset]-(float)omin)/(float)(omax-omin))*height);
-    int ny = m_y-((((float)source_graph_data[n+offset]-(float)nmin)/(float)(nmax-nmin))*height);
+  int32_t lastoy=m_graph_data[0];
+  int32_t lastny=m_y-((((float)source_graph_data[data_offset]-(float)nmin)/(float)(nmax-nmin))*max_height);
+  int32_t cx = m_x+x_spacing;
+  for(uint32_t n=0;n<data_size;n+=data_increment) {
+    int oy = m_graph_data[n/data_increment];
+
+    
+    float source_data=0;
+    for(uint32_t i=0;i<data_increment;i++) {
+      float datapoint = source_graph_data[n+data_offset+i];
+      source_data += datapoint;
+    }
+    source_data = source_data/data_increment;
+
+    int ny = m_y-((((float)source_data-(float)nmin)/(float)(nmax-nmin))*max_height);
     if(!((lastoy == lastny) && (oy == ny) && !graph_first)) {
       if(!first_render) display_draw_line(lastx,lastoy,cx,oy,BACKGROUND_COLOR);
                         display_draw_line(lastx,lastny,cx,ny,FOREGROUND_COLOR);
     }
+    m_graph_data[n/data_increment] = ny;
     lastx=cx;
     lastoy=oy;
     lastny=ny;
+    cx+=x_spacing;
   }
-  display_draw_tinynumber(m_x-25,m_y-height,nmax,4,FOREGROUND_COLOR);
-  display_draw_tinynumber(m_x-25,m_y-10    ,nmin,4,FOREGROUND_COLOR);
-
-  for(int32_t n=0;n<120;n++) {
-    m_graph_data[n] = source_graph_data[n];
-  }
+  display_draw_tinynumber(m_x+5,m_y-max_height+10,nmax,4,FOREGROUND_COLOR);
+  display_draw_tinynumber(m_x+5,m_y-10           ,nmin,4,FOREGROUND_COLOR);
 }
 
 void clear_item_menu(screen_item &item, bool selected) {
@@ -221,6 +243,22 @@ void clear_item_menu(screen_item &item, bool selected) {
 }
 
 void clear_item_label(screen_item &item, bool selected) {
+  int32_t text_len = strlen(item.text);
+
+  if(text_len == 0) return;
+   
+  int x_max = 0;
+  if(item.val1 == 255) { x_max = 127;} else
+                       { x_max = item.val1+(text_len*8)-1;}
+  int y_max = item.val2+16;
+  if(x_max>=128) x_max=127;
+  if(y_max>=128) y_max=127;
+  int x_min = 0;
+  if(item.val1 != 255) {x_min = item.val1; x_max=127;}
+  display_draw_rectangle(x_min,item.val2,x_max,y_max,BACKGROUND_COLOR);
+}
+
+void clear_item_smalllabel(screen_item &item, bool selected) {
   int32_t text_len = strlen(item.text);
 
   if(text_len == 0) return;
@@ -266,7 +304,7 @@ void clear_item_varlabel(screen_item &item, bool selected) {
 void clear_item_graph(screen_item &item, bool selected) {
 
   display_draw_rectangle(0,16,128,128,BACKGROUND_COLOR);
-
+/*
   int32_t m_x = item.val1;
   int32_t m_y = item.val2;
   
@@ -283,6 +321,7 @@ void clear_item_graph(screen_item &item, bool selected) {
     lastx=cx;
     lastoy=oy;
   }
+*/
 }
 
 void clear_item_delay(screen_item &item, bool selected) {
@@ -300,6 +339,9 @@ void render_item(screen_item &item,bool selected) {
   } else
   if(item.type == ITEM_TYPE_LABEL) {
     render_item_label(item,selected);
+  } else
+  if(item.type == ITEM_TYPE_SMALLLABEL) {
+    render_item_smalllabel(item,selected);
   } else
   if(item.type == ITEM_TYPE_GRAPH) {
     render_item_graph(item,selected);
@@ -323,6 +365,9 @@ void clear_item(screen_item &item,bool selected) {
     clear_item_menu(item,selected);
   } else
   if(item.type == ITEM_TYPE_LABEL) {
+    clear_item_label(item,selected);
+  } else
+  if(item.type == ITEM_TYPE_SMALLLABEL) {
     clear_item_label(item,selected);
   } else
   if(item.type == ITEM_TYPE_VARLABEL) {
@@ -434,9 +479,9 @@ void update_item_head(screen_item &item,void *value) {
 
   char time[50];
   char date[50];
-  sprintf(time,"%u:%u:%u",hours,min,sec);
-  sprintf(date,"%u/%u/%u",month,day,year);
-  if(year == 0) { sprintf(date,"%u/%u/00",month,day); }
+  sprintf(time,"%02u:%02u:%02u",hours,min,sec);
+  sprintf(date,"%02u/%02u/%02u",month,day,year);
+  if(year == 0) { sprintf(date,"%02u/%02u/00",month,day); }
 
 
   // pad out time and date
@@ -488,8 +533,13 @@ int get_item_state_delay_destination(screen_item &item) {
 
 void update_item(screen_item &item,void *value) {
   if(item.type == ITEM_TYPE_VARLABEL) {
-    if(item.val1 == 255) {display_draw_text_center          (item.val2,(char *)value,FOREGROUND_COLOR);}
-                    else {display_draw_text       (item.val1,item.val2,(char *)value,FOREGROUND_COLOR);}
+    if(item.val1 == 255) {
+      // display_draw_rectangle(0,item.val2,128,item.val2+16,BACKGROUND_COLOR); unfortunately renders badly.
+      display_draw_text_center(item.val2,(char *)value,FOREGROUND_COLOR);
+    } else {
+      display_draw_text(item.val1,item.val2,(char *)value,FOREGROUND_COLOR);
+    }
+
   } else 
   if(item.type == ITEM_TYPE_GRAPH) {
     update_item_graph(item,value);

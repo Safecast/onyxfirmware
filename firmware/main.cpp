@@ -81,6 +81,8 @@ int main(void) {
       }
     }
 
+    m_gui.jump_to_screen(1);
+    m_gui.push_stack(0,1);
     for(;;) {
       c.update();
       m_gui.render();

@@ -378,7 +378,7 @@ void Controller::update() {
       #endif
 
       data.time  = rtc_get_time(RTC);
-      data.cpm   = m_geiger.get_cpm();
+      data.cpm   = m_geiger.get_cpm30();
       data.accel_x_start = m_accel_x_stored;
       data.accel_y_start = m_accel_y_stored;
       data.accel_z_start = m_accel_z_stored;
@@ -442,7 +442,7 @@ void Controller::update() {
   text_cpm[4]      = ':';
 
   float *graph_data;
-  graph_data = m_geiger.get_cpm_last_min();
+  graph_data = m_geiger.get_cpm_last_windows();
 
   uint8_t hours,min,sec,day,month;
   uint16_t year;
@@ -470,7 +470,7 @@ void Controller::update() {
   uint32_t totaltimer_time = ctime - m_total_timer_start;
 
   sprintf(text_totaltimer_time ,"%us",totaltimer_time);
-  sprintf(text_totaltimer_count,"%u" ,m_geiger.get_total_count());
+  sprintf(text_totaltimer_count,"%6.3f" ,((float)m_geiger.get_total_count()/((float)totaltimer_time))*60);
 
   //if(m_geiger.is_cpm_valid()) m_gui->receive_update("CPMVALID","true");
   //                       else m_gui->receive_update("CPMVALID","false");

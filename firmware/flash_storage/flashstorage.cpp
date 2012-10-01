@@ -214,19 +214,32 @@ void flashstorage_log_clear() {
 }
 
 void flashstorage_log_size_set(uint32_t new_size) {
+}
 
-  uint8_t pagedata[pagesize];
-  uint8_t *page_address = flash_data_area_aligned+flash_log_base;
-  flashstorage_readpage(page_address,pagedata);
+uint32_t flashstorage_log_size() {
 
-  ((uint32_t *) pagedata)[0] = new_size;
+  // scan the log, find the first unused log entry.
+  uint8_t *logbase = flashstorage_log_get();
 
-  flashstorage_unlock();
-  flashstorage_erasepage(page_address);
-  flashstorage_lock();
-  flashstorage_unlock();
-  flashstorage_writepage(pagedata,page_address);
-  flashstorage_lock();
+  uint32_t zerocount=0;
+  for(uint32_t n=0;n<(flash_data_area_aligned_size-pagesize);n++) {
+  
+    if(*(logbase+n) == 0) zerocount++;
+                     else zerocount=0;
+
+    if(zerocount >= sizeof(log_data_t)) {
+      // We're past the last log entry.
+      return n-sizeof(log_data_t);
+    }
+  }
+
+  // there doesn't seem to a page with any free data, so return max size.
+  return flash_data_area_aligned_size-pagesize-flash_log_base;
+}
+
+uint32_t flashstorage_log_full() {
+  if(flashstorage_log_size() == (flash_data_area_aligned_size-pagesize-flash_log_base)) return true;
+  return false;
 }
 
 void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
@@ -291,15 +304,12 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
 
 void flashstorage_log_userchange() {
   uint8_t data[32];
-  for(int n=0;n<32;n++) data[n] = 0;
+  for(int n=0;n<32;n++) data[n] = 255;
   flashstorage_log_pushback(data,sizeof(log_data_t));
 }
 
 
-uint32_t flashstorage_log_size() {
-  return ((uint32_t *)(flash_data_area_aligned+flash_log_base))[0];
-}
 
 uint8_t *flashstorage_log_get() {
-  return flash_data_area_aligned+(flash_log_base+4);
+  return flash_data_area_aligned+flash_log_base;
 }

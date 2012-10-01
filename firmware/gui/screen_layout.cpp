@@ -18,13 +18,14 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 1 - Current readings screen
 {
-  5,
+  6,
   {
     { ITEM_TYPE_HEAD        , 0,  0, "CPM"      }, 
     { ITEM_TYPE_BIGVARLABEL , 0, 26, "CPMDEAD"  },
     { ITEM_TYPE_LABEL       ,89, 60, " CPM"     },
     { ITEM_TYPE_BIGVARLABEL , 0, 70, "SIEVERTS" },
-    { ITEM_TYPE_LABEL       ,79,104, "\x80Sv/h"  }
+    { ITEM_TYPE_LABEL       ,79,104, "\x80Sv/h" },
+    { ITEM_TYPE_SMALLLABEL  ,8,120, "SIEVERTS ESTIMATED"}
   }
 },
 
@@ -34,7 +35,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   {
     { ITEM_TYPE_HEAD       , 0, 0, "CPM" }, 
     { ITEM_TYPE_MENU       , 4, 1, "Graphs" },
-    { ITEM_TYPE_MENU       ,15, 2, "Total/Timer" },
+    { ITEM_TYPE_MENU       ,15, 2, "Accumulate/Avg" },
 //    { ITEM_TYPE_MENU_ACTION, 0, 3, "Serial Transfer"},
     { ITEM_TYPE_MENU_ACTION, 0, 3, "QR Transfer"}
   }
@@ -58,8 +59,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   3,
   {
     { ITEM_TYPE_HEAD    , 0 , 0  , "CPM"             }, 
-    { ITEM_TYPE_GRAPH   , 34, 110, "RECENTDATA"      },
-    { ITEM_TYPE_LABEL   , 4 , 112, "Last 30 seconds" }
+    { ITEM_TYPE_GRAPH   , 4 , 110, "RECENTDATA"      },
+    { ITEM_TYPE_LABEL   ,255, 112, "Last 2 minutes"  }
   }
 },
 
@@ -190,7 +191,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_LABEL      ,255,32, "Total Count"},
+    { ITEM_TYPE_LABEL      ,255,32, "Average CPM"},
     { ITEM_TYPE_VARLABEL   ,255,48, "TTCOUNT"    },
     { ITEM_TYPE_VARLABEL   ,255,90, "TTTIME"     },
     { ITEM_TYPE_ACTION     ,  2, 2, "TOTALTIMER" }
