@@ -425,21 +425,21 @@ void Controller::update() {
   }
 
   //TODO: I should change this so it only sends the messages the GUI currently needs.
-  char text_cpm[50];
+  char text_cpmdint[50];
   char text_cpmd[50];
   char text_sieverts[50];
 
-  text_cpm[0]     =0;
+  text_cpmdint[0] =0;
   text_sieverts[0]=0;
-  int_to_char(m_geiger.get_cpm(),text_cpm+5,4);
+  int_to_char(m_geiger.get_cpm_deadtime_compensated()+0.5,text_cpmdint,7);
   float_to_char(m_geiger.get_microsieverts(),text_sieverts,5);
   float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,7);
   
-  text_cpm[0]      = 'C';
-  text_cpm[1]      = 'P';
-  text_cpm[2]      = 'M';
-  text_cpm[3]      = ' ';
-  text_cpm[4]      = ':';
+//  text_cpm[0]      = 'C';
+//  text_cpm[1]      = 'P';
+//  text_cpm[2]      = 'M';
+//  text_cpm[3]      = ' ';
+//  text_cpm[4]      = ':';
 
   float *graph_data;
   graph_data = m_geiger.get_cpm_last_windows();
@@ -474,7 +474,7 @@ void Controller::update() {
 
   //if(m_geiger.is_cpm_valid()) m_gui->receive_update("CPMVALID","true");
   //                       else m_gui->receive_update("CPMVALID","false");
-  m_gui->receive_update("CPM",text_cpm);
+  m_gui->receive_update("CPMDEADINT",text_cpmdint);
   m_gui->receive_update("CPMDEAD",text_cpmd);
   m_gui->receive_update("SIEVERTS",text_sieverts);
   m_gui->receive_update("RECENTDATA",graph_data);

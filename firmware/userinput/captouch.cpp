@@ -4,6 +4,7 @@
 #include "exti.h"
 #include <stdio.h>
 #include "captouch.h"
+#include "realtime.h"
 #include "GUI.h"
 
 #define CAPTOUCH_ADDR 0x5A
@@ -113,6 +114,22 @@ bool cap_check() {
   return true;
 }
 
+uint32_t press_time  =0;
+uint32_t release_time=0;
+
+uint32_t cap_last_press() {
+  return press_time;
+}
+
+uint32_t cap_last_release() {
+  return release_time;
+}
+
+void cap_clear_press() {
+  press_time = 0;
+  release_time = 0;
+}
+
 static void cap_change(void) {
 
   int key_state=0;
@@ -123,16 +140,17 @@ static void cap_change(void) {
   key_state &= touchList;
 
   // detect keys pressed
-  int keys_pressed   = key_state & (~last_key_state); //TODO: ! bitwise NOT
+  int keys_released = key_state & (~last_key_state); //TODO: ! bitwise NOT
 
   // detect keys released
-  int keys_released  = (~key_state) & last_key_state; //TODO: ! bitwise NOT
+  int keys_pressed  = (~key_state) & last_key_state; //TODO: ! bitwise NOT
 
 
   for (int key=0; key<16; key++) {
-    if (keys_pressed &(1<<key)) { system_gui->receive_key(key,KEY_PRESSED ); }
-    if (keys_released&(1<<key)) { system_gui->receive_key(key,KEY_RELEASED); }
+    if (keys_pressed &(1<<key)) { system_gui->receive_key(key,KEY_PRESSED ); press_time   = realtime_get_unixtime(); }
+    if (keys_released&(1<<key)) { system_gui->receive_key(key,KEY_RELEASED); release_time = realtime_get_unixtime(); }
   }
+
 
   last_key_state = key_state;
 }

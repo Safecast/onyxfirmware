@@ -34,6 +34,7 @@ public:
   void set_sleeping(bool sleeping);
   void jump_to_screen(const char screen);
   void push_stack(int current_screen,int selected_item);
+  void toggle_screen_lock();
   Controller &receive_gui_events;
 
   uint8_t get_item_state_uint8(const char *tag);
@@ -55,6 +56,7 @@ private:
   bool    m_trigger_any_key;
   bool    m_sleeping;
   bool    m_redraw;
+  bool    m_screen_lock;
 
   int new_keys_size;
   int new_keys_key [NEW_KEYS_MAX_SIZE];

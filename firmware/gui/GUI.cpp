@@ -398,6 +398,41 @@ void update_item_graph(screen_item &item,void *value) {
 }
 
 
+uint8 lock_mask [11][8] = {
+  
+  {0,1,1,1,1,1,1,0},
+  {1,1,0,0,0,0,1,1},
+  {1,0,0,0,0,0,0,1},
+  {1,1,1,1,1,1,1,1},
+  {1,1,1,0,0,1,1,1},
+  {1,1,0,0,0,0,1,1},
+  {1,1,0,0,0,0,1,1},
+  {1,1,1,0,0,1,1,1},
+  {1,1,1,0,0,1,1,1},
+  {1,1,1,0,0,1,1,1},
+  {1,1,1,1,1,1,1,1}
+
+};
+
+void render_lock(bool on) {
+  
+  uint16 image_data[88]; // 8*11
+  for(int x=0;x<8;x++) {
+    for(int y=0;y<11;y++) {
+      int16 render_value = lock_mask[y][x];
+
+      if(render_value > 0)  render_value = 0xFFFF;
+                       else render_value = 0;
+ 
+      if(on == false) render_value = 0;
+
+      image_data[(y*8)+x] = render_value;
+    }
+  }
+
+  display_draw_image(128-8,128-11,8,11,image_data);
+}
+
 uint8 battery_mask [16][24] = {
 
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -456,13 +491,14 @@ void update_item_head(screen_item &item,void *value) {
   }
   header_color = new_header_color;
 
-  int len = strlen((char *) value+5);
+  int len = strlen((char *) value);
   char v[50];
-  strcpy(v,(char *) value+5);
+  strcpy(v,(char *) value);
   for(int n=len;n<6;n++) {
     v[n  ] = ' ';
     v[n+1]=0;
   }
+  if(len > 6) v[6]=0;
 
   draw_text(0,0,v,header_color);//HEADER_COLOR);
 
@@ -499,6 +535,7 @@ void update_item_head(screen_item &item,void *value) {
 
   display_draw_tinytext(128-75,2,time,header_color);//HEADER_COLOR);
   display_draw_tinytext(128-75,9,date,header_color);//HEADER_COLOR);
+  display_draw_tinytext(0,128-5,OS100VERSION,FOREGROUND_COLOR);
 }
 
 void update_item_varnum(screen_item &item,void *value) {
@@ -590,6 +627,7 @@ GUI::GUI(Controller &r) : receive_gui_events(r) {
   m_trigger_any_key=false;
   m_sleeping=false;
   m_redraw=false;
+  m_screen_lock=false;
 }
 
 
@@ -614,6 +652,7 @@ void GUI::render() {
   if(m_redraw) do_redraw = true;
   m_redraw = false;
 
+  render_lock(m_screen_lock);
   for(uint32_t n=0;n<screens_layout[cscreen].item_count;n++) {
 
     if(first_render) {
@@ -680,6 +719,8 @@ void GUI::process_keys() {
 }
 
 void GUI::process_key(int key_id,int type) {
+
+  if(m_screen_lock) return;
 
   if(m_trigger_any_key) {
     receive_gui_events.receive_gui_event("KEYPRESS","any");
@@ -828,6 +869,11 @@ void GUI::receive_update(const char *tag,void *value) {
 
 void GUI::set_sleeping(bool v) {
   m_sleeping = v;
+}
+
+void GUI::toggle_screen_lock() {
+
+  if(m_screen_lock == true) m_screen_lock = false; else m_screen_lock = true;
 }
 
 uint8_t GUI::get_item_state_uint8(const char *tag) {

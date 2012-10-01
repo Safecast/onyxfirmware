@@ -89,12 +89,23 @@ int main(void) {
 
       serial_eventloop();
 
+      // It might be a good idea to move the following code to Controller.
       // Hack to check that captouch is ok, and reset it if not.
       bool c = cap_check();
       if(c == false) {
         display_draw_text(0,90,"CAPFAIL",0);
         cap_init(); 
       }
+
+      // Screen lock code
+      uint32_t release_time = cap_last_press();
+      uint32_t   press_time = cap_last_release();
+      uint32_t current_time = realtime_get_unixtime();
+      if((release_time != 0) && (release_time < press_time) && ((current_time-press_time) > 3)) {
+        system_gui->toggle_screen_lock();
+        cap_clear_press();
+      }
+
       power_wfi();
     }
 
