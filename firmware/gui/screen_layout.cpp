@@ -30,13 +30,13 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 2 - Reports menu
 {
-  5,
+  4,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "CPM" }, 
     { ITEM_TYPE_MENU       , 4, 1, "Graphs" },
     { ITEM_TYPE_MENU       ,15, 2, "Total/Timer" },
-    { ITEM_TYPE_MENU_ACTION, 0, 3, "Serial Transfer"},
-    { ITEM_TYPE_MENU_ACTION, 0, 4, "QR Transfer"}
+//    { ITEM_TYPE_MENU_ACTION, 0, 3, "Serial Transfer"},
+    { ITEM_TYPE_MENU_ACTION, 0, 3, "QR Transfer"}
   }
 },
 

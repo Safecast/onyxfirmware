@@ -81,7 +81,11 @@ void serial_displaytest() {
 
 void serial_displaytest_run(char *line) {
 
-  uint8_t clock, multiplex, functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh;
+  uint32_t clock, multiplex, functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh;
+
+  serial_write_string("llllinnnee: ");
+  serial_write_string(line);
+  serial_write_string("\r\n");
 
   sscanf(line,"%u %u %u %u %u %u %u %u",&clock,&multiplex,&functionselect,&vsl,&phaselen,&prechargevolt,&prechargeperiod,&vcomh);
 
@@ -136,6 +140,7 @@ void serial_eventloop() {
     usart_putc(USART1, buf[n]);
 
     if((buf[n] == 13) || (buf[n] == 10)) {
+      serial_write_string("\r\n");
       currentline[currentline_position]=0;
       serial_process_command(currentline);
       currentline_position=0;
