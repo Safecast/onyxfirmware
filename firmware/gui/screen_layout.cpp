@@ -227,7 +227,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   {
     { ITEM_TYPE_HEAD       , 0  , 0, "CPM"              }, 
     { ITEM_TYPE_LABEL      , 0  ,32, "Firmware Release" },
-    { ITEM_TYPE_LABEL      , 255,64, "5.0"              }
+    { ITEM_TYPE_LABEL      , 255,64, OS100VERSION       }
   }
 },
 

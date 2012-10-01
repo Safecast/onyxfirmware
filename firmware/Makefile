@@ -1,6 +1,6 @@
 CFLAGS   := -Os -gdwarf-2  -mcpu=cortex-m3 -mthumb -march=armv7-m \
 		   -lnostdlib -ffunction-sections -fdata-sections	     \
-		   -Wl,--gc-sections -DBOARD_safecast -DMCU_STM32F101RE -DSTM32_HIGH_DENSITY -DVECT_TAB_BASE -I. -I./libmaple -I./display -I./userinput -I./buzzer -I./accelerometer -I./geiger -I./led -I./gui -I./realtime -I./controller -I./flash_storage -I./serialinterface -I./misc -I./qrcode
+		   -Wl,--gc-sections -DBOARD_safecast -DMCU_STM32F101RE -DSTM32_HIGH_DENSITY -DVECT_TAB_BASE -I. -I./libmaple -I./display -I./userinput -I./buzzer -I./accelerometer -I./geiger -I./led -I./gui -I./realtime -I./controller -I./flash_storage -I./serialinterface -I./misc -I./qrcode -D'OS100VERSION=$(shell cat $(TOP)RELEASENUMBER)'
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -Wall -lnostdlib
 ASFLAGS  := -mcpu=cortex-m3 -march=armv7-m -mthumb		     \
 		   -x assembler-with-cpp 
