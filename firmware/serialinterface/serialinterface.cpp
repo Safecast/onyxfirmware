@@ -40,6 +40,9 @@ void serial_sendlog() {
 
   uint32_t logsize = flashstorage_log_size()/sizeof(log_data_t);
 
+  char lsize[20];
+  sprintf(lsize,"Log size: %u\n",logsize);
+  serial_write_string(lsize);
   //char s[1000];
   //sprintf(s,"%u",flashstorage_log_size());
   //serial_write_string(s);
@@ -104,7 +107,7 @@ void serial_process_command(char *line) {
 
   serial_write_string("\r\n");
   if(strcmp(line,"HELLO") == 0) {
-   serial_write_string("HELLO DR FALKEN, WOULD YOU LIKE TO PLAY A GAME?\r\n");
+   serial_write_string("GREETINGS PROFESSOR FALKEN.\r\n");
   } else 
   if(strcmp(line,"LIST GAMES") == 0) {
     serial_write_string("I'M KIND OF BORED OF GAMES, TURNS OUT THE ONLY WAY TO WIN IS NOT TO PLAY...\r\n");
@@ -119,7 +122,7 @@ void serial_process_command(char *line) {
     serial_displaytest();
   } else
   if(strcmp(line,"HELP") == 0) {
-    serial_write_string("Available commands: HELP, LOGXFER, WRITEKEY, DISPLAYTEST");
+    serial_write_string("Available commands: HELP, LOGXFER, WRITEKEY, DISPLAYTEST, HELLO");
   }
 
   serial_write_string("\r\n>");

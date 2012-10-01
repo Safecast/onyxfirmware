@@ -227,7 +227,7 @@ uint32_t flashstorage_log_size() {
     if(*(logbase+n) == 0) zerocount++;
                      else zerocount=0;
 
-    if(zerocount >= sizeof(log_data_t)) {
+    if(zerocount > sizeof(log_data_t)) {
       // We're past the last log entry.
       return n-sizeof(log_data_t);
     }
@@ -250,7 +250,7 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
   if((flash_data_size+size) > (flash_data_area_aligned_size-2048)) return;
 
   // 1. Identify current page.
-  uint8_t *address      = flash_data_area_aligned+flash_log_base+4+flash_data_size;
+  uint8_t *address      = flash_data_area_aligned+flash_log_base+flash_data_size;
   uint32_t excess       = ((uint32_t) address)%pagesize;
   uint8_t *page_address = address-excess;
 
