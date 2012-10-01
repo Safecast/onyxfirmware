@@ -12,7 +12,9 @@
 #include "accel.h"
 #include "log.h"
 #include "switch.h"
+#include "qr_xfer.h"
 #include "buzzer.h"
+//#define DISABLE_ACCEL
 
 Controller *system_controller;
 
@@ -138,7 +140,7 @@ void Controller::save_time() {
   sec   = new_sec;
   realtime_setdate(hours,min,sec,day,month,year);
 
-  flashstorage_log_clear();
+  flashstorage_log_userchange();
   m_gui->jump_to_screen(0);
 }
 
@@ -162,6 +164,7 @@ void Controller::save_date() {
   year  = (2000+new_year)-1900;
   realtime_setdate(hours,min,sec,day,month,year);
 
+  flashstorage_log_userchange();
   m_gui->jump_to_screen(0);
 }
 
@@ -318,16 +321,20 @@ void Controller::receive_gui_event(char *event,char *value) {
       m_gui->receive_update("TIMESEC2",&s2);
     } 
   } else
-  if(strcmp(event,"Data Transfer")) {
+  if(strcmp(event,"Serial Transfer")) {
     display_draw_text(0,48,"Sending Log",0);
     serial_sendlog();
     display_draw_text(0,48,"Xfer Complete",0);
+  } else 
+  if(strcmp(event,"QR Transfer")) {
+    display_draw_text(0,100,"QR Xfer",0);
+    qr_logxfer();
   }
 }
 
 void Controller::update() {
 
-  if((m_warncpm > 0) && (m_geiger.get_cpm() >= m_warncpm) && (m_warning_raised == false)) {
+  if((m_warncpm > 0) && (m_geiger.get_cpm() >= m_warncpm) && (m_warning_raised == false) && m_geiger.is_cpm_valid()) {
     m_warning_raised = true;
     if(m_sleeping) display_powerup();
 
@@ -345,7 +352,6 @@ void Controller::update() {
       buzzer_nonblocking_buzz(1);
     }
     display_clear(0);
-
     m_gui->redraw();
     
     if(m_sleeping) display_powerdown();
@@ -372,10 +378,11 @@ void Controller::update() {
       #endif
 
       data.time  = rtc_get_time(RTC);
-      data.cpm   = m_geiger.get_cpm();
+      data.cpm   = m_geiger.get_cpm30();
       data.accel_x_start = m_accel_x_stored;
       data.accel_y_start = m_accel_y_stored;
       data.accel_z_start = m_accel_z_stored;
+      data.log_type      = 255;
 
       flashstorage_log_pushback((uint8_t *) &data,sizeof(log_data_t));
       m_alarm_log = false;
@@ -419,24 +426,24 @@ void Controller::update() {
   }
 
   //TODO: I should change this so it only sends the messages the GUI currently needs.
-  char text_cpm[50];
+  char text_cpmdint[50];
   char text_cpmd[50];
   char text_sieverts[50];
 
-  text_cpm[0]     =0;
+  text_cpmdint[0] =0;
   text_sieverts[0]=0;
-  int_to_char(m_geiger.get_cpm(),text_cpm+5,4);
+  int_to_char(m_geiger.get_cpm_deadtime_compensated()+0.5,text_cpmdint,7);
   float_to_char(m_geiger.get_microsieverts(),text_sieverts,5);
   float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,7);
   
-  text_cpm[0]      = 'C';
-  text_cpm[1]      = 'P';
-  text_cpm[2]      = 'M';
-  text_cpm[3]      = ' ';
-  text_cpm[4]      = ':';
+//  text_cpm[0]      = 'C';
+//  text_cpm[1]      = 'P';
+//  text_cpm[2]      = 'M';
+//  text_cpm[3]      = ' ';
+//  text_cpm[4]      = ':';
 
   float *graph_data;
-  graph_data = m_geiger.get_cpm_last_min();
+  graph_data = m_geiger.get_cpm_last_windows();
 
   uint8_t hours,min,sec,day,month;
   uint16_t year;
@@ -464,11 +471,11 @@ void Controller::update() {
   uint32_t totaltimer_time = ctime - m_total_timer_start;
 
   sprintf(text_totaltimer_time ,"%us",totaltimer_time);
-  sprintf(text_totaltimer_count,"%u" ,m_geiger.get_total_count());
+  sprintf(text_totaltimer_count,"%6.3f" ,((float)m_geiger.get_total_count()/((float)totaltimer_time))*60);
 
   //if(m_geiger.is_cpm_valid()) m_gui->receive_update("CPMVALID","true");
   //                       else m_gui->receive_update("CPMVALID","false");
-  m_gui->receive_update("CPM",text_cpm);
+  m_gui->receive_update("CPMDEADINT",text_cpmdint);
   m_gui->receive_update("CPMDEAD",text_cpmd);
   m_gui->receive_update("SIEVERTS",text_sieverts);
   m_gui->receive_update("RECENTDATA",graph_data);

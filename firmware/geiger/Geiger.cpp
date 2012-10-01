@@ -28,7 +28,7 @@ uint32_t total_count;
 
 
 void static geiger_min_log(void) {
-  system_geiger->update_last_min();
+  system_geiger->update_last_windows();
 }
 
 void pulse_output_end(void) {
@@ -63,6 +63,7 @@ Geiger::Geiger() {
 void Geiger::initialise() {
 
   calibration_scaling=1;
+  m_cpm_valid = false;
 
   // load from flash
   const char *sfloat = flashstorage_keyval_get("CALIBRATIONSCALING");
@@ -73,16 +74,16 @@ void Geiger::initialise() {
   }
 
   system_geiger = this;
-  for(uint32_t n=0;n<(60*COUNTS_PER_SECOND);n++) {
-    last_min[n] = 0;
+  for(uint32_t n=0;n<WINDOWS_STORED;n++) {
+    last_windows[n] = 0;
   }
-  last_min_position=0;
+  last_windows_position=0;
   
-  for(uint32_t n=0;n<120;n++) {
-    cpm_last_min[n] = 0;
+  for(uint32_t n=0;n<WINDOWS_STORED;n++) {
+    cpm_last_windows[n] = 0;
   }
 
-  averaging_period = 60;
+  max_averaging_period = 240;
   current_count =0;
 //  geiger_count = 0;
   AFIO_BASE->MAPR |= 0x02000000; // turn off JTAG pin sharing
@@ -139,36 +140,112 @@ void Geiger::initialise() {
 }
 
 
-void Geiger::update_last_min() {
-  last_min[last_min_position] = current_count;
+void Geiger::update_last_windows() {
+  last_windows[last_windows_position] = current_count;
   current_count=0;
-  last_min_position++;
-  if(last_min_position >= COUNTS_PER_MIN) last_min_position=0;
+  last_windows_position++;
+  if(last_windows_position >= WINDOWS_STORED) last_windows_position=0;
   m_samples_collected++;
+}
+
+uint32_t min(uint32_t a,uint32_t b) {
+  if(a > b) return b; else return a;
+}
+
+uint32_t max(uint32_t a,uint32_t b) {
+  if(a > b) return a; else return b;
 }
 
 float Geiger::get_cpm() {
 
+  // Check we didn't just remove outselves from a source, which
+  // makes the windows look crazy.
+
+  // cpm for last 5 seconds
+  if(m_cpm_valid) {
+		int32_t last5sum=0;
+    int32_t c_position = last_windows_position-1;
+		for(uint32_t n=0;n<10;n++) {
+			last5sum += last_windows[c_position];
+	 
+			c_position--;
+			if(c_position < 0) c_position = WINDOWS_STORED-1;
+		}
+		
+		// cpm for 5 seconds prior to above
+		int32_t old5sum=0;
+    c_position = last_windows_position-1;
+		for(uint32_t n=10;n<20;n++) {
+			old5sum += last_windows[c_position];
+	 
+			c_position--;
+			if(c_position < 0) c_position = WINDOWS_STORED-1;
+		}
+
+		uint32_t delta = old5sum-last5sum;
+		if(delta < 0) delta = 0-delta;
+		uint32_t mincpm = min(old5sum,last5sum);
+		uint32_t maxcpm = max(old5sum,last5sum);
+		if((mincpm*100) < maxcpm) {
+			m_cpm_valid = false;
+			m_samples_collected=5;
+		}
+  }
+
+
   float sum = 0;
 
-  int32_t c_position = last_min_position-1;
-  for(uint32_t n=0;n<averaging_period;n++) {
+  int32_t c_position = last_windows_position-1;
+
+  int32_t samples_used=0;
+  for(uint32_t n=0;n<max_averaging_period;n++) {
    
-    sum += last_min[c_position];
+    sum += last_windows[c_position];
  
     c_position--;
-    if(c_position < 0) c_position = COUNTS_PER_MIN-1;
+    if(c_position < 0) c_position = WINDOWS_STORED-1;
+    samples_used++;
+    if(sum > 1000) break; // 1000 datapoints is enough for an estimation
   }
-  if(m_samples_collected > averaging_period) return (sum/((float)averaging_period))*((float)COUNTS_PER_MIN);
+
+  if(m_samples_collected > samples_used) {
+    m_cpm_valid = true;
+    return (sum/((float)samples_used))*((float)WINDOWS_PER_MIN);
+  }
+  m_cpm_valid = false;
  
   // returns an estimation before enough data has been collected. 
-  return (sum/((float)m_samples_collected))*((float)COUNTS_PER_MIN);
+  return (sum/((float)m_samples_collected))*((float)WINDOWS_PER_MIN);
+}
+
+
+
+float Geiger::get_cpm30() {
+
+  float sum = 0;
+
+  int32_t c_position = last_windows_position-1;
+  for(uint32_t n=0;n<max_averaging_period;n++) {
+   
+    sum += last_windows[c_position];
+ 
+    c_position--;
+    if(c_position < 0) c_position = WINDOWS_PER_MIN-1;
+  }
+  if(m_samples_collected > max_averaging_period) return (sum/((float)max_averaging_period))*((float)WINDOWS_PER_MIN);
+ 
+  // returns an estimation before enough data has been collected. 
+  return (sum/((float)m_samples_collected))*((float)WINDOWS_PER_MIN);
 }
 
 float Geiger::get_cpm_deadtime_compensated() {
   float cpm = get_cpm();
-  float deadtime_us = cpm*40;
-  return (cpm/((60*1000000)-deadtime_us))*(60*1000000);
+ 
+  // CPM correction from Medcom
+  return cpm/(1-((cpm*1.8833e-6)));
+
+//  float deadtime_us = cpm*40;
+//  return (cpm/((60*1000000)-deadtime_us))*(60*1000000);
 }
 
 float Geiger::get_microsieverts() {
@@ -179,37 +256,40 @@ float Geiger::get_microsieverts() {
   return microsieverts;
 }
 
-float *Geiger::get_cpm_last_min() {
+float *Geiger::get_cpm_last_windows() {
 
-  float cpm_last_min_temp[120];
-  int32_t c_position = last_min_position; // next value, i.e. oldest
-  if(c_position > 120) return cpm_last_min;
+  float cpm_last_windows_temp[WINDOWS_STORED];
+  int32_t c_position = last_windows_position+1; // next value, i.e. oldest
 
-  for(uint32_t n=0;n<COUNTS_PER_MIN;n++) {
-    cpm_last_min_temp[n] = last_min[c_position];
+  for(uint32_t n=0;n<WINDOWS_STORED;n++) {
+    cpm_last_windows_temp[n] = last_windows[c_position];
     c_position++;
-    if(c_position >= COUNTS_PER_MIN) c_position=0;
+    if(c_position >= WINDOWS_STORED) c_position=0;
   }
 
   int32_t sum=0;
+  int averaging_period=30;
   for(uint32_t n=0;n<averaging_period;n++) {
-    sum += cpm_last_min_temp[n];
-    cpm_last_min[n]=0;
+    sum += cpm_last_windows_temp[n];
+    cpm_last_windows[n]=0;
   }
 
-  for(uint32_t n=averaging_period;n<COUNTS_PER_MIN;n++) {
-    sum -= cpm_last_min_temp[n-averaging_period];
-    sum += cpm_last_min_temp[n];
-    cpm_last_min[n] = ((float)sum/(float)averaging_period)*120;
-   // if(cpm_last_min[n] > 80) cpm_last_min[n]=0;
+  for(uint32_t n=averaging_period;n<WINDOWS_STORED;n++) {
+    sum -= cpm_last_windows_temp[n-averaging_period];
+    sum += cpm_last_windows_temp[n];
+    cpm_last_windows[n] = ((float)sum/(float)averaging_period)*WINDOWS_PER_MIN;
   }
 
-  return cpm_last_min;
+  return cpm_last_windows;
 }
 
 bool Geiger::is_cpm_valid() {
+  return m_cpm_valid;
+}
 
-  if(m_samples_collected > averaging_period) return true;
+bool Geiger::is_cpm30_valid() {
+
+  if(m_samples_collected > max_averaging_period) return true;
 
   return false;
 }

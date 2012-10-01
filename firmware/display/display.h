@@ -19,6 +19,7 @@ void display_draw_text_center(int y,const char *text,int16_t background);
 void display_draw_number(int x,int y,uint32_t number,int width,int16_t background);
 void display_draw_number_center(int x,int y,uint32_t number,int width,int16_t background);
 void display_draw_tinytext(int x,int y,const char *text,int16_t background);
+void display_draw_tinytext_center(int y,const char *text,int16_t background);
 void display_draw_tinynumber(int x,int y,uint32_t number,int width,int16_t background);
 void display_draw_bigtext(int x,int y,const char *text,int16_t background);
 void display_brightness(uint8 b);

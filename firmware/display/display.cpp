@@ -79,6 +79,13 @@ void display_draw_text_center(int y,const char *text,int16_t background) {
   draw_text(x,y,text,background);
 }
 
+void display_draw_tinytext_center(int y,const char *text,int16_t background) {
+  int len=strlen(text);
+  int w = 128;
+  int x = (w-(len*5))/2;
+  draw_tinytext(x,y,text,background);
+}
+
 void display_draw_number(int x,int y,uint32_t number,int width,int16_t background) {
   char text[50];
   int_to_char(number,text,width);

@@ -8,7 +8,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
  4,
  {
-   { ITEM_TYPE_HEAD       , 0, 0, "CPM" }, 
+   { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT" }, 
    { ITEM_TYPE_MENU       , 1, 1, "Current Readings" },
    { ITEM_TYPE_MENU       , 2, 2, "Reports"  },
    { ITEM_TYPE_MENU       , 3, 3, "Settings" }
@@ -18,13 +18,14 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 1 - Current readings screen
 {
-  5,
+  6,
   {
-    { ITEM_TYPE_HEAD        , 0,  0, "CPM"      }, 
+    { ITEM_TYPE_HEAD        , 0,  0, "CPMDEADINT"  }, 
     { ITEM_TYPE_BIGVARLABEL , 0, 26, "CPMDEAD"  },
     { ITEM_TYPE_LABEL       ,89, 60, " CPM"     },
     { ITEM_TYPE_BIGVARLABEL , 0, 70, "SIEVERTS" },
-    { ITEM_TYPE_LABEL       ,79,104, "\x80Sv/hr"  }
+    { ITEM_TYPE_LABEL       ,79,104, "\x80Sv/h" },
+    { ITEM_TYPE_SMALLLABEL  ,8,120, "SIEVERTS ESTIMATED"}
   }
 },
 
@@ -32,10 +33,11 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPM" }, 
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT" }, 
     { ITEM_TYPE_MENU       , 4, 1, "Graphs" },
-    { ITEM_TYPE_MENU       ,15, 2, "Total/Timer" },
-    { ITEM_TYPE_MENU_ACTION, 0, 3, "Data Transfer"}
+    { ITEM_TYPE_MENU       ,15, 2, "Accumulate/Avg" },
+//    { ITEM_TYPE_MENU_ACTION, 0, 3, "Serial Transfer"},
+    { ITEM_TYPE_MENU_ACTION, 0, 3, "QR Transfer"}
   }
 },
 
@@ -43,7 +45,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   5,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPM"            }, 
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"        }, 
     { ITEM_TYPE_MENU       ,16, 1, "Interface"      },
     { ITEM_TYPE_MENU       ,17, 2, "Geiger"         },
     { ITEM_TYPE_MENU       , 9, 3, "Time/Date"      },
@@ -56,9 +58,9 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD    , 0 , 0  , "CPM"             }, 
-    { ITEM_TYPE_GRAPH   , 34, 110, "RECENTDATA"      },
-    { ITEM_TYPE_LABEL   , 4 , 112, "Last 30 seconds" }
+    { ITEM_TYPE_HEAD    , 0 , 0  , "CPMDEADINT"         }, 
+    { ITEM_TYPE_GRAPH   , 4 , 110, "RECENTDATA"      },
+    { ITEM_TYPE_LABEL   ,255, 112, "Last 2 minutes"  }
   }
 },
 
@@ -66,7 +68,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_HEAD , 0 , 0  , "CPM"              },
+    { ITEM_TYPE_HEAD , 0 , 0  , "CPMDEADINT"          },
     { ITEM_TYPE_MENU , 6 , 3  , "       OK       " },
     { ITEM_TYPE_MENU , 3 , 4  , "     Cancel     " },
     { ITEM_TYPE_LABEL,255, 16 , "Are you sure?"    }
@@ -80,7 +82,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL,255, 32, "Waiting for 15s" },
     { ITEM_TYPE_LABEL,255, 64, "Please expose"   },
     { ITEM_TYPE_LABEL,255, 80, "to source."      },
-    { ITEM_TYPE_DELAY, 60,100,"DELAYA\0 16,7"   } // 16 second delay
+    { ITEM_TYPE_DELAY, 60,100,"DELAYA\0 16,7"    } // 16 second delay
   } 
 },
 
@@ -89,7 +91,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   2,
   {
     { ITEM_TYPE_LABEL,255, 32, "Acquiring, 30s" },
-    { ITEM_TYPE_DELAY, 60,100,"DELAYB\0 31,8"  } // 31 second delay
+    { ITEM_TYPE_DELAY, 60,100,"DELAYB\0 31,8"   } // 31 second delay
   } 
 }, 
     
@@ -112,7 +114,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD,             0, 0, "CPM"           }, 
+    { ITEM_TYPE_HEAD,             0, 0, "CPMDEADINT"       }, 
     { ITEM_TYPE_MENU,            10, 1, "Set Time"      },
     { ITEM_TYPE_MENU,            11, 2, "Set Date/Zone" }
   }
@@ -122,7 +124,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   8,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0 , "CPM"       }, 
+    { ITEM_TYPE_HEAD       , 0 , 0 , "CPMDEADINT"   }, 
     { ITEM_TYPE_VARNUM     , 10, 50, "TIMEHOUR1" },
     { ITEM_TYPE_VARNUM     , 32, 50, "TIMEHOUR2" },
     { ITEM_TYPE_VARNUM     , 54, 50, "TIMEMIN1"  },
@@ -137,7 +139,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   10,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0  , "CPM"       }, 
+    { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT"   }, 
     { ITEM_TYPE_VARNUM     , 10, 50 , "DATEMON1"  },
     { ITEM_TYPE_VARNUM     , 32, 50 , "DATEMON2"  },
     { ITEM_TYPE_VARNUM     , 54, 50 , "DATEDAY1"  },
@@ -154,7 +156,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0  , "CPM"             }, 
+    { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT"         }, 
     { ITEM_TYPE_VARNUM     , 64, 64 , "BRIGHTNESS"      },
     { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveBrightness"  }
   }
@@ -164,7 +166,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   8,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0  , "CPM"        }, 
+    { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT"    }, 
     { ITEM_TYPE_VARNUM     , 10, 50 , "WARNCPM1"   },
     { ITEM_TYPE_VARNUM     , 32, 50 , "WARNCPM2"   },
     { ITEM_TYPE_VARNUM     , 54, 50 , "WARNCPM3"   },
@@ -179,7 +181,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPM"     }, 
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT" }, 
     { ITEM_TYPE_MENU_ACTION, 1, 1, "English" },
     { ITEM_TYPE_MENU_ACTION, 2, 2, "Japanese"}
   }
@@ -189,7 +191,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_LABEL      ,255,32, "Total Count"},
+    { ITEM_TYPE_LABEL      ,255,32, "Average CPM"},
     { ITEM_TYPE_VARLABEL   ,255,48, "TTCOUNT"    },
     { ITEM_TYPE_VARLABEL   ,255,90, "TTTIME"     },
     { ITEM_TYPE_ACTION     ,  2, 2, "TOTALTIMER" }
@@ -200,7 +202,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPM"            }, 
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"        }, 
     { ITEM_TYPE_MENU       ,12, 1, "Brightness"     },
     { ITEM_TYPE_MENU_ACTION, 0, 2, "Geiger Beep"    },
     { ITEM_TYPE_MENU       ,14, 3, "Language"       }
@@ -211,7 +213,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPM"            }, 
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"        }, 
     { ITEM_TYPE_MENU       , 5, 1, "Calibration"    },
     { ITEM_TYPE_MENU_ACTION, 0, 2, "Clear Log"      },
     { ITEM_TYPE_MENU       ,13, 3, "Warning Levels" }
@@ -223,9 +225,9 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD       , 0  , 0, "CPM"              }, 
+    { ITEM_TYPE_HEAD       , 0 , 0, "CPMDEADINT"          }, 
     { ITEM_TYPE_LABEL      , 0  ,32, "Firmware Release" },
-    { ITEM_TYPE_LABEL      , 255,64, "5.0"              }
+    { ITEM_TYPE_LABEL      , 255,64, OS100VERSION       }
   }
 },
 

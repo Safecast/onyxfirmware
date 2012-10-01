@@ -343,9 +343,6 @@ static void Set_Gray_Scale_Table()
     write_d(0xB4);           // Gray Scale Level 63
 }
 
-
-
-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //  Initialization
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -396,6 +393,7 @@ void oled_init(void) {
     Set_Display_Clock(0xF1);        // Set Clock as 90 Frames/Sec
     Set_Multiplex_Ratio(0x7F);      // 1/128 Duty (0x0F~0x7F)// 7F
     Set_Display_Offset(0x00);       // Shift Mapping RAM Counter (0x00~0x7F)
+
     Set_Start_Line(0x00);           // Set Mapping RAM Display Start Line (0x00~0x7F)
     Set_Remap_Format(0x74);         // Set Horizontal Address Increment
                                     //     Column Address 0 Mapped to SEG0
@@ -418,8 +416,102 @@ void oled_init(void) {
     Set_Phase_Length(0x32);         // Set Phase 1 as 5 Clocks & Phase 2 as 3 Clocks
     Set_Display_Enhancement(0xA4);  // Enhance Display Performance
     Set_Precharge_Voltage(0x17);    // Set Pre-Charge Voltage Level as 0.50*VCC
-    Set_Precharge_Period(0x01);     // Set Second Pre-Charge Period as 1 Clock
+    Set_Precharge_Period(0x08);     // Set Second Pre-Charge Period as 1 Clock
+    Set_Master_Current(Brightness);     // Set Scale Factor of Segment Output Current Control
+    Set_Gray_Scale_Table();         // Set Pulse Width for Gray Scale Table
+    Set_Phase_Length(0x32);         // Set Phase 1 as 5 Clocks & Phase 2 as 3 Clocks
+    Set_Display_Enhancement(0xA4);  // Enhance Display Performance
+    Set_Precharge_Voltage(0x17);    // Set Pre-Charge Voltage Level as 0.50*VCC
+    Set_Precharge_Period(0x08);     // Set Second Pre-Charge Period as 1 Clock
     Set_VCOMH(0x05);                // Set Common Pins Deselect Voltage Level as 0.82*VCC
+    Set_Display_Mode(0x02);         // Normal Display Mode (0x00/0x01/0x02/0x03)
+
+    CLS(0);                          // Clear Screen
+ 
+    delay_us(1000);
+
+    Set_Display_On();
+
+}
+
+void oled_reinit(uint8_t clock,uint8_t multiplex,uint8_t functionselect,uint8_t vsl,uint8_t phaselen,uint8_t prechargevolt,uint8_t prechargeperiod,uint8_t vcomh) {
+    Set_Display_Off();
+
+    // cuts power to the display
+    gpio_write_bit(PIN_MAP[LCD_PWR_GPIO].gpio_device,
+                   PIN_MAP[LCD_PWR_GPIO].gpio_bit,
+                   0);
+
+    delay_us(250000); // give it 250ms to discharge, hard wait; prevent issues with switch bounce
+
+
+    /* Set the data/command pin to be a GPIO */
+    gpio_set_mode(PIN_MAP[LCD_DC_GPIO].gpio_device,
+                  PIN_MAP[LCD_DC_GPIO].gpio_bit,
+                  GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
+                   PIN_MAP[LCD_DC_GPIO].gpio_bit,
+                   0);
+
+    /* Set chip-select to be a GPIO */
+    gpio_set_mode(PIN_MAP[LCD_CS_GPIO].gpio_device,
+                  PIN_MAP[LCD_CS_GPIO].gpio_bit,
+                  GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[LCD_CS_GPIO].gpio_device,
+                   PIN_MAP[LCD_CS_GPIO].gpio_bit,
+                   0);
+
+    /* Turn the display on */
+    gpio_set_mode(PIN_MAP[LCD_PWR_GPIO].gpio_device,
+                  PIN_MAP[LCD_PWR_GPIO].gpio_bit,
+                  GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[LCD_PWR_GPIO].gpio_device,
+                   PIN_MAP[LCD_PWR_GPIO].gpio_bit,
+                   1);
+
+    delay_us(2000); /* Documentation says at least 1ms */
+
+    /* Reset the display */
+    gpio_set_mode(PIN_MAP[LCD_RES_GPIO].gpio_device,
+                  PIN_MAP[LCD_RES_GPIO].gpio_bit,
+                  GPIO_OUTPUT_PP);
+    gpio_write_bit(PIN_MAP[LCD_RES_GPIO].gpio_device,
+                   PIN_MAP[LCD_RES_GPIO].gpio_bit,
+                   0);
+    delay_us(20); /* Documentation says at least 2us */
+    gpio_write_bit(PIN_MAP[LCD_RES_GPIO].gpio_device,
+		   PIN_MAP[LCD_RES_GPIO].gpio_bit,
+		   1);
+
+
+
+    //==============================
+
+    Set_Command_Lock(0x12);         // Unlock Driver IC (0x12/0x16/0xB0/0xB1)
+    Set_Command_Lock(0xB1);         // Unlock All Commands (0x12/0x16/0xB0/0xB1)
+    Set_Display_Off();
+    Set_Display_Clock(clock);        // Set Clock as 90 Frames/Sec
+    Set_Multiplex_Ratio(multiplex);      // 1/128 Duty (0x0F~0x7F)// 7F
+    Set_Display_Offset(0x00);       // Shift Mapping RAM Counter (0x00~0x7F)
+    Set_Start_Line(0x00);           // Set Mapping RAM Display Start Line (0x00~0x7F)
+    Set_Remap_Format(0x74);         // Set Horizontal Address Increment
+                                    //     Column Address 0 Mapped to SEG0
+                                    //     Color Sequence D[15:0]=[RRRRR:GGGGGG:BBBBB]
+                                    //     Scan from COM127 to COM0
+                                    //     Enable COM Split Odd Even
+                                    //     65,536 Colors Mode (0x74)
+                                    //     * 262,144 Colors Mode (0xB4)
+    Set_GPIO(0x00);                 // Disable GPIO Pins Input
+    
+    Set_Function_Selection(functionselect);   // Disable Internal VDD Regulator
+                                    // Select 8-bit Parallel Interface
+    Set_VSL(vsl);                  // Enable External VSL
+    Set_Gray_Scale_Table();         // Set Pulse Width for Gray Scale Table
+    Set_Phase_Length(0x32);         // Set Phase 1 as 5 Clocks & Phase 2 as 3 Clocks
+    Set_Display_Enhancement(0xA4);  // Enhance Display Performance
+    Set_Precharge_Voltage(prechargevolt);    // Set Pre-Charge Voltage Level as 0.50*VCC, 1c in 4D
+    Set_Precharge_Period(prechargeperiod);     // Set Second Pre-Charge Period as 1 Clock,  
+    Set_VCOMH(vcomh);                // Set Common Pins Deselect Voltage Level as 0.82*VCC. 1F in 4D
     Set_Display_Mode(0x02);         // Normal Display Mode (0x00/0x01/0x02/0x03)
 
     CLS(0);                          // Clear Screen

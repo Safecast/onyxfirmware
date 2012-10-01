@@ -4,7 +4,7 @@
 #include "safecast_wirish_types.h"
 #include <stdint.h>
 
-#define TEXT_LENGTH 17
+#define TEXT_LENGTH 25
 #define SCREEN_COUNT 19
 
 #define ITEM_TYPE_MENU         0  // A normal menu item
@@ -18,6 +18,7 @@
 #define ITEM_TYPE_DELAY        9  // A delay, basically a countdown timer.
 #define ITEM_TYPE_ACTION      10  // Generate an action as soon as the screen is created.
 #define ITEM_TYPE_BIGVARLABEL 11  // A bigfont variable label, currently only numeric.
+#define ITEM_TYPE_SMALLLABEL  12  // A tinyfont static label
 
 #define INVALID_SCREEN 255
 
