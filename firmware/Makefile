@@ -16,7 +16,12 @@ OUROBJS = ./display/display.o ./display/spi_aux.o ./display/oled.o ./userinput/c
 
 BINARYOBJS = ./binary_data/tinyfont_data.o ./binary_data/font_data.o ./binary_data/bignumbers_data.o ./binary_data/flash_data.o 
 
-firmware: main.cpp $(LIBMAPLEOBJS) $(OUROBJS)
+all: firmware
+
+libcs3:
+	cd ./libcs3_stm32_src;make high-density;cd ..
+
+firmware: main.cpp $(LIBMAPLEOBJS) $(OUROBJS) libcs3
 	##convert safemed128.png -depth 8 RGB:image_1_data888
 	##./to565 < image_1_data888 > image_1_data
 	convert ./binary_data/tinyfont.png -depth 1 gray:./binary_data/tinyfont_data
