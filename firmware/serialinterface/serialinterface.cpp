@@ -4,6 +4,7 @@
 #include "safecast_config.h"
 #include "usart.h"
 #include <stdio.h>
+#include <string.h>
 #include "log.h"
 
 #define TX1 BOARD_USART1_TX_PIN
@@ -60,6 +61,32 @@ void serial_sendlog() {
   serial_write_string("}");
 }
 
+char currentline[1024];
+uint32_t currentline_position=0;
+
+void serial_process_command(char *line) {
+
+  if(strcmp(line,"HELLO") == 0) {
+   serial_write_string("HELLO DR FALKEN");
+  }
+}
+
 void serial_eventloop() {
-  
+  char buf[1024];
+
+  uint32_t read_size = usart_rx(USART1,(uint8 *) buf,1024);
+
+  if(read_size > 1024) return; // something went wrong
+
+  for(uint32_t n=0;n<read_size;n++) {
+
+    if((buf[n] == 13) || (buf[n] == 10)) {
+      currentline[currentline_position]=0;
+      serial_process_command(currentline);
+      currentline_position=0;
+    } else {
+      currentline[currentline_position] = buf[n];
+      currentline_position++;
+    }
+  }
 }
