@@ -84,6 +84,10 @@ int main(void) {
     for(;;) {
       c.update();
       m_gui.render();
+
+      serialinterface_eventloop();
+
+      // Hack to check that captouch is ok, and reset it if not.
       bool c = cap_check();
       if(c == false) {
         display_draw_text(0,90,"CAPFAIL",0);
