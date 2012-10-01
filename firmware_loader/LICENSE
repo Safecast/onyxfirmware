@@ -1,0 +1,25 @@
+This code contains the FTDI driver from: http://www.ftdichip.com/Drivers/D2XX.htm in the libftd2xx1.1.0 subdirectory. That code is supplied under the following license from FTDI:
+
+This software is provided by Future Technology Devices International Limited ``as is'' and any express or implied warranties, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose are disclaimed. In no event shall future technology devices international limited be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage.
+FTDI drivers may be used only in conjunction with products based on FTDI parts.
+FTDI drivers may be distributed in any form as long as license information is not modified.
+If a custom vendor ID and/or product ID or description string are used, it is the responsibility of the product manufacturer to maintain any changes and subsequent WHQL re-certification as a result of making these changes.
+
+Code in stm32ld directory is Copyright (c) 2010 Bogdan Marinescu, please see the MIT-LICENSE file in that directory for the terms applying to this code.
+
+The rest of the code in this package is made available under the following (BSD style) terms:
+
+Copyright (c) 2012 Nava Whiteford, International Medcom, Safecast and others. All rights reserved.
+
+This software was developed by Nava Whiteford for Safecast and Medcom International.
+
+All advertising materials mentioning features or use of this software must display the following acknowledgement: This product includes software developed by Medcom International in association with Safecast.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+    Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+    Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+    All advertising materials mentioning features or use of this software must display the following acknowledgement: This product includes software developed by Medcom International in association with Safecast.
+    Neither the name of the University nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY INTERNATIONAL MEDCOM AND CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL INTERNATIONAL MEDCOM OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
