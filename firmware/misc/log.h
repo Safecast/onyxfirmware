@@ -10,6 +10,7 @@ struct log_data_t {
   int16_t  accel_x_end;
   int16_t  accel_y_end;
   int16_t  accel_z_end;
+  uint8_t  log_type;
 };
 
 #endif

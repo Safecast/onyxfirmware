@@ -382,6 +382,7 @@ void Controller::update() {
       data.accel_x_start = m_accel_x_stored;
       data.accel_y_start = m_accel_y_stored;
       data.accel_z_start = m_accel_z_stored;
+      data.log_type      = 255;
 
       flashstorage_log_pushback((uint8_t *) &data,sizeof(log_data_t));
       m_alarm_log = false;
