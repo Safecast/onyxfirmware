@@ -87,6 +87,7 @@ void oled_init(void);
 void oled_deinit(void);
 void oled_TurnOn(void);
 void oled_draw_rect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t *data);
+void oled_reinit(uint8_t clock,uint8_t multiplex,uint8_t functionselect,uint8_t vsl,uint8_t phaselen,uint8_t prechargevolt,uint8_t prechargeperiod,uint8_t vcomh);
 
 void oled_brightness(uint8_t b);
 void oled_blank(void);

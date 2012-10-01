@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "log.h"
+#include "oled.h"
 
 #define TX1 BOARD_USART1_TX_PIN
 #define RX1 BOARD_USART1_RX_PIN
@@ -61,24 +62,78 @@ void serial_sendlog() {
   serial_write_string("}");
 }
 
+void serial_writeprivatekey() {
+
+  // BUNNIE - Add code to read from serial and write data to flash region here.
+
+}
+
+bool in_displaytest = false;
+
+void serial_displaytest() {
+
+  serial_write_string("DISPLAY REINIT MODE\r\n");
+  serial_write_string("COMMAND IS: <CLOCK> <MULTIPLEX> <FUNCTIONSELECT> <VSL> <PHASELEN> <PRECHARGEVOLT> <PRECHARGEPERIOD> <VCOMH>\r\n");
+  serial_write_string("e.g: 241 127 1 1 50 23 8 5\r\n");
+  serial_write_string("#>");
+  in_displaytest=true;
+}
+
+void serial_displaytest_run(char *line) {
+
+  uint8_t clock, multiplex, functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh;
+
+  sscanf(line,"%u %u %u %u %u %u %u %u",&clock,&multiplex,&functionselect,&vsl,&phaselen,&prechargevolt,&prechargeperiod,&vcomh);
+
+  char outline[1024];
+  sprintf(outline,"Received values: %u %u %u %u %u %u %u %u, calling reinit\r\n",clock,multiplex,functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh);
+  serial_write_string(outline);
+
+  oled_reinit(clock,multiplex,functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh);
+}
+
 char currentline[1024];
 uint32_t currentline_position=0;
 
 void serial_process_command(char *line) {
 
-  if(strcmp(line,"HELLO") == 0) {
-   serial_write_string("HELLO DR FALKEN");
+  if(in_displaytest) {
+    serial_displaytest_run(line);
+    in_displaytest = false;
   }
+
+  serial_write_string("\r\n");
+  if(strcmp(line,"HELLO") == 0) {
+   serial_write_string("HELLO DR FALKEN, WOULD YOU LIKE TO PLAY A GAME?\r\n");
+  } else 
+  if(strcmp(line,"LIST GAMES") == 0) {
+    serial_write_string("I'M KIND OF BORED OF GAMES, TURNS OUT THE ONLY WAY TO WIN IS NOT TO PLAY...\r\n");
+  } else 
+  if(strcmp(line,"LOGXFER") == 0) {
+    serial_sendlog();
+  } else 
+  if(strcmp(line,"WRITEKEY") == 0) {
+    serial_writeprivatekey();
+  } else
+  if(strcmp(line,"DISPLAYTEST") == 0) {
+    serial_displaytest();
+  }
+
+  serial_write_string("\r\n>");
 }
 
 void serial_eventloop() {
   char buf[1024];
 
   uint32_t read_size = usart_rx(USART1,(uint8 *) buf,1024);
+  if(read_size == 0) return;
 
   if(read_size > 1024) return; // something went wrong
 
   for(uint32_t n=0;n<read_size;n++) {
+    
+    // echo
+    usart_putc(USART1, buf[n]);
 
     if((buf[n] == 13) || (buf[n] == 10)) {
       currentline[currentline_position]=0;
