@@ -60,20 +60,6 @@ void serial_sendlog() {
   serial_write_string("}");
 }
 
-/*
-uint8 HardwareSerial::read(void) {
-    return usart_getc(USART1);
+void serial_eventloop() {
+  
 }
-
-uint32 HardwareSerial::available(void) {
-    return usart_data_available(USART1);
-}
-
-void HardwareSerial::write(unsigned char ch) {
-    usart_putc(USART1, ch);
-}
-
-void HardwareSerial::flush(void) {
-    usart_reset_rx(USART1);
-}
-*/

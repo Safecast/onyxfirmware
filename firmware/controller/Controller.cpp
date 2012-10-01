@@ -140,7 +140,7 @@ void Controller::save_time() {
   sec   = new_sec;
   realtime_setdate(hours,min,sec,day,month,year);
 
-  flashstorage_log_clear();
+  flashstorage_log_userchange();
   m_gui->jump_to_screen(0);
 }
 
@@ -164,6 +164,7 @@ void Controller::save_date() {
   year  = (2000+new_year)-1900;
   realtime_setdate(hours,min,sec,day,month,year);
 
+  flashstorage_log_userchange();
   m_gui->jump_to_screen(0);
 }
 

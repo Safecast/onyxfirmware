@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "safecast_wirish_types.h"
 #include "display.h"
+#include "log.h"
 
 extern uint8_t _binary___binary_data_flash_data_start;
 extern uint8_t _binary___binary_data_flash_data_size;
@@ -286,6 +287,12 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
 
   // 4. Update log size
   flashstorage_log_size_set(flash_data_size+size);
+}
+
+void flashstorage_log_userchange() {
+  uint8_t data[32];
+  for(int n=0;n<32;n++) data[n] = 0;
+  flashstorage_log_pushback(data,sizeof(log_data_t));
 }
 
 

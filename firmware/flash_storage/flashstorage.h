@@ -13,6 +13,8 @@ void     flashstorage_log_pushback(uint8_t *data,uint32_t size);
 uint32_t flashstorage_log_size();
 uint8_t *flashstorage_log_get();
 
+void flashstorage_log_userchange();
+
 bool flashstorage_islocked();
 void flashstorage_clear();
 
