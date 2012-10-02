@@ -66,20 +66,29 @@ int main(void) {
     u.initialise();
     serial_initialise();
   
-    const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
-    if(sbright != 0) {
-      unsigned int c;
-      sscanf(sbright, "%u", &c);
-      display_brightness(c+6);
-    }
- 
+
+    // Need to refactor out stored settings
     if(c.m_sleeping == false) {   
+      const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
+      if(sbright != 0) {
+        unsigned int c;
+        sscanf(sbright, "%u", &c);
+        display_brightness(c+6);
+      }
+ 
       const char *sbeep = flashstorage_keyval_get("GEIGERBEEP");
       if(sbeep != 0) {
         if(strcmp(sbeep,"true") == 0) g.set_beep(true);
                                  else g.set_beep(false);
       }
+
+      const char *language = flashstorage_keyval_get("LANGUAGE");
+      if(language != 0) {
+        if(strcmp(language,"English" ) == 0) m_gui.set_language(LANGUAGE_ENGLISH);
+        if(strcmp(language,"Japanese") == 0) m_gui.set_language(LANGUAGE_JAPANESE);
+      }
     }
+
 
     m_gui.jump_to_screen(1);
     m_gui.push_stack(0,1);

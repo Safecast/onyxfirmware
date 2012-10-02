@@ -22,8 +22,9 @@
 
 bool first_render=true;
 
-
 uint16 header_color;
+
+uint8_t m_language;
 
 void display_draw_equtriangle(uint8_t x,uint8_t y,uint8_t s,uint16_t color) {
 
@@ -60,15 +61,21 @@ void render_item_menu(screen_item &item, bool selected) {
   uint16_t highlight = FOREGROUND_COLOR;
   if(selected) highlight = BACKGROUND_COLOR;
 
-  int len = strlen(item.text);
-  char text[50];
-  strcpy(text,item.text);
-  for(int n=len;n<16;n++) {
-    text[n  ]=' ';
-    text[n+1]=0;
-  }
+  if((m_language == LANGUAGE_ENGLISH) || (item.kanji_image == 255)) {
 
-  display_draw_text(0,item.val2*16,text,highlight);
+    int len = strlen(item.text);
+    char text[50];
+    strcpy(text,item.text);
+    for(int n=len;n<16;n++) {
+      text[n  ]=' ';
+      text[n+1]=0;
+    }
+
+    display_draw_text(0,item.val2*16,text,highlight);
+  } else
+  if(m_language == LANGUAGE_JAPANESE) {
+    display_draw_fixedimage(0,item.val2*16,item.kanji_image,highlight);
+  }
 }
 
 #define VARNUM_MAXSIZE 10
@@ -628,6 +635,7 @@ GUI::GUI(Controller &r) : receive_gui_events(r) {
   m_sleeping=false;
   m_redraw=false;
   m_screen_lock=false;
+  m_language = LANGUAGE_ENGLISH;
 }
 
 
@@ -879,4 +887,8 @@ void GUI::toggle_screen_lock() {
 uint8_t GUI::get_item_state_uint8(const char *tag) {
   // should check item type and repsond appropriately, however only varnum currently returns uint8_t
   return get_item_state_varnum(tag);
+}
+
+void GUI::set_language(uint8_t lang) {
+  m_language = lang;
 }

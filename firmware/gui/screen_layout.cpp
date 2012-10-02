@@ -8,10 +8,10 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
  4,
  {
-   { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT" }, 
-   { ITEM_TYPE_MENU       , 1, 1, "Current Readings" },
-   { ITEM_TYPE_MENU       , 2, 2, "Reports"  },
-   { ITEM_TYPE_MENU       , 3, 3, "Settings" }
+   { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"      , 255}, 
+   { ITEM_TYPE_MENU       , 1, 1, "Current Readings", 4},
+   { ITEM_TYPE_MENU       , 2, 2, "Reports"         , 5},
+   { ITEM_TYPE_MENU       , 3, 3, "Settings"        , 0}
 //   { ITEM_TYPE_MENU_ACTION, 0, 4, "Sleep" }
  }
 },
@@ -20,12 +20,12 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   6,
   {
-    { ITEM_TYPE_HEAD        , 0,  0, "CPMDEADINT"  }, 
-    { ITEM_TYPE_BIGVARLABEL , 0, 26, "CPMDEAD"  },
-    { ITEM_TYPE_LABEL       ,89, 60, " CPM"     },
-    { ITEM_TYPE_BIGVARLABEL , 0, 70, "SIEVERTS" },
-    { ITEM_TYPE_LABEL       ,79,104, "\x80Sv/h" },
-    { ITEM_TYPE_SMALLLABEL  ,8,120, "SIEVERTS ESTIMATED"}
+    { ITEM_TYPE_HEAD        , 0,  0, "CPMDEADINT", 255}, 
+    { ITEM_TYPE_BIGVARLABEL , 0, 26, "CPMDEAD"   , 255},
+    { ITEM_TYPE_LABEL       ,89, 60, " CPM"      , 255},
+    { ITEM_TYPE_BIGVARLABEL , 0, 70, "SIEVERTS"  , 255},
+    { ITEM_TYPE_LABEL       ,79,104, "\x80Sv/h"  , 255},
+    { ITEM_TYPE_SMALLLABEL  ,8,120, "SIEVERTS ESTIMATED",255}
   }
 },
 
@@ -33,11 +33,11 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT" }, 
-    { ITEM_TYPE_MENU       , 4, 1, "Graphs" },
-    { ITEM_TYPE_MENU       ,15, 2, "Accumulate/Avg" },
-//    { ITEM_TYPE_MENU_ACTION, 0, 3, "Serial Transfer"},
-    { ITEM_TYPE_MENU_ACTION, 0, 3, "QR Transfer"}
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT",255 }, 
+    { ITEM_TYPE_MENU       , 4, 1, "Graphs",1 },
+    { ITEM_TYPE_MENU       ,15, 2, "Accumulate/Avg",6 },
+//    { ITEM_TYPE_MENU_ACTION, 0, 3, "Serial Transfer",1},
+    { ITEM_TYPE_MENU_ACTION, 0, 3, "QR Transfer",7}
   }
 },
 
@@ -45,11 +45,11 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   5,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"        }, 
-    { ITEM_TYPE_MENU       ,16, 1, "Interface"      },
-    { ITEM_TYPE_MENU       ,17, 2, "Geiger"         },
-    { ITEM_TYPE_MENU       , 9, 3, "Time/Date"      },
-    { ITEM_TYPE_MENU       ,18, 4, "Version"        }
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT", 255 }, 
+    { ITEM_TYPE_MENU       ,16, 1, "Interface" , 8 },
+    { ITEM_TYPE_MENU       ,17, 2, "Geiger"    , 9 },
+    { ITEM_TYPE_MENU       , 9, 3, "Time/Date" , 13 },
+    { ITEM_TYPE_MENU       ,18, 4, "Version"   , 14 }
   }
 },
 
@@ -58,9 +58,9 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD    , 0 , 0  , "CPMDEADINT"         }, 
-    { ITEM_TYPE_GRAPH   , 4 , 110, "RECENTDATA"      },
-    { ITEM_TYPE_LABEL   ,255, 112, "Last 2 minutes"  }
+    { ITEM_TYPE_HEAD    , 0 , 0  , "CPMDEADINT"    , 255 }, 
+    { ITEM_TYPE_GRAPH   , 4 , 110, "RECENTDATA"    , 255 },
+    { ITEM_TYPE_LABEL   ,255, 112, "Last 2 minutes", 255 }
   }
 },
 
@@ -68,10 +68,10 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_HEAD , 0 , 0  , "CPMDEADINT"          },
-    { ITEM_TYPE_MENU , 6 , 3  , "       OK       " },
-    { ITEM_TYPE_MENU , 3 , 4  , "     Cancel     " },
-    { ITEM_TYPE_LABEL,255, 16 , "Are you sure?"    }
+    { ITEM_TYPE_HEAD , 0 , 0  , "CPMDEADINT"       , 255},
+    { ITEM_TYPE_MENU , 6 , 3  , "       OK       " , 255},
+    { ITEM_TYPE_MENU , 3 , 4  , "     Cancel     " , 255},
+    { ITEM_TYPE_LABEL,255, 16 , "Are you sure?"    , 255}
   }
 },
 
@@ -79,10 +79,10 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_LABEL,255, 32, "Waiting for 15s" },
-    { ITEM_TYPE_LABEL,255, 64, "Please expose"   },
-    { ITEM_TYPE_LABEL,255, 80, "to source."      },
-    { ITEM_TYPE_DELAY, 60,100,"DELAYA\0 16,7"    } // 16 second delay
+    { ITEM_TYPE_LABEL,255, 32, "Waiting for 15s" , 255 },
+    { ITEM_TYPE_LABEL,255, 64, "Please expose"   , 255 },
+    { ITEM_TYPE_LABEL,255, 80, "to source."      , 255 },
+    { ITEM_TYPE_DELAY, 60,100,"DELAYA\0 16,7"    , 255 } // 16 second delay, then go to screen 7
   } 
 },
 
@@ -90,8 +90,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   2,
   {
-    { ITEM_TYPE_LABEL,255, 32, "Acquiring, 30s" },
-    { ITEM_TYPE_DELAY, 60,100,"DELAYB\0 31,8"   } // 31 second delay
+    { ITEM_TYPE_LABEL,255, 32, "Acquiring, 30s" , 255 },
+    { ITEM_TYPE_DELAY, 60,100,"DELAYB\0 31,8"   , 255 } // 31 second delay
   } 
 }, 
     
@@ -100,13 +100,13 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   8,
   {
-    { ITEM_TYPE_VARLABEL   , 0 , 0  , "FIXEDSV"   },
-    { ITEM_TYPE_VARNUM     , 20, 50 , "CAL1"      },
-    { ITEM_TYPE_VARNUM     , 56, 50 , "CAL2"      },
-    { ITEM_TYPE_VARNUM     , 74, 50 , "CAL3"      },
-    { ITEM_TYPE_VARNUM     , 92, 50 , "CAL4"      },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save"      },
-    { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE" }
+    { ITEM_TYPE_VARLABEL   , 0 , 0  , "FIXEDSV"  , 255 },
+    { ITEM_TYPE_VARNUM     , 20, 50 , "CAL1"     , 255 },
+    { ITEM_TYPE_VARNUM     , 56, 50 , "CAL2"     , 255 },
+    { ITEM_TYPE_VARNUM     , 74, 50 , "CAL3"     , 255 },
+    { ITEM_TYPE_VARNUM     , 92, 50 , "CAL4"     , 255 },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save"     , 2 },
+    { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE", 255 }
   }
 },
 
@@ -114,9 +114,9 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD,             0, 0, "CPMDEADINT"       }, 
-    { ITEM_TYPE_MENU,            10, 1, "Set Time"      },
-    { ITEM_TYPE_MENU,            11, 2, "Set Date/Zone" }
+    { ITEM_TYPE_HEAD,             0, 0, "CPMDEADINT"   , 255 }, 
+    { ITEM_TYPE_MENU,            10, 1, "Set Time"     , 15 },
+    { ITEM_TYPE_MENU,            11, 2, "Set Date/Zone", 16 }
   }
 },
 
@@ -124,14 +124,14 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   8,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0 , "CPMDEADINT"   }, 
-    { ITEM_TYPE_VARNUM     , 10, 50, "TIMEHOUR1" },
-    { ITEM_TYPE_VARNUM     , 32, 50, "TIMEHOUR2" },
-    { ITEM_TYPE_VARNUM     , 54, 50, "TIMEMIN1"  },
-    { ITEM_TYPE_VARNUM     , 76, 50, "TIMEMIN2"  },
-    { ITEM_TYPE_VARNUM     , 98, 50, "TIMESEC1"  },
-    { ITEM_TYPE_VARNUM     ,118, 50, "TIMESEC2"  },
-    { ITEM_TYPE_MENU_ACTION,  0,  7, "SaveTime"  }
+    { ITEM_TYPE_HEAD       , 0 , 0 , "CPMDEADINT" , 255 }, 
+    { ITEM_TYPE_VARNUM     , 10, 50, "TIMEHOUR1"  , 255 },
+    { ITEM_TYPE_VARNUM     , 32, 50, "TIMEHOUR2"  , 255 },
+    { ITEM_TYPE_VARNUM     , 54, 50, "TIMEMIN1"   , 255 },
+    { ITEM_TYPE_VARNUM     , 76, 50, "TIMEMIN2"   , 255 },
+    { ITEM_TYPE_VARNUM     , 98, 50, "TIMESEC1"   , 255 },
+    { ITEM_TYPE_VARNUM     ,118, 50, "TIMESEC2"   , 255 },
+    { ITEM_TYPE_MENU_ACTION,  0,  7, "SaveTime"   , 2 }
   }
 },
 
@@ -139,16 +139,16 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   10,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT"   }, 
-    { ITEM_TYPE_VARNUM     , 10, 50 , "DATEMON1"  },
-    { ITEM_TYPE_VARNUM     , 32, 50 , "DATEMON2"  },
-    { ITEM_TYPE_VARNUM     , 54, 50 , "DATEDAY1"  },
-    { ITEM_TYPE_VARNUM     , 76, 50 , "DATEDAY2"  },
-    { ITEM_TYPE_VARNUM     , 98, 50 , "DATEYEAR1" },
-    { ITEM_TYPE_VARNUM     ,118, 50 , "DATEYEAR2" },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveDate"  },
-    { ITEM_TYPE_LABEL      , 0 ,  20, "MM/DD/YY"  },
-    { ITEM_TYPE_ACTION     ,  0,   0, "DATESCREEN"}
+    { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT", 255 }, 
+    { ITEM_TYPE_VARNUM     , 10, 50 , "DATEMON1"  , 255 },
+    { ITEM_TYPE_VARNUM     , 32, 50 , "DATEMON2"  , 255 },
+    { ITEM_TYPE_VARNUM     , 54, 50 , "DATEDAY1"  , 255 },
+    { ITEM_TYPE_VARNUM     , 76, 50 , "DATEDAY2"  , 255 },
+    { ITEM_TYPE_VARNUM     , 98, 50 , "DATEYEAR1" , 255 },
+    { ITEM_TYPE_VARNUM     ,118, 50 , "DATEYEAR2" , 255 },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveDate"  , 2 },
+    { ITEM_TYPE_LABEL      , 0 ,  20, "MM/DD/YY"  , 255 },
+    { ITEM_TYPE_ACTION     ,  0,   0, "DATESCREEN", 255 }
   }
 },
 
@@ -156,9 +156,9 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT"         }, 
-    { ITEM_TYPE_VARNUM     , 64, 64 , "BRIGHTNESS"      },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveBrightness"  }
+    { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT"    , 255 }, 
+    { ITEM_TYPE_VARNUM     , 64, 64 , "BRIGHTNESS"    , 255 },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveBrightness", 2 }
   }
 },
 
@@ -166,14 +166,14 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   8,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT"    }, 
-    { ITEM_TYPE_VARNUM     , 10, 50 , "WARNCPM1"   },
-    { ITEM_TYPE_VARNUM     , 32, 50 , "WARNCPM2"   },
-    { ITEM_TYPE_VARNUM     , 54, 50 , "WARNCPM3"   },
-    { ITEM_TYPE_VARNUM     , 76, 50 , "WARNCPM4"   },
-    { ITEM_TYPE_VARNUM     , 98, 50 , "WARNCPM5"   },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveWarnCPM"},
-    { ITEM_TYPE_LABEL      , 0 ,  20, "Warning CPM"}
+    { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT" , 255}, 
+    { ITEM_TYPE_VARNUM     , 10, 50 , "WARNCPM1"   , 255},
+    { ITEM_TYPE_VARNUM     , 32, 50 , "WARNCPM2"   , 255},
+    { ITEM_TYPE_VARNUM     , 54, 50 , "WARNCPM3"   , 255},
+    { ITEM_TYPE_VARNUM     , 76, 50 , "WARNCPM4"   , 255},
+    { ITEM_TYPE_VARNUM     , 98, 50 , "WARNCPM5"   , 255},
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveWarnCPM", 2  },
+    { ITEM_TYPE_LABEL      , 0 ,  20, "Warning CPM", 255}
   }
 },
   
@@ -181,9 +181,9 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT" }, 
-    { ITEM_TYPE_MENU_ACTION, 1, 1, "English" },
-    { ITEM_TYPE_MENU_ACTION, 2, 2, "Japanese"}
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT", 255},
+    { ITEM_TYPE_MENU_ACTION, 1, 1, "English"   , 255},
+    { ITEM_TYPE_MENU_ACTION, 2, 2, "Japanese"  , 3  }
   }
 },
 
@@ -191,10 +191,10 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_LABEL      ,255,32, "Average CPM"},
-    { ITEM_TYPE_VARLABEL   ,255,48, "TTCOUNT"    },
-    { ITEM_TYPE_VARLABEL   ,255,90, "TTTIME"     },
-    { ITEM_TYPE_ACTION     ,  2, 2, "TOTALTIMER" }
+    { ITEM_TYPE_LABEL      ,255,32, "Average CPM", 255},
+    { ITEM_TYPE_VARLABEL   ,255,48, "TTCOUNT"    , 255},
+    { ITEM_TYPE_VARLABEL   ,255,90, "TTTIME"     , 255},
+    { ITEM_TYPE_ACTION     ,  2, 2, "TOTALTIMER" , 255}
   }
 },
 
@@ -202,10 +202,10 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"        }, 
-    { ITEM_TYPE_MENU       ,12, 1, "Brightness"     },
-    { ITEM_TYPE_MENU_ACTION, 0, 2, "Geiger Beep"    },
-    { ITEM_TYPE_MENU       ,14, 3, "Language"       }
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT" , 255}, 
+    { ITEM_TYPE_MENU       ,12, 1, "Brightness" , 10 },
+    { ITEM_TYPE_MENU_ACTION, 0, 2, "Geiger Beep", 11 },
+    { ITEM_TYPE_MENU       ,14, 3, "Language"   , 12 }
   }
 },
 
@@ -213,10 +213,10 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"        }, 
-    { ITEM_TYPE_MENU       , 5, 1, "Calibration"    },
-    { ITEM_TYPE_MENU_ACTION, 0, 2, "Clear Log"      },
-    { ITEM_TYPE_MENU       ,13, 3, "Warning Levels" }
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"    , 255}, 
+    { ITEM_TYPE_MENU       , 5, 1, "Calibration"   , 255},
+    { ITEM_TYPE_MENU_ACTION, 0, 2, "Clear Log"     , 255},
+    { ITEM_TYPE_MENU       ,13, 3, "Warning Levels", 255}
 //    { ITEM_TYPE_MENU,INVALID_SCREEN, 2, "Averaging Period" },
   }
 },
@@ -225,9 +225,9 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0, "CPMDEADINT"          }, 
-    { ITEM_TYPE_LABEL      , 0  ,32, "Firmware Release" },
-    { ITEM_TYPE_LABEL      , 255,64, OS100VERSION       }
+    { ITEM_TYPE_HEAD       , 0 , 0, "CPMDEADINT"        , 255}, 
+    { ITEM_TYPE_LABEL      , 0  ,32, "Firmware Release" , 255},
+    { ITEM_TYPE_LABEL      , 255,64, OS100VERSION       , 255}
   }
 },
 

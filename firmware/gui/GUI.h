@@ -13,6 +13,9 @@
 #define HEADER_COLOR_NORMAL 0xF800
 #define HEADER_COLOR_CPMINVALID 0x00E0
 
+#define LANGUAGE_ENGLISH  0
+#define LANGUAGE_JAPANESE 1
+
 class Controller;
 
 class GUI {
@@ -35,6 +38,7 @@ public:
   void jump_to_screen(const char screen);
   void push_stack(int current_screen,int selected_item);
   void toggle_screen_lock();
+  void set_language(uint8_t lang);
   Controller &receive_gui_events;
 
   uint8_t get_item_state_uint8(const char *tag);
@@ -50,6 +54,8 @@ private:
   void process_keys();
 
   void clear_screen(int32_t c_screen,int32_t c_selected);
+
+
   int32_t clear_screen_selected;
   int32_t clear_screen_screen;
   bool    clear_next_render;

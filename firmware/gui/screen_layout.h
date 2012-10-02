@@ -26,7 +26,8 @@ struct screen_item {
   uint8_t type;
   uint8_t val1;
   uint8_t val2;
-  char          text[TEXT_LENGTH];
+  char    text[TEXT_LENGTH];
+  uint8_t kanji_image;
 };
 
 struct screen {

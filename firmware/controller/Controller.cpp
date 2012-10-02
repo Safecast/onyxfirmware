@@ -216,6 +216,14 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_warning_raised = false; 
     save_warncpm();
   } else
+  if(strcmp(event,"Japanese")) {
+    m_gui->set_language(LANGUAGE_JAPANESE);
+    flashstorage_keyval_set("LANGUAGE","Japanese");
+  } else
+  if(strcmp(event,"English")) {
+    m_gui->set_language(LANGUAGE_ENGLISH);
+    flashstorage_keyval_set("LANGUAGE","English");
+  } else
   if(strcmp(event,"Geiger Beep")) {
      m_geiger.toggle_beep();
      if(m_geiger.is_beeping()) flashstorage_keyval_set("GEIGERBEEP","true");

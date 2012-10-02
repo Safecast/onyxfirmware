@@ -4,8 +4,16 @@
 #include "utils.h"
 #include <stdio.h>
 
+#define to565(r,g,b)                                            \
+    ((((r) >> 3) << 11) | (((g) >> 2) << 5) | ((b) >> 3))
+
 extern uint8_t _binary_image_1_data_start;
 extern uint8_t _binary_image_1_data_size;
+
+extern uint8_t _binary_fixedimages_start;
+extern uint8_t _binary_fixedimages_size;
+extern uint8_t _binary___binary_data_fixed_images_start;
+extern uint8_t _binary___binary_data_fixed_images_size;
 
 void display_initialise() {
   oled_platform_init();
@@ -139,3 +147,37 @@ void display_brightness(uint8 b) {
   oled_brightness(b);
 }
 
+void display_draw_fixedimage(uint8_t x,uint8_t y,uint8_t image_number,uint16_t background) {
+
+  // fixed image data is 2bit grayscale, convert to 16bit, it's also fixed size (128x16)
+
+  uint16_t image_data[2048];
+  uint8_t *source_data = ((uint8_t *) &_binary___binary_data_fixed_images_start);
+  source_data += (image_number*512);
+
+  for(uint32_t n=0;n<2048;n++) {
+    uint32_t byte = n/4;
+    uint32_t bit  = n%4;
+    bit = (bit * 2)+1;
+    bit = 7-bit;
+
+    uint16_t bit_1 = *(source_data+byte) & (1 << bit);
+    uint16_t bit_2 = *(source_data+byte) & (1 << (bit+1));
+    if(bit_1 > 0) bit_1 = 1;
+    if(bit_2 > 0) bit_2 = 1;
+    uint16_t value = bit_1 + (bit_2 << 1);
+
+    if(value == 0) {value = 0;   }
+    if(value == 1) {value = 85;  }
+    if(value == 2) {value = 170; }
+    if(value == 3) {value = 255; }
+
+    value = to565(value,value,value);
+
+    // Back and white background, simple inversion.
+    if((background == 0) || (background == 65535)) value = background ^ value;
+    image_data[n] = value;
+  }
+
+  oled_draw_rect(x,y,128,16,(uint8_t *) image_data);
+}
