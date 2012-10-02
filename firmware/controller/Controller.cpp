@@ -29,6 +29,7 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
   system_controller = this;
   m_last_switch_state = true;
   m_warning_raised = false;
+  m_changing_brightness=false;
 
   // Get warning cpm from flash
   m_warncpm = -1;
@@ -236,9 +237,10 @@ void Controller::receive_gui_event(char *event,char *value) {
   if(strcmp(event,"SaveBrightness")) {
     uint8 b = m_gui->get_item_state_uint8("BRIGHTNESS");
     char sbright[50];
-    sprintf(sbright,"%u",b);
+    sprintf(sbright,"%u",b+6);
     flashstorage_keyval_set("BRIGHTNESS",sbright);
     m_gui->jump_to_screen(0);
+    m_changing_brightness = false;
   } else
   if(strcmp(event,"CALIBRATE")) {
     initialise_calibration();
@@ -262,6 +264,7 @@ void Controller::receive_gui_event(char *event,char *value) {
     }
   } else 
   if(strcmp(event,"varnumchange")) {
+    m_changing_brightness = true;
     if(strcmp("BRIGHTNESS",value)) {
       int b = m_gui->get_item_state_uint8("BRIGHTNESS");
       display_set_brightness(b+6);
@@ -438,16 +441,18 @@ void Controller::update() {
   uint32_t   press_time = cap_last_release();
   uint32_t current_time = realtime_get_unixtime();
 
-  uint8_t current_brightness = display_get_brightness();
-  if(((current_time - press_time) > 10) && (current_time - release_time > 10)) {
-    if(current_brightness > 1) display_set_brightness(current_brightness-1);
-  } else {
-    const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
-    unsigned int user_brightness=15;
-    if(sbright != 0) {
-      sscanf(sbright, "%u", &user_brightness);
-    }
-    if(current_brightness != user_brightness) display_set_brightness(user_brightness);
+  if(!m_changing_brightness) {
+		uint8_t current_brightness = display_get_brightness();
+		if(((current_time - press_time) > 10) && (current_time - release_time > 10)) {
+			if(current_brightness > 1) display_set_brightness(current_brightness-1);
+		} else {
+			const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
+			unsigned int user_brightness=15;
+			if(sbright != 0) {
+				sscanf(sbright, "%u", &user_brightness);
+			}
+			if(current_brightness != user_brightness) display_set_brightness(user_brightness);
+		}
   }
  
 
