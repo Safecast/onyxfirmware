@@ -73,7 +73,7 @@ int main(void) {
       if(sbright != 0) {
         unsigned int c;
         sscanf(sbright, "%u", &c);
-        display_brightness(c+6);
+        display_set_brightness(c+6);
       }
  
       const char *sbeep = flashstorage_keyval_get("GEIGERBEEP");

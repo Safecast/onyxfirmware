@@ -253,6 +253,8 @@ void cap_init(void) {
     // Clears the first interrupt
  //   mpr121Read(TCH_STATL);
  //   mpr121Read(TCH_STATH);
+    press_time   = realtime_get_unixtime();
+    release_time = realtime_get_unixtime();
 
     return;
 }

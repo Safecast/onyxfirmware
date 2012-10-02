@@ -15,6 +15,8 @@ extern uint8_t _binary_fixedimages_size;
 extern uint8_t _binary___binary_data_fixed_images_start;
 extern uint8_t _binary___binary_data_fixed_images_size;
 
+uint8_t brightness;
+
 void display_initialise() {
   oled_platform_init();
   oled_init();
@@ -133,6 +135,12 @@ void display_dump_image() {
 }
 
 void display_set_brightness(uint8 b) {
+  brightness = b;
+  oled_brightness(b);
+}
+
+uint8_t display_get_brightness() {
+  return brightness;
 }
 
 void display_powerup() {
@@ -141,10 +149,6 @@ void display_powerup() {
 
 void display_powerdown() {
   oled_deinit();
-}
-
-void display_brightness(uint8 b) {
-  oled_brightness(b);
 }
 
 void display_draw_fixedimage(uint8_t x,uint8_t y,uint8_t image_number,uint16_t background) {
