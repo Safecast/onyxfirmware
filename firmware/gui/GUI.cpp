@@ -798,8 +798,8 @@ void GUI::process_key(int key_id,int type) {
         }
 
         push_stack(current_screen,selected_item);
-	current_screen = screens_layout[current_screen].items[selected_item].val1;
-	selected_item = 1;
+        current_screen = screens_layout[current_screen].items[selected_item].val1;
+        selected_item = 1;
       }
     } else 
     if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_MENU_ACTION) {
@@ -815,26 +815,27 @@ void GUI::process_key(int key_id,int type) {
       if(selected_item != 0) {
         if((selected_item-1) >= 0) {
           if(screens_layout[current_screen].items[selected_item-1].type == ITEM_TYPE_VARNUM) {
-            selected_item--;
+		        selected_item--;
             receive_gui_events.receive_gui_event("varnumchange",screens_layout[current_screen].items[selected_item].text);
             return;
-          }
-        }
-      }
-    }
+					}
+				}
+			}
+		}
 
-    if(selected_stack_size !=0) {
-      clear_next_render = true; 
-      first_render=true;
-      clear_screen_screen   = current_screen;
-      clear_screen_selected = selected_item;
+    if((current_screen != 0) && (!clear_next_render)) {
+			if(selected_stack_size !=0) {
+				clear_next_render = true; 
+				first_render=true;
+				clear_screen_screen   = current_screen;
+				clear_screen_selected = selected_item;
 
-      pop_stack(current_screen,selected_item);
+				pop_stack(current_screen,selected_item);
+			}
     }
   }
 
-  if((key_id == KEY_HOME) && (type == KEY_RELEASED)) {
-
+  if((key_id == KEY_HOME) && (type == KEY_RELEASED) && (!clear_next_render)) {
     if(current_screen != 0) {
       clear_next_render = true;
       first_render=true;
@@ -844,7 +845,6 @@ void GUI::process_key(int key_id,int type) {
       current_screen = 0;
       selected_item  = 1;
     }
-
   }
   
 }
