@@ -1,0 +1,7 @@
+	Some rough ideas for data transmission
+
+FSK or ASK over 44.1k audio input, can expect throughput of 1200bps (150Bps).
+USB on iPod dock, requires licensing encryption chip, make 56kbps (7KBps).
+Bluetooth, requires encryption chip/power hungry.
+AdHoc wifi transmission, power hungry.
+QR Code?
