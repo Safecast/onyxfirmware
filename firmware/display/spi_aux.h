@@ -72,7 +72,7 @@ void spi_aux_enable_device(spi_dev *dev,
                           spi_cfg_flag endianness,
                           spi_mode mode);
 
-void spi_aux_write(spi_dev *spi_device, const uint8 *data, uint32 length);
+uint8 spi_aux_write(spi_dev *spi_device, const uint8 *data, uint32 length);
 
 #ifdef __cplusplus
 }

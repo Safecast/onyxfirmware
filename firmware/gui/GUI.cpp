@@ -22,7 +22,7 @@
 
 bool first_render=true;
 
-uint16 header_color;
+uint16 header_color=HEADER_COLOR_CPMINVALID;
 
 uint8_t m_language;
 
@@ -507,9 +507,9 @@ void update_item_head(screen_item &item,void *value) {
   header_color = new_header_color;
 
   int len = strlen((char *) value);
-  char v[50];
+  char v[TEMP_STR_LEN];
   strcpy(v,(char *) value);
-  for(int n=len;n<6;n++) {
+  for(int n=len;(n<6) && (n<(TEMP_STR_LEN-1));n++) {
     v[n  ] = ' ';
     v[n+1]=0;
   }
@@ -528,22 +528,21 @@ void update_item_head(screen_item &item,void *value) {
   if(year >= 2000) {year-=2000;} else
   if(year <  2000) {year-=1900;}
 
-  char time[50];
-  char date[50];
+  char time[TEMP_STR_LEN];
+  char date[TEMP_STR_LEN];
   sprintf(time,"%02u:%02u:%02u",hours,min,sec);
   sprintf(date,"%02u/%02u/%02u",month,day,year);
   if(year == 0) { sprintf(date,"%02u/%02u/00",month,day); }
 
-
   // pad out time and date
   int tlen = strlen(time);
-  for(int n=tlen;n<8;n++) {
+  for(int n=tlen;(n<8) && (n<(TEMP_STR_LEN-1));n++) {
     time[n  ] = ' ';
     time[n+1]=0;
   }
 
   int dlen = strlen(date);
-  for(int n=dlen;n<8;n++) {
+  for(int n=dlen;(n<8) && (n<(TEMP_STR_LEN-1));n++) {
     date[n  ] = ' ';
     date[n+1]=0;
   }

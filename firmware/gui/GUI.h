@@ -15,6 +15,7 @@
 
 #define LANGUAGE_ENGLISH  0
 #define LANGUAGE_JAPANESE 1
+#define TEMP_STR_LEN 50
 
 class Controller;
 

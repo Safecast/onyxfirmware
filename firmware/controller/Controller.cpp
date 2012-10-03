@@ -503,8 +503,16 @@ void Controller::update() {
   uint32_t ctime = realtime_get_unixtime();
   uint32_t totaltimer_time = ctime - m_total_timer_start;
 
+  char temp[50];
   sprintf(text_totaltimer_time ,"%us",totaltimer_time);
-  sprintf(text_totaltimer_count,"%6.3f" ,((float)m_geiger.get_total_count()/((float)totaltimer_time))*60);
+  sprintf(temp,"  %6.3f  " ,((float)m_geiger.get_total_count()/((float)totaltimer_time))*60);
+  int len = strlen(temp);
+  int pad = (16-len)/2;
+  for(int n=0;n<16;n++) {
+    if((n > pad) && (n < (pad+len))) {text_totaltimer_count[n] = temp[n-pad];}
+                                else {text_totaltimer_count[n] = ' ';}
+    text_totaltimer_count[n+1] = 0;
+  }
 
   //if(m_geiger.is_cpm_valid()) m_gui->receive_update("CPMVALID","true");
   //                       else m_gui->receive_update("CPMVALID","false");

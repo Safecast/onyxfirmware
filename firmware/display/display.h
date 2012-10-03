@@ -28,5 +28,6 @@ uint8_t display_get_brightness();
 void display_dump_image();
 void display_powerup();
 void display_powerdown();
+void display_test();
 
 #endif

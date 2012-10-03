@@ -57,7 +57,7 @@ int main(void) {
     if(power_get_wakeup_source() == WAKEUP_RTC) {
       c.m_sleeping = true;
     } else {
-      buzzer_nonblocking_buzz(1);
+      buzzer_nonblocking_buzz(0.05);
     }
 
     GUI m_gui(c);
