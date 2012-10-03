@@ -111,12 +111,13 @@ uint16 power_battery_level(void) {
   cr2 &= ~ADC_CR2_TSEREFE; // power down reference to save battery power
   ADC1->regs->CR2 = cr2; 
 
-  float batvolts = ((((float)battVal)/(float)vrefVal)*1.2)+2.1;
+  //float batvolts = ((((float)battVal)/(float)vrefVal)*1.2)+2.1;
+  float batratio = (float)battVal/(float)vrefVal;
 
-  float battery_min_voltage = 3.7;
-  float battery_max_voltage = 4.2;
+  float bat_min = 1.5;  //3.7;
+  float bat_max = 1.75; //4.2;
 
-  int16 bat_percent = ((batvolts-battery_min_voltage)/(battery_max_voltage-battery_min_voltage))*100;
+  int16 bat_percent = ((batratio-bat_min)/(bat_max-bat_min))*100;         //((batvolts-battery_min_voltage)/(battery_max_voltage-battery_min_voltage))*100;
   return bat_percent;
   //return battVal;
   // calibrate

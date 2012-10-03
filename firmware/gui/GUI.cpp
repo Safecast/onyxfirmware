@@ -710,7 +710,7 @@ void GUI::redraw() {
 
 void GUI::receive_key(int key_id,int type) {
 
-  if(new_keys_size > NEW_KEYS_MAX_SIZE) return;
+  if(new_keys_size >= NEW_KEYS_MAX_SIZE) return;
 
   new_keys_key [new_keys_size] = key_id;
   new_keys_type[new_keys_size] = type;
