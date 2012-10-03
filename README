@@ -17,12 +17,17 @@ http://static.leaflabs.com/pub/codesourcery/
 
 In particular the 32bit Linux binary distribution: gcc-arm-none-eabi-latest-linux32.tar.gz
 
+You will also need a copy of imagemagick.
+
 To build the codebase you may want to download/extract this and add it to your path. You should then be able to run make in the firmware subdirectory to build a firmware image (safecast.bin).
 
 To program the firmware you can use the tool provided in the firmware_loader subdirectory. To build it type "make". The script "test" containing a usage example.
 
 Example Build Setup
 ===================
+
+#Install imagemagick
+sudo apt-get install imagemagick
 
 #Get the codesourcey tool chain
 mkdir $HOME/armcompiler
