@@ -451,7 +451,9 @@ void Controller::update() {
 			if(sbright != 0) {
 				sscanf(sbright, "%u", &user_brightness);
 			}
-			if(current_brightness != user_brightness) display_set_brightness(user_brightness);
+			if(current_brightness < user_brightness) {
+        display_set_brightness(current_brightness+1);
+      }
 		}
   }
  
