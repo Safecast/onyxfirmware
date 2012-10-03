@@ -461,11 +461,19 @@ uint8 battery_mask [16][24] = {
 
 };
 
+uint16 last_batlevel=0;
+
 void render_battery(int x,int y,int level) {
 
   uint16 image_data[384]; // 24*16
 
+  // only move bat level, if there's a big difference to prevent flickering.
   level = (((float) level)/100)*23;
+  uint16 level_delta = level-last_batlevel;
+  if(level_delta < 0) level_delta = 0-level_delta;
+  if(level_delta <= 1) level = last_batlevel;
+
+  last_batlevel = level;
 
   for(int x=0;x<24;x++) {
     for(int y=0;y<16;y++) {
