@@ -119,7 +119,7 @@ char *flashstorage_keyval_get_address(const char *key) {
       return 0;
     }
 
-    if(strcmp(key, (const char *) (flash_data_area_aligned+n)) == true) {
+    if(strcmp(key, (const char *) (flash_data_area_aligned+n)) == 0) {
       uint8_t *addr = ((flash_data_area_aligned)+n);
       return (char *) addr;
     }

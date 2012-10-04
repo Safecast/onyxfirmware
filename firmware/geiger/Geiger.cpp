@@ -248,6 +248,10 @@ float Geiger::get_cpm_deadtime_compensated() {
 //  return (cpm/((60*1000000)-deadtime_us))*(60*1000000);
 }
 
+float Geiger::get_microrems() {
+ return get_microsieverts()/100;
+}
+
 float Geiger::get_microsieverts() {
   float conversionCoefficient = 0.0029;
   float microsieverts =  (get_cpm_deadtime_compensated() * conversionCoefficient) * calibration_scaling;

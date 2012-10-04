@@ -31,7 +31,7 @@ public:
 
   void render();
   void receive_touch(int key_id,int type);
-  void receive_update(const char *tag,void *value);
+  void receive_update(const char *tag,const void *value);
   void receive_key(int key,int type);
   void set_key_trigger();
   void redraw();

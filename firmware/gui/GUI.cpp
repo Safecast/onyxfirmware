@@ -447,7 +447,7 @@ void clear_item(screen_item &item,bool selected) {
   }
 }
 
-void update_item_graph(screen_item &item,void *value) {
+void update_item_graph(screen_item &item,const void *value) {
  source_graph_data = (float *)value;
 }
 
@@ -547,7 +547,7 @@ void render_battery(int x,int y,int level) {
   display_draw_image(104,0,24,16,image_data);
 }
 
-void update_item_head(screen_item &item,void *value) {
+void update_item_head(screen_item &item,const void *value) {
 
   uint16_t new_header_color;
   if(system_geiger->is_cpm_valid()) new_header_color = HEADER_COLOR_NORMAL;
@@ -604,11 +604,11 @@ void update_item_head(screen_item &item,void *value) {
   display_draw_tinytext(0,128-5,OS100VERSION,FOREGROUND_COLOR);
 }
 
-void update_item_varnum(screen_item &item,void *value) {
+void update_item_varnum(screen_item &item,const void *value) {
   set_item_state_varnum(item.text,((uint8_t *) value)[0]);
 }
 
-void update_item_delay(screen_item &item,void *value) {
+void update_item_delay(screen_item &item,const void *value) {
 
   if(first_render == true) {
     // parse out delay time
@@ -634,7 +634,7 @@ int get_item_state_delay_destination(screen_item &item) {
   return 0;
 }
 
-void update_item(screen_item &item,void *value) {
+void update_item(screen_item &item,const void *value) {
   if(item.type == ITEM_TYPE_VARLABEL) {
     if(item.val1 == 255) {
       // display_draw_rectangle(0,item.val2,128,item.val2+16,BACKGROUND_COLOR); unfortunately renders badly.
@@ -919,7 +919,7 @@ void GUI::jump_to_screen(const char screen) {
   selected_item  = 1;
 }
 
-void GUI::receive_update(const char *tag,void *value) {
+void GUI::receive_update(const char *tag,const void *value) {
   for(uint32_t n=0;n<screens_layout[current_screen].item_count;n++) {
     if(strcmp(tag,screens_layout[current_screen].items[n].text) == 0) {
       update_item(screens_layout[current_screen].items[n],value);

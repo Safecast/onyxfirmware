@@ -23,11 +23,13 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD        , 0,  0, "CPMDEADINT", 255}, 
     { ITEM_TYPE_BIGVARLABEL , 0, 26, "CPMDEAD"   , 255},
     { ITEM_TYPE_LABEL       ,89, 60, " CPM"      , 255},
-    { ITEM_TYPE_BIGVARLABEL , 0, 70, "SIEVERTS"  , 255},
-    { ITEM_TYPE_LABEL       ,79,104, "\x80Sv/h"  , 255},
-    { ITEM_TYPE_SMALLLABEL  ,8,120, "SIEVERTS ESTIMATED",255}
+    { ITEM_TYPE_BIGVARLABEL , 0, 70, "SVREM"     , 255},
+    { ITEM_TYPE_VARLABEL    ,79,104, "SVREMLABEL", 255},
+    { ITEM_TYPE_SMALLLABEL   ,8,120, "SIEVERTS ESTIMATED",255}
   }
 },
+//    { ITEM_TYPE_BIGVARLABEL , 0, 70, "SIEVERTS"  , 255},
+//    { ITEM_TYPE_VARLABEL    ,79,104, "\x80Sv/h"  , 255},
 
 // Screen 2 - Reports menu
 {
@@ -213,10 +215,11 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"    , 255}, 
-    { ITEM_TYPE_MENU       , 5, 1, "Calibration"   , 255},
-    { ITEM_TYPE_MENU_ACTION, 0, 2, "Clear Log"     , 255},
-    { ITEM_TYPE_MENU       ,13, 3, "Warning Levels", 255}
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"    , 255},
+    { ITEM_TYPE_MENU       ,19, 1, "Sv/Rem"        , 255},
+    { ITEM_TYPE_MENU       , 5, 2, "Calibration"   , 255},
+    { ITEM_TYPE_MENU_ACTION, 0, 3, "Clear Log"     , 255},
+    { ITEM_TYPE_MENU       ,13, 4, "Warning Levels", 255}
 //    { ITEM_TYPE_MENU,INVALID_SCREEN, 2, "Averaging Period" },
   }
 },
@@ -230,6 +233,16 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL      , 255,64, OS100VERSION       , 255}
   }
 },
+
+//Screen 19 - Sieverts or Rems
+{
+  3,
+  {
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT", 255}, 
+    { ITEM_TYPE_MENU_ACTION, 1, 1, "Sievert"   , 255},
+    { ITEM_TYPE_MENU_ACTION, 2, 2, "Roentgen"  , 255}
+  }
+}
 
 };
 

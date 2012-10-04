@@ -231,6 +231,16 @@ void Controller::receive_gui_event(char *event,char *value) {
      if(m_geiger.is_beeping()) { flashstorage_keyval_set("GEIGERBEEP","true");  tick_item("Geiger Beep",true);  }
                           else { flashstorage_keyval_set("GEIGERBEEP","false"); tick_item("Geiger Beep",false); }
   } else 
+  if(strcmp(event,"Sievert") == 0) {
+    flashstorage_keyval_set("SVREM","SV");
+    tick_item("Sievert" ,true);
+    tick_item("Roentgen",false);
+  } else
+  if(strcmp(event,"Roentgen") == 0) {
+    flashstorage_keyval_set("SVREM","REM");
+    tick_item("Sievert" ,false);
+    tick_item("Roentgen",true);
+  } else
   if(strcmp(event,"Clear Log") == 0) {
     buzzer_nonblocking_buzz(3);
     flashstorage_log_clear();
@@ -462,12 +472,9 @@ void Controller::update() {
   //TODO: I should change this so it only sends the messages the GUI currently needs.
   char text_cpmdint[50];
   char text_cpmd[50];
-  char text_sieverts[50];
 
   text_cpmdint[0] =0;
-  text_sieverts[0]=0;
   int_to_char(m_geiger.get_cpm_deadtime_compensated()+0.5,text_cpmdint,7);
-  float_to_char(m_geiger.get_microsieverts(),text_sieverts,5);
   float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,7);
   
 //  text_cpm[0]      = 'C';
@@ -519,7 +526,6 @@ void Controller::update() {
   //                       else m_gui->receive_update("CPMVALID","false");
   m_gui->receive_update("CPMDEADINT",text_cpmdint);
   m_gui->receive_update("CPMDEAD",text_cpmd);
-  m_gui->receive_update("SIEVERTS",text_sieverts);
   m_gui->receive_update("RECENTDATA",graph_data);
   m_gui->receive_update("DELAYA",NULL);
   m_gui->receive_update("DELAYB",NULL);
@@ -527,4 +533,21 @@ void Controller::update() {
   m_gui->receive_update("DATE",text_date);
   m_gui->receive_update("TTCOUNT",text_totaltimer_count);
   m_gui->receive_update("TTTIME" ,text_totaltimer_time);
+
+  const char *svrem = flashstorage_keyval_get("SVREM");
+
+  if(svrem == 0) display_draw_text(0,80,"ZERO",0);
+  if((svrem != 0) && (strcmp(svrem,"REM") == 0)) {
+    char text_rem[50];
+    text_rem[0]=0;
+    float_to_char(m_geiger.get_microrems(),text_rem,5);
+    m_gui->receive_update("SVREM", text_rem);
+    m_gui->receive_update("SVREMLABEL","\x80rem/h");
+  } else {
+    char text_sieverts[50];
+    text_sieverts[0]=0;
+    float_to_char(m_geiger.get_microsieverts(),text_sieverts,5);
+    m_gui->receive_update("SVREM", text_sieverts);
+    m_gui->receive_update("SVREMLABEL","\x80Sv/h");
+  }
 }
