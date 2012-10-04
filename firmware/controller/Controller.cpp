@@ -205,8 +205,18 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_gui->receive_update("TTTIME" ,blank);
     m_gui->redraw();
   } else
-  if(strcmp(event,"Save") == 0) {
+  if(strcmp(event,"Save") == 0) { //TODO: refactor to say at least "SaveCalibration"
     save_calibration();
+  } else
+  if(strcmp(event,"SaveBecq") == 0) {
+    int b1 = m_gui->get_item_state_uint8("BECQ1");
+    int b2 = m_gui->get_item_state_uint8("BECQ2");
+    int b3 = m_gui->get_item_state_uint8("BECQ3");
+    int b4 = m_gui->get_item_state_uint8("BECQ4");
+    
+    float beff = b1*1000 + b2*100 + b3*10 + b4;
+    m_geiger.set_becquerel_eff(beff);
+    m_gui->jump_to_screen(0);
   } else
   if(strcmp(event,"SaveTime") == 0) {
     save_time();
@@ -481,12 +491,6 @@ void Controller::update() {
   int_to_char(m_geiger.get_cpm_deadtime_compensated()+0.5,text_cpmdint,7);
   float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,7);
   
-//  text_cpm[0]      = 'C';
-//  text_cpm[1]      = 'P';
-//  text_cpm[2]      = 'M';
-//  text_cpm[3]      = ' ';
-//  text_cpm[4]      = ':';
-
   float *graph_data;
   graph_data = m_geiger.get_cpm_last_windows();
 
@@ -552,5 +556,14 @@ void Controller::update() {
     float_to_char(m_geiger.get_microsieverts(),text_sieverts,7);
     m_gui->receive_update("SVREM", text_sieverts);
     m_gui->receive_update("SVREMLABEL","\x80Sv/h");
+  }
+  
+  char text_becq[50];
+  float becq = m_geiger.get_becquerel();
+  if(becq >= 0) {
+    float_to_char(m_geiger.get_becquerel(),text_becq,7);
+    m_gui->receive_update("BECQ",text_becq);
+  } else {
+    m_gui->receive_update("BECQINFO","Becquerel unset");
   }
 }

@@ -6,12 +6,13 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 0 - main screen
 {
- 4,
+ 5,
  {
    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"      , 255}, 
    { ITEM_TYPE_MENU       , 1, 1, "Current Readings", 4},
    { ITEM_TYPE_MENU       , 2, 2, "Reports"         , 5},
-   { ITEM_TYPE_MENU       , 3, 3, "Settings"        , 0}
+   { ITEM_TYPE_MENU       ,20, 3, "Advanced"        , 255},
+   { ITEM_TYPE_MENU       , 3, 4, "Settings"        , 0}
 //   { ITEM_TYPE_MENU_ACTION, 0, 4, "Sleep" }
  }
 },
@@ -213,13 +214,14 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 17 - Geiger settings
 {
-  5,
+  6,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"    , 255},
     { ITEM_TYPE_MENU       ,19, 1, "Sv/Rem"        , 255},
     { ITEM_TYPE_MENU       , 5, 2, "Calibration"   , 26 },
     { ITEM_TYPE_MENU_ACTION, 0, 3, "Clear Log"     , 27 },
-    { ITEM_TYPE_MENU       ,13, 4, "Warning Levels", 28 }
+    { ITEM_TYPE_MENU       ,13, 4, "Warning Levels", 28 },
+    { ITEM_TYPE_MENU       ,22, 5, "Becquerel Val" , 255}
 //    { ITEM_TYPE_MENU,INVALID_SCREEN, 2, "Averaging Period" },
   }
 },
@@ -242,7 +244,42 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU_ACTION, 1, 1, "Sievert"   , 255},
     { ITEM_TYPE_MENU_ACTION, 2, 2, "Roentgen"  , 255}
   }
-}
+},
+
+//Screen 20 - Advanced
+{
+  2,
+  {
+    { ITEM_TYPE_HEAD, 0, 0, "CPMDEADINT", 255}, 
+    { ITEM_TYPE_MENU,21, 1, "Becquerel" , 255}
+  }
+
+},
+
+//Screen 21 - Becquerel
+{
+  5,
+  {
+    { ITEM_TYPE_HEAD        , 0  ,  0, "CPMDEADINT", 255}, 
+    { ITEM_TYPE_VARLABEL    , 0  , 30, "BECQINFO"  , 255},
+    { ITEM_TYPE_BIGVARLABEL , 0  , 43, "BECQ"      , 255},
+    { ITEM_TYPE_LABEL        ,112, 74, "Bq"        , 255},
+    { ITEM_TYPE_SMALLLABEL   ,8  ,120, "BECQUEREL ESTIMATED",255}
+  }
+},
+
+//Screen 22 - Set Becquerel conversion value
+{
+  6,
+  {
+    { ITEM_TYPE_HEAD       , 0 ,  0 , "CPMDEADINT", 255 }, 
+    { ITEM_TYPE_VARNUM     , 38, 50 , "BECQ1"     , 255 },
+    { ITEM_TYPE_VARNUM     , 56, 50 , "BECQ2"     , 255 },
+    { ITEM_TYPE_VARNUM     , 74, 50 , "BECQ3"     , 255 },
+    { ITEM_TYPE_VARNUM     , 92, 50 , "BECQ4"     , 255 },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveBecq"  , 2 },
+  }
+},
 
 };
 
