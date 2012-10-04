@@ -68,7 +68,7 @@ void tick_item(char *name,bool tick_val) {
     if(strcmp(name,ticked_items[n]) == 0) {
       if(tick_val == true) return;
       if(tick_val == false) {
-        for(uint32_t i=n;n<ticked_items_size-1;i++) {
+        for(uint32_t i=n;i<(ticked_items_size-1);i++) {
           strcpy(ticked_items[i],ticked_items[i+1]);
         }
         ticked_items_size--;

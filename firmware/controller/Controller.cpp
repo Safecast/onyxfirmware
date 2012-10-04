@@ -221,10 +221,14 @@ void Controller::receive_gui_event(char *event,char *value) {
   if(strcmp(event,"Japanese") == 0) {
     m_gui->set_language(LANGUAGE_JAPANESE);
     flashstorage_keyval_set("LANGUAGE","Japanese");
+    tick_item("English" ,false);
+    tick_item("Japanese",true);
   } else
   if(strcmp(event,"English") == 0) {
     m_gui->set_language(LANGUAGE_ENGLISH);
     flashstorage_keyval_set("LANGUAGE","English");
+    tick_item("English" ,true);
+    tick_item("Japanese",false);
   } else
   if(strcmp(event,"Geiger Beep") == 0) {
      m_geiger.toggle_beep();
@@ -536,7 +540,6 @@ void Controller::update() {
 
   const char *svrem = flashstorage_keyval_get("SVREM");
 
-  if(svrem == 0) display_draw_text(0,80,"ZERO",0);
   if((svrem != 0) && (strcmp(svrem,"REM") == 0)) {
     char text_rem[50];
     text_rem[0]=0;
