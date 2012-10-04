@@ -62,7 +62,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   {
     { ITEM_TYPE_HEAD    , 0 , 0  , "CPMDEADINT"    , 255 }, 
     { ITEM_TYPE_GRAPH   , 4 , 110, "RECENTDATA"    , 255 },
-    { ITEM_TYPE_LABEL   ,255, 112, "Last 2 minutes", 255 }
+    { ITEM_TYPE_LABEL   ,255, 112, "Last 2 minutes", 17  }
   }
 },
 
@@ -72,8 +72,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   {
     { ITEM_TYPE_HEAD , 0 , 0  , "CPMDEADINT"       , 255},
     { ITEM_TYPE_MENU , 6 , 3  , "       OK       " , 255},
-    { ITEM_TYPE_MENU , 3 , 4  , "     Cancel     " , 255},
-    { ITEM_TYPE_LABEL,255, 16 , "Are you sure?"    , 255}
+    { ITEM_TYPE_MENU , 3 , 4  , "     Cancel     " , 18 },
+    { ITEM_TYPE_LABEL,255, 16 , "Are you sure?"    , 19}
   }
 },
 
@@ -81,9 +81,9 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_LABEL,255, 32, "Waiting for 15s" , 255 },
-    { ITEM_TYPE_LABEL,255, 64, "Please expose"   , 255 },
-    { ITEM_TYPE_LABEL,255, 80, "to source."      , 255 },
+    { ITEM_TYPE_LABEL,255, 32, "Waiting for 15s" , 20 },
+    { ITEM_TYPE_LABEL,255, 64, "Please expose"   , 21 },
+    { ITEM_TYPE_LABEL,255, 80, "to source."      , 22 },
     { ITEM_TYPE_DELAY, 60,100,"DELAYA\0 16,7"    , 255 } // 16 second delay, then go to screen 7
   } 
 },
@@ -92,7 +92,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   2,
   {
-    { ITEM_TYPE_LABEL,255, 32, "Acquiring, 30s" , 255 },
+    { ITEM_TYPE_LABEL,255, 32, "Acquiring, 30s" , 23 },
     { ITEM_TYPE_DELAY, 60,100,"DELAYB\0 31,8"   , 255 } // 31 second delay
   } 
 }, 
@@ -149,7 +149,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 98, 50 , "DATEYEAR1" , 255 },
     { ITEM_TYPE_VARNUM     ,118, 50 , "DATEYEAR2" , 255 },
     { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveDate"  , 2 },
-    { ITEM_TYPE_LABEL      , 0 ,  20, "MM/DD/YY"  , 255 },
+    { ITEM_TYPE_LABEL      , 0 ,  20, "MM/DD/YY"  , 24 },
     { ITEM_TYPE_ACTION     ,  0,   0, "DATESCREEN", 255 }
   }
 },
@@ -193,7 +193,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   4,
   {
-    { ITEM_TYPE_LABEL      ,255,32, "Average CPM", 255},
+    { ITEM_TYPE_LABEL      ,255,32, "Average CPM", 25 },
     { ITEM_TYPE_VARLABEL   ,255,48, "TTCOUNT"    , 255},
     { ITEM_TYPE_VARLABEL   ,255,90, "TTTIME"     , 255},
     { ITEM_TYPE_ACTION     ,  2, 2, "TOTALTIMER" , 255}
@@ -217,9 +217,9 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   {
     { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"    , 255},
     { ITEM_TYPE_MENU       ,19, 1, "Sv/Rem"        , 255},
-    { ITEM_TYPE_MENU       , 5, 2, "Calibration"   , 255},
-    { ITEM_TYPE_MENU_ACTION, 0, 3, "Clear Log"     , 255},
-    { ITEM_TYPE_MENU       ,13, 4, "Warning Levels", 255}
+    { ITEM_TYPE_MENU       , 5, 2, "Calibration"   , 26 },
+    { ITEM_TYPE_MENU_ACTION, 0, 3, "Clear Log"     , 27 },
+    { ITEM_TYPE_MENU       ,13, 4, "Warning Levels", 28 }
 //    { ITEM_TYPE_MENU,INVALID_SCREEN, 2, "Averaging Period" },
   }
 },
