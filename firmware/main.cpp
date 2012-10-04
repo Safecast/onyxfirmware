@@ -57,7 +57,7 @@ int main(void) {
     if(power_get_wakeup_source() == WAKEUP_RTC) {
       c.m_sleeping = true;
     } else {
-      buzzer_nonblocking_buzz(1);
+      buzzer_nonblocking_buzz(0.05);
     }
 
     GUI m_gui(c);
@@ -66,20 +66,36 @@ int main(void) {
     u.initialise();
     serial_initialise();
   
-    const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
-    if(sbright != 0) {
-      unsigned int c;
-      sscanf(sbright, "%u", &c);
-      display_brightness(c+6);
-    }
- 
+
+    // Need to refactor out stored settings
     if(c.m_sleeping == false) {   
+      const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
+      if(sbright != 0) {
+        unsigned int c;
+        sscanf(sbright, "%u", &c);
+        display_set_brightness(c+6);
+      }
+ 
       const char *sbeep = flashstorage_keyval_get("GEIGERBEEP");
       if(sbeep != 0) {
-        if(strcmp(sbeep,"true") == 0) g.set_beep(true);
+        if(strcmp(sbeep,"true") == 0) { g.set_beep(true); tick_item("Geiger Beep",true); }
                                  else g.set_beep(false);
       }
+
+      const char *language = flashstorage_keyval_get("LANGUAGE");
+      if(language != 0) {
+        if(strcmp(language,"English" ) == 0) { m_gui.set_language(LANGUAGE_ENGLISH);  tick_item("English"  ,true); } else
+        if(strcmp(language,"Japanese") == 0) { m_gui.set_language(LANGUAGE_JAPANESE); tick_item("Japanese" ,true); }
+      } else {
+        m_gui.set_language(LANGUAGE_ENGLISH);
+        tick_item("English",true); 
+      }
+
+      const char *svrem = flashstorage_keyval_get("SVREM");
+      if(strcmp(svrem,"REM") == 0) { tick_item("Roentgen",true); }
+                              else { tick_item("Sievert",true);}
     }
+
 
     m_gui.jump_to_screen(1);
     m_gui.push_stack(0,1);

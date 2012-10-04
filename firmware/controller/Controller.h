@@ -37,6 +37,7 @@ public:
   bool     m_keytrigger;
   bool     m_warning_raised;
   uint32   m_total_timer_start;
+  bool     m_changing_brightness;
 };
 
 #endif

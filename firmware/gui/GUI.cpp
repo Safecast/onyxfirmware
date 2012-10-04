@@ -10,6 +10,7 @@
 #include "realtime.h"
 #include <stdio.h>
 #include "Geiger.h"
+#include <string.h>
 
 #define KEY_BACK   6
 #define KEY_HOME   8
@@ -22,8 +23,9 @@
 
 bool first_render=true;
 
+uint16 header_color=HEADER_COLOR_CPMINVALID;
 
-uint16 header_color;
+uint8_t m_language;
 
 void display_draw_equtriangle(uint8_t x,uint8_t y,uint8_t s,uint16_t color) {
 
@@ -55,20 +57,72 @@ void display_draw_equtriangle_inv(uint8_t x,uint8_t y,uint8_t s,uint16_t color) 
   }
 }
 
-void render_item_menu(screen_item &item, bool selected) {
+char     ticked_items[10][TEXT_LENGTH];
+uint32_t ticked_items_size=0;
 
-  uint16_t highlight = FOREGROUND_COLOR;
-  if(selected) highlight = BACKGROUND_COLOR;
+void tick_item(char *name,bool tick_val) {
 
-  int len = strlen(item.text);
-  char text[50];
-  strcpy(text,item.text);
-  for(int n=len;n<16;n++) {
-    text[n  ]=' ';
-    text[n+1]=0;
+  if((ticked_items_size >= 10) && (tick_val == true)) return;
+
+  for(uint32_t n=0;n<ticked_items_size;n++) {
+    if(strcmp(name,ticked_items[n]) == 0) {
+      if(tick_val == true) return;
+      if(tick_val == false) {
+        for(uint32_t i=n;i<(ticked_items_size-1);i++) {
+          strcpy(ticked_items[i],ticked_items[i+1]);
+        }
+        ticked_items_size--;
+        return;
+      }
+    }
   }
 
-  display_draw_text(0,item.val2*16,text,highlight);
+  if(tick_val == true) {
+    strcpy(ticked_items[ticked_items_size],name);
+    ticked_items_size++;
+  }
+}
+
+bool is_ticked(char *name) {
+  for(uint32_t n=0;n<ticked_items_size;n++) {
+    if(strcmp(name,ticked_items[n]) == 0) return true;
+  }
+  return false;
+}
+
+
+void render_item_menu(screen_item &item, bool selected) {
+  
+  uint16_t highlight = FOREGROUND_COLOR;
+  if(selected) highlight = BACKGROUND_COLOR;
+  
+  // render tick
+  bool ticked = is_ticked(item.text);
+  if(ticked) {
+    display_draw_text(128-8,item.val2*16,"\x7F",highlight);
+  }
+
+  if((m_language == LANGUAGE_ENGLISH) || (item.kanji_image == 255)) {
+
+    int len = strlen(item.text);
+    char text[50];
+    strcpy(text,item.text);
+    for(int n=len;n<16;n++) {
+      text[n  ]=' ';
+      text[n+1]=0;
+    }
+    if(ticked) text[15]=0;
+
+    display_draw_text(0,item.val2*16,text,highlight);
+  } else
+  if(m_language == LANGUAGE_JAPANESE) {
+    if(!ticked) {
+      display_draw_fixedimage(0,item.val2*16,item.kanji_image,highlight);
+    } else {
+      display_draw_fixedimage_xlimit(0,item.val2*16,item.kanji_image,highlight,128-8);
+    }
+  }
+
 }
 
 #define VARNUM_MAXSIZE 10
@@ -80,7 +134,7 @@ uint8_t varnum_size = 0;
 uint8_t get_item_state_varnum(const char *name) {
 
   for(uint32_t n=0;n<varnum_size;n++) {
-    if(strcmp(varnum_names[n],name) == true) {
+    if(strcmp(varnum_names[n],name) == 0) {
       return varnum_values[n];
     }
   }
@@ -89,7 +143,7 @@ uint8_t get_item_state_varnum(const char *name) {
 
 void set_item_state_varnum(char *name,uint8_t value) {
   for(uint32_t n=0;n<varnum_size;n++) {
-    if(strcmp(varnum_names[n],name) == true) {
+    if(strcmp(varnum_names[n],name) == 0) {
       varnum_values[n] = value;
       return;
     }
@@ -393,7 +447,7 @@ void clear_item(screen_item &item,bool selected) {
   }
 }
 
-void update_item_graph(screen_item &item,void *value) {
+void update_item_graph(screen_item &item,const void *value) {
  source_graph_data = (float *)value;
 }
 
@@ -414,8 +468,13 @@ uint8 lock_mask [11][8] = {
 
 };
 
+
+bool lock_state=false;
 void render_lock(bool on) {
   
+  if((on == lock_state) && (on != true)) return;
+  lock_state = on;
+
   uint16 image_data[88]; // 8*11
   for(int x=0;x<8;x++) {
     for(int y=0;y<11;y++) {
@@ -454,11 +513,19 @@ uint8 battery_mask [16][24] = {
 
 };
 
+uint16 last_batlevel=0;
+
 void render_battery(int x,int y,int level) {
 
   uint16 image_data[384]; // 24*16
 
+  // only move bat level, if there's a big difference to prevent flickering.
   level = (((float) level)/100)*23;
+  uint16 level_delta = level-last_batlevel;
+  if(level_delta < 0) level_delta = 0-level_delta;
+  if(level_delta <= 1) level = last_batlevel;
+
+  last_batlevel = level;
 
   for(int x=0;x<24;x++) {
     for(int y=0;y<16;y++) {
@@ -480,7 +547,7 @@ void render_battery(int x,int y,int level) {
   display_draw_image(104,0,24,16,image_data);
 }
 
-void update_item_head(screen_item &item,void *value) {
+void update_item_head(screen_item &item,const void *value) {
 
   uint16_t new_header_color;
   if(system_geiger->is_cpm_valid()) new_header_color = HEADER_COLOR_NORMAL;
@@ -492,9 +559,9 @@ void update_item_head(screen_item &item,void *value) {
   header_color = new_header_color;
 
   int len = strlen((char *) value);
-  char v[50];
+  char v[TEMP_STR_LEN];
   strcpy(v,(char *) value);
-  for(int n=len;n<6;n++) {
+  for(int n=len;(n<6) && (n<(TEMP_STR_LEN-1));n++) {
     v[n  ] = ' ';
     v[n+1]=0;
   }
@@ -513,22 +580,21 @@ void update_item_head(screen_item &item,void *value) {
   if(year >= 2000) {year-=2000;} else
   if(year <  2000) {year-=1900;}
 
-  char time[50];
-  char date[50];
+  char time[TEMP_STR_LEN];
+  char date[TEMP_STR_LEN];
   sprintf(time,"%02u:%02u:%02u",hours,min,sec);
   sprintf(date,"%02u/%02u/%02u",month,day,year);
   if(year == 0) { sprintf(date,"%02u/%02u/00",month,day); }
 
-
   // pad out time and date
   int tlen = strlen(time);
-  for(int n=tlen;n<8;n++) {
+  for(int n=tlen;(n<8) && (n<(TEMP_STR_LEN-1));n++) {
     time[n  ] = ' ';
     time[n+1]=0;
   }
 
   int dlen = strlen(date);
-  for(int n=dlen;n<8;n++) {
+  for(int n=dlen;(n<8) && (n<(TEMP_STR_LEN-1));n++) {
     date[n  ] = ' ';
     date[n+1]=0;
   }
@@ -538,11 +604,11 @@ void update_item_head(screen_item &item,void *value) {
   display_draw_tinytext(0,128-5,OS100VERSION,FOREGROUND_COLOR);
 }
 
-void update_item_varnum(screen_item &item,void *value) {
+void update_item_varnum(screen_item &item,const void *value) {
   set_item_state_varnum(item.text,((uint8_t *) value)[0]);
 }
 
-void update_item_delay(screen_item &item,void *value) {
+void update_item_delay(screen_item &item,const void *value) {
 
   if(first_render == true) {
     // parse out delay time
@@ -568,7 +634,7 @@ int get_item_state_delay_destination(screen_item &item) {
   return 0;
 }
 
-void update_item(screen_item &item,void *value) {
+void update_item(screen_item &item,const void *value) {
   if(item.type == ITEM_TYPE_VARLABEL) {
     if(item.val1 == 255) {
       // display_draw_rectangle(0,item.val2,128,item.val2+16,BACKGROUND_COLOR); unfortunately renders badly.
@@ -628,6 +694,7 @@ GUI::GUI(Controller &r) : receive_gui_events(r) {
   m_sleeping=false;
   m_redraw=false;
   m_screen_lock=false;
+  m_language = LANGUAGE_ENGLISH;
 }
 
 
@@ -702,7 +769,7 @@ void GUI::redraw() {
 
 void GUI::receive_key(int key_id,int type) {
 
-  if(new_keys_size > NEW_KEYS_MAX_SIZE) return;
+  if(new_keys_size >= NEW_KEYS_MAX_SIZE) return;
 
   new_keys_key [new_keys_size] = key_id;
   new_keys_type[new_keys_size] = type;
@@ -790,8 +857,8 @@ void GUI::process_key(int key_id,int type) {
         }
 
         push_stack(current_screen,selected_item);
-	current_screen = screens_layout[current_screen].items[selected_item].val1;
-	selected_item = 1;
+        current_screen = screens_layout[current_screen].items[selected_item].val1;
+        selected_item = 1;
       }
     } else 
     if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_MENU_ACTION) {
@@ -807,26 +874,27 @@ void GUI::process_key(int key_id,int type) {
       if(selected_item != 0) {
         if((selected_item-1) >= 0) {
           if(screens_layout[current_screen].items[selected_item-1].type == ITEM_TYPE_VARNUM) {
-            selected_item--;
+		        selected_item--;
             receive_gui_events.receive_gui_event("varnumchange",screens_layout[current_screen].items[selected_item].text);
             return;
-          }
-        }
-      }
-    }
+					}
+				}
+			}
+		}
 
-    if(selected_stack_size !=0) {
-      clear_next_render = true; 
-      first_render=true;
-      clear_screen_screen   = current_screen;
-      clear_screen_selected = selected_item;
+    if((current_screen != 0) && (!clear_next_render)) {
+			if(selected_stack_size !=0) {
+				clear_next_render = true; 
+				first_render=true;
+				clear_screen_screen   = current_screen;
+				clear_screen_selected = selected_item;
 
-      pop_stack(current_screen,selected_item);
+				pop_stack(current_screen,selected_item);
+			}
     }
   }
 
-  if((key_id == KEY_HOME) && (type == KEY_RELEASED)) {
-
+  if((key_id == KEY_HOME) && (type == KEY_RELEASED) && (!clear_next_render)) {
     if(current_screen != 0) {
       clear_next_render = true;
       first_render=true;
@@ -836,7 +904,6 @@ void GUI::process_key(int key_id,int type) {
       current_screen = 0;
       selected_item  = 1;
     }
-
   }
   
 }
@@ -852,9 +919,9 @@ void GUI::jump_to_screen(const char screen) {
   selected_item  = 1;
 }
 
-void GUI::receive_update(const char *tag,void *value) {
+void GUI::receive_update(const char *tag,const void *value) {
   for(uint32_t n=0;n<screens_layout[current_screen].item_count;n++) {
-    if(strcmp(tag,screens_layout[current_screen].items[n].text) == true) {
+    if(strcmp(tag,screens_layout[current_screen].items[n].text) == 0) {
       update_item(screens_layout[current_screen].items[n],value);
 
       // has to be in the GUI object, because we don't have access to current_screen outside it.
@@ -879,4 +946,8 @@ void GUI::toggle_screen_lock() {
 uint8_t GUI::get_item_state_uint8(const char *tag) {
   // should check item type and repsond appropriately, however only varnum currently returns uint8_t
   return get_item_state_varnum(tag);
+}
+
+void GUI::set_language(uint8_t lang) {
+  m_language = lang;
 }

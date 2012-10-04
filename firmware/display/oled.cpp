@@ -32,14 +32,12 @@ write_c(unsigned char out_command)
     delay_us(70);
 }
 
-void
-write_d_stream(void *data, unsigned int count)
-{
-    gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
-                   PIN_MAP[LCD_DC_GPIO].gpio_bit,
-                   1);
-    spi_aux_write(LCD_SPI,(uint8 *)data, count);
-    delay_us(10);
+void write_d_stream(void *data, uint32 count) {
+  gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
+                 PIN_MAP[LCD_DC_GPIO].gpio_bit,
+                 1);
+  uint8 fail = spi_aux_write(LCD_SPI,(uint8 *)data, count);
+  delay_us(10);
 }
 
 void write_d(unsigned char out_data)
@@ -99,8 +97,8 @@ static void Home(void)
 
 static void Set_Remap_Format(unsigned char d)
 {
-    write_c(0xA0);            // Set Re-Map / Color Depth
-    write_d(d);              //   Default => 0x40
+    write_c(0xA0);      // Set Re-Map / Color Depth
+    write_d(d);         //   Default => 0x40
                         //     Horizontal Address Increment
                         //     Column Address 0 Mapped to SEG0
                         //     Color Sequence: A => B => C
@@ -112,21 +110,21 @@ static void Set_Remap_Format(unsigned char d)
 
 static void Set_Start_Line(unsigned char d)
 {
-    write_c(0xA1);            // Set Vertical Scroll by RAM
+    write_c(0xA1);           // Set Vertical Scroll by RAM
     write_d(d);              //   Default => 0x00
 }
 
 
 static void Set_Display_Offset(unsigned char d)
 {
-    write_c(0xA2);            // Set Vertical Scroll by Row
+    write_c(0xA2);           // Set Vertical Scroll by Row
     write_d(d);              //   Default => 0x60
 }
 
 
 static void Set_Display_Mode(unsigned char d)
 {
-    write_c(0xA4|d);          // Set Display Mode
+    write_c(0xA4|d);    // Set Display Mode
                         //   Default => 0xA6
                         //     0xA4 (0x00) => Entire Display Off, All Pixels Turn Off
                         //     0xA5 (0x01) => Entire Display On, All Pixels Turn On at GS Level 63

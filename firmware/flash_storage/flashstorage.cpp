@@ -4,6 +4,7 @@
 #include "safecast_wirish_types.h"
 #include "display.h"
 #include "log.h"
+#include <string.h>
 
 extern uint8_t _binary___binary_data_flash_data_start;
 extern uint8_t _binary___binary_data_flash_data_size;
@@ -118,7 +119,7 @@ char *flashstorage_keyval_get_address(const char *key) {
       return 0;
     }
 
-    if(strcmp(key, (const char *) (flash_data_area_aligned+n)) == true) {
+    if(strcmp(key, (const char *) (flash_data_area_aligned+n)) == 0) {
       uint8_t *addr = ((flash_data_area_aligned)+n);
       return (char *) addr;
     }

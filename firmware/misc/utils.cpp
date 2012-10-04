@@ -131,14 +131,14 @@ void int_to_char(uint32_t number,char *text,uint32_t width) {
   }
 
 }
-
+/*
 bool strcmp(const char *i,const char *j) {
   for(uint32_t n=0;;n++) {
     if(i[n] != j[n]) return false;
     if((i[n] == 0) && (j[n] == 0)) return true;
   }
 }
-
+*/
 bool strcmpl(const char *i,const char *j,uint32_t len) {
   for(uint32_t n=0;n<len;n++) {
     if(i[n] != j[n]) return false;
@@ -146,6 +146,7 @@ bool strcmpl(const char *i,const char *j,uint32_t len) {
   }
 }
 
+/*
 int32_t strlen(const char *i) {
 
   for(uint32_t n=0;n<100;n++) {
@@ -153,7 +154,8 @@ int32_t strlen(const char *i) {
   }
   return 0;
 }
-
+*/
+/*
 void strcpy(char *i,const char *j) {
 
   for(uint32_t n=0;;n++) {
@@ -162,3 +164,4 @@ void strcpy(char *i,const char *j) {
   }
 
 }
+*/

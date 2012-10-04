@@ -14,6 +14,7 @@
 #include "switch.h"
 #include "qr_xfer.h"
 #include "buzzer.h"
+#include <string.h>
 //#define DISABLE_ACCEL
 
 Controller *system_controller;
@@ -29,6 +30,7 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
   system_controller = this;
   m_last_switch_state = true;
   m_warning_raised = false;
+  m_changing_brightness=false;
 
   // Get warning cpm from flash
   m_warncpm = -1;
@@ -182,7 +184,7 @@ bool is_leap(int month,int day,int year) {
 void Controller::receive_gui_event(char *event,char *value) {
 
   //TODO: Fix this total mess, refactor into switch, break conditions out into methods.
-  if(strcmp(event,"Sleep")) {
+  if(strcmp(event,"Sleep") == 0) {
     if(m_sleeping == false) {
       display_powerdown();
       m_sleeping=true;
@@ -191,10 +193,10 @@ void Controller::receive_gui_event(char *event,char *value) {
       power_standby();
     }
   } else
-  if(strcmp(event,"KEYPRESS")) {
+  if(strcmp(event,"KEYPRESS") == 0) {
     m_powerup=true;
   } else
-  if(strcmp(event,"TOTALTIMER")) {
+  if(strcmp(event,"TOTALTIMER") == 0) {
     m_geiger.reset_total_count();
     m_total_timer_start = realtime_get_unixtime();
 
@@ -203,39 +205,72 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_gui->receive_update("TTTIME" ,blank);
     m_gui->redraw();
   } else
-  if(strcmp(event,"Save")) {
+  if(strcmp(event,"Save") == 0) { //TODO: refactor to say at least "SaveCalibration"
     save_calibration();
   } else
-  if(strcmp(event,"SaveTime")) {
+  if(strcmp(event,"SaveBecq") == 0) {
+    int b1 = m_gui->get_item_state_uint8("BECQ1");
+    int b2 = m_gui->get_item_state_uint8("BECQ2");
+    int b3 = m_gui->get_item_state_uint8("BECQ3");
+    int b4 = m_gui->get_item_state_uint8("BECQ4");
+    
+    float beff = b1*1000 + b2*100 + b3*10 + b4;
+    m_geiger.set_becquerel_eff(beff);
+    m_gui->jump_to_screen(0);
+  } else
+  if(strcmp(event,"SaveTime") == 0) {
     save_time();
   } else
-  if(strcmp(event,"SaveDate")) {
+  if(strcmp(event,"SaveDate") == 0) {
     save_date();
   } else 
-  if(strcmp(event,"SaveWarnCPM")) {
+  if(strcmp(event,"SaveWarnCPM") == 0) {
     m_warning_raised = false; 
     save_warncpm();
   } else
-  if(strcmp(event,"Geiger Beep")) {
+  if(strcmp(event,"Japanese") == 0) {
+    m_gui->set_language(LANGUAGE_JAPANESE);
+    flashstorage_keyval_set("LANGUAGE","Japanese");
+    tick_item("English" ,false);
+    tick_item("Japanese",true);
+  } else
+  if(strcmp(event,"English") == 0) {
+    m_gui->set_language(LANGUAGE_ENGLISH);
+    flashstorage_keyval_set("LANGUAGE","English");
+    tick_item("English" ,true);
+    tick_item("Japanese",false);
+  } else
+  if(strcmp(event,"Geiger Beep") == 0) {
      m_geiger.toggle_beep();
-     if(m_geiger.is_beeping()) flashstorage_keyval_set("GEIGERBEEP","true");
-                          else flashstorage_keyval_set("GEIGERBEEP","false");
+     if(m_geiger.is_beeping()) { flashstorage_keyval_set("GEIGERBEEP","true");  tick_item("Geiger Beep",true);  }
+                          else { flashstorage_keyval_set("GEIGERBEEP","false"); tick_item("Geiger Beep",false); }
   } else 
-  if(strcmp(event,"Clear Log")) {
+  if(strcmp(event,"Sievert") == 0) {
+    flashstorage_keyval_set("SVREM","SV");
+    tick_item("Sievert" ,true);
+    tick_item("Roentgen",false);
+  } else
+  if(strcmp(event,"Roentgen") == 0) {
+    flashstorage_keyval_set("SVREM","REM");
+    tick_item("Sievert" ,false);
+    tick_item("Roentgen",true);
+  } else
+  if(strcmp(event,"Clear Log") == 0) {
     buzzer_nonblocking_buzz(3);
     flashstorage_log_clear();
   } else 
-  if(strcmp(event,"SaveBrightness")) {
+  if(strcmp(event,"SaveBrightness") == 0) {
     uint8 b = m_gui->get_item_state_uint8("BRIGHTNESS");
     char sbright[50];
-    sprintf(sbright,"%u",b);
+    sprintf(sbright,"%u",b+6);
     flashstorage_keyval_set("BRIGHTNESS",sbright);
     m_gui->jump_to_screen(0);
+    m_changing_brightness = false;
   } else
-  if(strcmp(event,"CALIBRATE")) {
+  if(strcmp(event,"CALIBRATE") == 0) {
     initialise_calibration();
   } else
-  if(strcmp(event,"DATESCREEN")) {
+  if(strcmp(event,"DATESCREEN") == 0) {
     uint8 m1,m2,d1,d2,y1,y2;
     d1 = m_gui->get_item_state_uint8("DATEDAY1");
     d2 = m_gui->get_item_state_uint8("DATEDAY2");
@@ -253,10 +288,11 @@ void Controller::receive_gui_event(char *event,char *value) {
       m_gui->redraw();
     }
   } else 
-  if(strcmp(event,"varnumchange")) {
-    if(strcmp("BRIGHTNESS",value)) {
+  if(strcmp(event,"varnumchange") == 0) {
+    m_changing_brightness = true;
+    if(strcmp("BRIGHTNESS",value) == 0) {
       int b = m_gui->get_item_state_uint8("BRIGHTNESS");
-      display_brightness(b+6);
+      display_set_brightness(b+6);
     } else
 
     if(strcmpl("CAL",value,3)) {
@@ -321,12 +357,12 @@ void Controller::receive_gui_event(char *event,char *value) {
       m_gui->receive_update("TIMESEC2",&s2);
     } 
   } else
-  if(strcmp(event,"Serial Transfer")) {
+  if(strcmp(event,"Serial Transfer") == 0) {
     display_draw_text(0,48,"Sending Log",0);
     serial_sendlog();
     display_draw_text(0,48,"Xfer Complete",0);
   } else 
-  if(strcmp(event,"QR Transfer")) {
+  if(strcmp(event,"QR Transfer") == 0) {
     display_draw_text(0,100,"QR Xfer",0);
     qr_logxfer();
   }
@@ -425,23 +461,36 @@ void Controller::update() {
     return;
   }
 
+  // Check for no key presses then dim screen
+  uint32_t release_time = cap_last_press();
+  uint32_t   press_time = cap_last_release();
+  uint32_t current_time = realtime_get_unixtime();
+
+  if(!m_changing_brightness) {
+		uint8_t current_brightness = display_get_brightness();
+		if(((current_time - press_time) > 10) && (current_time - release_time > 10)) {
+			if(current_brightness > 1) display_set_brightness(current_brightness-1);
+		} else {
+			const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
+			unsigned int user_brightness=15;
+			if(sbright != 0) {
+				sscanf(sbright, "%u", &user_brightness);
+			}
+			if(current_brightness < user_brightness) {
+        display_set_brightness(current_brightness+1);
+      }
+		}
+  }
+ 
+
   //TODO: I should change this so it only sends the messages the GUI currently needs.
   char text_cpmdint[50];
   char text_cpmd[50];
-  char text_sieverts[50];
 
   text_cpmdint[0] =0;
-  text_sieverts[0]=0;
   int_to_char(m_geiger.get_cpm_deadtime_compensated()+0.5,text_cpmdint,7);
-  float_to_char(m_geiger.get_microsieverts(),text_sieverts,5);
   float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,7);
   
-//  text_cpm[0]      = 'C';
-//  text_cpm[1]      = 'P';
-//  text_cpm[2]      = 'M';
-//  text_cpm[3]      = ' ';
-//  text_cpm[4]      = ':';
-
   float *graph_data;
   graph_data = m_geiger.get_cpm_last_windows();
 
@@ -470,14 +519,21 @@ void Controller::update() {
   uint32_t ctime = realtime_get_unixtime();
   uint32_t totaltimer_time = ctime - m_total_timer_start;
 
+  char temp[50];
   sprintf(text_totaltimer_time ,"%us",totaltimer_time);
-  sprintf(text_totaltimer_count,"%6.3f" ,((float)m_geiger.get_total_count()/((float)totaltimer_time))*60);
+  sprintf(temp,"  %6.3f  " ,((float)m_geiger.get_total_count()/((float)totaltimer_time))*60);
+  int len = strlen(temp);
+  int pad = (16-len)/2;
+  for(int n=0;n<16;n++) {
+    if((n > pad) && (n < (pad+len))) {text_totaltimer_count[n] = temp[n-pad];}
+                                else {text_totaltimer_count[n] = ' ';}
+    text_totaltimer_count[n+1] = 0;
+  }
 
   //if(m_geiger.is_cpm_valid()) m_gui->receive_update("CPMVALID","true");
   //                       else m_gui->receive_update("CPMVALID","false");
   m_gui->receive_update("CPMDEADINT",text_cpmdint);
   m_gui->receive_update("CPMDEAD",text_cpmd);
-  m_gui->receive_update("SIEVERTS",text_sieverts);
   m_gui->receive_update("RECENTDATA",graph_data);
   m_gui->receive_update("DELAYA",NULL);
   m_gui->receive_update("DELAYB",NULL);
@@ -485,4 +541,29 @@ void Controller::update() {
   m_gui->receive_update("DATE",text_date);
   m_gui->receive_update("TTCOUNT",text_totaltimer_count);
   m_gui->receive_update("TTTIME" ,text_totaltimer_time);
+
+  const char *svrem = flashstorage_keyval_get("SVREM");
+
+  if((svrem != 0) && (strcmp(svrem,"REM") == 0)) {
+    char text_rem[50];
+    text_rem[0]=0;
+    float_to_char(m_geiger.get_microrems(),text_rem,7);
+    m_gui->receive_update("SVREM", text_rem);
+    m_gui->receive_update("SVREMLABEL","\x80rem/h");
+  } else {
+    char text_sieverts[50];
+    text_sieverts[0]=0;
+    float_to_char(m_geiger.get_microsieverts(),text_sieverts,7);
+    m_gui->receive_update("SVREM", text_sieverts);
+    m_gui->receive_update("SVREMLABEL","\x80Sv/h");
+  }
+  
+  char text_becq[50];
+  float becq = m_geiger.get_becquerel();
+  if(becq >= 0) {
+    float_to_char(m_geiger.get_becquerel(),text_becq,7);
+    m_gui->receive_update("BECQ",text_becq);
+  } else {
+    m_gui->receive_update("BECQINFO","Becquerel unset");
+  }
 }

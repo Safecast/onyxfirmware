@@ -1,0 +1,16 @@
+Changes for release 7 (4th October 2012)
+
+Japanese language support
+smoothing to reduce jitter on battery icon
+tick box for some toggle menu items (audio on/off)
+screen dims after 10 seconds of inactivity
+serial interface for debugging.
+bugfix: in aggregate/avg mode, average CPM can leave artefacts on screen
+bugfix: black line in the middle of the battery icon - after many hours of debugging, appears to be display fault on my unit. Need to verify this.
+Support for Roentgens display instead of Sieverts
+Becquerel mode
+Add additional Japanese language translations.
+bugfix: it's occasionally possible to jump out of the current screen and back to home without trigger a screen clear. I'm not sure what triggers this bug. Requires further investigation. --- Appears to be triggered by pressing both back and home at the same time.
+bugfix: If I mash buttons a lot I can get the header and other display items to stop working.
+bugfix: in settings, brightness. When selected the SaveBrightness item causes a flashing box to appear where the lock icon is.
+

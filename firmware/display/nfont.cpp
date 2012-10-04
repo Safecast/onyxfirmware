@@ -98,26 +98,31 @@ uint16_t get_tinypixel(char c,int c_x,int c_y) {
   return to565(value,value,value);
 }
 
-void draw_character(int x,int y,char c,uint16_t background) {
+void draw_character(uint32_t x,uint32_t y,char c,uint16_t background) {
 
   uint16_t character_data[8*16];
-  for(int n=0;n<(8*16);n++) character_data[n]=n;
+//  for(int n=0;n<(8*16);n++) character_data[n] = 0xF000;//background;
 
   for(size_t c_y=0;c_y<16;c_y++) {
     for(size_t c_x=0;c_x<8;c_x++) {
       int32_t px = get_pixel(c-32,c_x,c_y);
       int32_t value;
-      if(px == 65535) {
-        value = background;
-      } else {
-        int r = from565_r(px);
-        int g = from565_g(px);
-        int b = from565_b(px);
-        value = to565(r/background,g/background,b/background);
+ 
+      if((background != 0) || (background != 65535)) {
+				if(px == 65535) {
+					value = background;
+				} else
+        if(px == 0) {
+          value = 0;
+        } else {
+					uint16_t r = from565_r(px);
+					uint16_t g = from565_g(px);
+					uint16_t b = from565_b(px);
+					value = to565(r/background,g/background,b/background);
+				}
+        if(value < 0) value=0;
       }
       
-      if(value < 0) value=0;
-
       if(background == 65535) value = background ^ get_pixel(c-32,c_x,c_y); 
       if(background ==     0) value = get_pixel(c-32,c_x,c_y); 
 
@@ -193,21 +198,21 @@ void draw_tinycharacter(int x,int y,char c,uint16_t background) {
   oled_draw_rect(x,y,5,5,(uint8_t *) character_data);
 }
 
-void draw_text(int x,int y,const char *text,int16_t background) {
+void draw_text(int x,int y,const char *text,uint16_t background) {
 
   int length = strlen(text);
   if(length < 0    ) return;
   if(length > 10000) return;
 
-  int c_x = x;
-  int c_y = y;
+  uint32_t c_x = x;
+  uint32_t c_y = y;
   for(size_t n=0;n<length;n++) {
     draw_character(c_x,c_y,text[n],background);
     c_x+=8;
   }
 }
 
-void draw_bigtext(int x,int y,const char *text,int16_t background) {
+void draw_bigtext(int x,int y,const char *text,uint16_t background) {
 
   int length = strlen(text);
   if(length < 0    ) return;
@@ -221,7 +226,7 @@ void draw_bigtext(int x,int y,const char *text,int16_t background) {
   }
 }
 
-void draw_tinytext(int x,int y,const char *text,int16_t background) {
+void draw_tinytext(int x,int y,const char *text,uint16_t background) {
 
   int length = strlen(text);
   if(length < 0    ) return;

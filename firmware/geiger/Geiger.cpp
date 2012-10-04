@@ -70,7 +70,18 @@ void Geiger::initialise() {
   if(sfloat != 0) {
     float c;
     sscanf(sfloat, "%f", &c);
-    calibration_scaling = c+10;
+    calibration_scaling = c;
+  } else {
+    calibration_scaling = 1;
+  }
+
+  const char *bfloat = flashstorage_keyval_get("BECQEFF");
+  if(bfloat != 0) {
+    float c;
+    sscanf(bfloat, "%f", &c);
+    m_becquerel_eff = c;
+  } else {
+    m_becquerel_eff = -1;
   }
 
   system_geiger = this;
@@ -137,6 +148,7 @@ void Geiger::initialise() {
 
   timer_resume(TIMER4);
   m_samples_collected=0;
+  m_becquerel_eff = -1;
 }
 
 
@@ -248,6 +260,10 @@ float Geiger::get_cpm_deadtime_compensated() {
 //  return (cpm/((60*1000000)-deadtime_us))*(60*1000000);
 }
 
+float Geiger::get_microrems() {
+ return get_microsieverts()*100;
+}
+
 float Geiger::get_microsieverts() {
   float conversionCoefficient = 0.0029;
   float microsieverts =  (get_cpm_deadtime_compensated() * conversionCoefficient) * calibration_scaling;
@@ -322,6 +338,21 @@ void Geiger::reset_total_count() {
 
 uint32_t Geiger::get_total_count() {
   return total_count;
+}
+
+float Geiger::get_becquerel() {
+  if(m_becquerel_eff < 0) return -1;
+
+  return get_cpm_deadtime_compensated()*m_becquerel_eff;
+}
+  
+void  Geiger::set_becquerel_eff(float c) {
+  // save to flash
+  char sfloat[50];
+  sprintf(sfloat,"%f",c);
+  flashstorage_keyval_set("BECQEFF",sfloat);
+  
+  m_becquerel_eff = c;
 }
 
 void Geiger::powerup  () {}

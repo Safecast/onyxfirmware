@@ -18,6 +18,7 @@ public:
   float get_cpm30();
   float get_cpm_deadtime_compensated();
   float get_microsieverts();
+  float get_microrems();
   void  set_calibration(float c);
 
   float *get_cpm_last_windows();
@@ -32,6 +33,8 @@ public:
   bool is_beeping();
   void reset_total_count();
   uint32_t get_total_count();
+  float get_becquerel();
+  void  set_becquerel_eff(float v);
 
   uint16_t last_windows_position;
   uint16_t last_windows[WINDOWS_STORED];
@@ -40,6 +43,7 @@ public:
   bool     m_acquire_and_log;
   uint16_t m_samples_collected;
   bool     m_cpm_valid;
+  float    m_becquerel_eff;
 };
 
 extern Geiger *system_geiger;
