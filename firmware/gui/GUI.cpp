@@ -10,6 +10,7 @@
 #include "realtime.h"
 #include <stdio.h>
 #include "Geiger.h"
+#include <string.h>
 
 #define KEY_BACK   6
 #define KEY_HOME   8
@@ -56,10 +57,50 @@ void display_draw_equtriangle_inv(uint8_t x,uint8_t y,uint8_t s,uint16_t color) 
   }
 }
 
-void render_item_menu(screen_item &item, bool selected) {
+char     ticked_items[10][TEXT_LENGTH];
+uint32_t ticked_items_size=0;
 
+void tick_item(char *name,bool tick_val) {
+
+  if((ticked_items_size >= 10) && (tick_val == true)) return;
+
+  for(uint32_t n=0;n<ticked_items_size;n++) {
+    if(strcmp(name,ticked_items[n]) == 0) {
+      if(tick_val == true) return;
+      if(tick_val == false) {
+        for(uint32_t i=n;n<ticked_items_size-1;i++) {
+          strcpy(ticked_items[i],ticked_items[i+1]);
+        }
+        ticked_items_size--;
+        return;
+      }
+    }
+  }
+
+  if(tick_val == true) {
+    strcpy(ticked_items[ticked_items_size],name);
+    ticked_items_size++;
+  }
+}
+
+bool is_ticked(char *name) {
+  for(uint32_t n=0;n<ticked_items_size;n++) {
+    if(strcmp(name,ticked_items[n]) == 0) return true;
+  }
+  return false;
+}
+
+
+void render_item_menu(screen_item &item, bool selected) {
+  
   uint16_t highlight = FOREGROUND_COLOR;
   if(selected) highlight = BACKGROUND_COLOR;
+  
+  // render tick
+  bool ticked = is_ticked(item.text);
+  if(ticked) {
+    display_draw_text(128-8,item.val2*16,"\x7F",highlight);
+  }
 
   if((m_language == LANGUAGE_ENGLISH) || (item.kanji_image == 255)) {
 
@@ -70,12 +111,18 @@ void render_item_menu(screen_item &item, bool selected) {
       text[n  ]=' ';
       text[n+1]=0;
     }
+    if(ticked) text[15]=0;
 
     display_draw_text(0,item.val2*16,text,highlight);
   } else
   if(m_language == LANGUAGE_JAPANESE) {
-    display_draw_fixedimage(0,item.val2*16,item.kanji_image,highlight);
+    if(!ticked) {
+      display_draw_fixedimage(0,item.val2*16,item.kanji_image,highlight);
+    } else {
+      display_draw_fixedimage_xlimit(0,item.val2*16,item.kanji_image,highlight,128-8);
+    }
   }
+
 }
 
 #define VARNUM_MAXSIZE 10
@@ -87,7 +134,7 @@ uint8_t varnum_size = 0;
 uint8_t get_item_state_varnum(const char *name) {
 
   for(uint32_t n=0;n<varnum_size;n++) {
-    if(strcmp(varnum_names[n],name) == true) {
+    if(strcmp(varnum_names[n],name) == 0) {
       return varnum_values[n];
     }
   }
@@ -96,7 +143,7 @@ uint8_t get_item_state_varnum(const char *name) {
 
 void set_item_state_varnum(char *name,uint8_t value) {
   for(uint32_t n=0;n<varnum_size;n++) {
-    if(strcmp(varnum_names[n],name) == true) {
+    if(strcmp(varnum_names[n],name) == 0) {
       varnum_values[n] = value;
       return;
     }
@@ -421,8 +468,13 @@ uint8 lock_mask [11][8] = {
 
 };
 
+
+bool lock_state=false;
 void render_lock(bool on) {
   
+  if((on == lock_state) && (on != true)) return;
+  lock_state = on;
+
   uint16 image_data[88]; // 8*11
   for(int x=0;x<8;x++) {
     for(int y=0;y<11;y++) {
@@ -869,7 +921,7 @@ void GUI::jump_to_screen(const char screen) {
 
 void GUI::receive_update(const char *tag,void *value) {
   for(uint32_t n=0;n<screens_layout[current_screen].item_count;n++) {
-    if(strcmp(tag,screens_layout[current_screen].items[n].text) == true) {
+    if(strcmp(tag,screens_layout[current_screen].items[n].text) == 0) {
       update_item(screens_layout[current_screen].items[n],value);
 
       // has to be in the GUI object, because we don't have access to current_screen outside it.

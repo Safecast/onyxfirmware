@@ -70,5 +70,8 @@ private:
   int new_keys_type[NEW_KEYS_MAX_SIZE];
 };
 
+void tick_item(char *name,bool tick_val);
+bool is_ticked(char *name);
+
 
 #endif

@@ -114,10 +114,14 @@ uint16 power_battery_level(void) {
   //float batvolts = ((((float)battVal)/(float)vrefVal)*1.2)+2.1;
   float batratio = (float)battVal/(float)vrefVal;
 
-  float bat_min = 1.5;  //3.7;
+  float bat_min = 1.4;  //3.7;
   float bat_max = 1.75; //4.2;
 
   int16 bat_percent = ((batratio-bat_min)/(bat_max-bat_min))*100;         //((batvolts-battery_min_voltage)/(battery_max_voltage-battery_min_voltage))*100;
+
+  // incase our min and max are set incorrectly.
+  if(bat_percent < 0  ) bat_percent = 0;
+  if(bat_percent > 100) bat_percent = 100;
   return bat_percent;
   //return battVal;
   // calibrate

@@ -14,6 +14,7 @@
 #include "switch.h"
 #include "qr_xfer.h"
 #include "buzzer.h"
+#include <string.h>
 //#define DISABLE_ACCEL
 
 Controller *system_controller;
@@ -183,7 +184,7 @@ bool is_leap(int month,int day,int year) {
 void Controller::receive_gui_event(char *event,char *value) {
 
   //TODO: Fix this total mess, refactor into switch, break conditions out into methods.
-  if(strcmp(event,"Sleep")) {
+  if(strcmp(event,"Sleep") == 0) {
     if(m_sleeping == false) {
       display_powerdown();
       m_sleeping=true;
@@ -192,10 +193,10 @@ void Controller::receive_gui_event(char *event,char *value) {
       power_standby();
     }
   } else
-  if(strcmp(event,"KEYPRESS")) {
+  if(strcmp(event,"KEYPRESS") == 0) {
     m_powerup=true;
   } else
-  if(strcmp(event,"TOTALTIMER")) {
+  if(strcmp(event,"TOTALTIMER") == 0) {
     m_geiger.reset_total_count();
     m_total_timer_start = realtime_get_unixtime();
 
@@ -204,37 +205,37 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_gui->receive_update("TTTIME" ,blank);
     m_gui->redraw();
   } else
-  if(strcmp(event,"Save")) {
+  if(strcmp(event,"Save") == 0) {
     save_calibration();
   } else
-  if(strcmp(event,"SaveTime")) {
+  if(strcmp(event,"SaveTime") == 0) {
     save_time();
   } else
-  if(strcmp(event,"SaveDate")) {
+  if(strcmp(event,"SaveDate") == 0) {
     save_date();
   } else 
-  if(strcmp(event,"SaveWarnCPM")) {
+  if(strcmp(event,"SaveWarnCPM") == 0) {
     m_warning_raised = false; 
     save_warncpm();
   } else
-  if(strcmp(event,"Japanese")) {
+  if(strcmp(event,"Japanese") == 0) {
     m_gui->set_language(LANGUAGE_JAPANESE);
     flashstorage_keyval_set("LANGUAGE","Japanese");
   } else
-  if(strcmp(event,"English")) {
+  if(strcmp(event,"English") == 0) {
     m_gui->set_language(LANGUAGE_ENGLISH);
     flashstorage_keyval_set("LANGUAGE","English");
   } else
-  if(strcmp(event,"Geiger Beep")) {
+  if(strcmp(event,"Geiger Beep") == 0) {
      m_geiger.toggle_beep();
-     if(m_geiger.is_beeping()) flashstorage_keyval_set("GEIGERBEEP","true");
-                          else flashstorage_keyval_set("GEIGERBEEP","false");
+     if(m_geiger.is_beeping()) { flashstorage_keyval_set("GEIGERBEEP","true");  tick_item("Geiger Beep",true);  }
+                          else { flashstorage_keyval_set("GEIGERBEEP","false"); tick_item("Geiger Beep",false); }
   } else 
-  if(strcmp(event,"Clear Log")) {
+  if(strcmp(event,"Clear Log") == 0) {
     buzzer_nonblocking_buzz(3);
     flashstorage_log_clear();
   } else 
-  if(strcmp(event,"SaveBrightness")) {
+  if(strcmp(event,"SaveBrightness") == 0) {
     uint8 b = m_gui->get_item_state_uint8("BRIGHTNESS");
     char sbright[50];
     sprintf(sbright,"%u",b+6);
@@ -242,10 +243,10 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_gui->jump_to_screen(0);
     m_changing_brightness = false;
   } else
-  if(strcmp(event,"CALIBRATE")) {
+  if(strcmp(event,"CALIBRATE") == 0) {
     initialise_calibration();
   } else
-  if(strcmp(event,"DATESCREEN")) {
+  if(strcmp(event,"DATESCREEN") == 0) {
     uint8 m1,m2,d1,d2,y1,y2;
     d1 = m_gui->get_item_state_uint8("DATEDAY1");
     d2 = m_gui->get_item_state_uint8("DATEDAY2");
@@ -263,9 +264,9 @@ void Controller::receive_gui_event(char *event,char *value) {
       m_gui->redraw();
     }
   } else 
-  if(strcmp(event,"varnumchange")) {
+  if(strcmp(event,"varnumchange") == 0) {
     m_changing_brightness = true;
-    if(strcmp("BRIGHTNESS",value)) {
+    if(strcmp("BRIGHTNESS",value) == 0) {
       int b = m_gui->get_item_state_uint8("BRIGHTNESS");
       display_set_brightness(b+6);
     } else
@@ -332,12 +333,12 @@ void Controller::receive_gui_event(char *event,char *value) {
       m_gui->receive_update("TIMESEC2",&s2);
     } 
   } else
-  if(strcmp(event,"Serial Transfer")) {
+  if(strcmp(event,"Serial Transfer") == 0) {
     display_draw_text(0,48,"Sending Log",0);
     serial_sendlog();
     display_draw_text(0,48,"Xfer Complete",0);
   } else 
-  if(strcmp(event,"QR Transfer")) {
+  if(strcmp(event,"QR Transfer") == 0) {
     display_draw_text(0,100,"QR Xfer",0);
     qr_logxfer();
   }
