@@ -85,9 +85,10 @@ int main(void) {
       const char *language = flashstorage_keyval_get("LANGUAGE");
       if(language != 0) {
         if(strcmp(language,"English" ) == 0) { m_gui.set_language(LANGUAGE_ENGLISH);  tick_item("English"  ,true); } else
-        if(strcmp(language,"Japanese") == 0) { m_gui.set_language(LANGUAGE_JAPANESE); tick_item("Japanese" ,true); } else
-                                             { m_gui.set_language(LANGUAGE_ENGLISH);  tick_item("English"  ,true); }
-        
+        if(strcmp(language,"Japanese") == 0) { m_gui.set_language(LANGUAGE_JAPANESE); tick_item("Japanese" ,true); }
+      } else {
+        m_gui.set_language(LANGUAGE_ENGLISH);
+        tick_item("English",true); 
       }
 
       const char *svrem = flashstorage_keyval_get("SVREM");

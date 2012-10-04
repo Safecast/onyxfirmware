@@ -543,13 +543,13 @@ void Controller::update() {
   if((svrem != 0) && (strcmp(svrem,"REM") == 0)) {
     char text_rem[50];
     text_rem[0]=0;
-    float_to_char(m_geiger.get_microrems(),text_rem,5);
+    float_to_char(m_geiger.get_microrems(),text_rem,7);
     m_gui->receive_update("SVREM", text_rem);
     m_gui->receive_update("SVREMLABEL","\x80rem/h");
   } else {
     char text_sieverts[50];
     text_sieverts[0]=0;
-    float_to_char(m_geiger.get_microsieverts(),text_sieverts,5);
+    float_to_char(m_geiger.get_microsieverts(),text_sieverts,7);
     m_gui->receive_update("SVREM", text_sieverts);
     m_gui->receive_update("SVREMLABEL","\x80Sv/h");
   }

@@ -23,7 +23,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD        , 0,  0, "CPMDEADINT", 255}, 
     { ITEM_TYPE_BIGVARLABEL , 0, 26, "CPMDEAD"   , 255},
     { ITEM_TYPE_LABEL       ,89, 60, " CPM"      , 255},
-    { ITEM_TYPE_BIGVARLABEL , 0, 70, "SVREM"     , 255},
+    { ITEM_TYPE_BIGVARLABEL , 0, 73, "SVREM"     , 255},
     { ITEM_TYPE_VARLABEL    ,79,104, "SVREMLABEL", 255},
     { ITEM_TYPE_SMALLLABEL   ,8,120, "SIEVERTS ESTIMATED",255}
   }

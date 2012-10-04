@@ -249,7 +249,7 @@ float Geiger::get_cpm_deadtime_compensated() {
 }
 
 float Geiger::get_microrems() {
- return get_microsieverts()/100;
+ return get_microsieverts()*100;
 }
 
 float Geiger::get_microsieverts() {
