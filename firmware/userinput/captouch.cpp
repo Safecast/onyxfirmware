@@ -157,10 +157,10 @@ static void cap_change(void) {
   key_state &= touchList;
 
   // detect keys pressed
-  int keys_released = key_state & (~last_key_state); //TODO: ! bitwise NOT
+  int keys_pressed = key_state & (~last_key_state); //TODO: ! bitwise NOT
 
   // detect keys released
-  int keys_pressed  = (~key_state) & last_key_state; //TODO: ! bitwise NOT
+  int keys_released  = (~key_state) & last_key_state; //TODO: ! bitwise NOT
 
 
   if(!captouch_disable_messages) {
