@@ -60,7 +60,9 @@ int main(void) {
     } else {
       buzzer_nonblocking_buzz(0.05);
       display_initialise();
-
+      display_splashscreen();
+      delay_us(3000000);
+      display_clear(0);
     }
     #endif
     #ifdef NEVERSLEEP

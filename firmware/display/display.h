@@ -26,7 +26,7 @@ void display_draw_fixedimage(uint8_t x,uint8_t y,uint8_t image_number,uint16_t b
 void display_draw_fixedimage_xlimit(uint8_t x,uint8_t y,uint8_t image_number,uint16_t background,uint8 xlimit);
 void display_set_brightness(uint8 b);
 uint8_t display_get_brightness();
-void display_dump_image();
+void display_splashscreen();
 void display_powerup();
 void display_powerdown();
 void display_test();

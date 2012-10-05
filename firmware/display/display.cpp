@@ -8,11 +8,9 @@
 #define to565(r,g,b)                                            \
     ((((r) >> 3) << 11) | (((g) >> 2) << 5) | ((b) >> 3))
 
-extern uint8_t _binary_image_1_data_start;
-extern uint8_t _binary_image_1_data_size;
+extern uint8_t _binary___binary_data_splashscreen_start;
+extern uint8_t _binary___binary_data_splashscreen_size;
 
-extern uint8_t _binary_fixedimages_start;
-extern uint8_t _binary_fixedimages_size;
 extern uint8_t _binary___binary_data_fixed_images_start;
 extern uint8_t _binary___binary_data_fixed_images_size;
 
@@ -133,8 +131,8 @@ void display_draw_image(int x,int y,int width,int height, uint16 *image_data) {
   oled_draw_rect(x,y,width,height,(uint8_t *) image_data);
 }
 
-void display_dump_image() {
-  oled_draw_rect(0,0,128,127,((uint8_t *) &_binary_image_1_data_start)+1);
+void display_splashscreen() {
+  oled_draw_rect(0,0,128,127,((uint8_t *) &_binary___binary_data_splashscreen_start)+1);
 }
 
 void display_set_brightness(uint8 b) {
