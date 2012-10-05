@@ -779,6 +779,14 @@ void GUI::process_keys() {
   new_keys_size=0;
 }
 
+void GUI::leave_screen_actions(int screen) {
+  for(int n=0;n<screens_layout[screen].item_count;n++) {
+    if(screens_layout[screen].items[n].type == ITEM_TYPE_LEAVE_ACTION) {
+      receive_gui_events.receive_gui_event(screens_layout[screen].items[n].text,"Left");
+    }
+  }
+}
+
 void GUI::process_key(int key_id,int type) {
 
   if(m_screen_lock) return;
@@ -883,6 +891,9 @@ void GUI::process_key(int key_id,int type) {
 				clear_screen_screen   = current_screen;
 				clear_screen_selected = selected_item;
 
+
+        leave_screen_actions(current_screen);
+
 				pop_stack(current_screen,selected_item);
 			}
     }
@@ -894,6 +905,7 @@ void GUI::process_key(int key_id,int type) {
       first_render=true;
       clear_screen_screen   = current_screen;
       clear_screen_selected = selected_item;
+      leave_screen_actions(current_screen);
       clear_stack();
       current_screen = 0;
       selected_item  = 1;
@@ -907,6 +919,7 @@ void GUI::jump_to_screen(const char screen) {
   first_render = true;
   clear_screen_screen   = current_screen;
   clear_screen_selected = selected_item;
+  leave_screen_actions(current_screen);
 
   clear_stack();
   current_screen = screen; 

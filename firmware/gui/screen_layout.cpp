@@ -157,11 +157,13 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 12 - Brightness control
 {
-  3,
+  5,
   {
     { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT"    , 255 }, 
     { ITEM_TYPE_VARNUM     , 64, 64 , "BRIGHTNESS"    , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveBrightness", 2 }
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveBrightness", 2 },
+    { ITEM_TYPE_ACTION     ,  0,   0, "BrightnessSCN" , 255 },
+    { ITEM_TYPE_LEAVE_ACTION, 0,   0, "LeftBrightness", 255}
   }
 },
 

@@ -283,6 +283,8 @@ void cap_init(void) {
  //   mpr121Read(TCH_STATH);
     for(int n=0;n<16;n++) press_time[n]   = realtime_get_unixtime();
     for(int n=0;n<16;n++) release_time[n] = realtime_get_unixtime();
+    press_time_any   = realtime_get_unixtime();
+    release_time_any = realtime_get_unixtime();
 
     return;
 }

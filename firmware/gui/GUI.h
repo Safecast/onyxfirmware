@@ -66,7 +66,7 @@ private:
   void process_keys();
 
   void clear_screen(int32_t c_screen,int32_t c_selected);
-
+  void leave_screen_actions(int screen);
 
   int32_t clear_screen_selected;
   int32_t clear_screen_screen;

@@ -32,7 +32,7 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
   system_controller = this;
   m_last_switch_state = true;
   m_warning_raised = false;
-  m_changing_brightness=false;
+  m_changing_brightness = false;
 
   // Get warning cpm from flash
   m_warncpm = -1;
@@ -273,11 +273,18 @@ void Controller::receive_gui_event(char *event,char *value) {
   } else 
   if(strcmp(event,"SaveBrightness") == 0) {
     uint8 b = m_gui->get_item_state_uint8("BRIGHTNESS");
+      
+    int br;
+    if(b<= 5) br = (b*2) +1;
+    if(b>  5) br = b+6; 
+    display_set_brightness(br);
+
     char sbright[50];
-    sprintf(sbright,"%u",b+6);
+    sprintf(sbright,"%u",br);
     flashstorage_keyval_set("BRIGHTNESS",sbright);
+
+    m_changing_brightness=false;
     m_gui->jump_to_screen(0);
-    m_changing_brightness = false;
   } else
   if(strcmp(event,"Save:LogInter") == 0) {
     uint8 l1 = m_gui->get_item_state_uint8("LOGINTER1");
@@ -311,12 +318,42 @@ void Controller::receive_gui_event(char *event,char *value) {
       m_gui->receive_update("DATEDAY2",&d2);
       m_gui->redraw();
     }
-  } else 
+  } else
+  if(strcmp(event,"BrightnessSCN") == 0) {
+
+    const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
+    unsigned int c=15;
+    if(sbright != 0) {
+      sscanf(sbright, "%u", &c);
+      display_set_brightness(c);
+    }
+
+    uint8 b;
+    if(c <= 11) b = (c-1)/2;
+    if(c >  11) b = c-6;
+
+    m_gui->receive_update("BRIGHTNESS",&b);
+    m_gui->redraw();
+  } else
+  if(strcmp(event,"LeftBrightness") == 0) {
+    const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
+    if(sbright != 0) {
+      unsigned int c;
+      sscanf(sbright, "%u", &c);
+      display_set_brightness(c);
+    }
+    m_changing_brightness=false;
+
+  } else
   if(strcmp(event,"varnumchange") == 0) {
-    m_changing_brightness = true;
     if(strcmp("BRIGHTNESS",value) == 0) {
       int b = m_gui->get_item_state_uint8("BRIGHTNESS");
-      display_set_brightness(b+6);
+      m_changing_brightness=true;
+
+      int br;
+      if(b<= 5) br = (b*2) +1;
+      if(b>  5) br = b+6; 
+      display_set_brightness(br);
     } else
 
     if(strcmpl("CAL",value,3)) {
@@ -496,25 +533,26 @@ void Controller::update() {
     return;
   }
 
-  // Check for no key presses then dim screen
-  uint32_t release_time = cap_last_press_any();
-  uint32_t   press_time = cap_last_release_any();
-  uint32_t current_time = realtime_get_unixtime();
-
+  // only dim if not in brightness changing mode
   if(!m_changing_brightness) {
-		uint8_t current_brightness = display_get_brightness();
-		if(((current_time - press_time) > 10) && (current_time - release_time > 10)) {
-			if(current_brightness > 1) display_set_brightness(current_brightness-1);
-		} else {
-			const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
-			unsigned int user_brightness=15;
-			if(sbright != 0) {
-				sscanf(sbright, "%u", &user_brightness);
-			}
-			if(current_brightness < user_brightness) {
+    // Check for no key presses then dim screen
+    uint32_t release_time = cap_last_press_any();
+    uint32_t   press_time = cap_last_release_any();
+    uint32_t current_time = realtime_get_unixtime();
+
+    uint8_t current_brightness = display_get_brightness();
+    if(((current_time - press_time) > 10) && ((current_time - release_time) > 10)) {
+      if(current_brightness > 1) display_set_brightness(current_brightness-1);
+    } else {
+      const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
+      unsigned int user_brightness=15;
+      if(sbright != 0) {
+        sscanf(sbright, "%u", &user_brightness);
+      }
+      if(current_brightness < user_brightness) {
         display_set_brightness(current_brightness+1);
       }
-		}
+    }
   }
  
 
