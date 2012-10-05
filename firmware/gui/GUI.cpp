@@ -98,9 +98,20 @@ void render_item_menu(screen_item &item, bool selected) {
 
   if((m_language == LANGUAGE_ENGLISH) || (item.kanji_image == 255)) {
 
+
+
     int len = strlen(item.text);
     char text[50];
     strcpy(text,item.text);
+
+    // Search for : replace with NULL in rendering
+    for(int n=0;n<len;n++) {
+      if(text[n] == ':') text[n] = 0;
+    }
+    len = strlen(text);
+
+
+    // Pad to 16 characters
     for(int n=len;n<16;n++) {
       text[n  ]=' ';
       text[n+1]=0;

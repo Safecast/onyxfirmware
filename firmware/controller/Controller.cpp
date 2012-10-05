@@ -217,10 +217,10 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_gui->receive_update("TTTIME" ,blank);
     m_gui->redraw();
   } else
-  if(strcmp(event,"Save") == 0) { //TODO: refactor to say at least "SaveCalibration"
+  if(strcmp(event,"Save:Calib") == 0) { //TODO: refactor to say at least "SaveCalibration"
     save_calibration();
   } else
-  if(strcmp(event,"SaveBecq") == 0) {
+  if(strcmp(event,"Save:Becq") == 0) {
     int b1 = m_gui->get_item_state_uint8("BECQ1");
     int b2 = m_gui->get_item_state_uint8("BECQ2");
     int b3 = m_gui->get_item_state_uint8("BECQ3");
@@ -230,13 +230,13 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_geiger.set_becquerel_eff(beff);
     m_gui->jump_to_screen(0);
   } else
-  if(strcmp(event,"SaveTime") == 0) {
+  if(strcmp(event,"Save:Time") == 0) {
     save_time();
   } else
-  if(strcmp(event,"SaveDate") == 0) {
+  if(strcmp(event,"Save:Date") == 0) {
     save_date();
   } else 
-  if(strcmp(event,"SaveWarnCPM") == 0) {
+  if(strcmp(event,"Save:WarnCPM") == 0) {
     m_warning_raised = false; 
     save_warncpm();
   } else
@@ -271,7 +271,7 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_gui->show_dialog("Log Cleared",0,0,0,1);
     flashstorage_log_clear();
   } else 
-  if(strcmp(event,"SaveBrightness") == 0) {
+  if(strcmp(event,"Save:Brightness") == 0) {
     uint8 b = m_gui->get_item_state_uint8("BRIGHTNESS");
       
     int br;

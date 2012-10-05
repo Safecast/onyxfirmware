@@ -108,7 +108,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 56, 50 , "CAL2"     , 255 },
     { ITEM_TYPE_VARNUM     , 74, 50 , "CAL3"     , 255 },
     { ITEM_TYPE_VARNUM     , 92, 50 , "CAL4"     , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save"     , 2 },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Calib", 2 },
     { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE", 255 }
   }
 },
@@ -134,7 +134,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 76, 50, "TIMEMIN2"   , 255 },
     { ITEM_TYPE_VARNUM     , 98, 50, "TIMESEC1"   , 255 },
     { ITEM_TYPE_VARNUM     ,118, 50, "TIMESEC2"   , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,  7, "SaveTime"   , 2 }
+    { ITEM_TYPE_MENU_ACTION,  0,  7, "Save:Time"   , 2 }
   }
 },
 
@@ -149,7 +149,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 76, 50 , "DATEDAY2"  , 255 },
     { ITEM_TYPE_VARNUM     , 98, 50 , "DATEYEAR1" , 255 },
     { ITEM_TYPE_VARNUM     ,118, 50 , "DATEYEAR2" , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveDate"  , 2 },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Date"  , 2 },
     { ITEM_TYPE_LABEL      , 0 ,  20, "MM/DD/YY"  , 24 },
     { ITEM_TYPE_ACTION     ,  0,   0, "DATESCREEN", 255 }
   }
@@ -161,7 +161,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   {
     { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT"    , 255 }, 
     { ITEM_TYPE_VARNUM     , 64, 64 , "BRIGHTNESS"    , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveBrightness", 2 },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Brightness", 2 },
     { ITEM_TYPE_ACTION     ,  0,   0, "BrightnessSCN" , 255 },
     { ITEM_TYPE_LEAVE_ACTION, 0,   0, "LeftBrightness", 255}
   }
@@ -177,7 +177,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 54, 50 , "WARNCPM3"   , 255},
     { ITEM_TYPE_VARNUM     , 76, 50 , "WARNCPM4"   , 255},
     { ITEM_TYPE_VARNUM     , 98, 50 , "WARNCPM5"   , 255},
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveWarnCPM", 2  },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:WarnCPM", 2  },
     { ITEM_TYPE_LABEL      , 0 ,  20, "Warning CPM", 255}
   }
 },
@@ -280,7 +280,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 56, 50 , "BECQ2"     , 255 },
     { ITEM_TYPE_VARNUM     , 74, 50 , "BECQ3"     , 255 },
     { ITEM_TYPE_VARNUM     , 92, 50 , "BECQ4"     , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveBecq"  , 2 },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Becq"  , 2 },
   }
 },
 
