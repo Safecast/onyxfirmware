@@ -1,0 +1,20 @@
+Crypto library simulator
+
+Also the basis for integrating crypto libraries into the geiger counter.
+
+At the moment, cryptlib contains an x86-native compilation of the beecrypt
+library with some tweaks for porting to STM32/embedded use, mostly having
+to do with memory management and allocation. 
+
+The program you are interested in is testBlock. This will test that the
+private key block created by the key generator can in fact be read and
+used by the crypto algorithm for RSA operations. It reads in the coefficients
+n, e, d, p, q, and performs a single public key encryption and private
+key decryption on a single piece of test data. It's enough to verify that
+the coefficients are correct (if they weren't, the operation would totally
+fail), which is good enough for burning into the ROM and use in the future.
+
+The final implementation can choose not to use beecrypt, this is just provided
+as a reference simulation to verify that, for example, the private key
+isn't being stored in some incorrect format or encrypted in a way that we
+can't recover inside the STM32 for later use.
