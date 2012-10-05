@@ -23,9 +23,9 @@ Controller *system_controller;
 Controller::Controller(Geiger &g) : m_geiger(g) {
   m_sleeping=false;
   m_powerup=false;
-  m_log_period_seconds = 120;
+  m_log_interval_seconds = 60*30;
   rtc_clear_alarmed();
-  rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_period_seconds);
+  rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_interval_seconds);
   rtc_enable_alarm(RTC);
   m_alarm_log = false;
   system_controller = this;
@@ -40,6 +40,14 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
     uint32_t c;
     sscanf(swarncpm, "%d", &c);
     m_warncpm = c;
+  }
+  
+  // Get logging interval from flash
+  const char *sloginter = flashstorage_keyval_get("LOGINTERVAL");
+  if(sloginter != 0) {
+    uint32_t c;
+    sscanf(sloginter, "%d", &c);
+    m_log_interval_seconds = c;
   }
 
 }
@@ -270,6 +278,17 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_gui->jump_to_screen(0);
     m_changing_brightness = false;
   } else
+  if(strcmp(event,"Save:LogInter") == 0) {
+    uint8 l1 = m_gui->get_item_state_uint8("LOGINTER1");
+    uint8 l2 = m_gui->get_item_state_uint8("LOGINTER2");
+    uint8 l3 = m_gui->get_item_state_uint8("LOGINTER3");
+    uint32_t log_interval_mins = (l1*100) + (l2*10) + l3;
+    m_log_interval_seconds = log_interval_mins*60;
+    
+    char sloginterval[50];
+    sprintf(sloginterval,"%u",m_log_interval_seconds);
+    flashstorage_keyval_set("LOGINTERVAL",sloginterval);
+  } else
   if(strcmp(event,"CALIBRATE") == 0) {
     initialise_calibration();
   } else
@@ -406,12 +425,12 @@ void Controller::update() {
     int8 res = accel_read_state(&m_accel_x_stored,&m_accel_y_stored,&m_accel_z_stored);
     #endif
 
-    // set new alarm for log_period_seconds from now.
+    // set new alarm for log_interval_seconds from now.
     rtc_clear_alarmed();
   }
 
   if(m_alarm_log == true) {
-    if(m_geiger.is_cpm_valid()) {
+    if(m_geiger.is_cpm30_valid()) {
 
       log_data_t data;
       #ifndef DISABLE_ACCEL
@@ -434,7 +453,7 @@ void Controller::update() {
 
       m_alarm_log = false;
 
-      rtc_set_alarm(RTC,m_last_alarm_time+m_log_period_seconds);
+      rtc_set_alarm(RTC,m_last_alarm_time+m_log_interval_seconds);
       rtc_enable_alarm(RTC);
     }
   }

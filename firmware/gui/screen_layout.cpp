@@ -220,6 +220,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU       ,19, 1, "Sv/Rem"        , 255},
     { ITEM_TYPE_MENU       , 5, 2, "Calibration"   , 26 },
     { ITEM_TYPE_MENU_ACTION, 0, 3, "Clear Log"     , 27 },
+    { ITEM_TYPE_MENU       ,23, 4, "Log Interval"  , 255},
     { ITEM_TYPE_MENU       ,13, 4, "Warning Levels", 28 },
     { ITEM_TYPE_MENU       ,22, 5, "Becquerel Val" , 255}
 //    { ITEM_TYPE_MENU,INVALID_SCREEN, 2, "Averaging Period" },
@@ -278,6 +279,19 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 74, 50 , "BECQ3"     , 255 },
     { ITEM_TYPE_VARNUM     , 92, 50 , "BECQ4"     , 255 },
     { ITEM_TYPE_MENU_ACTION,  0,   7, "SaveBecq"  , 2 },
+  }
+},
+
+//Screen 23 - Set Logging Interval
+{
+  6,
+  {
+    { ITEM_TYPE_HEAD       , 0 ,  0 , "CPMDEADINT"    , 255 }, 
+    { ITEM_TYPE_VARNUM     , 38, 50 , "LOGINTER1"     , 255 },
+    { ITEM_TYPE_VARNUM     , 56, 50 , "LOGINTER2"     , 255 },
+    { ITEM_TYPE_VARNUM     , 74, 50 , "LOGINTER3"     , 255 },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:LogInter" , 2 },
+    { ITEM_TYPE_LABEL      ,  0,  70, "minutes"       , 255 }
   }
 },
 
