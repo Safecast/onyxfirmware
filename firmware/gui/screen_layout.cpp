@@ -291,7 +291,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 56, 50 , "LOGINTER2"     , 255 },
     { ITEM_TYPE_VARNUM     , 74, 50 , "LOGINTER3"     , 255 },
     { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:LogInter" , 2 },
-    { ITEM_TYPE_LABEL      ,  0,  70, "minutes"       , 255 }
+    { ITEM_TYPE_LABEL      ,255,  86, "minutes"       , 255 }
   }
 },
 

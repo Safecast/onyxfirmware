@@ -269,6 +269,7 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
 
   // 2. Write data segment covering current page.
   if(excess != 0) {
+    display_draw_text(0,80,"excess!0",0);
     uint8_t pagedata[pagesize];
     flashstorage_readpage(page_address,pagedata);
 
@@ -291,11 +292,15 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
   // 3. Write full pages until all data is written
   for(;write_size != 0;) {
     uint8_t pagedata[pagesize];
-    for(uint32_t n=0;n<pagesize;n++) {
-      pagedata[n] = *data_position;
-      data_position++;
-      write_size--;
-      if(write_size == 0) break;
+    uint32_t pagepos=0;
+    for(pagepos=0;pagepos<pagesize;pagepos++) {
+      if(write_size != 0) {
+        pagedata[pagepos] = *data_position;
+        data_position++; 
+        write_size--;
+      } else {
+        pagedata[pagepos]=0;
+      }
     }
     
     flashstorage_unlock();

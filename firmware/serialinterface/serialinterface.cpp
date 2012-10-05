@@ -7,6 +7,8 @@
 #include <string.h>
 #include "log.h"
 #include "oled.h"
+#include "display.h"
+#include <limits.h>
 
 #define TX1 BOARD_USART1_TX_PIN
 #define RX1 BOARD_USART1_RX_PIN
@@ -118,11 +120,50 @@ void serial_process_command(char *line) {
   if(strcmp(line,"WRITEKEY") == 0) {
     serial_writeprivatekey();
   } else
-  if(strcmp(line,"DISPLAYTEST") == 0) {
+  if(strcmp(line,"DISPLAYPARAMS") == 0) {
     serial_displaytest();
   } else
   if(strcmp(line,"HELP") == 0) {
     serial_write_string("Available commands: HELP, LOGXFER, WRITEKEY, DISPLAYTEST, HELLO");
+  } else 
+  if(strcmp(line,"DISPLAYTEST") == 0) {
+    display_test();
+  } else
+  if(strcmp(line,"LOGTEST") == 0) {
+    char stemp[100];
+
+
+    sprintf(stemp,"Raw log data\r\n");
+    serial_write_string(stemp);
+
+    uint8_t *flash_log = flashstorage_log_get();
+    for(int n=0;n<1024;n++) {
+      sprintf(stemp,"%u ",flash_log[n]);
+      serial_write_string(stemp);
+      if(n%64 == 0) serial_write_string("\r\n");
+    }
+    serial_write_string("\r\n");
+
+    log_data_t data;
+    data.time = 0;
+    data.cpm  = 1;
+    data.accel_x_start = 2;
+    data.accel_y_start = 3;
+    data.accel_z_start = 4;
+    data.accel_x_end   = 5;
+    data.accel_y_end   = 6;
+    data.accel_z_end   = 7;
+    data.log_type      = UINT_MAX;
+    sprintf(stemp,"Log size: %u\r\n",flashstorage_log_size());
+    serial_write_string(stemp);
+
+    sprintf(stemp,"Writing test log entry of size: %u\r\n",sizeof(log_data_t));
+    serial_write_string(stemp);
+
+    flashstorage_log_pushback((uint8 *) &data,sizeof(log_data_t));
+
+    sprintf(stemp,"Log size: %u\r\n",flashstorage_log_size());
+    serial_write_string(stemp);
   }
 
   serial_write_string("\r\n>");

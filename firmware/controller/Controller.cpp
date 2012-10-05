@@ -15,6 +15,7 @@
 #include "qr_xfer.h"
 #include "buzzer.h"
 #include <string.h>
+#include <limits.h>
 //#define DISABLE_ACCEL
 //#define NEVERSLEEP
 
@@ -288,6 +289,7 @@ void Controller::receive_gui_event(char *event,char *value) {
     char sloginterval[50];
     sprintf(sloginterval,"%u",m_log_interval_seconds);
     flashstorage_keyval_set("LOGINTERVAL",sloginterval);
+    m_gui->jump_to_screen(0);
   } else
   if(strcmp(event,"CALIBRATE") == 0) {
     initialise_calibration();
@@ -442,7 +444,7 @@ void Controller::update() {
       data.accel_x_start = m_accel_x_stored;
       data.accel_y_start = m_accel_y_stored;
       data.accel_z_start = m_accel_z_stored;
-      data.log_type      = 255;
+      data.log_type      = UINT_MAX;
 
       flashstorage_log_pushback((uint8_t *) &data,sizeof(log_data_t));
 
