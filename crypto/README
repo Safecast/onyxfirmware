@@ -1,0 +1,18 @@
+Building and running this requires the following packages:
+
+gpg
+uuid-dev
+
+and optionally 
+rng-tools
+
+if you're not getting enough randomness and want to cheat by using
+urandom (which is technically bad practice but okay for this
+application, I'd love to see the paper about how someone managed to
+actually figure out the random stream used to generate these keys and
+mount a real attack cracking them).
+
+to get (fake) randomness quickly
+sudo apt-get install rng-tools
+sudo echo "HRNGDEVICE=/dev/urandom" >> /etc/default/rng-tools
+sudo /etc/init.d/rng-tools start

@@ -1,0 +1,29 @@
+#!/bin/sh
+
+### to get (fake) randomness quickly
+### sudo apt-get install rng-tools
+### sudo echo "HRNGDEVICE=/dev/urandom" >> /etc/default/rng-tools
+### sudo /etc/init.d/rng-tools start
+
+
+# start a find to "create" randomness
+find / -type f 2> /dev/null | xargs grep makerandomdata > /dev/null 2>&1 &
+sleep 3
+
+# clean up any files from a previous run
+rm -f ./pubring.gpg
+rm -f ./secring.gpg
+rm -f ./secblock.bin
+rm -f ./pubkey.txt
+
+gpg --no-options --batch --no-default-keyring --keyring ./pubring.gpg --secret-keyring ./secring.gpg --gen-key gen-key-config 
+gpg --keyring ./pubring.gpg --export -a signing-keys@safecast.org > pubkey.txt
+
+killall find
+killall xargs
+killall grep
+
+./catkeys
+
+echo "New key file is now in secblock.bin"
+

@@ -1,0 +1,6 @@
+Key-Type: RSA
+Key-Length: 2048
+Name-Real: safecast per-device unique signing key
+Name-Comment: automatically generated GnuPG key
+Name-Email: signing-keys@safecast.org
+Expire-date: 0
