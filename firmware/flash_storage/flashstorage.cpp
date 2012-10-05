@@ -269,7 +269,6 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
 
   // 2. Write data segment covering current page.
   if(excess != 0) {
-    display_draw_text(0,80,"excess!0",0);
     uint8_t pagedata[pagesize];
     flashstorage_readpage(page_address,pagedata);
 
