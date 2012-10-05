@@ -243,6 +243,14 @@ uint32_t flashstorage_log_full() {
   return false;
 }
 
+bool flashstorage_log_isfull() {
+  uint32_t flash_data_size = flashstorage_log_size();
+
+  // 2048 to cope with any potential edge case, TODO: more testing.
+  if((flash_data_size+20) > (flash_data_area_aligned_size-2048)) return true;
+  return false;
+}
+
 void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
 
   uint32_t flash_data_size = flashstorage_log_size();

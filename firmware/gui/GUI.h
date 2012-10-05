@@ -17,6 +17,15 @@
 #define LANGUAGE_JAPANESE 1
 #define TEMP_STR_LEN 50
 
+#define KEY_BACK   6
+#define KEY_HOME   8
+#define KEY_DOWN   4
+#define KEY_UP     3
+#define KEY_SELECT 2
+#define KEY_HELP   0
+#define KEY_PRESSED  0
+#define KEY_RELEASED 1
+
 class Controller;
 
 class GUI {
@@ -40,6 +49,8 @@ public:
   void push_stack(int current_screen,int selected_item);
   void toggle_screen_lock();
   void set_language(uint8_t lang);
+  void show_dialog_image(int   image1,int   image2,int  image3,int  image4,bool buzz);
+  void show_dialog      (char *text1 ,char *text2 ,char *text3,char *text4,bool buzz);
   Controller &receive_gui_events;
 
   uint8_t get_item_state_uint8(const char *tag);

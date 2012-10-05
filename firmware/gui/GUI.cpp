@@ -11,15 +11,9 @@
 #include <stdio.h>
 #include "Geiger.h"
 #include <string.h>
+#include "buzzer.h"
+#include "captouch.h"
 
-#define KEY_BACK   6
-#define KEY_HOME   8
-#define KEY_DOWN   4
-#define KEY_UP     3
-#define KEY_SELECT 2
-#define KEY_HELP   0
-#define KEY_PRESSED  0
-#define KEY_RELEASED 1
 
 bool first_render=true;
 
@@ -950,4 +944,30 @@ uint8_t GUI::get_item_state_uint8(const char *tag) {
 
 void GUI::set_language(uint8_t lang) {
   m_language = lang;
+}
+
+void GUI::show_dialog(char *text1,char *text2,char *text3,char *text4,bool buzz) {
+
+  cap_set_disable_messages(true);
+  display_clear(0);
+  delay_us(200000);
+  int keys = cap_lastkey();
+  for(;;) {
+    display_draw_text_center(20,text1,FOREGROUND_COLOR);
+    display_draw_text_center(36,text2,FOREGROUND_COLOR);
+    display_draw_text_center(52,text3,FOREGROUND_COLOR);
+    display_draw_text_center(68,text3,FOREGROUND_COLOR);
+    display_draw_text_center(94,"PRESS ANY KEY",FOREGROUND_COLOR);
+
+    int newkeys = cap_lastkey();
+    if(keys != newkeys) break;
+    if(buzz) buzzer_nonblocking_buzz(1);
+  }
+  delay_us(200000);
+  display_clear(0);
+  redraw();
+  cap_set_disable_messages(false);
+}
+
+void GUI::show_dialog_image(int image1,int image2,int image3,int image4,bool buzz) {
 }

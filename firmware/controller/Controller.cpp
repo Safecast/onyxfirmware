@@ -16,6 +16,7 @@
 #include "buzzer.h"
 #include <string.h>
 //#define DISABLE_ACCEL
+//#define NEVERSLEEP
 
 Controller *system_controller;
 
@@ -185,6 +186,7 @@ void Controller::receive_gui_event(char *event,char *value) {
 
   //TODO: Fix this total mess, refactor into switch, break conditions out into methods.
   if(strcmp(event,"Sleep") == 0) {
+    #ifndef NEVERSLEEP
     if(m_sleeping == false) {
       display_powerdown();
       m_sleeping=true;
@@ -192,6 +194,7 @@ void Controller::receive_gui_event(char *event,char *value) {
       m_gui->set_sleeping(true);
       power_standby();
     }
+    #endif
   } else
   if(strcmp(event,"KEYPRESS") == 0) {
     m_powerup=true;
@@ -256,7 +259,7 @@ void Controller::receive_gui_event(char *event,char *value) {
     tick_item("Roentgen",true);
   } else
   if(strcmp(event,"Clear Log") == 0) {
-    buzzer_nonblocking_buzz(3);
+    m_gui->show_dialog("Log Cleared",0,0,0,1);
     flashstorage_log_clear();
   } else 
   if(strcmp(event,"SaveBrightness") == 0) {
@@ -390,7 +393,9 @@ void Controller::update() {
     display_clear(0);
     m_gui->redraw();
     
+    #ifndef NEVERSLEEP
     if(m_sleeping) display_powerdown();
+    #endif
   }
   m_keytrigger=false;
 
@@ -421,6 +426,12 @@ void Controller::update() {
       data.log_type      = 255;
 
       flashstorage_log_pushback((uint8_t *) &data,sizeof(log_data_t));
+
+      bool full = flashstorage_log_isfull();
+      if(full == true) {
+        m_gui->show_dialog("Flash Log","is full",0,0,0);
+      }
+
       m_alarm_log = false;
 
       rtc_set_alarm(RTC,m_last_alarm_time+m_log_period_seconds);
@@ -428,6 +439,8 @@ void Controller::update() {
     }
   }
 
+
+  #ifndef NEVERSLEEP
   bool sstate = switch_state();
   if(sstate != m_last_switch_state) {
     m_last_switch_state = sstate;
@@ -443,6 +456,7 @@ void Controller::update() {
       m_powerup = true;
     }
   }
+  #endif
 
   if(m_powerup == true) {
     display_powerup();
@@ -462,8 +476,8 @@ void Controller::update() {
   }
 
   // Check for no key presses then dim screen
-  uint32_t release_time = cap_last_press();
-  uint32_t   press_time = cap_last_release();
+  uint32_t release_time = cap_last_press_any();
+  uint32_t   press_time = cap_last_release_any();
   uint32_t current_time = realtime_get_unixtime();
 
   if(!m_changing_brightness) {

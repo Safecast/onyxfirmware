@@ -12,6 +12,7 @@ void     flashstorage_log_clear();
 void     flashstorage_log_pushback(uint8_t *data,uint32_t size);
 uint32_t flashstorage_log_size();
 uint8_t *flashstorage_log_get();
+bool     flashstorage_log_isfull();
 
 void flashstorage_log_userchange();
 
