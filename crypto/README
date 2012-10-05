@@ -6,13 +6,34 @@ uuid-dev
 and optionally 
 rng-tools
 
-if you're not getting enough randomness and want to cheat by using
+If you're not getting enough randomness and want to cheat by using
 urandom (which is technically bad practice but okay for this
 application, I'd love to see the paper about how someone managed to
 actually figure out the random stream used to generate these keys and
 mount a real attack cracking them).
 
-to get (fake) randomness quickly
+Anyways, it's okay to use semi-bad randomness because the purpose of
+this exercise is tamper-evidence, and not security per se. We need the
+keys simply to be unique, but not necessarily secure. The exercise of
+cracking a 2048-bit RSA key, even if generated from a stock linux RNG
+that incorporates the entropy it can find from disk seeks and keyboard
+strokes, etc. and supplemented with /dev/urandom, is good enough a
+barrier: it's theoretically weaker than a full-on hardware RNG source,
+but still very hard and there is no easy known attack (like a
+just-run-and-wait password cracker).
+
+So, to get (fake) randomness quickly, if you're not getting enough from
+the "high quality" sources that linux uses by default:
+
 sudo apt-get install rng-tools
 sudo echo "HRNGDEVICE=/dev/urandom" >> /etc/default/rng-tools
 sudo /etc/init.d/rng-tools start
+
+This hack is noted because in a factory environment, the laptop being
+used to generate keys doesn't have much going on other than key 
+generation, and there isn't someone there to wiggle the mouse or mash
+on the keyboard, or other users tickling the network port, etc. etc.
+
+Granted, we *are* manufacturing geiger counters which is a great source
+of randomness but it's a whole other project to plug those into the
+rng for linux.
