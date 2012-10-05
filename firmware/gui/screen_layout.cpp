@@ -221,8 +221,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU       , 5, 2, "Calibration"   , 26 },
     { ITEM_TYPE_MENU_ACTION, 0, 3, "Clear Log"     , 27 },
     { ITEM_TYPE_MENU       ,23, 4, "Log Interval"  , 255},
-    { ITEM_TYPE_MENU       ,13, 4, "Warning Levels", 28 },
-    { ITEM_TYPE_MENU       ,22, 5, "Becquerel Val" , 255}
+    { ITEM_TYPE_MENU       ,13, 5, "Warning Levels", 28 },
+    { ITEM_TYPE_MENU       ,22, 6, "Becquerel Val" , 255}
 //    { ITEM_TYPE_MENU,INVALID_SCREEN, 2, "Averaging Period" },
   }
 },
