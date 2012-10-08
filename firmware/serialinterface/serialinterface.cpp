@@ -83,13 +83,13 @@ void serial_readprivatekey() {
 
   serial_write_string("Private key region data: \r\n");
   for(uint32_t n=0;n<((6*1024))-pageoffset;n++) {
-    if((n%100) == 0) {
+    if((n%32) == 0) {
       serial_write_string("\r\n");
       sprintf(stemp,"%x : ",source_data+n);
       serial_write_string(stemp);
     }
 
-    sprintf(stemp,"%u ",source_data[n]);
+    sprintf(stemp,"%02x ",source_data[n]);
     serial_write_string(stemp);
   }
   serial_write_string("\r\n");
@@ -100,16 +100,23 @@ void serial_readprivatekey() {
   sprintf(stemp,"Private key programmable data only baseaddr: %x\r\n",source_data_programmable);
   serial_write_string(stemp);
 
-  for(uint32_t n=0;n<(4*1024);n++) {
+  for(uint32_t n=0;n<(6*1024);n++) {
 
-    if((n%100) == 0) {
+    if((n%32) == 0) {
       serial_write_string("\r\n");
       sprintf(stemp,"%x : ",source_data+n);
       serial_write_string(stemp);
     }
 
-    sprintf(stemp,"%u ",source_data_programmable[n]);
+    if(n == (4*1024)) {
+      serial_write_string("\r\nShowing following 2k region, to confirm code not overwritten:\r\n");
+      sprintf(stemp,"%x : ",source_data+n);
+      serial_write_string(stemp);
+    }
+
+    sprintf(stemp,"%02x ",source_data_programmable[n]);
     serial_write_string(stemp);
+
   }
   serial_write_string("\r\n");
 
@@ -118,7 +125,26 @@ void serial_readprivatekey() {
 void serial_writeprivatekey() {
 
   // TODO: Will add code to read from serial and write data to flash region here.
+  serial_write_string("Writing incrementing private key data\r\n");
 
+  uint8_t pagedata[2048];
+  for(int n=0;n<2048;n++) pagedata[n] = n;
+
+  uint8_t *source_data_programmable = (uint8_t *) 0x8000800;
+  flashstorage_unlock();
+  flashstorage_erasepage(source_data_programmable);
+  flashstorage_lock();
+  flashstorage_unlock();
+  flashstorage_writepage(pagedata,source_data_programmable);
+  flashstorage_lock();
+
+  source_data_programmable += 2048;
+  flashstorage_unlock();
+  flashstorage_erasepage(source_data_programmable);
+  flashstorage_lock();
+  flashstorage_unlock();
+  flashstorage_writepage(pagedata,source_data_programmable);
+  flashstorage_lock();
 }
 
 bool in_displayparams = false;
@@ -187,9 +213,6 @@ void serial_process_command(char *line) {
   if(strcmp(line,"LOGXFER") == 0) {
     serial_sendlog();
   } else 
-  if(strcmp(line,"WRITEKEY") == 0) {
-    serial_writeprivatekey();
-  } else
   if(strcmp(line,"DISPLAYPARAMS") == 0) {
     serial_displayparams();
   } else
@@ -255,7 +278,10 @@ void serial_process_command(char *line) {
   } else 
   if(strcmp(line,"READPRIVATEKEY") == 0) {
     serial_readprivatekey();
-  }
+  } else
+  if(strcmp(line,"WRITEPRIVATEKEY") == 0) {
+    serial_writeprivatekey();
+  } 
   
 
   serial_write_string("\r\n>");

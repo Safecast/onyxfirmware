@@ -19,4 +19,10 @@ void flashstorage_log_userchange();
 bool flashstorage_islocked();
 void flashstorage_clear();
 
+// low level access functions
+bool flashstorage_unlock();
+bool flashstorage_lock();
+bool flashstorage_erasepage(uint8_t *pageaddr);
+bool flashstorage_writepage(uint8_t *new_data,uint8_t *pageaddr);
+
 #endif
