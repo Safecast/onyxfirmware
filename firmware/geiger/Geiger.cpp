@@ -179,15 +179,15 @@ float Geiger::get_cpm() {
     int32_t c_position = last_windows_position-1;
 		for(uint32_t n=0;n<10;n++) {
 			last5sum += last_windows[c_position];
-	 
-			c_position--;
+
+	    c_position--;
 			if(c_position < 0) c_position = WINDOWS_STORED-1;
 		}
 		
 		// cpm for 5 seconds prior to above
 		int32_t old5sum=0;
-    c_position = last_windows_position-1;
-		for(uint32_t n=10;n<20;n++) {
+    c_position = last_windows_position-1-10;
+		for(uint32_t n=0;n<10;n++) {
 			old5sum += last_windows[c_position];
 	 
 			c_position--;
@@ -203,7 +203,6 @@ float Geiger::get_cpm() {
 			m_samples_collected=5;
 		}
   }
-
 
   float sum = 0;
 
@@ -229,7 +228,6 @@ float Geiger::get_cpm() {
   // returns an estimation before enough data has been collected. 
   return (sum/((float)m_samples_collected))*((float)WINDOWS_PER_MIN);
 }
-
 
 
 float Geiger::get_cpm30() {
