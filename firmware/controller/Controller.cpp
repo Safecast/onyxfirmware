@@ -562,8 +562,14 @@ void Controller::update() {
 
   text_cpmdint[0] =0;
   int_to_char(m_geiger.get_cpm_deadtime_compensated()+0.5,text_cpmdint,7);
+  if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
+    sprintf(text_cpmdint,"TOO HIGH");
+  }
   //float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,7);
   sprintf(text_cpmd,"%7.3f",m_geiger.get_cpm_deadtime_compensated());
+  if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
+    sprintf(text_cpmd,"TOO HIGH");
+  }
   
   float *graph_data;
   graph_data = m_geiger.get_cpm_last_windows();
@@ -621,15 +627,23 @@ void Controller::update() {
   if((svrem != 0) && (strcmp(svrem,"REM") == 0)) {
     char text_rem[50];
     text_rem[0]=0;
-//    float_to_char(m_geiger.get_microrems(),text_rem,7);
     sprintf(text_rem,"%7.3f",m_geiger.get_microrems());
+    if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
+      sprintf(text_rem,"TOO HIGH");
+    }
+
+
     m_gui->receive_update("SVREM", text_rem);
     m_gui->receive_update("SVREMLABEL","\x80rem/h");
   } else {
     char text_sieverts[50];
     text_sieverts[0]=0;
-//    float_to_char(m_geiger.get_microsieverts(),text_sieverts,7);
     sprintf(text_sieverts,"%7.3f",m_geiger.get_microsieverts());
+    if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
+      sprintf(text_sieverts,"TOO HIGH");
+    }
+
+
     m_gui->receive_update("SVREM", text_sieverts);
     m_gui->receive_update("SVREMLABEL","\x80Sv/h");
   }

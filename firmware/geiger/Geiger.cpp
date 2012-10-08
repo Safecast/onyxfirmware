@@ -221,7 +221,9 @@ float Geiger::get_cpm() {
 
   if(m_samples_collected > samples_used) {
     m_cpm_valid = true;
-    return (sum/((float)samples_used))*((float)WINDOWS_PER_MIN);
+    float cpm = (sum/((float)samples_used))*((float)WINDOWS_PER_MIN);
+    if(cpm > MAX_CPM) m_cpm_valid=false;
+    return cpm;
   }
   m_cpm_valid = false;
  
