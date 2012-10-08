@@ -96,7 +96,7 @@ void serial_setdevicetag_run(char *line) {
 
   char devicetag[100];
 
-  sscanf(devicetag,"%s\r\n",&devicetag);
+  sscanf(line,"%s\r\n",&devicetag);
 
   flashstorage_keyval_set("DEVICETAG",devicetag);
 }
@@ -124,7 +124,7 @@ void serial_process_command(char *line) {
     in_displayparams = false;
   }
 
-  if(in_displayparams) {
+  if(in_setdevicetag) {
     serial_setdevicetag_run(line);
     in_setdevicetag = false;
   }
@@ -187,9 +187,9 @@ void serial_process_command(char *line) {
     sprintf(stemp,"Log size: %u\r\n",flashstorage_log_size());
     serial_write_string(stemp);
   } else 
-  if(strcmp(line,"VERSON") == 0) {
+  if(strcmp(line,"VERSION") == 0) {
     char stemp[50];
-    sprintf(stemp,"Version: %u\r\n",OS100VERSION);
+    sprintf(stemp,"Version: %s\r\n",OS100VERSION);
     serial_write_string(stemp);
   } else 
   if(strcmp(line,"GETDEVICETAG") == 0) {
@@ -198,6 +198,8 @@ void serial_process_command(char *line) {
      char stemp[100];
      sprintf(stemp,"Devicetag: %s\r\n",devicetag);
      serial_write_string(stemp);
+   } else {
+     serial_write_string("No device tag set");
    }
   } else
   if(strcmp(line,"SETDEVICETAG") == 0) {

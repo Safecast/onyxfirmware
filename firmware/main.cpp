@@ -61,7 +61,9 @@ int main(void) {
       buzzer_nonblocking_buzz(0.05);
       display_initialise();
       const char *devicetag = flashstorage_keyval_get("DEVICETAG");
-      display_splashscreen(devicetag,OS100VERSION);
+      char revtext[10];
+      sprintf(revtext,"VERSION: %s ",OS100VERSION);
+      display_splashscreen(devicetag,revtext);
       delay_us(3000000);
       display_clear(0);
     }
