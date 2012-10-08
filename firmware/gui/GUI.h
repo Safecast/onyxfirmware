@@ -86,6 +86,7 @@ private:
   char m_dialog_text3[20];
   char m_dialog_text4[20];
   bool m_displaying_dialog_complete;
+  bool m_pause_display_updates;
   bool m_dialog_buzz;
 };
 

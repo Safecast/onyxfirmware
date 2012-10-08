@@ -707,10 +707,11 @@ GUI::GUI(Controller &r) : receive_gui_events(r) {
   m_dialog_text3[0]=0;
   m_dialog_text4[0]=0;
   m_dialog_buzz=false;
+  m_pause_display_updates=false;
 }
 
 void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,char *dialog_text4,bool buzz) {
-  display_draw_rectangle(0,16,128,128,BACKGROUND_COLOR);
+  display_draw_rectangle(0,0,128,128,BACKGROUND_COLOR);
   strcpy(m_dialog_text1,dialog_text1);
   strcpy(m_dialog_text2,dialog_text2);
   strcpy(m_dialog_text3,dialog_text3);
@@ -718,6 +719,7 @@ void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,c
   m_dialog_buzz = buzz;
   m_displaying_dialog=true;
   m_displaying_dialog_complete=false;
+  m_pause_display_updates = true;
 }
 
 void GUI::render() {
@@ -728,13 +730,14 @@ void GUI::render() {
   }
 
   if(m_displaying_dialog) {
-    render_dialog(m_dialog_text1,m_dialog_text2,m_dialog_text2,m_dialog_text4);
+    render_dialog(m_dialog_text1,m_dialog_text2,m_dialog_text3,m_dialog_text4);
     if(m_dialog_buzz) buzzer_nonblocking_buzz(1);
     return;
   }
 
   if(m_displaying_dialog_complete) {
     m_displaying_dialog_complete=false;
+    m_pause_display_updates = false;
     display_clear(0);
     redraw();
   }
@@ -971,6 +974,9 @@ void GUI::jump_to_screen(const char screen) {
 }
 
 void GUI::receive_update(const char *tag,const void *value) {
+  
+  if(m_pause_display_updates) return;
+
   for(uint32_t n=0;n<screens_layout[current_screen].item_count;n++) {
     if(strcmp(tag,screens_layout[current_screen].items[n].text) == 0) {
       update_item(screens_layout[current_screen].items[n],value);
