@@ -7,6 +7,11 @@
 #include <string.h>
 #include "log.h"
 #include "oled.h"
+#include "display.h"
+#include <limits.h>
+
+extern uint8_t _binary___binary_data_private_key_data_start;
+extern uint8_t _binary___binary_data_private_key_data_size;
 
 #define TX1 BOARD_USART1_TX_PIN
 #define RX1 BOARD_USART1_RX_PIN
@@ -65,24 +70,112 @@ void serial_sendlog() {
   serial_write_string("}");
 }
 
-void serial_writeprivatekey() {
+void serial_readprivatekey() {
 
-  // TODO: Will add code to read from serial and write data to flash region here.
+  char stemp[50];
+  uint8_t *source_data = ((uint8_t *) &_binary___binary_data_private_key_data_start);
+
+  sprintf(stemp,"Private key area baseaddr: %x\r\n",source_data);
+  serial_write_string(stemp);
+
+  uint32_t pageoffset = ((uint32_t) source_data)%2048;
+  sprintf(stemp,"Page offset: %x\r\n",pageoffset);
+
+  serial_write_string("Private key region data: \r\n");
+  for(uint32_t n=0;n<((6*1024))-pageoffset;n++) {
+    if((n%32) == 0) {
+      serial_write_string("\r\n");
+      sprintf(stemp,"%x : ",source_data+n);
+      serial_write_string(stemp);
+    }
+
+    sprintf(stemp,"%02x ",source_data[n]);
+    serial_write_string(stemp);
+  }
+  serial_write_string("\r\n");
+
+  serial_write_string("Private key programmable data only: \r\n");
+  uint8_t *source_data_programmable = (uint8_t *) 0x8000800;
+
+  sprintf(stemp,"Private key programmable data only baseaddr: %x\r\n",source_data_programmable);
+  serial_write_string(stemp);
+
+  for(uint32_t n=0;n<(6*1024);n++) {
+
+    if((n%32) == 0) {
+      serial_write_string("\r\n");
+      sprintf(stemp,"%x : ",source_data+n);
+      serial_write_string(stemp);
+    }
+
+    if(n == (4*1024)) {
+      serial_write_string("\r\nShowing following 2k region, to confirm code not overwritten:\r\n");
+      sprintf(stemp,"%x : ",source_data+n);
+      serial_write_string(stemp);
+    }
+
+    sprintf(stemp,"%02x ",source_data_programmable[n]);
+    serial_write_string(stemp);
+
+  }
+  serial_write_string("\r\n");
 
 }
 
-bool in_displaytest = false;
+void serial_writeprivatekey() {
 
-void serial_displaytest() {
+  // TODO: Will add code to read from serial and write data to flash region here.
+  serial_write_string("Writing incrementing private key data\r\n");
+
+  uint8_t pagedata[2048];
+  for(int n=0;n<2048;n++) pagedata[n] = n;
+
+  uint8_t *source_data_programmable = (uint8_t *) 0x8000800;
+  flashstorage_unlock();
+  flashstorage_erasepage(source_data_programmable);
+  flashstorage_lock();
+  flashstorage_unlock();
+  flashstorage_writepage(pagedata,source_data_programmable);
+  flashstorage_lock();
+
+  source_data_programmable += 2048;
+  flashstorage_unlock();
+  flashstorage_erasepage(source_data_programmable);
+  flashstorage_lock();
+  flashstorage_unlock();
+  flashstorage_writepage(pagedata,source_data_programmable);
+  flashstorage_lock();
+}
+
+bool in_displayparams = false;
+bool in_setdevicetag = false;
+
+void serial_displayparams() {
 
   serial_write_string("DISPLAY REINIT MODE\r\n");
   serial_write_string("COMMAND IS: <CLOCK> <MULTIPLEX> <FUNCTIONSELECT> <VSL> <PHASELEN> <PRECHARGEVOLT> <PRECHARGEPERIOD> <VCOMH>\r\n");
   serial_write_string("e.g: 241 127 1 1 50 23 8 5\r\n");
   serial_write_string("#>");
-  in_displaytest=true;
+  in_displayparams=true;
 }
 
-void serial_displaytest_run(char *line) {
+void serial_setdevicetag() {
+
+  serial_write_string("SETDEVICETAG:\r\n");
+  serial_write_string("#>");
+  in_setdevicetag=true;
+}
+
+void serial_setdevicetag_run(char *line) {
+
+  char devicetag[100];
+
+  sscanf(line,"%s\r\n",&devicetag);
+
+  flashstorage_keyval_set("DEVICETAG",devicetag);
+}
+
+void serial_displayparams_run(char *line) {
 
   uint32_t clock, multiplex, functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh;
 
@@ -100,9 +193,14 @@ uint32_t currentline_position=0;
 
 void serial_process_command(char *line) {
 
-  if(in_displaytest) {
-    serial_displaytest_run(line);
-    in_displaytest = false;
+  if(in_displayparams) {
+    serial_displayparams_run(line);
+    in_displayparams = false;
+  }
+
+  if(in_setdevicetag) {
+    serial_setdevicetag_run(line);
+    in_setdevicetag = false;
   }
 
   serial_write_string("\r\n");
@@ -115,15 +213,76 @@ void serial_process_command(char *line) {
   if(strcmp(line,"LOGXFER") == 0) {
     serial_sendlog();
   } else 
-  if(strcmp(line,"WRITEKEY") == 0) {
-    serial_writeprivatekey();
-  } else
-  if(strcmp(line,"DISPLAYTEST") == 0) {
-    serial_displaytest();
+  if(strcmp(line,"DISPLAYPARAMS") == 0) {
+    serial_displayparams();
   } else
   if(strcmp(line,"HELP") == 0) {
     serial_write_string("Available commands: HELP, LOGXFER, WRITEKEY, DISPLAYTEST, HELLO");
-  }
+  } else 
+  if(strcmp(line,"DISPLAYTEST") == 0) {
+    display_test();
+  } else
+  if(strcmp(line,"LOGTEST") == 0) {
+    char stemp[100];
+
+
+    sprintf(stemp,"Raw log data\r\n");
+    serial_write_string(stemp);
+
+    uint8_t *flash_log = flashstorage_log_get();
+    for(int n=0;n<1024;n++) {
+      sprintf(stemp,"%u ",flash_log[n]);
+      serial_write_string(stemp);
+      if(n%64 == 0) serial_write_string("\r\n");
+    }
+    serial_write_string("\r\n");
+
+    log_data_t data;
+    data.time = 0;
+    data.cpm  = 1;
+    data.accel_x_start = 2;
+    data.accel_y_start = 3;
+    data.accel_z_start = 4;
+    data.accel_x_end   = 5;
+    data.accel_y_end   = 6;
+    data.accel_z_end   = 7;
+    data.log_type      = UINT_MAX;
+    sprintf(stemp,"Log size: %u\r\n",flashstorage_log_size());
+    serial_write_string(stemp);
+
+    sprintf(stemp,"Writing test log entry of size: %u\r\n",sizeof(log_data_t));
+    serial_write_string(stemp);
+
+    flashstorage_log_pushback((uint8 *) &data,sizeof(log_data_t));
+
+    sprintf(stemp,"Log size: %u\r\n",flashstorage_log_size());
+    serial_write_string(stemp);
+  } else 
+  if(strcmp(line,"VERSION") == 0) {
+    char stemp[50];
+    sprintf(stemp,"Version: %s\r\n",OS100VERSION);
+    serial_write_string(stemp);
+  } else 
+  if(strcmp(line,"GETDEVICETAG") == 0) {
+   const char *devicetag = flashstorage_keyval_get("DEVICETAG");
+   if(devicetag != 0) {
+     char stemp[100];
+     sprintf(stemp,"Devicetag: %s\r\n",devicetag);
+     serial_write_string(stemp);
+   } else {
+     serial_write_string("No device tag set");
+   }
+  } else
+  if(strcmp(line,"SETDEVICETAG") == 0) {
+    serial_setdevicetag();
+  } else 
+  if(strcmp(line,"READPRIVATEKEY") == 0) {
+    serial_readprivatekey();
+  } else
+  if(strcmp(line,"WRITEPRIVATEKEY") == 0) {
+    serial_writeprivatekey();
+  } 
+  
 
   serial_write_string("\r\n>");
 }
