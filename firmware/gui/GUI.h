@@ -51,6 +51,7 @@ public:
   void set_language(uint8_t lang);
   void show_dialog_image(int   image1,int   image2,int  image3,int  image4,bool buzz);
   void show_dialog      (char *text1 ,char *text2 ,char *text3,char *text4,bool buzz);
+  void render_dialog      (char *text1 ,char *text2 ,char *text3,char *text4);
   Controller &receive_gui_events;
 
   uint8_t get_item_state_uint8(const char *tag);
@@ -79,6 +80,13 @@ private:
   int new_keys_size;
   int new_keys_key [NEW_KEYS_MAX_SIZE];
   int new_keys_type[NEW_KEYS_MAX_SIZE];
+  bool m_displaying_dialog;
+  char m_dialog_text1[20];
+  char m_dialog_text2[20];
+  char m_dialog_text3[20];
+  char m_dialog_text4[20];
+  bool m_displaying_dialog_complete;
+  bool m_dialog_buzz;
 };
 
 void tick_item(char *name,bool tick_val);

@@ -268,8 +268,8 @@ void Controller::receive_gui_event(char *event,char *value) {
     tick_item("Roentgen",true);
   } else
   if(strcmp(event,"Clear Log") == 0) {
-    m_gui->show_dialog("Log Cleared",0,0,0,1);
     flashstorage_log_clear();
+    m_gui->show_dialog("Log Cleared",0,0,0,1);
   } else 
   if(strcmp(event,"Save:Brightness") == 0) {
     uint8 b = m_gui->get_item_state_uint8("BRIGHTNESS");
@@ -432,25 +432,12 @@ void Controller::receive_gui_event(char *event,char *value) {
 void Controller::update() {
 
   if((m_warncpm > 0) && (m_geiger.get_cpm() >= m_warncpm) && (m_warning_raised == false) && m_geiger.is_cpm_valid()) {
-    m_warning_raised = true;
     if(m_sleeping) display_powerup();
+    char text_cpm[20];
+    sprintf(text_cpm,"%f",m_geiger.get_cpm_deadtime_compensated());
+    m_gui->show_dialog("WARNING LEVEL","EXCEEDED",text_cpm,"PRESS ANY KEY",true);
+    m_warning_raised = true;
 
-    display_clear(0);
-    int keys = cap_lastkey();
-    for(;;) {
-      display_draw_text  (0,32 ," WARNING  LEVEL "   ,FOREGROUND_COLOR);
-      display_draw_text  (0,48 ,"    EXCEEDED    "   ,FOREGROUND_COLOR);
-      display_draw_number_center(0,64 ,m_geiger.get_cpm(),16,FOREGROUND_COLOR);
-      display_draw_text  (4,80 ,"      CPM      "    ,FOREGROUND_COLOR);
-      display_draw_text  (4,112," PRESS ANY KEY "    ,FOREGROUND_COLOR);
-
-      int newkeys = cap_lastkey();
-      if(keys != newkeys) break;
-      buzzer_nonblocking_buzz(1);
-    }
-    display_clear(0);
-    m_gui->redraw();
-    
     #ifndef NEVERSLEEP
     if(m_sleeping) display_powerdown();
     #endif

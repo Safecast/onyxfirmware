@@ -700,14 +700,43 @@ GUI::GUI(Controller &r) : receive_gui_events(r) {
   m_redraw=false;
   m_screen_lock=false;
   m_language = LANGUAGE_ENGLISH;
+  m_displaying_dialog =false;
+  m_displaying_dialog_complete=false;
+  m_dialog_text1[0]=0;
+  m_dialog_text2[0]=0;
+  m_dialog_text3[0]=0;
+  m_dialog_text4[0]=0;
+  m_dialog_buzz=false;
 }
 
+void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,char *dialog_text4,bool buzz) {
+  display_draw_rectangle(0,16,128,128,BACKGROUND_COLOR);
+  strcpy(m_dialog_text1,dialog_text1);
+  strcpy(m_dialog_text2,dialog_text2);
+  strcpy(m_dialog_text3,dialog_text3);
+  strcpy(m_dialog_text4,dialog_text4);
+  m_dialog_buzz = buzz;
+  m_displaying_dialog=true;
+  m_displaying_dialog_complete=false;
+}
 
 void GUI::render() {
 
   if(m_sleeping) {
      process_keys();
      return;  
+  }
+
+  if(m_displaying_dialog) {
+    render_dialog(m_dialog_text1,m_dialog_text2,m_dialog_text2,m_dialog_text4);
+    if(m_dialog_buzz) buzzer_nonblocking_buzz(1);
+    return;
+  }
+
+  if(m_displaying_dialog_complete) {
+    m_displaying_dialog_complete=false;
+    display_clear(0);
+    redraw();
   }
 
   // following two items really need to be atomic...
@@ -773,6 +802,10 @@ void GUI::redraw() {
 }
 
 void GUI::receive_key(int key_id,int type) {
+  if(m_displaying_dialog==true) {
+    m_displaying_dialog=false;
+    m_displaying_dialog_complete=true;
+  }
 
   if(new_keys_size >= NEW_KEYS_MAX_SIZE) return;
 
@@ -970,27 +1003,15 @@ void GUI::set_language(uint8_t lang) {
   m_language = lang;
 }
 
-void GUI::show_dialog(char *text1,char *text2,char *text3,char *text4,bool buzz) {
+void GUI::render_dialog(char *text1,char *text2,char *text3,char *text4) {
 
-  cap_set_disable_messages(true);
-  display_clear(0);
-  delay_us(200000);
-  int keys = cap_lastkey();
-  for(;;) {
-    display_draw_text_center(20,text1,FOREGROUND_COLOR);
-    display_draw_text_center(36,text2,FOREGROUND_COLOR);
-    display_draw_text_center(52,text3,FOREGROUND_COLOR);
-    display_draw_text_center(68,text3,FOREGROUND_COLOR);
-    display_draw_text_center(94,"PRESS ANY KEY",FOREGROUND_COLOR);
+  //display_clear(0);
+  display_draw_text_center(20,text1,FOREGROUND_COLOR);
+  display_draw_text_center(36,text2,FOREGROUND_COLOR);
+  display_draw_text_center(52,text3,FOREGROUND_COLOR);
+  display_draw_text_center(68,text3,FOREGROUND_COLOR);
+  display_draw_text_center(94,"PRESS ANY KEY",FOREGROUND_COLOR);
 
-    int newkeys = cap_lastkey();
-    if(keys != newkeys) break;
-    if(buzz) buzzer_nonblocking_buzz(1);
-  }
-  delay_us(200000);
-  display_clear(0);
-  redraw();
-  cap_set_disable_messages(false);
 }
 
 void GUI::show_dialog_image(int image1,int image2,int image3,int image4,bool buzz) {
