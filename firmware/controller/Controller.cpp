@@ -434,7 +434,7 @@ void Controller::update() {
   if((m_warncpm > 0) && (m_geiger.get_cpm() >= m_warncpm) && (m_warning_raised == false) && m_geiger.is_cpm_valid()) {
     if(m_sleeping) display_powerup();
     char text_cpm[20];
-    sprintf(text_cpm,"%f",m_geiger.get_cpm_deadtime_compensated());
+    sprintf(text_cpm,"%7.3f",m_geiger.get_cpm_deadtime_compensated());
     m_gui->show_dialog("WARNING LEVEL","EXCEEDED",text_cpm,"CPM",true);
     m_warning_raised = true;
 
