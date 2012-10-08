@@ -562,7 +562,8 @@ void Controller::update() {
 
   text_cpmdint[0] =0;
   int_to_char(m_geiger.get_cpm_deadtime_compensated()+0.5,text_cpmdint,7);
-  float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,7);
+  //float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,7);
+  sprintf(text_cpmd,"%7.3f",m_geiger.get_cpm_deadtime_compensated());
   
   float *graph_data;
   graph_data = m_geiger.get_cpm_last_windows();
@@ -620,13 +621,15 @@ void Controller::update() {
   if((svrem != 0) && (strcmp(svrem,"REM") == 0)) {
     char text_rem[50];
     text_rem[0]=0;
-    float_to_char(m_geiger.get_microrems(),text_rem,7);
+//    float_to_char(m_geiger.get_microrems(),text_rem,7);
+    sprintf(text_rem,"%7.3f",m_geiger.get_microrems());
     m_gui->receive_update("SVREM", text_rem);
     m_gui->receive_update("SVREMLABEL","\x80rem/h");
   } else {
     char text_sieverts[50];
     text_sieverts[0]=0;
-    float_to_char(m_geiger.get_microsieverts(),text_sieverts,7);
+//    float_to_char(m_geiger.get_microsieverts(),text_sieverts,7);
+    sprintf(text_sieverts,"%7.3f",m_geiger.get_microsieverts());
     m_gui->receive_update("SVREM", text_sieverts);
     m_gui->receive_update("SVREMLABEL","\x80Sv/h");
   }
@@ -634,7 +637,8 @@ void Controller::update() {
   char text_becq[50];
   float becq = m_geiger.get_becquerel();
   if(becq >= 0) {
-    float_to_char(m_geiger.get_becquerel(),text_becq,7);
+    //float_to_char(m_geiger.get_becquerel(),text_becq,7);
+    sprintf(text_becq,"%7.3f",m_geiger.get_becquerel());
     m_gui->receive_update("BECQ",text_becq);
   } else {
     m_gui->receive_update("BECQINFO","Becquerel unset");

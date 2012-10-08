@@ -216,7 +216,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 17 - Geiger settings
 {
-  6,
+  7,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"    , 255},
     { ITEM_TYPE_MENU       ,19, 1, "Sv/Rem"        , 255},
