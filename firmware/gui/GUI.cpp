@@ -1015,7 +1015,7 @@ void GUI::render_dialog(char *text1,char *text2,char *text3,char *text4) {
   display_draw_text_center(20,text1,FOREGROUND_COLOR);
   display_draw_text_center(36,text2,FOREGROUND_COLOR);
   display_draw_text_center(52,text3,FOREGROUND_COLOR);
-  display_draw_text_center(68,text3,FOREGROUND_COLOR);
+  display_draw_text_center(68,text4,FOREGROUND_COLOR);
   display_draw_text_center(94,"PRESS ANY KEY",FOREGROUND_COLOR);
 
 }

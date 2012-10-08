@@ -435,7 +435,7 @@ void Controller::update() {
     if(m_sleeping) display_powerup();
     char text_cpm[20];
     sprintf(text_cpm,"%f",m_geiger.get_cpm_deadtime_compensated());
-    m_gui->show_dialog("WARNING LEVEL","EXCEEDED",text_cpm,"PRESS ANY KEY",true);
+    m_gui->show_dialog("WARNING LEVEL","EXCEEDED",text_cpm,"CPM",true);
     m_warning_raised = true;
 
     #ifndef NEVERSLEEP
