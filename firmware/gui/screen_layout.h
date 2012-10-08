@@ -35,6 +35,7 @@ struct screen_item {
 struct screen {
   uint8_t       item_count;
   screen_item   items[10];
+  uint8_t help_screen;
 };
 
 extern __FLASH__ screen screens_layout[SCREEN_COUNT];

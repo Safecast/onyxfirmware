@@ -19,7 +19,7 @@ LIBMAPLEOBJS = libmaple/spi.o libmaple/rcc.o libmaple/timer.o libmaple/adc.o lib
 
 OUROBJS = ./display/display.o ./display/spi_aux.o ./display/oled.o ./userinput/captouch.o ./accelerometer/accel.o ./misc/power.o ./misc/wirish_boards.o ./misc/safecast_config.o ./main.o ./realtime/realtime.o ./realtime/rtc.o ./gui/GUI.o ./display/nfont.o ./gui/screen_layout.o ./buzzer/buzzer.o ./geiger/Geiger.o ./misc/utils.o ./flash_storage/flashstorage.o ./serialinterface/serialinterface.o ./controller/Controller.o ./userinput/switch.o ./qrcode/qr_encodeem.o ./qrcode/qr_utils.o ./qrcode/qr_xfer.o
 
-BINARYOBJS = ./binary_data/tinyfont_data.o ./binary_data/font_data.o ./binary_data/bignumbers_data.o ./binary_data/flash_data.o ./binary_data/fixed_images.o ./binary_data/splashscreen.o ./binary_data/private_key_data.o
+BINARYOBJS = ./binary_data/tinyfont_data.o ./binary_data/font_data.o ./binary_data/bignumbers_data.o ./binary_data/flash_data.o ./binary_data/fixed_images.o ./binary_data/splashscreen.o ./binary_data/private_key_data.o ./binary_data/help_screens.o
 
 PICTUREOBJS = ./binary_data/fixed_images ./binary_data/bignumbers_data ./binary_data/font_data
 
@@ -41,18 +41,21 @@ pictures: to565
 	convert ./binary_data/font.png -depth 2 gray:./binary_data/font_data
 	convert ./binary_data/bignumbers.png -depth 2 gray:./binary_data/bignumbers_data
 	convert ./binary_data/fixed_images.png -depth 2 gray:./binary_data/fixed_images
+	convert ./binary_data/help_screens.png -depth 2 gray:./binary_data/help_screens
 
 safecast.elf:	main.cpp $(LIBMAPLEOBJS) $(OUROBJS) libcs3 pictures
 	$(LD_DEFAULT) -o ./binary_data/font_data.o ./binary_data/font_data
 	$(LD_DEFAULT) -o ./binary_data/bignumbers_data.o ./binary_data/bignumbers_data
 	$(LD_DEFAULT) -o ./binary_data/tinyfont_data.o ./binary_data/tinyfont_data
 	$(LD_DEFAULT) -o ./binary_data/fixed_images.o ./binary_data/fixed_images
+	$(LD_DEFAULT) -o ./binary_data/help_screens.o ./binary_data/help_screens
 	$(LD_DEFAULT) -o ./binary_data/splashscreen.o ./binary_data/splashscreen
 	$(LD_DEFAULT) -o ./binary_data/private_key_data.o ./binary_data/private_key_data
 	$(OBJCOPY_DEFAULT) ./binary_data/font_data ./binary_data/font_data.o
 	$(OBJCOPY_DEFAULT) ./binary_data/bignumbers_data ./binary_data/bignumbers_data.o
 	$(OBJCOPY_DEFAULT) ./binary_data/tinyfont_data ./binary_data/tinyfont_data.o
 	$(OBJCOPY_DEFAULT) ./binary_data/fixed_images ./binary_data/fixed_images.o
+	$(OBJCOPY_DEFAULT) ./binary_data/help_screens ./binary_data/help_screens.o
 	$(OBJCOPY_DEFAULT) ./binary_data/flash_data ./binary_data/flash_data.o
 	$(OBJCOPY_DEFAULT) ./binary_data/splashscreen ./binary_data/splashscreen.o
 	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm --rename-section .data=.private_key_data,alloc,load,readonly,data,contents ./binary_data/private_key_data ./binary_data/private_key_data.o

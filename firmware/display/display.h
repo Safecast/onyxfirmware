@@ -30,5 +30,6 @@ void display_splashscreen(const char *line1,const char *line2);
 void display_powerup();
 void display_powerdown();
 void display_test();
+void display_draw_helpscreen(uint8_t n);
 
 #endif

@@ -710,6 +710,14 @@ GUI::GUI(Controller &r) : receive_gui_events(r) {
   m_pause_display_updates=false;
 }
 
+void GUI::show_help_screen(uint8_t helpscreen) {
+  display_draw_helpscreen(helpscreen);
+  m_displaying_dialog=true;
+  m_displaying_dialog_complete=false;
+  m_pause_display_updates = true;
+  m_dialog_buzz = false;
+}
+
 void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,char *dialog_text4,bool buzz) {
   display_draw_rectangle(0,0,128,128,BACKGROUND_COLOR);
   strcpy(m_dialog_text1,dialog_text1);
@@ -720,6 +728,7 @@ void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,c
   m_displaying_dialog=true;
   m_displaying_dialog_complete=false;
   m_pause_display_updates = true;
+  render_dialog(m_dialog_text1,m_dialog_text2,m_dialog_text3,m_dialog_text4);
 }
 
 void GUI::render() {
@@ -730,7 +739,6 @@ void GUI::render() {
   }
 
   if(m_displaying_dialog) {
-    render_dialog(m_dialog_text1,m_dialog_text2,m_dialog_text3,m_dialog_text4);
     if(m_dialog_buzz) buzzer_nonblocking_buzz(1);
     return;
   }
@@ -844,6 +852,10 @@ void GUI::process_key(int key_id,int type) {
   }
 
   if(m_sleeping) return;
+
+  if((key_id == KEY_HELP) && (type == KEY_RELEASED)) {
+    if(screens_layout[current_screen].help_screen != 255) show_help_screen(screens_layout[current_screen].help_screen);
+  }
 
   if((key_id == KEY_DOWN) && (type == KEY_RELEASED)) {
 

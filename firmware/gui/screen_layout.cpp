@@ -15,6 +15,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
    { ITEM_TYPE_MENU       , 3, 4, "Settings"        , 0}
 //   { ITEM_TYPE_MENU_ACTION, 0, 4, "Sleep" }
  }
+ ,1
 },
 
 // Screen 1 - Current readings screen
@@ -28,6 +29,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARLABEL    ,79,104, "SVREMLABEL", 255},
     { ITEM_TYPE_SMALLLABEL   ,8,120, "SIEVERTS ESTIMATED",255}
   }
+  ,0
 },
 //    { ITEM_TYPE_BIGVARLABEL , 0, 70, "SIEVERTS"  , 255},
 //    { ITEM_TYPE_VARLABEL    ,79,104, "\x80Sv/h"  , 255},
@@ -42,6 +44,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 //    { ITEM_TYPE_MENU_ACTION, 0, 3, "Serial Transfer",1},
     { ITEM_TYPE_MENU_ACTION, 0, 3, "QR Transfer",7}
   }
+  ,255
 },
 
 // Screen 3 - Settings menu
@@ -54,6 +57,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU       , 9, 3, "Time/Date" , 13 },
     { ITEM_TYPE_MENU       ,18, 4, "Version"   , 14 }
   }
+  ,255
 },
 
 
@@ -65,6 +69,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_GRAPH   , 4 , 110, "RECENTDATA"    , 255 },
     { ITEM_TYPE_LABEL   ,255, 112, "Last 2 minutes", 17  }
   }
+  ,255
 },
 
 //Screen 5 - Calibration Confirmation
@@ -76,6 +81,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU , 3 , 4  , "     Cancel     " , 18 },
     { ITEM_TYPE_LABEL,255, 16 , "Are you sure?"    , 19}
   }
+  ,255
 },
 
 //Screen 6 - Calibration Wait 1
@@ -87,6 +93,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL,255, 80, "to source."      , 22 },
     { ITEM_TYPE_DELAY, 60,100,"DELAYA\0 16,7"    , 255 } // 16 second delay, then go to screen 7
   } 
+  ,255
 },
 
 //Screen 7 - Calibration Wait 2
@@ -96,6 +103,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL,255, 32, "Acquiring, 30s" , 23 },
     { ITEM_TYPE_DELAY, 60,100,"DELAYB\0 31,8"   , 255 } // 31 second delay
   } 
+  ,255
 }, 
     
 
@@ -111,6 +119,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Calib", 2 },
     { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE", 255 }
   }
+  ,255
 },
 
 //Screen 9 - Set time/date
@@ -121,6 +130,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU,            10, 1, "Set Time"     , 15 },
     { ITEM_TYPE_MENU,            11, 2, "Set Date/Zone", 16 }
   }
+  ,255
 },
 
 //Screen 10 - Set time
@@ -136,6 +146,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     ,118, 50, "TIMESEC2"   , 255 },
     { ITEM_TYPE_MENU_ACTION,  0,  7, "Save:Time"   , 2 }
   }
+  ,255
 },
 
 //Screen 11 - Set date
@@ -153,6 +164,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL      , 0 ,  20, "MM/DD/YY"  , 24 },
     { ITEM_TYPE_ACTION     ,  0,   0, "DATESCREEN", 255 }
   }
+  ,255
 },
 
 //Screen 12 - Brightness control
@@ -165,6 +177,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_ACTION     ,  0,   0, "BrightnessSCN" , 255 },
     { ITEM_TYPE_LEAVE_ACTION, 0,   0, "LeftBrightness", 255}
   }
+  ,255
 },
 
 //Screen 13 - Warning configuration
@@ -180,6 +193,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:WarnCPM", 2  },
     { ITEM_TYPE_LABEL      , 0 ,  20, "Warning CPM", 255}
   }
+  ,255
 },
   
 //Screen 14 - Language Selection Screen
@@ -190,6 +204,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU_ACTION, 1, 1, "English"   , 255},
     { ITEM_TYPE_MENU_ACTION, 2, 2, "Japanese"  , 3  }
   }
+  ,255
 },
 
 //Screen 15 - Total/Timer mode
@@ -201,6 +216,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARLABEL   ,255,90, "TTTIME"     , 255},
     { ITEM_TYPE_ACTION     ,  2, 2, "TOTALTIMER" , 255}
   }
+  ,255
 },
 
 //Screen 16 - User interface settings
@@ -212,6 +228,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU_ACTION, 0, 2, "Geiger Beep", 11 },
     { ITEM_TYPE_MENU       ,14, 3, "Language"   , 12 }
   }
+  ,255
 },
 
 //Screen 17 - Geiger settings
@@ -227,6 +244,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU       ,22, 6, "Becquerel Val" , 255}
 //    { ITEM_TYPE_MENU,INVALID_SCREEN, 2, "Averaging Period" },
   }
+  ,255
 },
 
 //Screen 18 - Version information
@@ -237,6 +255,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL      , 0  ,32, "Firmware Release" , 255},
     { ITEM_TYPE_LABEL      , 255,64, OS100VERSION       , 255}
   }
+  ,255
 },
 
 //Screen 19 - Sieverts or Rems
@@ -247,6 +266,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU_ACTION, 1, 1, "Sievert"   , 255},
     { ITEM_TYPE_MENU_ACTION, 2, 2, "Roentgen"  , 255}
   }
+  ,255
 },
 
 //Screen 20 - Advanced
@@ -256,6 +276,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD, 0, 0, "CPMDEADINT", 255}, 
     { ITEM_TYPE_MENU,21, 1, "Becquerel" , 255}
   }
+  ,255
 
 },
 
@@ -269,6 +290,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL        ,112, 74, "Bq"        , 255},
     { ITEM_TYPE_SMALLLABEL   ,8  ,120, "BECQUEREL ESTIMATED",255}
   }
+  ,255
 },
 
 //Screen 22 - Set Becquerel conversion value
@@ -282,6 +304,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 92, 50 , "BECQ4"     , 255 },
     { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Becq"  , 2 },
   }
+  ,255
 },
 
 //Screen 23 - Set Logging Interval
@@ -295,6 +318,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:LogInter" , 2 },
     { ITEM_TYPE_LABEL      ,255,  86, "minutes"       , 255 }
   }
+  ,255
 },
 
 };
