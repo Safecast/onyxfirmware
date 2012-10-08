@@ -19,7 +19,7 @@ LIBMAPLEOBJS = libmaple/spi.o libmaple/rcc.o libmaple/timer.o libmaple/adc.o lib
 
 OUROBJS = ./display/display.o ./display/spi_aux.o ./display/oled.o ./userinput/captouch.o ./accelerometer/accel.o ./misc/power.o ./misc/wirish_boards.o ./misc/safecast_config.o ./main.o ./realtime/realtime.o ./realtime/rtc.o ./gui/GUI.o ./display/nfont.o ./gui/screen_layout.o ./buzzer/buzzer.o ./geiger/Geiger.o ./misc/utils.o ./flash_storage/flashstorage.o ./serialinterface/serialinterface.o ./controller/Controller.o ./userinput/switch.o ./qrcode/qr_encodeem.o ./qrcode/qr_utils.o ./qrcode/qr_xfer.o
 
-BINARYOBJS = ./binary_data/tinyfont_data.o ./binary_data/font_data.o ./binary_data/bignumbers_data.o ./binary_data/flash_data.o ./binary_data/fixed_images.o ./binary_data/splashscreen.o
+BINARYOBJS = ./binary_data/tinyfont_data.o ./binary_data/font_data.o ./binary_data/bignumbers_data.o ./binary_data/flash_data.o ./binary_data/fixed_images.o ./binary_data/splashscreen.o ./binary_data/private_key_data.o
 
 PICTUREOBJS = ./binary_data/fixed_images ./binary_data/bignumbers_data ./binary_data/font_data
 
@@ -48,12 +48,16 @@ safecast.elf:	main.cpp $(LIBMAPLEOBJS) $(OUROBJS) libcs3 pictures
 	$(LD_DEFAULT) -o ./binary_data/tinyfont_data.o ./binary_data/tinyfont_data
 	$(LD_DEFAULT) -o ./binary_data/fixed_images.o ./binary_data/fixed_images
 	$(LD_DEFAULT) -o ./binary_data/splashscreen.o ./binary_data/splashscreen
+	$(LD_DEFAULT) -o ./binary_data/private_key_data.o ./binary_data/private_key_data
 	$(OBJCOPY_DEFAULT) ./binary_data/font_data ./binary_data/font_data.o
 	$(OBJCOPY_DEFAULT) ./binary_data/bignumbers_data ./binary_data/bignumbers_data.o
 	$(OBJCOPY_DEFAULT) ./binary_data/tinyfont_data ./binary_data/tinyfont_data.o
 	$(OBJCOPY_DEFAULT) ./binary_data/fixed_images ./binary_data/fixed_images.o
 	$(OBJCOPY_DEFAULT) ./binary_data/flash_data ./binary_data/flash_data.o
 	$(OBJCOPY_DEFAULT) ./binary_data/splashscreen ./binary_data/splashscreen.o
+	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm --rename-section .data=.private_key_data,alloc,load,readonly,data,contents ./binary_data/private_key_data ./binary_data/private_key_data.o
+
+
 	# Final linker step
 	$(CXX) -T./linker_files/safecast_flash.ld -L./linker_files $(LDFLAGS) $(OUROBJS) $(LIBMAPLEOBJS) $(BINARYOBJS) ./libcs3_stm32_src/*.o -o safecast.elf -Wl,-Map,safecast.map 
 

@@ -22,6 +22,9 @@ INCLUDE names.inc
 /* STM32 vector table. See stm32_vector_table.S  */
 EXTERN(__cs3_stm32_vector_table)
 
+/* Bunnie geiger, private key data */
+EXTERN(__private_key_data)
+
 /* libcs3 C start function. See cs3.h */
 EXTERN(__cs3_start_c)
 
@@ -50,6 +53,8 @@ SECTIONS
          * STM32 vector table.  Leave this here.  Yes, really.
          */
         *(.stm32.interrupt_vector)
+
+        *(.private_key_data)
 
         /*
          * Program code and vague linking

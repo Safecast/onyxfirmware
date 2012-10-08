@@ -10,6 +10,9 @@
 #include "display.h"
 #include <limits.h>
 
+extern uint8_t _binary___binary_data_private_key_data_start;
+extern uint8_t _binary___binary_data_private_key_data_size;
+
 #define TX1 BOARD_USART1_TX_PIN
 #define RX1 BOARD_USART1_RX_PIN
 
@@ -65,6 +68,51 @@ void serial_sendlog() {
     serial_write_string(strdata3);
   }
   serial_write_string("}");
+}
+
+void serial_readprivatekey() {
+
+  char stemp[50];
+  uint8_t *source_data = ((uint8_t *) &_binary___binary_data_private_key_data_start);
+
+  sprintf(stemp,"Private key area baseaddr: %x\r\n",source_data);
+  serial_write_string(stemp);
+
+  uint32_t pageoffset = ((uint32_t) source_data)%2048;
+  sprintf(stemp,"Page offset: %x\r\n",pageoffset);
+
+  serial_write_string("Private key region data: \r\n");
+  for(uint32_t n=0;n<((6*1024))-pageoffset;n++) {
+    if((n%100) == 0) {
+      serial_write_string("\r\n");
+      sprintf(stemp,"%x : ",source_data+n);
+      serial_write_string(stemp);
+    }
+
+    sprintf(stemp,"%u ",source_data[n]);
+    serial_write_string(stemp);
+  }
+  serial_write_string("\r\n");
+
+  serial_write_string("Private key programmable data only: \r\n");
+  uint8_t *source_data_programmable = (uint8_t *) 0x8000800;
+
+  sprintf(stemp,"Private key programmable data only baseaddr: %x\r\n",source_data_programmable);
+  serial_write_string(stemp);
+
+  for(uint32_t n=0;n<(4*1024);n++) {
+
+    if((n%100) == 0) {
+      serial_write_string("\r\n");
+      sprintf(stemp,"%x : ",source_data+n);
+      serial_write_string(stemp);
+    }
+
+    sprintf(stemp,"%u ",source_data_programmable[n]);
+    serial_write_string(stemp);
+  }
+  serial_write_string("\r\n");
+
 }
 
 void serial_writeprivatekey() {
@@ -204,6 +252,9 @@ void serial_process_command(char *line) {
   } else
   if(strcmp(line,"SETDEVICETAG") == 0) {
     serial_setdevicetag();
+  } else 
+  if(strcmp(line,"READPRIVATEKEY") == 0) {
+    serial_readprivatekey();
   }
   
 
