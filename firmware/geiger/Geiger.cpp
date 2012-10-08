@@ -198,8 +198,6 @@ float Geiger::get_cpm() {
 		if(delta < 0) delta = 0-delta;
 		uint32_t mincpm = min(old5sum,last5sum);
 		uint32_t maxcpm = max(old5sum,last5sum);
-    display_draw_number(0,60,mincpm,8,0);
-    display_draw_number(0,80,maxcpm,8,0);
 		if(((mincpm*100) < maxcpm) && (mincpm != 0)) {
 			m_cpm_valid = false;
 			m_samples_collected=5;
