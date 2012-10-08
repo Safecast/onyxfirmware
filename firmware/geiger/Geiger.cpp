@@ -178,20 +178,20 @@ float Geiger::get_cpm() {
 		int32_t last5sum=0;
     int32_t c_position = last_windows_position-1;
 		for(uint32_t n=0;n<10;n++) {
+			if(c_position < 0) c_position = WINDOWS_STORED+c_position;
 			last5sum += last_windows[c_position];
 
 	    c_position--;
-			if(c_position < 0) c_position = WINDOWS_STORED-1;
 		}
 		
 		// cpm for 5 seconds prior to above
 		int32_t old5sum=0;
     c_position = last_windows_position-1-10;
 		for(uint32_t n=0;n<10;n++) {
+			if(c_position < 0) c_position = WINDOWS_STORED+c_position;
 			old5sum += last_windows[c_position];
 	 
 			c_position--;
-			if(c_position < 0) c_position = WINDOWS_STORED-1;
 		}
 
 		uint32_t delta = old5sum-last5sum;
@@ -209,7 +209,7 @@ float Geiger::get_cpm() {
   int32_t c_position = last_windows_position-1;
 
   int32_t samples_used=0;
-  for(uint32_t n=0;n<max_averaging_period;n++) {
+  for(uint32_t n=0;(n<max_averaging_period) && (n<m_samples_collected);n++) {
    
     sum += last_windows[c_position];
  
