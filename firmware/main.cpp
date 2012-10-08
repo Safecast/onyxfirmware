@@ -60,7 +60,8 @@ int main(void) {
     } else {
       buzzer_nonblocking_buzz(0.05);
       display_initialise();
-      display_splashscreen();
+      const char *devicetag = flashstorage_keyval_get("DEVICETAG");
+      display_splashscreen(devicetag,OS100VERSION);
       delay_us(3000000);
       display_clear(0);
     }

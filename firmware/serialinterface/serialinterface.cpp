@@ -73,18 +73,35 @@ void serial_writeprivatekey() {
 
 }
 
-bool in_displaytest = false;
+bool in_displayparams = false;
+bool in_setdevicetag = false;
 
-void serial_displaytest() {
+void serial_displayparams() {
 
   serial_write_string("DISPLAY REINIT MODE\r\n");
   serial_write_string("COMMAND IS: <CLOCK> <MULTIPLEX> <FUNCTIONSELECT> <VSL> <PHASELEN> <PRECHARGEVOLT> <PRECHARGEPERIOD> <VCOMH>\r\n");
   serial_write_string("e.g: 241 127 1 1 50 23 8 5\r\n");
   serial_write_string("#>");
-  in_displaytest=true;
+  in_displayparams=true;
 }
 
-void serial_displaytest_run(char *line) {
+void serial_setdevicetag() {
+
+  serial_write_string("SETDEVICETAG:\r\n");
+  serial_write_string("#>");
+  in_setdevicetag=true;
+}
+
+void serial_setdevicetag_run(char *line) {
+
+  char devicetag[100];
+
+  sscanf(devicetag,"%s\r\n",&devicetag);
+
+  flashstorage_keyval_set("DEVICETAG",devicetag);
+}
+
+void serial_displayparams_run(char *line) {
 
   uint32_t clock, multiplex, functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh;
 
@@ -102,9 +119,14 @@ uint32_t currentline_position=0;
 
 void serial_process_command(char *line) {
 
-  if(in_displaytest) {
-    serial_displaytest_run(line);
-    in_displaytest = false;
+  if(in_displayparams) {
+    serial_displayparams_run(line);
+    in_displayparams = false;
+  }
+
+  if(in_displayparams) {
+    serial_setdevicetag_run(line);
+    in_setdevicetag = false;
   }
 
   serial_write_string("\r\n");
@@ -121,7 +143,7 @@ void serial_process_command(char *line) {
     serial_writeprivatekey();
   } else
   if(strcmp(line,"DISPLAYPARAMS") == 0) {
-    serial_displaytest();
+    serial_displayparams();
   } else
   if(strcmp(line,"HELP") == 0) {
     serial_write_string("Available commands: HELP, LOGXFER, WRITEKEY, DISPLAYTEST, HELLO");
@@ -164,7 +186,24 @@ void serial_process_command(char *line) {
 
     sprintf(stemp,"Log size: %u\r\n",flashstorage_log_size());
     serial_write_string(stemp);
+  } else 
+  if(strcmp(line,"VERSON") == 0) {
+    char stemp[50];
+    sprintf(stemp,"Version: %u\r\n",OS100VERSION);
+    serial_write_string(stemp);
+  } else 
+  if(strcmp(line,"GETDEVICETAG") == 0) {
+   const char *devicetag = flashstorage_keyval_get("DEVICETAG");
+   if(devicetag != 0) {
+     char stemp[100];
+     sprintf(stemp,"Devicetag: %s\r\n",devicetag);
+     serial_write_string(stemp);
+   }
+  } else
+  if(strcmp(line,"SETDEVICETAG") == 0) {
+    serial_setdevicetag();
   }
+  
 
   serial_write_string("\r\n>");
 }
