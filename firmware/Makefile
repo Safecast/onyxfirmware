@@ -21,7 +21,7 @@ OUROBJS = ./display/display.o ./display/spi_aux.o ./display/oled.o ./userinput/c
 
 BINARYOBJS = ./binary_data/tinyfont_data.o ./binary_data/font_data.o ./binary_data/bignumbers_data.o ./binary_data/flash_data.o ./binary_data/fixed_images.o ./binary_data/splashscreen.o ./binary_data/private_key_data.o ./binary_data/help_screens.o
 
-PICTUREOBJS = ./binary_data/fixed_images ./binary_data/bignumbers_data ./binary_data/font_data
+PICTUREOBJS = ./binary_data/{fixed_images,bignumbers_data,font_data,help_screens,splashscreen,splashscreen888}
 
 all:	release
 	@echo
@@ -78,7 +78,7 @@ program: release
 clean:
 	rm -f safecast.elf safecast.map $(LIBMAPLEOBJS) $(OUROBJS) $(BINARYOBJS) $(PICTUREOBJS)
 	rm -f libcs3_stm32_src/*.o libcs3_stm32_src/*.a
-	# rm -f image_1_data*
+	rm -f misc/to565
 
 distclean:	clean
 	rm -f $(RELEASE_NAME).bin
