@@ -7,6 +7,7 @@
 #define WINDOWS_PER_MIN    120
 #define WINDOWS_STORED     600
 
+#define MAX_CPM            350000
 
 class Geiger {
 

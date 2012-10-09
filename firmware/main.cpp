@@ -9,6 +9,7 @@
 #include "safecast_config.h"
 
 //#define DISABLE_ACCEL
+//#define NEVERSLEEP
 #include "UserInput.h"
 #include "Geiger.h"
 #include "GUI.h"
@@ -38,7 +39,6 @@ int main(void) {
     Geiger g;
     power_initialise();
     flashstorage_initialise();
-    display_initialise();
     buzzer_initialise();
     realtime_initialise();
     g.initialise();
@@ -54,13 +54,32 @@ int main(void) {
     switch_initialise();
 
     // if we woke up on an alarm, we're going to be sending the system back.
+    #ifndef NEVERSLEEP
     if(power_get_wakeup_source() == WAKEUP_RTC) {
       c.m_sleeping = true;
     } else {
       buzzer_nonblocking_buzz(0.05);
+      display_initialise();
+      const char *devicetag = flashstorage_keyval_get("DEVICETAG");
+      char revtext[10];
+      sprintf(revtext,"VERSION: %s ",OS100VERSION);
+      display_splashscreen(devicetag,revtext);
+      delay_us(3000000);
+      display_clear(0);
     }
+    #endif
+    #ifdef NEVERSLEEP
+      buzzer_nonblocking_buzz(0.05);
+      display_initialise();
+    #endif
+
 
     GUI m_gui(c);
+    bool full = flashstorage_log_isfull();
+    if((full == true) && (c.m_sleeping == false)) {
+      m_gui.show_dialog("Flash Log","is full",0,0,0);
+    }
+
     c.set_gui(m_gui);
     UserInput  u(m_gui);
     u.initialise();
@@ -73,7 +92,7 @@ int main(void) {
       if(sbright != 0) {
         unsigned int c;
         sscanf(sbright, "%u", &c);
-        display_set_brightness(c+6);
+        display_set_brightness(c);
       }
  
       const char *sbeep = flashstorage_keyval_get("GEIGERBEEP");
@@ -114,10 +133,17 @@ int main(void) {
       }
 
       // Screen lock code
-      uint32_t release_time = cap_last_press();
-      uint32_t   press_time = cap_last_release();
+      uint32_t release1_time = cap_last_press(KEY_BACK);
+      uint32_t   press1_time = cap_last_release(KEY_BACK);
+      uint32_t release2_time = cap_last_press(KEY_SELECT);
+      uint32_t   press2_time = cap_last_release(KEY_SELECT);
       uint32_t current_time = realtime_get_unixtime();
-      if((release_time != 0) && (release_time < press_time) && ((current_time-press_time) > 3)) {
+      if((release1_time != 0) &&
+         (release2_time != 0) &&
+         ((current_time-press1_time) > 3) &&
+         ((current_time-press2_time) > 3) &&
+         cap_ispressed(KEY_BACK  ) &&
+         cap_ispressed(KEY_SELECT)) {
         system_gui->toggle_screen_lock();
         cap_clear_press();
       }

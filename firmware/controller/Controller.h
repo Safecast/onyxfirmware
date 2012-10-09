@@ -26,7 +26,7 @@ public:
   bool     m_sleeping;             ///< this indicates display sleep
   bool     m_powerup;
   float    m_calibration_base;
-  uint32_t m_log_period_seconds;
+  uint32_t m_log_interval_seconds;
   bool     m_alarm_log;
   uint32_t m_last_alarm_time;
   int16    m_accel_x_stored;
