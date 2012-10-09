@@ -138,6 +138,13 @@ void draw_bigcharacter(int x,int y,char c,uint16_t background) {
   uint16_t character_data[16*32];
   for(int n=0;n<(16*32);n++) character_data[n]=background^65535;
 
+  if(((c >= 'a')&&(c <= 'z')) ||
+     ((c >= 'A')&&(c <= 'Z'))) {
+    oled_draw_rect(x,y,16,32,(uint8_t *) character_data);
+    draw_character(x,y,c,background);
+    return;
+  }
+
   if((c >= '0')&&(c <= '9')) c = c - 48; else
   if(c == '.') c = 10;
 

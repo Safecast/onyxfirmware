@@ -615,9 +615,11 @@ void Controller::update() {
 
   if((svrem != 0) && (strcmp(svrem,"REM") == 0)) {
     char text_rem[50];
+    char text_rem_tmp[50];
     text_rem[0]=0;
-    sprintf(text_rem,"%8.3f",m_geiger.get_microrems());
-    if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
+    sprintf(text_rem_tmp,"%8.3f",m_geiger.get_microrems());
+    sprintf(text_rem    ,"%8.8s",text_rem_tmp);
+    if((m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) || (m_geiger.get_microrems() > 99999999)) {
       sprintf(text_rem,"TOO HIGH");
     }
 
@@ -626,9 +628,11 @@ void Controller::update() {
     m_gui->receive_update("SVREMLABEL","\x80rem/h");
   } else {
     char text_sieverts[50];
+    char text_sieverts_tmp[50];
     text_sieverts[0]=0;
-    sprintf(text_sieverts,"%8.3f",m_geiger.get_microsieverts());
-    if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
+    sprintf(text_sieverts_tmp,"%8.3f",m_geiger.get_microsieverts());
+    sprintf(text_sieverts,"%8.8s",text_sieverts_tmp);
+    if((m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) || (m_geiger.get_microsieverts() > 99999999)) {
       sprintf(text_sieverts,"TOO HIGH");
     }
 
@@ -637,11 +641,18 @@ void Controller::update() {
     m_gui->receive_update("SVREMLABEL","\x80Sv/h");
   }
   
+  char text_becq_tmp[50];
   char text_becq[50];
   float becq = m_geiger.get_becquerel();
   if(becq >= 0) {
     //float_to_char(m_geiger.get_becquerel(),text_becq,7);
-    sprintf(text_becq,"%8.3f",m_geiger.get_becquerel());
+    sprintf(text_becq_tmp,"%8.3f",m_geiger.get_becquerel());
+    sprintf(text_becq,"%8.8s",text_becq_tmp);
+
+    if(m_geiger.get_becquerel() > 99999999) {
+      sprintf(text_becq,"TOO HIGH");
+    }
+
     m_gui->receive_update("BECQ",text_becq);
   } else {
     m_gui->receive_update("BECQINFO","Becquerel unset");
