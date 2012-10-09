@@ -11,15 +11,9 @@
 #include <stdio.h>
 #include "Geiger.h"
 #include <string.h>
+#include "buzzer.h"
+#include "captouch.h"
 
-#define KEY_BACK   6
-#define KEY_HOME   8
-#define KEY_DOWN   4
-#define KEY_UP     3
-#define KEY_SELECT 2
-#define KEY_HELP   0
-#define KEY_PRESSED  0
-#define KEY_RELEASED 1
 
 bool first_render=true;
 
@@ -104,9 +98,20 @@ void render_item_menu(screen_item &item, bool selected) {
 
   if((m_language == LANGUAGE_ENGLISH) || (item.kanji_image == 255)) {
 
+
+
     int len = strlen(item.text);
     char text[50];
     strcpy(text,item.text);
+
+    // Search for : replace with NULL in rendering
+    for(int n=0;n<len;n++) {
+      if(text[n] == ':') text[n] = 0;
+    }
+    len = strlen(text);
+
+
+    // Pad to 16 characters
     for(int n=len;n<16;n++) {
       text[n  ]=' ';
       text[n+1]=0;
@@ -695,14 +700,54 @@ GUI::GUI(Controller &r) : receive_gui_events(r) {
   m_redraw=false;
   m_screen_lock=false;
   m_language = LANGUAGE_ENGLISH;
+  m_displaying_dialog =false;
+  m_displaying_dialog_complete=false;
+  m_dialog_text1[0]=0;
+  m_dialog_text2[0]=0;
+  m_dialog_text3[0]=0;
+  m_dialog_text4[0]=0;
+  m_dialog_buzz=false;
+  m_pause_display_updates=false;
 }
 
+void GUI::show_help_screen(uint8_t helpscreen) {
+  display_draw_helpscreen(helpscreen);
+  m_displaying_dialog=true;
+  m_displaying_dialog_complete=false;
+  m_pause_display_updates = true;
+  m_dialog_buzz = false;
+}
+
+void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,char *dialog_text4,bool buzz) {
+  display_draw_rectangle(0,0,128,128,BACKGROUND_COLOR);
+  strcpy(m_dialog_text1,dialog_text1);
+  strcpy(m_dialog_text2,dialog_text2);
+  strcpy(m_dialog_text3,dialog_text3);
+  strcpy(m_dialog_text4,dialog_text4);
+  m_dialog_buzz = buzz;
+  m_displaying_dialog=true;
+  m_displaying_dialog_complete=false;
+  m_pause_display_updates = true;
+  render_dialog(m_dialog_text1,m_dialog_text2,m_dialog_text3,m_dialog_text4);
+}
 
 void GUI::render() {
 
   if(m_sleeping) {
      process_keys();
      return;  
+  }
+
+  if(m_displaying_dialog) {
+    if(m_dialog_buzz) buzzer_nonblocking_buzz(1);
+    return;
+  }
+
+  if(m_displaying_dialog_complete) {
+    m_displaying_dialog_complete=false;
+    m_pause_display_updates = false;
+    display_clear(0);
+    redraw();
   }
 
   // following two items really need to be atomic...
@@ -768,6 +813,10 @@ void GUI::redraw() {
 }
 
 void GUI::receive_key(int key_id,int type) {
+  if(m_displaying_dialog==true) {
+    m_displaying_dialog=false;
+    m_displaying_dialog_complete=true;
+  }
 
   if(new_keys_size >= NEW_KEYS_MAX_SIZE) return;
 
@@ -785,6 +834,14 @@ void GUI::process_keys() {
   new_keys_size=0;
 }
 
+void GUI::leave_screen_actions(int screen) {
+  for(int n=0;n<screens_layout[screen].item_count;n++) {
+    if(screens_layout[screen].items[n].type == ITEM_TYPE_LEAVE_ACTION) {
+      receive_gui_events.receive_gui_event(screens_layout[screen].items[n].text,"Left");
+    }
+  }
+}
+
 void GUI::process_key(int key_id,int type) {
 
   if(m_screen_lock) return;
@@ -795,6 +852,10 @@ void GUI::process_key(int key_id,int type) {
   }
 
   if(m_sleeping) return;
+
+  if((key_id == KEY_HELP) && (type == KEY_RELEASED)) {
+    if(screens_layout[current_screen].help_screen != 255) show_help_screen(screens_layout[current_screen].help_screen);
+  }
 
   if((key_id == KEY_DOWN) && (type == KEY_RELEASED)) {
 
@@ -889,6 +950,9 @@ void GUI::process_key(int key_id,int type) {
 				clear_screen_screen   = current_screen;
 				clear_screen_selected = selected_item;
 
+
+        leave_screen_actions(current_screen);
+
 				pop_stack(current_screen,selected_item);
 			}
     }
@@ -900,6 +964,7 @@ void GUI::process_key(int key_id,int type) {
       first_render=true;
       clear_screen_screen   = current_screen;
       clear_screen_selected = selected_item;
+      leave_screen_actions(current_screen);
       clear_stack();
       current_screen = 0;
       selected_item  = 1;
@@ -913,6 +978,7 @@ void GUI::jump_to_screen(const char screen) {
   first_render = true;
   clear_screen_screen   = current_screen;
   clear_screen_selected = selected_item;
+  leave_screen_actions(current_screen);
 
   clear_stack();
   current_screen = screen; 
@@ -920,6 +986,9 @@ void GUI::jump_to_screen(const char screen) {
 }
 
 void GUI::receive_update(const char *tag,const void *value) {
+  
+  if(m_pause_display_updates) return;
+
   for(uint32_t n=0;n<screens_layout[current_screen].item_count;n++) {
     if(strcmp(tag,screens_layout[current_screen].items[n].text) == 0) {
       update_item(screens_layout[current_screen].items[n],value);
@@ -950,4 +1019,18 @@ uint8_t GUI::get_item_state_uint8(const char *tag) {
 
 void GUI::set_language(uint8_t lang) {
   m_language = lang;
+}
+
+void GUI::render_dialog(char *text1,char *text2,char *text3,char *text4) {
+
+  //display_clear(0);
+  display_draw_text_center(20,text1,FOREGROUND_COLOR);
+  display_draw_text_center(36,text2,FOREGROUND_COLOR);
+  display_draw_text_center(52,text3,FOREGROUND_COLOR);
+  display_draw_text_center(68,text4,FOREGROUND_COLOR);
+  display_draw_text_center(94,"PRESS ANY KEY",FOREGROUND_COLOR);
+
+}
+
+void GUI::show_dialog_image(int image1,int image2,int image3,int image4,bool buzz) {
 }

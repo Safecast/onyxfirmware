@@ -17,6 +17,11 @@ static uint8 touchInit = 0;
 static uint16 touchList =  1 << 8 | 1 << 6 | 1 << 4 | 1 << 3 | 1 << 2 | 1 << 0;
   
 int last_key_state=0;
+bool captouch_disable_messages=false;
+
+void cap_set_disable_messages(bool b) {
+ captouch_disable_messages=b;
+}
 
 static void mpr121Write(uint8 addr, uint8 value) {
   struct i2c_msg msg;
@@ -114,20 +119,32 @@ bool cap_check() {
   return true;
 }
 
-uint32_t press_time  =0;
-uint32_t release_time=0;
+uint32_t press_time[16];
+uint32_t release_time[16];
+uint32_t press_time_any;
+uint32_t release_time_any;
 
-uint32_t cap_last_press() {
-  return press_time;
+uint32_t cap_last_press(int key) {
+  return press_time[key];
 }
 
-uint32_t cap_last_release() {
-  return release_time;
+uint32_t cap_last_release(int key) {
+  return release_time[key];
+}
+
+uint32_t cap_last_press_any() {
+  return press_time_any;
+}
+
+uint32_t cap_last_release_any() {
+  return release_time_any;
 }
 
 void cap_clear_press() {
-  press_time = 0;
-  release_time = 0;
+  for(int n=0;n<16;n++) press_time[n] = 0;
+  for(int n=0;n<16;n++) release_time[n] = 0;
+  press_time_any=0;
+  release_time_any=0;
 }
 
 static void cap_change(void) {
@@ -140,19 +157,30 @@ static void cap_change(void) {
   key_state &= touchList;
 
   // detect keys pressed
-  int keys_released = key_state & (~last_key_state); //TODO: ! bitwise NOT
+  int keys_pressed = key_state & (~last_key_state); //TODO: ! bitwise NOT
 
   // detect keys released
-  int keys_pressed  = (~key_state) & last_key_state; //TODO: ! bitwise NOT
+  int keys_released  = (~key_state) & last_key_state; //TODO: ! bitwise NOT
 
 
-  for (int key=0; key<16; key++) {
-    if (keys_pressed &(1<<key)) { system_gui->receive_key(key,KEY_PRESSED ); press_time   = realtime_get_unixtime(); }
-    if (keys_released&(1<<key)) { system_gui->receive_key(key,KEY_RELEASED); release_time = realtime_get_unixtime(); }
+  if(!captouch_disable_messages) {
+    for (int key=0; key<16; key++) {
+      if (keys_pressed &(1<<key)) { system_gui->receive_key(key,KEY_PRESSED );   press_time[key] = realtime_get_unixtime(); press_time_any=realtime_get_unixtime(); }
+      if (keys_released&(1<<key)) { system_gui->receive_key(key,KEY_RELEASED); release_time[key] = realtime_get_unixtime(); release_time_any = realtime_get_unixtime(); }
+    }
   }
 
 
   last_key_state = key_state;
+}
+
+bool cap_ispressed(int key) {
+  int key_state=0;
+  key_state  = mpr121Read(TCH_STATL);
+  key_state |= mpr121Read(TCH_STATH) << 8;
+
+  if (key_state & (1<<key)) { return true; }
+                       else { return false;}
 }
 
 int cap_lastkey() {
@@ -253,8 +281,10 @@ void cap_init(void) {
     // Clears the first interrupt
  //   mpr121Read(TCH_STATL);
  //   mpr121Read(TCH_STATH);
-    press_time   = realtime_get_unixtime();
-    release_time = realtime_get_unixtime();
+    for(int n=0;n<16;n++) press_time[n]   = realtime_get_unixtime();
+    for(int n=0;n<16;n++) release_time[n] = realtime_get_unixtime();
+    press_time_any   = realtime_get_unixtime();
+    release_time_any = realtime_get_unixtime();
 
     return;
 }

@@ -193,7 +193,6 @@ uint32_t  _get_CONTROL()
 
 void power_standby(void) {
 
-
   adc_foreach(adc_disable);
   timer_foreach(timer_disable);
 

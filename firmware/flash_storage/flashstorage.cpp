@@ -243,6 +243,14 @@ uint32_t flashstorage_log_full() {
   return false;
 }
 
+bool flashstorage_log_isfull() {
+  uint32_t flash_data_size = flashstorage_log_size();
+
+  // 2048 to cope with any potential edge case, TODO: more testing.
+  if((flash_data_size+20) > (flash_data_area_aligned_size-2048)) return true;
+  return false;
+}
+
 void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
 
   uint32_t flash_data_size = flashstorage_log_size();
@@ -283,11 +291,15 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
   // 3. Write full pages until all data is written
   for(;write_size != 0;) {
     uint8_t pagedata[pagesize];
-    for(uint32_t n=0;n<pagesize;n++) {
-      pagedata[n] = *data_position;
-      data_position++;
-      write_size--;
-      if(write_size == 0) break;
+    uint32_t pagepos=0;
+    for(pagepos=0;pagepos<pagesize;pagepos++) {
+      if(write_size != 0) {
+        pagedata[pagepos] = *data_position;
+        data_position++; 
+        write_size--;
+      } else {
+        pagedata[pagepos]=0;
+      }
     }
     
     flashstorage_unlock();
