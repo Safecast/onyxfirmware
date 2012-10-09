@@ -68,9 +68,6 @@ release:	safecast.elf
 	# Convert elf to flat binary for programming.
 	arm-none-eabi-objcopy -v -Obinary safecast.elf $(RELEASE_NAME).bin
 
-program:	upload
-	# Please delete at a later time
-
 upload:	release
 	sudo rmmod ftdi_sio
 	sudo rmmod usbserial

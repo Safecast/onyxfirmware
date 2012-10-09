@@ -434,7 +434,7 @@ void Controller::update() {
   if((m_warncpm > 0) && (m_geiger.get_cpm() >= m_warncpm) && (m_warning_raised == false) && m_geiger.is_cpm_valid()) {
     if(m_sleeping) display_powerup();
     char text_cpm[20];
-    sprintf(text_cpm,"%7.3f",m_geiger.get_cpm_deadtime_compensated());
+    sprintf(text_cpm,"%8.3f",m_geiger.get_cpm_deadtime_compensated());
     m_gui->show_dialog("WARNING LEVEL","EXCEEDED",text_cpm,"CPM",true);
     m_warning_raised = true;
 
@@ -553,7 +553,9 @@ void Controller::update() {
     sprintf(text_cpmdint,"TOO HIGH");
   }
   //float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,7);
-  sprintf(text_cpmd,"%7.3f",m_geiger.get_cpm_deadtime_compensated());
+  char text_cpmd_tmp[30];
+  sprintf(text_cpmd_tmp,"%8.3f",m_geiger.get_cpm_deadtime_compensated());
+  sprintf(text_cpmd    ,"%8.8s",text_cpmd_tmp);
   if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
     sprintf(text_cpmd,"TOO HIGH");
   }
@@ -614,7 +616,7 @@ void Controller::update() {
   if((svrem != 0) && (strcmp(svrem,"REM") == 0)) {
     char text_rem[50];
     text_rem[0]=0;
-    sprintf(text_rem,"%7.3f",m_geiger.get_microrems());
+    sprintf(text_rem,"%8.3f",m_geiger.get_microrems());
     if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
       sprintf(text_rem,"TOO HIGH");
     }
@@ -625,7 +627,7 @@ void Controller::update() {
   } else {
     char text_sieverts[50];
     text_sieverts[0]=0;
-    sprintf(text_sieverts,"%7.3f",m_geiger.get_microsieverts());
+    sprintf(text_sieverts,"%8.3f",m_geiger.get_microsieverts());
     if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
       sprintf(text_sieverts,"TOO HIGH");
     }
@@ -639,7 +641,7 @@ void Controller::update() {
   float becq = m_geiger.get_becquerel();
   if(becq >= 0) {
     //float_to_char(m_geiger.get_becquerel(),text_becq,7);
-    sprintf(text_becq,"%7.3f",m_geiger.get_becquerel());
+    sprintf(text_becq,"%8.3f",m_geiger.get_becquerel());
     m_gui->receive_update("BECQ",text_becq);
   } else {
     m_gui->receive_update("BECQINFO","Becquerel unset");
