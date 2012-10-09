@@ -18,6 +18,8 @@
 #include <limits.h>
 //#define DISABLE_ACCEL
 //#define NEVERSLEEP
+#define UNITS_CPS 1
+#define UNITS_CPM 2
 
 Controller *system_controller;
 
@@ -33,6 +35,10 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
   m_last_switch_state = true;
   m_warning_raised = false;
   m_changing_brightness = false;
+
+  m_last_cpmd = 0;
+  m_cpm_cps_switch = false;
+  m_current_units = 2;
 
   // Get warning cpm from flash
   m_warncpm = -1;
@@ -251,6 +257,17 @@ void Controller::receive_gui_event(char *event,char *value) {
     flashstorage_keyval_set("LANGUAGE","English");
     tick_item("English" ,true);
     tick_item("Japanese",false);
+  } else
+  if(strcmp(event,"CPM/CPS Auto") == 0) {
+    if(m_cpm_cps_switch == false) {
+      m_cpm_cps_switch = true;
+      flashstorage_keyval_set("CPMCPSAUTO","true");
+      tick_item("CPM/CPS Auto",true);
+    } else {
+      m_cpm_cps_switch = false;
+      flashstorage_keyval_set("CPMCPSAUTO","false");
+      tick_item("CPM/CPS Auto",false);
+    }
   } else
   if(strcmp(event,"Geiger Beep") == 0) {
      m_geiger.toggle_beep();
@@ -553,9 +570,43 @@ void Controller::update() {
     sprintf(text_cpmdint,"TOO HIGH");
   }
   //float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,7);
-  char text_cpmd_tmp[30];
-  sprintf(text_cpmd_tmp,"%8.3f",m_geiger.get_cpm_deadtime_compensated());
-  sprintf(text_cpmd    ,"%8.8s",text_cpmd_tmp);
+  
+  if(!m_cpm_cps_switch) {
+    char text_cpmd_tmp[30];
+    sprintf(text_cpmd_tmp,"%8.3f",m_geiger.get_cpm_deadtime_compensated());
+    sprintf(text_cpmd    ,"%8.8s",text_cpmd_tmp);
+    m_gui->receive_update("CPMSLABEL","CPM");
+  }
+
+
+
+  if(m_cpm_cps_switch) {
+
+    float cpm = m_geiger.get_cpm_deadtime_compensated();
+
+    if((cpm > 1100) && (m_last_cpmd < 1100)) { 
+      m_current_units = UNITS_CPS;
+    }
+
+    if((cpm < 1000) && (m_last_cpmd > 1000)) {
+     m_current_units = UNITS_CPM;
+    }
+
+    if(m_current_units == UNITS_CPM) {
+      char text_cpmd_tmp[30];
+      sprintf(text_cpmd_tmp,"%8.0f",m_geiger.get_cpm_deadtime_compensated());
+      sprintf(text_cpmd    ,"%8.8s",text_cpmd_tmp);
+      m_gui->receive_update("CPMSLABEL","CPM");
+    } else {
+      char text_cpmd_tmp[30];
+      sprintf(text_cpmd_tmp,"%8.0f",m_geiger.get_cpm_deadtime_compensated()/60);
+      sprintf(text_cpmd    ,"%8.8s",text_cpmd_tmp);
+      m_gui->receive_update("CPMSLABEL","CPS");
+    }
+    
+    m_last_cpmd = m_geiger.get_cpm_deadtime_compensated();
+  }
+
   if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
     sprintf(text_cpmd,"TOO HIGH");
   }

@@ -9,6 +9,7 @@
 #include "oled.h"
 #include "display.h"
 #include <limits.h>
+#include "dac.h"
 
 extern uint8_t _binary___binary_data_private_key_data_start;
 extern uint8_t _binary___binary_data_private_key_data_size;
@@ -298,6 +299,72 @@ void serial_process_command(char *line) {
     char magsenses[50];
     sprintf(magsenses,"%u\r\n",magsense);
     serial_write_string(magsenses);
+  } else
+  if(strcmp(line,"WRITEDAC") == 0) {
+    dac_init(DAC,DAC_CH2);
+
+    int8_t idelta=1;
+    uint8_t i=0;
+    for(int n=0;n<1000000;n++) {
+      
+      if(i == 254) idelta = -1;
+      if(i == 0  ) idelta =  1;
+
+      i += idelta;
+
+      dac_write_channel(DAC,2,i);
+    }
+    serial_write_string("WRITEDACFIN");
+  } else
+  if(strcmp(line,"TESTHP") == 0) {
+    gpio_set_mode (PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit, GPIO_OUTPUT_PP);  // HP_COMBINED
+    for(int n=0;n<100000;n++) {
+      gpio_write_bit(PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,1);
+      delay_us(100);
+      gpio_write_bit(PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,0);
+      delay_us(100);
+    }
+  } else 
+  if(strcmp(line,"READADC") == 0) {
+
+    adc_init(PIN_MAP[12].adc_device); // all on ADC1
+
+    adc_set_extsel(PIN_MAP[12].adc_device, ADC_SWSTART);
+    adc_set_exttrig(PIN_MAP[12].adc_device, true);
+
+    adc_enable(PIN_MAP[12].adc_device);
+    adc_calibrate(PIN_MAP[12].adc_device);
+    adc_set_sample_rate(PIN_MAP[12].adc_device, ADC_SMPR_55_5);
+
+    gpio_set_mode (PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit, GPIO_INPUT_ANALOG);
+    gpio_set_mode (PIN_MAP[19].gpio_device,PIN_MAP[19].gpio_bit, GPIO_INPUT_ANALOG);
+    gpio_set_mode (PIN_MAP[20].gpio_device,PIN_MAP[20].gpio_bit, GPIO_INPUT_ANALOG);
+
+    int n=0;
+    uint16 value1 = adc_read(PIN_MAP[12].adc_device,PIN_MAP[12].adc_channel);
+    uint16 value2 = adc_read(PIN_MAP[19].adc_device,PIN_MAP[19].adc_channel);
+    uint16 value3 = adc_read(PIN_MAP[20].adc_device,PIN_MAP[20].adc_channel);
+    char values[50];
+    sprintf(values,"PA6 ADC Read: %u\r\n",value1);
+    serial_write_string(values);
+    sprintf(values,"PC4 ADC Read: %u\r\n",value2);
+    serial_write_string(values);
+    sprintf(values,"PC5 ADC Read: %u\r\n",value3);
+    serial_write_string(values);
+  } else
+  if(strcmp(line,"SETMICREVERSE") == 0) {
+    gpio_set_mode (PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit, GPIO_OUTPUT_PP);  // MICREVERSE
+    gpio_set_mode (PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit, GPIO_OUTPUT_PP);  // MICIPHONE
+    gpio_write_bit(PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,1); // MICREVERSE
+    gpio_write_bit(PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit,0); // MICIPHONE
+    serial_write_string("Set MICREVERSE to 1, MICIPHONE to 0\r\n");
+  } else 
+  if(strcmp(line,"SETMICIPHONE") == 0) {
+    gpio_set_mode (PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit, GPIO_OUTPUT_PP);  // MICREVERSE
+    gpio_set_mode (PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit, GPIO_OUTPUT_PP);  // MICIPHONE
+    gpio_write_bit(PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,0); // MICREVERSE
+    gpio_write_bit(PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit,1); // MICIPHONE
+    serial_write_string("Set MICREVERSE to 0, MICIPHONE to 1\r\n");
   }
   
 
