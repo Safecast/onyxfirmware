@@ -19,6 +19,14 @@ extern "C" {
   static void signing_hashLog();
 }
 
+extern "C" {
+  static void signing_test();
+  static int signing_isKeyValid();
+  static void signing_printPubKey();
+  static void signing_printGUID();
+  static void signing_hashLog();
+}
+
 extern uint8_t _binary___binary_data_private_key_data_start;
 extern uint8_t _binary___binary_data_private_key_data_size;
 
@@ -295,6 +303,7 @@ void serial_process_command(char *line) {
   if(strcmp(line,"WRITEPRIVATEKEY") == 0) {
     serial_writeprivatekey();
   } else 
+<<<<<<< .merge_file_YZDXWS
   if(strcmp(line,"MAGREAD") == 0) {
     gpio_set_mode (PIN_MAP[41].gpio_device,PIN_MAP[41].gpio_bit, GPIO_OUTPUT_PP); // MAGPOWER
     gpio_set_mode (PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit, GPIO_INPUT_PU);  // MAGSENSE
