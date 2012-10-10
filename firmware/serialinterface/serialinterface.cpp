@@ -10,6 +10,14 @@
 #include "display.h"
 #include <limits.h>
 
+extern "C" {
+  static void signing_test();
+  static int signing_isKeyValid();
+  static void signing_printPubKey();
+  static void signing_printGUID();
+  static void signing_hashLog();
+}
+
 extern uint8_t _binary___binary_data_private_key_data_start;
 extern uint8_t _binary___binary_data_private_key_data_size;
 
@@ -120,6 +128,10 @@ void serial_readprivatekey() {
   }
   serial_write_string("\r\n");
 
+}
+
+void serial_signing_test() {
+  signing_test();
 }
 
 void serial_writeprivatekey() {
@@ -281,8 +293,28 @@ void serial_process_command(char *line) {
   } else
   if(strcmp(line,"WRITEPRIVATEKEY") == 0) {
     serial_writeprivatekey();
-  } 
-  
+  } else 
+  if(strcmp(line,"TESTSIGN") == 0) {
+    serial_signing_test();
+  } else 
+  if(strcmp(line,"PUBKEY") == 0) {
+    signing_printPubKey();
+    serial_write_string("\n\r");
+  } else 
+  if(strcmp(line,"GUID") == 0) {
+    signing_printGUID();
+    serial_write_string("\n\r");
+  } else 
+  if(strcmp(line,"KEYVALID") == 0) {
+    if( signing_isKeyValid() == 1 )
+      serial_write_string("VALID KEY\r\n");
+    else
+      serial_write_string("IMPROPER OR UNINITIALIZED KEY\r\n");
+  } else 
+  if(strcmp(line,"LOGSIG") == 0) {
+    signing_hashLog();
+    serial_write_string("\n\r");
+  }
 
   serial_write_string("\r\n>");
 }
