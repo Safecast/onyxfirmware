@@ -101,6 +101,11 @@ int main(void) {
                                  else g.set_beep(false);
       }
 
+      const char *scpmcps = flashstorage_keyval_get("CPMCPSAUTO");
+      if(scpmcps != 0) {
+        if(strcmp(scpmcps,"true") == 0) { c.m_cpm_cps_switch = true; tick_item("CPM/CPS Auto",true); }
+      }
+
       const char *language = flashstorage_keyval_get("LANGUAGE");
       if(language != 0) {
         if(strcmp(language,"English" ) == 0) { m_gui.set_language(LANGUAGE_ENGLISH);  tick_item("English"  ,true); } else

@@ -136,12 +136,19 @@ void draw_character(uint32_t x,uint32_t y,char c,uint16_t background) {
 void draw_bigcharacter(int x,int y,char c,uint16_t background) {
 
   uint16_t character_data[16*32];
-  for(int n=0;n<(16*32);n++) character_data[n]=n;
+  for(int n=0;n<(16*32);n++) character_data[n]=background^65535;
 
-  if(c == ' ') return;
+  if(((c >= 'a')&&(c <= 'z')) ||
+     ((c >= 'A')&&(c <= 'Z'))) {
+    oled_draw_rect(x,y,16,32,(uint8_t *) character_data);
+    draw_character(x,y,c,background);
+    return;
+  }
+
   if((c >= '0')&&(c <= '9')) c = c - 48; else
   if(c == '.') c = 10;
 
+  if(c != ' ')
   for(size_t c_y=0;c_y<32;c_y++) {
     for(size_t c_x=0;c_x<16;c_x++) {
       int32_t px = get_bigpixel(c,c_x,c_y);

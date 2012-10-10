@@ -174,7 +174,7 @@ float Geiger::get_cpm() {
   // makes the windows look crazy.
 
   // cpm for last 5 seconds
-  if(m_cpm_valid) {
+//  if(m_cpm_valid) {
 		int32_t last5sum=0;
     int32_t c_position = last_windows_position-1;
 		for(uint32_t n=0;n<10;n++) {
@@ -202,11 +202,11 @@ float Geiger::get_cpm() {
 			m_cpm_valid = false;
 			m_samples_collected=5;
 		}
-  }
+//  }
 
   float sum = 0;
 
-  int32_t c_position = last_windows_position-1;
+  c_position = last_windows_position-1;
 
   int32_t samples_used=0;
   for(uint32_t n=0;(n<max_averaging_period) && (n<m_samples_collected);n++) {
