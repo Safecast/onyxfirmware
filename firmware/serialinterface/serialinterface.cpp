@@ -298,10 +298,10 @@ void serial_process_command(char *line) {
     serial_setdevicetag();
   } else 
   if(strcmp(line,"READPRIVATEKEY") == 0) {
-    serial_readprivatekey();
+    //    serial_readprivatekey();  // removed for production
   } else
   if(strcmp(line,"WRITEPRIVATEKEY") == 0) {
-    serial_writeprivatekey();
+    serial_writeprivatekey(); // maybe this should be removed for production?
   } else 
   if(strcmp(line,"MAGREAD") == 0) {
     gpio_set_mode (PIN_MAP[41].gpio_device,PIN_MAP[41].gpio_bit, GPIO_OUTPUT_PP); // MAGPOWER

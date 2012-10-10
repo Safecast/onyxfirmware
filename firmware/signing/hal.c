@@ -63,11 +63,13 @@ void signing_test() {
   serial_write_string("Initializing key parameters.\n\r" );
   //  if( mpnsetbin(&keypair.e, kdat->e, 4) != 0 ) { serial_write_string( "FAIL" ); goto cleanup; }
   if( mpbsetbin(&keypair.n, kdat->n, 256) != 0) { serial_write_string( "FAIL" ); goto cleanup; }
-  serial_write_string("n:\n\r" );
+  serial_write_string("n:\n\r" ); // n & e are the pubkey so okay to print this
   print_mp(256/4, keypair.n.modl);
   if( mpnsetbin(&keypair.d, kdat->d, 256) != 0 ) { serial_write_string( "FAIL" ); goto cleanup; }
-  serial_write_string("d:\n\r" );
-  print_mp(keypair.d.size, keypair.d.data);
+  ///// don't print the private key for production!
+  //  serial_write_string("d:\n\r" );
+  //  print_mp(keypair.d.size, keypair.d.data);
+  /////
   //  if( mpbsetbin(&keypair.p, kdat->p, 128) != 0) { serial_write_string( "FAIL" ); goto cleanup; }
   //  if( mpbsetbin(&keypair.q, kdat->q, 128) != 0) { serial_write_string( "FAIL" ); goto cleanup; }
 
@@ -125,6 +127,9 @@ void signing_hashLog() {
   struct privKeyInFlash *kdat = KEYDATABASE;
   int i, len;
 
+  if( signing_isKeyValid() == 0 ) {
+    serial_write_string("WARNING: System uses a test private key. This signature is worthless and should not be disregarded.\n\r");
+  }
   // just a quick routine to exercise the RSA signing abilities and SHA-1 hashing
   mpnzero(&hash_mpn);
   rsakpInit(&keypair);
