@@ -36,9 +36,10 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
   m_warning_raised = false;
   m_changing_brightness = false;
 
-  m_last_cpmd = 0;
   m_cpm_cps_switch = false;
   m_current_units = 2;
+  m_cpm_cps_threshold = 1100.0;
+  m_cps_cpm_threshold = 1000.0;
 
   // Get warning cpm from flash
   m_warncpm = -1;
@@ -564,33 +565,29 @@ void Controller::update() {
   char text_cpmdint[50];
   char text_cpmd[50];
 
-  text_cpmdint[0] =0;
+  text_cpmdint[0] = 0;
   int_to_char(m_geiger.get_cpm_deadtime_compensated()+0.5,text_cpmdint,7);
   if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
     sprintf(text_cpmdint,"TOO HIGH");
   }
   //float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,7);
-  
-  if(!m_cpm_cps_switch) {
+
+  if(!m_cpm_cps_switch) {       // no auto switch, just display CPM
     char text_cpmd_tmp[30];
     sprintf(text_cpmd_tmp,"%8.3f",m_geiger.get_cpm_deadtime_compensated());
     sprintf(text_cpmd    ,"%8.8s",text_cpmd_tmp);
     m_gui->receive_update("CPMSLABEL","CPM");
-  }
-
-
-
-  if(m_cpm_cps_switch) {
+  } else {
 
     float cpm = m_geiger.get_cpm_deadtime_compensated();
 
-    if((cpm > 1100) && (m_last_cpmd < 1100)) { 
+    if(cpm > m_cpm_cps_threshold) {
       m_current_units = UNITS_CPS;
     }
-
-    if((cpm < 1000) && (m_last_cpmd > 1000)) {
+    else if(cpm < m_cps_cpm_threshold) {
      m_current_units = UNITS_CPM;
     }
+    // else { we are in the gray zone, do not switch }
 
     if(m_current_units == UNITS_CPM) {
       char text_cpmd_tmp[30];
@@ -603,8 +600,6 @@ void Controller::update() {
       sprintf(text_cpmd    ,"%8.8s",text_cpmd_tmp);
       m_gui->receive_update("CPMSLABEL","CPS");
     }
-    
-    m_last_cpmd = m_geiger.get_cpm_deadtime_compensated();
   }
 
   if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {

@@ -38,7 +38,9 @@ public:
   bool     m_warning_raised;
   uint32   m_total_timer_start;
   bool     m_changing_brightness;
-  float    m_last_cpmd;
+
+  float    m_cpm_cps_threshold;
+  float    m_cps_cpm_threshold;
   bool     m_cpm_cps_switch;
   int      m_current_units;
 };
