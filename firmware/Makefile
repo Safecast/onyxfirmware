@@ -35,6 +35,12 @@ RSAFILES = ./signing/rsa.o ./signing/rsakp.o ./signing/mpnumber.o ./signing/mppr
 SHA1FILES = ./signing/sha1.o
 CRYPTOFILES = $(AESFILES) $(SHA1FILES) $(RSAFILES) $(MPARITH)
 
+AESFILES = ./signing/aes.o
+MPARITH = ./signing/mp.o ./signing/mpbarrett.o
+RSAFILES = ./signing/rsa.o ./signing/rsakp.o ./signing/mpnumber.o ./signing/mpprime.o ./signing/fips186.o ./signing/entropy.o
+SHA1FILES = ./signing/sha1.o
+CRYPTOFILES = $(AESFILES) $(SHA1FILES) $(RSAFILES) $(MPARITH)
+
 all:	release
 	@echo
 	@echo "$(RELEASE_NAME) is ready!"
