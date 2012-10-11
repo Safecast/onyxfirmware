@@ -1,0 +1,6 @@
+sudo rmmod ftdi_sio
+sudo rmmod usbserial
+./fwload -f ../firmware/firmware-10.bin
+sudo modprobe usbserial
+sudo modprobe ftdi_sio
+
