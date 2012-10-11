@@ -48,7 +48,7 @@ int stm32_write_unprotect();
 int stm32_erase_flash();
 int stm32_write_flash( p_read_data read_data_func, p_progress progress_func );
 int stm32_erase_flash_page(u32 page_number,int page_count);
-int stm32_write_flash_page(u32 address_in,p_read_data read_data_func, p_progress progress_func);
+int stm32_write_flash_page(u32 address_in,int page_count,p_read_data read_data_func, p_progress progress_func );
 
 #endif
 

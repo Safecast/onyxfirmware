@@ -171,7 +171,7 @@ int stm32_erase_flash()
 }
 
 
-// erase single page
+// erase pages, starting at page_number for page_count pages
 int stm32_erase_flash_page(u32 page_number,int page_count) {
 
   u8 checksum=0;
@@ -196,21 +196,31 @@ int stm32_erase_flash_page(u32 page_number,int page_count) {
   return STM32_OK;
 }
 
-// Write single page
-int stm32_write_flash_page(u32 address_in,p_read_data read_data_func, p_progress progress_func )
+// Write from a given address (stops when read_data_func is out of data)
+int stm32_write_flash_page(u32 address_in,int page_count,p_read_data read_data_func, p_progress progress_func )
 {
   u32 wrote = 0;
   u8 data[ STM32_WRITE_BUFSIZE + 1 ];
-  u32 datalen;
+  int datalen;
   u32 address = address_in;
   //u32 datalen, address = STM32_FLASH_START_ADDRESS;
 
+  int pagedata_size = page_count*2048;
+  int wrote_data = 0;
+ 
   STM32_CHECK_INIT; 
   while( 1 )
   {
     // Read data to program
     if( ( datalen = read_data_func( data + 1, STM32_WRITE_BUFSIZE ) ) == 0 )
       break;
+
+    if((wrote_data+datalen) > pagedata_size) {
+      datalen = pagedata_size - wrote_data;
+      if(datalen <= 0) break;
+      if(wrote_data >= pagedata_size) break;
+    }
+
     data[ 0 ] = ( u8 )( datalen - 1 );
 
     // Send write request
@@ -221,6 +231,8 @@ int stm32_write_flash_page(u32 address_in,p_read_data read_data_func, p_progress
     STM32_EXPECT( STM32_COMM_ACK );
 
     // Send data
+    printf("Total wrote: %d\n",wrote_data);
+    printf("sending data packet: %d\n",datalen+1);
     stm32h_send_packet_with_checksum( data, datalen + 1 );
     STM32_EXPECT( STM32_COMM_ACK );
 
@@ -231,6 +243,7 @@ int stm32_write_flash_page(u32 address_in,p_read_data read_data_func, p_progress
 
     // Advance to next data
     address += datalen;
+    wrote_data += datalen;
   }
   return STM32_OK;
 }

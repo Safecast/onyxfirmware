@@ -435,7 +435,7 @@ int main(int argc, char **argv)
     // Program flash
     setbuf( stdout, NULL );
     printf( "Programming flash ... ");
-    if( stm32_write_flash_page(0x08000800,writeh_read_data, writeh_progress ) != STM32_OK )
+    if( stm32_write_flash_page(0x08000800,2,writeh_read_data, writeh_progress ) != STM32_OK )
       {
 	fprintf( stderr, "Unable to program private key FLASH memory area.\n" );
 	exit( 1 );

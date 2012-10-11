@@ -36,7 +36,8 @@ int             foundDevices = 0;
 extern int stm32_ser_id;
 int ser_dbg = 0;
 
-static  FILE *fp;
+static  FILE *fp_page1;
+static  FILE *fp_page4;
 static  u32 fpsize;
 
 int fw_abort();
@@ -262,12 +263,22 @@ int fw_abort() {
 }
 
 // Get data function
-static u32 writeh_read_data( u8 *dst, u32 len )
+static u32 writeh_read_data_page1( u8 *dst, u32 len )
 {
   size_t readbytes = 0;
 
-  if( !feof( fp ) )
-    readbytes = fread( dst, 1, len, fp );
+  if( !feof( fp_page1 ) )
+    readbytes = fread( dst, 1, len, fp_page1 );
+  return ( u32 )readbytes;
+}
+
+// Get data function
+static u32 writeh_read_data_page4( u8 *dst, u32 len )
+{
+  size_t readbytes = 0;
+
+  if( !feof( fp_page4 ) )
+    readbytes = fread( dst, 1, len, fp_page4 );
   return ( u32 )readbytes;
 }
 
@@ -343,14 +354,18 @@ int main(int argc, char **argv)
   }
 
   if( !readflag ) {
-    if( ( fp = fopen( infile_name, "rb" ) ) == NULL ) {
+    fp_page1 = fopen( infile_name, "rb" );
+    fp_page4 = fopen( infile_name, "rb" );
+
+    if((fp_page1 == NULL) || (fp_page4 == NULL)) {
       fprintf( stderr, "Unable to open %s\n", infile_name );
       exit( 1 );
     }  else    {
-      fseek( fp, 0, SEEK_END );
-      fpsize = ftell( fp );
-      fseek( fp, 0, SEEK_SET );
+      fseek( fp_page4, 0, SEEK_END );
+      fpsize = ftell( fp_page4 );
+      fseek( fp_page4, 0, SEEK_SET );
     }
+    fseek( fp_page4, 6144, SEEK_SET);
   }
 
   // Connect to bootloader
@@ -423,29 +438,40 @@ int main(int argc, char **argv)
 
     // Erase flash
     printf( "Erase flash.\n" );
-    if( stm32_erase_flash() != STM32_OK )
-      {
-	fprintf( stderr, "Unable to erase chip\n" );
-	exit( 1 );
-      }
-    else
-      printf( "Erased FLASH memory.\n" );
+    int res1 = stm32_erase_flash_page(0,1);     // first page
+    int res2 = stm32_erase_flash_page(3,0xFF);  // all the rest
+    if(res1 != STM32_OK) {
+	    fprintf( stderr, "Unable to erase chip - pre prvkey\n" );
+	    exit(1);
+    }
+    if(res2 != STM32_OK) {
+	    fprintf( stderr, "Unable to erase chip - post pk\n" );
+	    exit(1);
+    }
 
-#if 1
+    printf( "Erased FLASH memory.\n" );
+
     // Program flash
     setbuf( stdout, NULL );
     printf( "Programming flash ... ");
-    if( stm32_write_flash( writeh_read_data, writeh_progress ) != STM32_OK )
-      {
-	fprintf( stderr, "Unable to program FLASH memory.\n" );
-	exit( 1 );
-      }
-    else
-      printf( "\nDone.\n" );
-#endif
+    if( stm32_write_flash_page(0x08000000,1,writeh_read_data_page1, writeh_progress ) != STM32_OK ) {
+      fprintf( stderr, "Unable to program - initial page.\n" );
+	    exit(1);
+    } else {
+      printf( "\nProgram pre-pk Done.\n" );
+    }
+
+    if( stm32_write_flash_page(0x08001800,0xFC,writeh_read_data_page4, writeh_progress ) != STM32_OK ) {
+      fprintf( stderr, "Unable to program - post pk flash.\n" );
+	    exit(1);
+    } else {
+      printf( "\nProgram post-pk Done.\n" );
+    }
+
+
   } else {
     printf( "Readback flash memory at offset %x\n", readoffset );
-    if(stm32_read_flash( readoffset, 128 ) != STM32_OK ) {
+    if(stm32_read_flash( readoffset, 10240 ) != STM32_OK ) {
       fprintf( stderr, "Unable to read FLASH memory.\n" );
       exit( 1 );
     } else {
