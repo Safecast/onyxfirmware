@@ -170,6 +170,72 @@ int stm32_erase_flash()
   return STM32_OK;
 }
 
+
+// erase single page
+int stm32_erase_flash_page(u32 page_number,int page_count) {
+
+  u8 checksum=0;
+  STM32_CHECK_INIT;
+  stm32h_send_command( STM32_CMD_ERASE_FLASH );
+  STM32_EXPECT( STM32_COMM_ACK ); // Check that I actually need this.
+ // ser_write_byte( stm32_ser_id, page_count >> 8   );
+  ser_write_byte( stm32_ser_id, page_count-1);// & 0xFF );
+  checksum ^= (page_count-1);
+
+  // Write list of pages to erase
+  int n=0;
+  for(n=0;n<page_count;n++) {
+    ser_write_byte( stm32_ser_id, (n+page_number) );
+    checksum ^= (n+page_number);
+  //  ser_write_byte( stm32_ser_id, (n+page_number) >> 8   );
+  //  ser_write_byte( stm32_ser_id, (n+page_number) & 0xFF );
+  }
+  ser_write_byte( stm32_ser_id, checksum ); // Other code indicates this should be a checksum
+  STM32_EXPECT( STM32_COMM_ACK ); // Check that I actually need this.
+
+  return STM32_OK;
+}
+
+// Write single page
+int stm32_write_flash_page(u32 address_in,p_read_data read_data_func, p_progress progress_func )
+{
+  u32 wrote = 0;
+  u8 data[ STM32_WRITE_BUFSIZE + 1 ];
+  u32 datalen;
+  u32 address = address_in;
+  //u32 datalen, address = STM32_FLASH_START_ADDRESS;
+
+  STM32_CHECK_INIT; 
+  while( 1 )
+  {
+    // Read data to program
+    if( ( datalen = read_data_func( data + 1, STM32_WRITE_BUFSIZE ) ) == 0 )
+      break;
+    data[ 0 ] = ( u8 )( datalen - 1 );
+
+    // Send write request
+    stm32h_send_command( STM32_CMD_WRITE_FLASH );
+    STM32_EXPECT( STM32_COMM_ACK );
+    // Send address
+    stm32h_send_address( address );
+    STM32_EXPECT( STM32_COMM_ACK );
+
+    // Send data
+    stm32h_send_packet_with_checksum( data, datalen + 1 );
+    STM32_EXPECT( STM32_COMM_ACK );
+
+    // Call progress function (if provided)
+    wrote += datalen;
+    if( progress_func )
+      progress_func( wrote );
+
+    // Advance to next data
+    address += datalen;
+  }
+  return STM32_OK;
+}
+
+
 // Program flash
 // Requires pointers to two functions: get data and progress report
 int stm32_write_flash( p_read_data read_data_func, p_progress progress_func )

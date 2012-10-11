@@ -422,22 +422,22 @@ int main(int argc, char **argv)
       printf( "Cleared read protection.\n" );
 
     // Erase flash
-    printf( "Erase flash.\n" );
-    if( stm32_erase_flash() != STM32_OK )
+    printf( "Erase private key region.\n" );
+    if( stm32_erase_flash_page(1,2) != STM32_OK )
       {
-	fprintf( stderr, "Unable to erase chip\n" );
-	exit( 1 );
+	fprintf( stderr, "Unable to erase private key area\n" );
+//	exit( 1 );
       }
     else
-      printf( "Erased FLASH memory.\n" );
+      printf( "Erased private key FLASH memory area.\n" );
 
 #if 1
     // Program flash
     setbuf( stdout, NULL );
     printf( "Programming flash ... ");
-    if( stm32_write_flash( writeh_read_data, writeh_progress ) != STM32_OK )
+    if( stm32_write_flash_page(0x08000800,writeh_read_data, writeh_progress ) != STM32_OK )
       {
-	fprintf( stderr, "Unable to program FLASH memory.\n" );
+	fprintf( stderr, "Unable to program private key FLASH memory area.\n" );
 	exit( 1 );
       }
     else

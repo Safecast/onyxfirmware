@@ -105,13 +105,13 @@ void serial_readprivatekey() {
 
     if((n%32) == 0) {
       serial_write_string("\r\n");
-      sprintf(stemp,"%x : ",source_data+n);
+      sprintf(stemp,"%x : ",source_data_programmable+n);
       serial_write_string(stemp);
     }
 
     if(n == (4*1024)) {
       serial_write_string("\r\nShowing following 2k region, to confirm code not overwritten:\r\n");
-      sprintf(stemp,"%x : ",source_data+n);
+      sprintf(stemp,"%x : ",source_data_programmable+n);
       serial_write_string(stemp);
     }
 

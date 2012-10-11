@@ -33,7 +33,7 @@ enum
   STM32_CMD_WRITE_FLASH = 0x31,
   STM32_CMD_WRITE_UNPROTECT = 0x73,
   STM32_CMD_READ_FLASH = 0x11,
-  STM32_CMD_READ_UNPROTECT = 0x92
+  STM32_CMD_READ_UNPROTECT = 0x92,
 };
 
 // Function types for stm32_write_flash
@@ -47,6 +47,8 @@ int stm32_get_chip_id( u16 *version );
 int stm32_write_unprotect();
 int stm32_erase_flash();
 int stm32_write_flash( p_read_data read_data_func, p_progress progress_func );
+int stm32_erase_flash_page(u32 page_number,int page_count);
+int stm32_write_flash_page(u32 address_in,p_read_data read_data_func, p_progress progress_func);
 
 #endif
 
