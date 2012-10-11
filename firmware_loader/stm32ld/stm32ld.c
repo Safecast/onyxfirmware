@@ -231,8 +231,6 @@ int stm32_write_flash_page(u32 address_in,int page_count,p_read_data read_data_f
     STM32_EXPECT( STM32_COMM_ACK );
 
     // Send data
-    printf("Total wrote: %d\n",wrote_data);
-    printf("sending data packet: %d\n",datalen+1);
     stm32h_send_packet_with_checksum( data, datalen + 1 );
     STM32_EXPECT( STM32_COMM_ACK );
 

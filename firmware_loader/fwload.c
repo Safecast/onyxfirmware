@@ -439,7 +439,7 @@ int main(int argc, char **argv)
     // Erase flash
     printf( "Erase flash.\n" );
     int res1 = stm32_erase_flash_page(0,1);     // first page
-    int res2 = stm32_erase_flash_page(3,0xFF);  // all the rest
+    int res2 = stm32_erase_flash_page(3,0xFD);  // all the rest
     if(res1 != STM32_OK) {
 	    fprintf( stderr, "Unable to erase chip - pre prvkey\n" );
 	    exit(1);
