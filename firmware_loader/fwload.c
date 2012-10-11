@@ -483,8 +483,10 @@ int main(int argc, char **argv)
   printf( "\n" );
   safecast_resetboard(0);
 
-  if( !readflag )
-    fclose( fp );
+  if( !readflag ) {
+    fclose( fp_page1 );
+    fclose( fp_page4 );
+  }
 
   closeSerialPorts();
 
