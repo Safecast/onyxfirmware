@@ -1,6 +1,6 @@
 Building and running this requires the following packages:
 
-gpg
+gnupg
 uuid-dev
 
 and optionally 
