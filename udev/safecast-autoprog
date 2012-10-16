@@ -1,0 +1,18 @@
+#!/bin/bash
+
+function program(){
+ /home/safecast/bunniegeiger/firmware_loader/fwload -f /home/safecast/bunniegeiger/firmware/safecast_latest.bin > /tmp/safecast.log
+ /home/safecast/bunniegeiger/crypto/genkeys >> /tmp/safecast.log
+ /home/safecast/bunniegeiger/firmware_loader/pkload -f /home/safecast/bunniegeiger/crypto/secblock.bin >> /tmp/safecast.log
+ modprobe usbserial
+ modprobe ftdi_sio
+ sleep 5
+ rmdir /tmp/safecast-semaphore
+} 
+
+if mkdir /tmp/safecast-semaphore
+then
+  rmmod ftdi_sio
+  rmmod usbserial
+  program &
+fi 

@@ -1,0 +1,9 @@
+udev rules for auto-programming devices when plugged in
+
+To use:
+
+1. copy 99-safecast.rules to /lib/udev/rules.d/ (as superuser)
+2. copy safecast-autoprog to /usr/sbin (as superuser)
+3. make sure permission on /usr/sbin/safecast-autoprog is a+x
+
+This has been tested under Ubuntu 10.04 LTE.

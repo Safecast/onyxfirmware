@@ -1,0 +1,1 @@
+ACTION=="add", KERNEL=="ttyUSB0", RUN+="/bin/bash -c '/usr/sbin/safecast-autoprog'"
