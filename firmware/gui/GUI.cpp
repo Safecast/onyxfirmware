@@ -690,6 +690,10 @@ void GUI::push_stack(int current_screen,int selected_item) {
 
 GUI::GUI(Controller &r) : receive_gui_events(r) {
 
+  m_displaying_help = false;
+  m_repeat_time = 0;
+  m_repeat_delay= 5;
+  m_repeating = false;
   new_keys_size = 0;
   clear_next_render=false;
   current_screen = 0;
@@ -716,6 +720,7 @@ void GUI::show_help_screen(uint8_t helpscreen) {
   m_displaying_dialog_complete=false;
   m_pause_display_updates = true;
   m_dialog_buzz = false;
+  m_displaying_help = true;
 }
 
 void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,char *dialog_text4,bool buzz) {
@@ -736,6 +741,17 @@ void GUI::render() {
   if(m_sleeping) {
      process_keys();
      return;  
+  }
+
+  
+  if(m_repeating) {
+    // This would be better incremented in a timer, but I don't want to use another timer.
+    if(m_repeat_time == m_repeat_delay) {
+      if(m_repeat_key == KEY_DOWN) process_key_down();
+      if(m_repeat_key == KEY_UP  ) process_key_up();
+      m_repeat_time = 0;
+    }
+    m_repeat_time++;
   }
 
   if(m_displaying_dialog) {
@@ -813,8 +829,13 @@ void GUI::redraw() {
 }
 
 void GUI::receive_key(int key_id,int type) {
+    
+  // don't activate HELP key when in a help screen
+  if((m_displaying_help == true) && (key_id == KEY_HELP)) return;
+
   if(m_displaying_dialog==true) {
     m_displaying_dialog=false;
+    m_displaying_help = false;
     m_displaying_dialog_complete=true;
   }
 
@@ -842,6 +863,42 @@ void GUI::leave_screen_actions(int screen) {
   }
 }
 
+void GUI::process_key_down() {
+	if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_VARNUM) {
+		uint8_t current = get_item_state_varnum(screens_layout[current_screen].items[selected_item]);
+
+		int8_t val[1];
+		val[0] = current-1;
+		if(val[0] < 0) val[0] = 0;
+		update_item(screens_layout[current_screen].items[selected_item],val);
+
+		receive_gui_events.receive_gui_event("varnumchange",screens_layout[current_screen].items[selected_item].text);
+		return;
+	}
+
+	selected_item++;
+	if(selected_item >= screens_layout[current_screen].item_count) {
+		selected_item = screens_layout[current_screen].item_count-1;
+	}
+}
+
+void GUI::process_key_up() {
+	if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_VARNUM) {
+		uint8_t current = get_item_state_varnum(screens_layout[current_screen].items[selected_item]);
+
+		int8_t val[1];
+		val[0] = current+1;
+		if(val[0] > 9) val[0] = 9;
+		update_item(screens_layout[current_screen].items[selected_item],val);
+		receive_gui_events.receive_gui_event("varnumchange",screens_layout[current_screen].items[selected_item].text);
+		return;
+	}
+
+
+	if(selected_item == 1) return;
+	selected_item--;
+}
+
 void GUI::process_key(int key_id,int type) {
 
   if(m_screen_lock) return;
@@ -853,46 +910,28 @@ void GUI::process_key(int key_id,int type) {
 
   if(m_sleeping) return;
 
-  if((key_id == KEY_HELP) && (type == KEY_RELEASED)) {
+  if((key_id == KEY_HELP) && (type == KEY_RELEASED) && (!m_displaying_help)) {
     if(screens_layout[current_screen].help_screen != 255) show_help_screen(screens_layout[current_screen].help_screen);
   }
 
+  if((key_id == KEY_UP) && (type == KEY_PRESSED)) {
+    m_repeating=true;
+    m_repeat_key = KEY_UP;
+  }
+
+  if((key_id == KEY_DOWN) && (type == KEY_PRESSED)) {
+    m_repeating=true;
+    m_repeat_key = KEY_DOWN;
+  }
+
   if((key_id == KEY_DOWN) && (type == KEY_RELEASED)) {
-
-    if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_VARNUM) {
-      uint8_t current = get_item_state_varnum(screens_layout[current_screen].items[selected_item]);
-
-      int8_t val[1];
-      val[0] = current-1;
-      if(val[0] < 0) val[0] = 0;
-      update_item(screens_layout[current_screen].items[selected_item],val);
-  
-      receive_gui_events.receive_gui_event("varnumchange",screens_layout[current_screen].items[selected_item].text);
-      return;
-    }
-
-    selected_item++;
-    if(selected_item >= screens_layout[current_screen].item_count) {
-      selected_item = screens_layout[current_screen].item_count-1;
-    }
+    m_repeating=false;
+    process_key_down();
   }
 
   if((key_id == KEY_UP) && (type == KEY_RELEASED)) {
-
-    if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_VARNUM) {
-      uint8_t current = get_item_state_varnum(screens_layout[current_screen].items[selected_item]);
-
-      int8_t val[1];
-      val[0] = current+1;
-      if(val[0] > 9) val[0] = 9;
-      update_item(screens_layout[current_screen].items[selected_item],val);
-      receive_gui_events.receive_gui_event("varnumchange",screens_layout[current_screen].items[selected_item].text);
-      return;
-    }
-
-
-    if(selected_item == 1) return;
-    selected_item--;
+    m_repeating=false;
+    process_key_up();
   }
 
   if((key_id == KEY_SELECT) && (type == KEY_RELEASED)) {
