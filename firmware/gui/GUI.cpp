@@ -606,7 +606,7 @@ void update_item_head(screen_item &item,const void *value) {
 
   display_draw_tinytext(128-75,2,time,header_color);//HEADER_COLOR);
   display_draw_tinytext(128-75,9,date,header_color);//HEADER_COLOR);
-  display_draw_tinytext(0,128-5,OS100VERSION,FOREGROUND_COLOR);
+//  display_draw_tinytext(0,128-5,OS100VERSION,FOREGROUND_COLOR);
 }
 
 void update_item_varnum(screen_item &item,const void *value) {
