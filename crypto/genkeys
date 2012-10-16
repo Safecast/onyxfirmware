@@ -5,6 +5,9 @@
 ### sudo echo "HRNGDEVICE=/dev/urandom" >> /etc/default/rng-tools
 ### sudo /etc/init.d/rng-tools start
 
+ABSPATH=/home/safecast/bunniegeiger/crypto
+
+echo $ABSPATH
 
 # start a find to "create" randomness
 find / -type f 2> /dev/null | xargs grep makerandomdata > /dev/null 2>&1 &
@@ -16,14 +19,21 @@ rm -f ./secring.gpg
 rm -f ./secblock.bin
 rm -f ./pubkey.txt
 
-gpg --no-options --batch --no-default-keyring --keyring ./pubring.gpg --secret-keyring ./secring.gpg --gen-key gen-key-config 
-gpg --keyring ./pubring.gpg --export -a signing-keys@safecast.org > pubkey.txt
+rm -f $ABSPATH/pubring.gpg
+rm -f $ABSPATH/secring.gpg
+rm -f $ABSPATH/secblock.bin
+rm -f $ABSPATH/pubkey.txt
+
+gpg --no-options --batch --no-default-keyring --keyring $ABSPATH/pubring.gpg --secret-keyring $ABSPATH/secring.gpg --gen-key $ABSPATH/gen-key-config 
+gpg --keyring $ABSPATH/pubring.gpg --export -a signing-keys@safecast.org > pubkey.txt
 
 killall find
 killall xargs
 killall grep
 
-./catkeys
+# hard-code path...well, this script should *only* be run on one computer anyways.
+$ABSPATH/catkeys 
+#./catkeys
 
 echo "New key file is now in secblock.bin"
 
