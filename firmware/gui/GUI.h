@@ -96,6 +96,7 @@ private:
   int  m_repeat_key;
   int m_repeat_time;
   int m_repeat_delay;
+  bool m_displaying_help;
 };
 
 void tick_item(char *name,bool tick_val);

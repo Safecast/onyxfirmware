@@ -690,6 +690,7 @@ void GUI::push_stack(int current_screen,int selected_item) {
 
 GUI::GUI(Controller &r) : receive_gui_events(r) {
 
+  m_displaying_help = false;
   m_repeat_time = 0;
   m_repeat_delay= 5;
   m_repeating = false;
@@ -719,6 +720,7 @@ void GUI::show_help_screen(uint8_t helpscreen) {
   m_displaying_dialog_complete=false;
   m_pause_display_updates = true;
   m_dialog_buzz = false;
+  m_displaying_help = true;
 }
 
 void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,char *dialog_text4,bool buzz) {
@@ -827,8 +829,13 @@ void GUI::redraw() {
 }
 
 void GUI::receive_key(int key_id,int type) {
+    
+  // don't activate HELP key when in a help screen
+  if((m_displaying_help == true) && (key_id == KEY_HELP)) return;
+
   if(m_displaying_dialog==true) {
     m_displaying_dialog=false;
+    m_displaying_help = false;
     m_displaying_dialog_complete=true;
   }
 
@@ -903,10 +910,10 @@ void GUI::process_key(int key_id,int type) {
 
   if(m_sleeping) return;
 
-  if((key_id == KEY_HELP) && (type == KEY_RELEASED)) {
+  if((key_id == KEY_HELP) && (type == KEY_RELEASED) && (!m_displaying_help)) {
     if(screens_layout[current_screen].help_screen != 255) show_help_screen(screens_layout[current_screen].help_screen);
   }
-  
+
   if((key_id == KEY_UP) && (type == KEY_PRESSED)) {
     m_repeating=true;
     m_repeat_key = KEY_UP;
