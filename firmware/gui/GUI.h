@@ -63,6 +63,9 @@ private:
   void pop_stack(int &current_screen,int &selected_item);
   void clear_stack();
 
+  void process_key_up();
+  void process_key_down();
+
   void process_key(int key_id,int type);
   void process_keys();
 
@@ -89,6 +92,10 @@ private:
   bool m_displaying_dialog_complete;
   bool m_pause_display_updates;
   bool m_dialog_buzz;
+  bool m_repeating;
+  int  m_repeat_key;
+  int m_repeat_time;
+  int m_repeat_delay;
 };
 
 void tick_item(char *name,bool tick_val);

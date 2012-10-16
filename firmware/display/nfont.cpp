@@ -184,6 +184,8 @@ void draw_tinycharacter(int x,int y,char c,uint16_t background) {
     for(size_t c_x=0;c_x<5;c_x++) {
       int32_t px = get_tinypixel(c-32,c_x,c_y);
       int32_t value;
+
+      if((background != 0) && (background != 65535))
       if(px == 65535) {
         value = background;
       } else {
