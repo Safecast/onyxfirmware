@@ -6,13 +6,12 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 0 - main screen
 {
- 5,
+ 4,
  {
    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"      , 255}, 
    { ITEM_TYPE_MENU       , 1, 1, "Current Readings", 4},
-   { ITEM_TYPE_MENU       , 2, 2, "Reports"         , 5},
-   { ITEM_TYPE_MENU       ,20, 3, "Advanced"        , 255},
-   { ITEM_TYPE_MENU       , 3, 4, "Settings"        , 0}
+   { ITEM_TYPE_MENU       , 2, 2, "Advanced"        , 255},
+   { ITEM_TYPE_MENU       , 3, 3, "Settings"        , 0}
  }
  ,7
 },
@@ -30,14 +29,15 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   ,0
 },
 
-// Screen 2 - Reports menu
+// Screen 2 - Advanced menu
 {
-  4,
+  5,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT",255 }, 
-    { ITEM_TYPE_MENU       , 4, 1, "Graphs",1 },
-    { ITEM_TYPE_MENU       ,15, 2, "Accumulate/Avg",6 },
-    { ITEM_TYPE_MENU_ACTION, 0, 3, "QR Transfer",7}
+    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"    ,255 }, 
+    { ITEM_TYPE_MENU       , 4, 1, "Graphs"        ,1   },
+    { ITEM_TYPE_MENU       ,15, 2, "Accumulate/Avg",6   },
+    { ITEM_TYPE_MENU       ,21, 3, "Becquerel"     ,255 },
+    { ITEM_TYPE_MENU_ACTION, 0, 4, "QR Transfer"   ,7   }
   }
   ,7
 },
@@ -264,12 +264,11 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   ,7
 },
 
-//Screen 20 - Advanced
+//Screen 20 - NO LONGER USED REMOVE
 {
-  2,
+  1,
   {
     { ITEM_TYPE_HEAD, 0, 0, "CPMDEADINT", 255}, 
-    { ITEM_TYPE_MENU,21, 1, "Becquerel" , 255}
   }
   ,7
 
