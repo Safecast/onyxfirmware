@@ -224,7 +224,7 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_gui->receive_update("TTTIME" ,blank);
     m_gui->redraw();
   } else
-  if(strcmp(event,"Save:Calib") == 0) { //TODO: refactor to say at least "SaveCalibration"
+  if(strcmp(event,"Save:Calib") == 0) {
     save_calibration();
   } else
   if(strcmp(event,"Save:Becq") == 0) {
