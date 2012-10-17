@@ -36,8 +36,11 @@ int             foundDevices = 0;
 extern int stm32_ser_id;
 int ser_dbg = 0;
 
-static  FILE *fp;
+static  FILE *fp_page1;
+static  FILE *fp_page4;
+static  FILE *fpp;
 static  u32 fpsize;
+static  u32 fppsize;
 
 int fw_abort();
 
@@ -266,8 +269,28 @@ static u32 writeh_read_data( u8 *dst, u32 len )
 {
   size_t readbytes = 0;
 
-  if( !feof( fp ) )
-    readbytes = fread( dst, 1, len, fp );
+  if( !feof( fpp ) )
+    readbytes = fread( dst, 1, len, fpp );
+  return ( u32 )readbytes;
+}
+
+// Get data function
+static u32 writeh_read_data_page1( u8 *dst, u32 len )
+{
+  size_t readbytes = 0;
+
+  if( !feof( fp_page1 ) )
+    readbytes = fread( dst, 1, len, fp_page1 );
+  return ( u32 )readbytes;
+}
+
+// Get data function
+static u32 writeh_read_data_page4( u8 *dst, u32 len )
+{
+  size_t readbytes = 0;
+
+  if( !feof( fp_page4 ) )
+    readbytes = fread( dst, 1, len, fp_page4 );
   return ( u32 )readbytes;
 }
 
@@ -289,6 +312,7 @@ int main(int argc, char **argv)
   int aflag = 0;
   char *argval = NULL;
   char infile_name[256];
+  char fw_name[256];
   int index;
   int c;
   int baud = 115200;
@@ -302,7 +326,7 @@ int main(int argc, char **argv)
   infile_name[0] = '\0';
   ser_dbg = 0;
 
-  while ((c = getopt(argc, argv, "b:f:dr:")) != -1 ) {
+  while ((c = getopt(argc, argv, "b:f:p:dr:")) != -1 ) {
     switch (c) {
       
     case 'a': 
@@ -318,8 +342,12 @@ int main(int argc, char **argv)
       }
       break;
       
-    case 'f':
+    case 'p':
       strncpy(infile_name, optarg, 256);
+      break;
+
+    case 'f':
+      strncpy(fw_name, optarg, 256);
       break;
       
     case 'd':
@@ -343,14 +371,27 @@ int main(int argc, char **argv)
   }
 
   if( !readflag ) {
-    if( ( fp = fopen( infile_name, "rb" ) ) == NULL ) {
+    fp_page1 = fopen( fw_name, "rb" );
+    fp_page4 = fopen( fw_name, "rb" );
+    fpp = fopen( infile_name, "rb" );
+    if( fpp == NULL) {
+      fprintf( stderr, "Usage: pkload -f <firmware> -p <privkey>\n" );
       fprintf( stderr, "Unable to open %s\n", infile_name );
+      exit(1);
+    } else if( fp_page1 == NULL || fp_page4 == NULL ) {
+      fprintf( stderr, "Usage: pkload -f <firmware> -p <privkey>\n" );
+      fprintf( stderr, "Unable to open %s\n", fw_name );
       exit( 1 );
     }  else    {
-      fseek( fp, 0, SEEK_END );
-      fpsize = ftell( fp );
-      fseek( fp, 0, SEEK_SET );
+      fseek( fp_page4, 0, SEEK_END );
+      fpsize = ftell( fp_page4 );
+      fseek( fp_page4, 0, SEEK_SET );
+      
+      fseek( fpp, 0, SEEK_END );
+      fppsize = ftell( fpp );
+      fseek( fpp, 0, SEEK_SET );
     }
+    fseek( fp_page4, 6144, SEEK_SET );
   }
 
   // Connect to bootloader
@@ -422,6 +463,18 @@ int main(int argc, char **argv)
       printf( "Cleared read protection.\n" );
 
     // Erase flash
+    printf( "Erase bulk of flash.\n" );
+    int res1 = stm32_erase_flash_page(0,1);     // first page
+    int res2 = stm32_erase_flash_page(3,0xFD);  // all the rest
+    if(res1 != STM32_OK) {
+	    fprintf( stderr, "Unable to erase chip - pre prvkey\n" );
+	    exit(1);
+    }
+    if(res2 != STM32_OK) {
+	    fprintf( stderr, "Unable to erase chip - post pk\n" );
+	    exit(1);
+    }
+
     printf( "Erase private key region.\n" );
     if( stm32_erase_flash_page(1,2) != STM32_OK )
       {
@@ -435,6 +488,22 @@ int main(int argc, char **argv)
     // Program flash
     setbuf( stdout, NULL );
     printf( "Programming flash ... ");
+    if( stm32_write_flash_page(0x08000000,1,writeh_read_data_page1, writeh_progress ) != STM32_OK ) {
+      fprintf( stderr, "Unable to program - initial page.\n" );
+	    exit(1);
+    } else {
+      printf( "\nProgram pre-pk Done.\n" );
+    }
+
+    if( stm32_write_flash_page(0x08001800,0xFC,writeh_read_data_page4, writeh_progress ) != STM32_OK ) {
+      fprintf( stderr, "Unable to program - post pk flash.\n" );
+	    exit(1);
+    } else {
+      printf( "\nProgram post-pk Done.\n" );
+    }
+
+    setbuf( stdout, NULL );
+    printf( "Programming private key area ... ");
     if( stm32_write_flash_page(0x08000800,2,writeh_read_data, writeh_progress ) != STM32_OK )
       {
 	fprintf( stderr, "Unable to program private key FLASH memory area.\n" );
@@ -451,14 +520,26 @@ int main(int argc, char **argv)
     } else {
       printf( "\nDone.\n" );
     }
+
+    printf( "Readback flash memory at offset %x\n", readoffset );
+    if(stm32_read_flash( readoffset, 10240 ) != STM32_OK ) {
+      fprintf( stderr, "Unable to read FLASH memory.\n" );
+      exit( 1 );
+    } else {
+      printf( "\nDone.\n" );
+    }
+
   }
 
   // reset back into normal mode
   printf( "\n" );
   safecast_resetboard(0);
 
-  if( !readflag )
-    fclose( fp );
+  if( !readflag ) {
+    fclose( fp_page1 );
+    fclose( fp_page4 );
+    fclose( fpp );
+  }
 
   closeSerialPorts();
 
