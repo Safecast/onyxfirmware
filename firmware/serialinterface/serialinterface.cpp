@@ -11,6 +11,22 @@
 #include <limits.h>
 #include "dac.h"
 
+extern "C" {
+  static void signing_test();
+  static int signing_isKeyValid();
+  static void signing_printPubKey();
+  static void signing_printGUID();
+  static void signing_hashLog();
+}
+
+extern "C" {
+  static void signing_test();
+  static int signing_isKeyValid();
+  static void signing_printPubKey();
+  static void signing_printGUID();
+  static void signing_hashLog();
+}
+
 extern uint8_t _binary___binary_data_private_key_data_start;
 extern uint8_t _binary___binary_data_private_key_data_size;
 
@@ -121,6 +137,10 @@ void serial_readprivatekey() {
   }
   serial_write_string("\r\n");
 
+}
+
+void serial_signing_test() {
+  signing_test();
 }
 
 void serial_writeprivatekey() {
@@ -278,10 +298,10 @@ void serial_process_command(char *line) {
     serial_setdevicetag();
   } else 
   if(strcmp(line,"READPRIVATEKEY") == 0) {
-    serial_readprivatekey();
+    //    serial_readprivatekey();  // removed for production
   } else
   if(strcmp(line,"WRITEPRIVATEKEY") == 0) {
-    serial_writeprivatekey();
+    serial_writeprivatekey(); // maybe this should be removed for production?
   } else 
   if(strcmp(line,"MAGREAD") == 0) {
     gpio_set_mode (PIN_MAP[41].gpio_device,PIN_MAP[41].gpio_bit, GPIO_OUTPUT_PP); // MAGPOWER
@@ -365,8 +385,28 @@ void serial_process_command(char *line) {
     gpio_write_bit(PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,0); // MICREVERSE
     gpio_write_bit(PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit,1); // MICIPHONE
     serial_write_string("Set MICREVERSE to 0, MICIPHONE to 1\r\n");
+  } else
+  if(strcmp(line,"TESTSIGN") == 0) {
+    serial_signing_test();
+  } else 
+  if(strcmp(line,"PUBKEY") == 0) {
+    signing_printPubKey();
+    serial_write_string("\n\r");
+  } else 
+  if(strcmp(line,"GUID") == 0) {
+    signing_printGUID();
+    serial_write_string("\n\r");
+  } else 
+  if(strcmp(line,"KEYVALID") == 0) {
+    if( signing_isKeyValid() == 1 )
+      serial_write_string("VALID KEY\r\n");
+    else
+      serial_write_string("IMPROPER OR UNINITIALIZED KEY\r\n");
+  } else 
+  if(strcmp(line,"LOGSIG") == 0) {
+    signing_hashLog();
+    serial_write_string("\n\r");
   }
-  
 
   serial_write_string("\r\n>");
 }
