@@ -216,9 +216,9 @@ void render_item_head(screen_item &item, bool selected) {
   draw_text(0,0,"                ",header_color);
 }
 
-float m_graph_data[240];
+float m_old_graph_data[120];
+float m_graph_data[120];
 float *source_graph_data;
-bool  graph_first;
 
 void render_item_graph(screen_item &item, bool selected) {
 
@@ -231,62 +231,78 @@ void render_item_graph(screen_item &item, bool selected) {
   int32_t m_x = item.val1;
   int32_t m_y = item.val2;
   
-  graph_first = first_render;
+//  display_draw_rectangle(0,16,128,128,BACKGROUND_COLOR);
 
-  // find min and max in old data
-  int32_t omax = m_graph_data[0];
-  int32_t omin = m_graph_data[0];
-  for(uint32_t n=0;n<(data_size/data_increment);n++) {
-    if(m_graph_data[n+data_offset] > omax) omax = m_graph_data[n+data_offset];
-    if(m_graph_data[n+data_offset] < omin) omin = m_graph_data[n+data_offset];
-  }
-
-  // find min and max in new data
+  // find min and max in data
   int32_t nmax = source_graph_data[data_offset];
   int32_t nmin = source_graph_data[data_offset];
-  for(uint32_t n=0;n<data_size;n++) {
-    if(source_graph_data[n+data_offset] > nmax) nmax = source_graph_data[n+data_offset];
-    if(source_graph_data[n+data_offset] < nmin) nmin = source_graph_data[n+data_offset];
+  for(uint32_t n=data_offset;n<(data_offset+data_size);n++) {
+    if(source_graph_data[n] > nmax) nmax = source_graph_data[n];
+    if(source_graph_data[n] < nmin) nmin = source_graph_data[n];
   }
-
-
+  
+  // axis
   display_draw_line(m_x,m_y           ,m_x+(data_size/data_increment),m_y           ,FOREGROUND_COLOR);
   display_draw_line(m_x,m_y-max_height,m_x+(data_size/data_increment),m_y-max_height,FOREGROUND_COLOR);
-  
+
+  // if there's no data just draw labels and return.
   if((nmin == 0) && (nmax == 0)) {
-    display_draw_tinynumber(m_x+5,m_y-max_height+10,nmax,4,FOREGROUND_COLOR);
+    display_draw_tinynumber(m_x+5,m_y-max_height-10,nmax,4,FOREGROUND_COLOR);
     display_draw_tinynumber(m_x+5,m_y-10           ,nmin,4,FOREGROUND_COLOR);
     return;
   }
 
-  int32_t lastx=m_x;
-  int32_t lastoy=m_graph_data[0];
-  int32_t lastny=m_y-((((float)source_graph_data[data_offset]-(float)nmin)/(float)(nmax-nmin))*max_height);
-  int32_t cx = m_x+x_spacing;
-  for(uint32_t n=0;n<data_size;n+=data_increment) {
-    int oy = m_graph_data[n/data_increment];
 
-    
-    float source_data=0;
-    for(uint32_t i=0;i<data_increment;i++) {
-      float datapoint = source_graph_data[n+data_offset+i];
-      source_data += datapoint;
-    }
-    source_data = source_data/data_increment;
+  // rescale data
+  float source_y_range = nmax-nmin;
+  float   dest_y_range = max_height;
+  float source_x_range = data_size;
+  float   dest_x_range = 120;
 
-    int ny = m_y-((((float)source_data-(float)nmin)/(float)(nmax-nmin))*max_height);
-    if(!((lastoy == lastny) && (oy == ny) && !graph_first)) {
-      if(!first_render) display_draw_line(lastx,lastoy,cx,oy,BACKGROUND_COLOR);
-                        display_draw_line(lastx,lastny,cx,ny,FOREGROUND_COLOR);
-    }
-    m_graph_data[n/data_increment] = ny;
-    lastx=cx;
-    lastoy=oy;
-    lastny=ny;
-    cx+=x_spacing;
+  float m_graph_count[120];
+  for(int n=0;n<120;n++) m_graph_count[n]=0;
+  for(int n=0;n<120;n++) m_graph_data [n]=0;
+
+  for(uint32_t n=data_offset;n<(data_offset+data_size);n++) {
+    // put data point in the range 0->1
+    float data_point = (source_graph_data[n]-nmin)/source_y_range;
+
+    // put data point in the range m_y -> m_y+dest_y_range
+    data_point = (data_point*dest_y_range);
+
+    uint32_t xpos = ((float)(n-data_offset)/source_x_range)*dest_x_range;
+    m_graph_data [xpos] += data_point;
+    m_graph_count[xpos]++;
   }
-  display_draw_tinynumber(m_x+5,m_y-max_height+10,nmax,4,FOREGROUND_COLOR);
+
+  // apply averaging, and offset to data.
+  for(int n=0;n<120;n++) {
+    if(m_graph_count[n] != 0) m_graph_data[n] = m_y - m_graph_data[n]/m_graph_count[n];
+                         else m_graph_data[n] = 0;
+  }
+
+  // start clearing data, clear first 2.
+  if(!first_render) display_draw_line(0,m_old_graph_data[0],1,m_old_graph_data[1],BACKGROUND_COLOR);
+  if(!first_render) display_draw_line(1,m_old_graph_data[1],2,m_old_graph_data[2],BACKGROUND_COLOR);
+
+  // render the data
+  for(uint32_t n=1;n<120;n++) {
+    uint32_t cx = n;
+
+    if(!first_render && (n<118)) {
+      display_draw_line(cx+1,m_old_graph_data[n+1],cx+2,m_old_graph_data[n+2],BACKGROUND_COLOR);
+    }
+
+    display_draw_line(cx-1,m_graph_data[n-1],cx,m_graph_data[n],FOREGROUND_COLOR);
+  }
+
+  for(uint32_t n=0;n<120;n++) {
+    m_old_graph_data[n] = m_graph_data[n];
+  }
+  
+  display_draw_tinynumber(m_x+5,m_y-max_height-10,nmax,4,FOREGROUND_COLOR);
   display_draw_tinynumber(m_x+5,m_y-10           ,nmin,4,FOREGROUND_COLOR);
+  
 }
 
 void clear_item_menu(screen_item &item, bool selected) {
@@ -363,24 +379,6 @@ void clear_item_varlabel(screen_item &item, bool selected) {
 void clear_item_graph(screen_item &item, bool selected) {
 
   display_draw_rectangle(0,16,128,128,BACKGROUND_COLOR);
-/*
-  int32_t m_x = item.val1;
-  int32_t m_y = item.val2;
-  
-  graph_first = true;
-  int32_t size=60;
-
-  int offset=60;
-  int32_t lastx=m_x;
-  int32_t lastoy=m_y-m_graph_data[offset];
-  for(uint32_t n=0;n<size;n++) {
-    int cx = m_x+n;
-    int oy = m_y-m_graph_data[n+offset];
-    display_draw_line(lastx,lastoy,cx,oy,BACKGROUND_COLOR);
-    lastx=cx;
-    lastoy=oy;
-  }
-*/
 }
 
 void clear_item_delay(screen_item &item, bool selected) {
@@ -800,7 +798,14 @@ void GUI::render() {
     if(n==0) near_selected = false;
 
     if(first_render || (selected) || (near_selected) || do_redraw) {
-      render_item(screens_layout[cscreen].items[n],selected);
+      bool do_render = true;
+ 
+      // don't render labels, just because they are near other things...
+      if(!first_render && near_selected && (screens_layout[cscreen].items[n].type == ITEM_TYPE_LABEL)) {
+        do_render = false;
+      } 
+
+      if(do_render) render_item(screens_layout[cscreen].items[n],selected);
     }
   }
   first_render=false;

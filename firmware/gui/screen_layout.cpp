@@ -60,9 +60,9 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   3,
   {
-    { ITEM_TYPE_HEAD    , 0 , 0  , "CPMDEADINT"    , 255 }, 
-    { ITEM_TYPE_GRAPH   , 4 , 110, "RECENTDATA"    , 255 },
-    { ITEM_TYPE_LABEL   ,255, 112, "Last 2 minutes", 17  }
+    { ITEM_TYPE_HEAD    , 0 , 0  , "CPMDEADINT"     , 255 }, 
+    { ITEM_TYPE_GRAPH   , 4 , 110, "RECENTDATA"     , 255 },
+    { ITEM_TYPE_LABEL   ,255, 112, "CPM last 2 mins", 17  }
   }
   ,7
 },
