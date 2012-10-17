@@ -1,0 +1,19 @@
+Safecast Geiger Counter Firmware loader
+---------------------------------------
+
+You need to unload ftdi_sio and usbserial for this program to work.
+
+This program requires the FTDI drivers, these are shipped in binary form under a closed source license by FTDI. A copy is included in this package, in the libftd2xx1.1.0 directory. This loader also uses stm32ld, a copy of which is also embedded in this package.
+
+
+You need to unload the system FTDI serial drivers from the firmware loader to run, so a complete run might be as follows:
+
+git clone git@github.com:Safecast/bunniegeiger.git
+cd bunniegeiger/firmware_loader/
+sudo rmmod ftdi_sio
+sudo rmmod usbserial
+./fwload -f safecast_r5.bin
+sudo modprobe usbserial
+sudo modprobe ftdi_sio
+
+There's a bash script called "test" this is hardcoded to program safecast.bin from ../frimware.
