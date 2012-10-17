@@ -321,6 +321,7 @@ int main(int argc, char **argv)
   int badness = 0;
   int readflag = 0;
   int readoffset = 0;
+  int fwflag = 1;
 
   opterr = 0;
   infile_name[0] = '\0';
@@ -379,19 +380,22 @@ int main(int argc, char **argv)
       fprintf( stderr, "Unable to open %s\n", infile_name );
       exit(1);
     } else if( fp_page1 == NULL || fp_page4 == NULL ) {
-      fprintf( stderr, "Usage: pkload -f <firmware> -p <privkey>\n" );
-      fprintf( stderr, "Unable to open %s\n", fw_name );
-      exit( 1 );
+      fprintf( stderr, "Not programming firmware, just doing pk\n" );
+      fwflag = 0;
     }  else    {
-      fseek( fp_page4, 0, SEEK_END );
-      fpsize = ftell( fp_page4 );
-      fseek( fp_page4, 0, SEEK_SET );
+      if( fwflag ) {
+	fseek( fp_page4, 0, SEEK_END );
+	fpsize = ftell( fp_page4 );
+	fseek( fp_page4, 0, SEEK_SET );
+      }
       
       fseek( fpp, 0, SEEK_END );
       fppsize = ftell( fpp );
       fseek( fpp, 0, SEEK_SET );
     }
-    fseek( fp_page4, 6144, SEEK_SET );
+    if( fwflag ) {
+      fseek( fp_page4, 6144, SEEK_SET );
+    }
   }
 
   // Connect to bootloader
@@ -463,16 +467,18 @@ int main(int argc, char **argv)
       printf( "Cleared read protection.\n" );
 
     // Erase flash
-    printf( "Erase bulk of flash.\n" );
-    int res1 = stm32_erase_flash_page(0,1);     // first page
-    int res2 = stm32_erase_flash_page(3,0xFD);  // all the rest
-    if(res1 != STM32_OK) {
-	    fprintf( stderr, "Unable to erase chip - pre prvkey\n" );
-	    exit(1);
-    }
-    if(res2 != STM32_OK) {
-	    fprintf( stderr, "Unable to erase chip - post pk\n" );
-	    exit(1);
+    if( fwflag ) { 
+      printf( "Erase bulk of flash.\n" );
+      int res1 = stm32_erase_flash_page(0,1);     // first page
+      int res2 = stm32_erase_flash_page(3,0xFD);  // all the rest
+      if(res1 != STM32_OK) {
+	fprintf( stderr, "Unable to erase chip - pre prvkey\n" );
+	exit(1);
+      }
+      if(res2 != STM32_OK) {
+	fprintf( stderr, "Unable to erase chip - post pk\n" );
+	exit(1);
+      }
     }
 
     printf( "Erase private key region.\n" );
@@ -484,26 +490,26 @@ int main(int argc, char **argv)
     else
       printf( "Erased private key FLASH memory area.\n" );
 
-#if 1
     // Program flash
     setbuf( stdout, NULL );
-    printf( "Programming flash ... ");
-    if( stm32_write_flash_page(0x08000000,1,writeh_read_data_page1, writeh_progress ) != STM32_OK ) {
-      fprintf( stderr, "Unable to program - initial page.\n" );
-	    exit(1);
-    } else {
-      printf( "\nProgram pre-pk Done.\n" );
+    if( fwflag ) {
+      printf( "Programming main flash ... ");
+      if( stm32_write_flash_page(0x08000000,1,writeh_read_data_page1, writeh_progress ) != STM32_OK ) {
+	fprintf( stderr, "Unable to program - initial page.\n" );
+	exit(1);
+      } else {
+	printf( "\nProgram pre-pk Done.\n" );
+      }
+      
+      if( stm32_write_flash_page(0x08001800,0xFC,writeh_read_data_page4, writeh_progress ) != STM32_OK ) {
+	fprintf( stderr, "Unable to program - post pk flash.\n" );
+	exit(1);
+      } else {
+	printf( "\nProgram post-pk Done.\n" );
+      }
     }
 
-    if( stm32_write_flash_page(0x08001800,0xFC,writeh_read_data_page4, writeh_progress ) != STM32_OK ) {
-      fprintf( stderr, "Unable to program - post pk flash.\n" );
-	    exit(1);
-    } else {
-      printf( "\nProgram post-pk Done.\n" );
-    }
-
-    setbuf( stdout, NULL );
-    printf( "Programming private key area ... ");
+    printf( "Programming private key area ... \n");
     if( stm32_write_flash_page(0x08000800,2,writeh_read_data, writeh_progress ) != STM32_OK )
       {
 	fprintf( stderr, "Unable to program private key FLASH memory area.\n" );
@@ -511,7 +517,6 @@ int main(int argc, char **argv)
       }
     else
       printf( "\nDone.\n" );
-#endif
   } else {
     printf( "Readback flash memory at offset %x\n", readoffset );
     if(stm32_read_flash( readoffset, 128 ) != STM32_OK ) {
@@ -536,8 +541,10 @@ int main(int argc, char **argv)
   safecast_resetboard(0);
 
   if( !readflag ) {
-    fclose( fp_page1 );
-    fclose( fp_page4 );
+    if( fwflag ) {
+      fclose( fp_page1 );
+      fclose( fp_page4 );
+    }
     fclose( fpp );
   }
 
