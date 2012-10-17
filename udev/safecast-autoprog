@@ -1,13 +1,19 @@
 #!/bin/bash
 
+export DISPLAY=:0.0
+
 function program(){
+ killall display   
+ display /home/safecast/bunniegeiger/udev/programming.png &
  /home/safecast/bunniegeiger/firmware_loader/fwload -f /home/safecast/bunniegeiger/firmware/safecast_latest.bin > /tmp/safecast.log
  /home/safecast/bunniegeiger/crypto/genkeys >> /tmp/safecast.log 2>&1
  /home/safecast/bunniegeiger/firmware_loader/pkload -f /tmp/secblock.bin >> /tmp/safecast.log
  modprobe usbserial
  modprobe ftdi_sio
  sleep 5
+ killall display
  rmdir /tmp/safecast-semaphore
+ display /home/safecast/bunniegeiger/udev/idle.png &
 } 
 
 if mkdir /tmp/safecast-semaphore
