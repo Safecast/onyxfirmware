@@ -71,7 +71,7 @@ release:	safecast.elf
 upload:	release
 	sudo rmmod ftdi_sio
 	sudo rmmod usbserial
-	../firmware_loader/fwload -f $(RELEASE_NAME).bin
+	sudo ../firmware_loader/fwload -f $(RELEASE_NAME).bin
 	sudo modprobe usbserial
 	sudo modprobe ftdi_sio
 
