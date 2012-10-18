@@ -4,6 +4,7 @@
 #include "beecrypt/fips186.h"
 #include "beecrypt/entropy.h"
 #include "simpleCrypt.h"
+#include "ctype.h"
 
 #include "usart.h"
 
@@ -34,6 +35,25 @@ void print_mp(size_t size, const mpw* data)
       i++;
     }
   serial_write_string("\n\r");
+}
+
+void print_mp_nocrlf(size_t size, const mpw* data)
+{
+  char stemp[64];
+  int i;
+
+  if (data == (mpw*) 0)
+    return;
+  if( size == 0 )
+    return;
+
+  i = 0;
+  while (size--)
+    {
+      sprintf(stemp, "%08x", *(data++));
+      serial_write_string(stemp);
+      i++;
+    }
 }
 
 void signing_test() {
@@ -144,6 +164,11 @@ void signing_hashLog() {
   struct privKeyInFlash *kdat = KEYDATABASE;
   int i, len;
 
+  unsigned char *bin_guid = (unsigned char *)GUIDDATABASE;
+  mpnumber guid;
+  int j;
+  char *tbuf;
+
   if( signing_isKeyValid() == 0 ) {
     serial_write_string("WARNING: System uses a test private key. This signature is worthless and should not be disregarded.\n\r");
   }
@@ -173,8 +198,9 @@ void signing_hashLog() {
   if( sha1Reset(&param) ) { serial_write_string( "FAIL" ); goto cleanup; }
 
   // print the hash for diagnostic purposes
-  print_mp(hash_mpn.size, hash_mpn.data);
-  serial_write_string("\n\r" );
+  serial_write_string("{\"hash\":\"");
+  print_mp_nocrlf(hash_mpn.size, hash_mpn.data);
+  serial_write_string("\",\n\r");
 
   // set private key params and encrypt the hash
   if( mpbsetbin(&keypair.n, kdat->n, 256) != 0) { serial_write_string( "FAIL" ); goto cleanup; }
@@ -184,8 +210,28 @@ void signing_hashLog() {
   rsapri(&keypair.n, &keypair.d, &hash_mpn, &signed_hash);
 
   // print the encrypted hash
-  print_mp(signed_hash.size, signed_hash.data);
-  serial_write_string("\n\r" );
+  serial_write_string("\"signature\":\"");
+  print_mp_nocrlf(signed_hash.size, signed_hash.data);
+  serial_write_string("\",\n\r");
+
+  serial_write_string("\"guid\":\"");
+  mpnzero(&guid);
+  mpnsetbin(&guid, bin_guid, 16);
+  print_mp_nocrlf(guid.size, guid.data);
+  serial_write_string("\",\n\r");
+  mpnfree(&guid);
+
+  serial_write_string("\"pubkey\":\"");
+  j = 0;
+  tbuf = PUBDATABASE;
+  while( tbuf[j] != '\0' ) {
+    if( tbuf[j] != '\n' && isascii(tbuf[j]) )
+      usart_putc(USART1, tbuf[j]);
+    else
+      serial_write_string("\\n");
+    j++;
+  }
+  serial_write_string("\"}\n\r");
 
  cleanup: // dealloc anything that could have been alloc'd...
   mpnfree(&hash_mpn);

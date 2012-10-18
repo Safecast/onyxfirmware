@@ -28,6 +28,7 @@ int dummyp(const char *format, ...) {
 #define PKTEST    1
 #define VALIDTEST 2
 #define PUBTEST   3
+#define LOGTEST   4
 
 // file descriptors
 int serial;
@@ -155,7 +156,7 @@ int main(int argc, char **argv) {
 
   if( argc == 1 ) {
     printf( "\n\nMicrocontroller testing: defaulting to guid test. \n" );
-    printf( "Valid test args: guid pktest valid pub\n" );
+    printf( "Valid test args: guid pktest valid pub log\n" );
   }
   if( argc > 1 ) {
     if( strcmp(argv[1], "guid") == 0 )
@@ -166,6 +167,8 @@ int main(int argc, char **argv) {
       testNum = VALIDTEST;
     else if( strcmp(argv[1], "pub") == 0 )
       testNum = PUBTEST;
+    else if( strcmp(argv[1], "log") == 0 )
+      testNum = LOGTEST;
     else {
       printf( "test specifier not valid, aborting.\n" );
       exit(0);
@@ -227,6 +230,15 @@ int main(int argc, char **argv) {
 
   case PUBTEST:
     putString( "PUBKEY\n" );
+    getString( iBuf, &len );
+    iBuf[len] = '\0';
+    printf( "received %d characters:\n", len );
+
+    printf( "%s", iBuf );
+    break;
+
+  case LOGTEST:
+    putString( "LOGSIG\n" );
     getString( iBuf, &len );
     iBuf[len] = '\0';
     printf( "received %d characters:\n", len );
