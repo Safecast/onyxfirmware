@@ -238,6 +238,16 @@ int main(int argc, char **argv) {
     break;
 
   case LOGTEST:
+    putString( "LOGXFER\n" );
+    getString( iBuf, &len );
+    iBuf[len] = '\0';
+    printf( "received %d characters:\n", len );
+
+    printf( "%s", iBuf );
+
+    fflush(stdout);
+    // reset len if it's being used again
+    len = 16384;
     putString( "LOGSIG\n" );
     getString( iBuf, &len );
     iBuf[len] = '\0';
