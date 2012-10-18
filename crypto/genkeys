@@ -7,6 +7,7 @@
 
 TMPPATH=/tmp
 ABSPATH=/home/safecast/bunniegeiger/crypto
+LOGPATH=/home/safecast/logs
 
 echo $TMPPATH
 
@@ -28,8 +29,20 @@ killall xargs
 killall grep
 
 # hard-code path...well, this script should *only* be run on one computer anyways.
-sudo $ABSPATH/catkeys $TMPPATH/secring.gpg $TMPPATH/pubkey.txt $TMPPATH/secblock.bin
+UUID=`sudo $ABSPATH/catkeys $TMPPATH/secring.gpg $TMPPATH/pubkey.txt $TMPPATH/secblock.bin`
+
+echo -n "UUID "
+echo $UUID
 #./catkeys
+
+if mkdir $LOGPATH/$UUID
+then
+    cp $TMPPATH/pubkey.txt $LOGPATH/$UUID/pubkey.txt
+    sha1sum $TMPPATH/secring.gpg > $LOGPATH/$UUID/secringhash.txt
+    sha1sum $TMPPATH/secblock.bin > $LOGPATH/$UUID/secblockhash.txt
+else
+    echo "######### BIG PROBLEM, UUID REPEATED, REPROGRAM THIS UNIT!!! ########"
+fi
 
 echo "genkeys attempt finished"
 

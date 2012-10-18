@@ -5,6 +5,17 @@
 #define SECLEN  2048
 #define PUBLEN  2032
 
+void print_uuid(uuid_t *uuid) {
+  unsigned char *data;
+  int i;
+  
+  data = (char *)uuid;
+  for( i = 0; i < 16; i++ ) {
+    printf( "%02x", data[i] );
+  }
+  printf( "\n" );
+}
+
 int main(int argc, char *argv[]) {
   FILE *secret, *pub, *out;
   int len = 0;
@@ -57,6 +68,8 @@ int main(int argc, char *argv[]) {
   uuid_generate(uuid);
 
   fwrite( uuid, sizeof(uuid), 1, out );
+  
+  print_uuid(&uuid);
 
   fclose(out);
   fclose(secret);
