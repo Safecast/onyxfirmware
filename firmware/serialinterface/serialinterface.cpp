@@ -59,14 +59,18 @@ void serial_write_string(const char *str) {
 
 void serial_sendlog() {
 
+  flashstorage_log_pause();
   log_read_start();
+
+  //TODO: would be neater if looped on size
   for(;;) {
     char buffer[1024];
     int size = log_read_block(buffer);
 
     if(size != 0) serial_write_string(buffer);
-    if(size == 0) return;
+    if(size == 0) break;
   }
+  flashstorage_log_resume();
 }
 
 void serial_readprivatekey() {
