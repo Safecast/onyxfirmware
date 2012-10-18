@@ -444,8 +444,13 @@ void Controller::receive_gui_event(char *event,char *value) {
     display_draw_text(0,48,"Xfer Complete",0);
   } else 
   if(strcmp(event,"QR Transfer") == 0) {
-    display_draw_text(0,100,"QR Xfer",0);
+ //   display_draw_text(0,100,"QR Xfer",0);
     qr_logxfer();
+  } else
+  if(strcmp(event,"QR Tweet") == 0) {
+    char str[1024];
+    sprintf(str,"http://twitter.com/home?status=My%%20Current%%20Onyx%%20CPM%%20is%%20%f #safecast",m_geiger.get_cpm());
+    qr_draw(str);
   }
 }
 
