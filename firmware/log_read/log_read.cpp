@@ -25,12 +25,12 @@ int log_read_block(char *buf) {
   uint32_t logsize = flashstorage_log_size()/sizeof(log_data_t);
 
   if(log_position==0) {
-    sprintf(buf,"{\"log_size\":%u,\r\n\"log_data\":[\r\n",logsize);
+    sprintf(buf,"{\"log_size\":%u,\"onyx_version\":%s,\r\n\"log_data\":[\r\n",logsize,OS100VERSION);
     buf += strlen(buf);
   }
 
   if(log_position<logsize) {
-    sprintf(buf,"{\"unixtime\":%u,\"cpm\":%u,",flash_log[log_position].time,flash_log[log_position].cpm);
+    sprintf(buf,"{\"unixtime\":%u,\"cpm\":%u,\"duration\":30,",flash_log[log_position].time,flash_log[log_position].cpm);
     buf += strlen(buf);
     sprintf(buf,"\"accel_x_start\":%d,\"accel_y_start\":%d,\"accel_z_start\":%d,",flash_log[log_position].accel_x_start,flash_log[log_position].accel_y_start,flash_log[log_position].accel_z_start);
     buf += strlen(buf);
