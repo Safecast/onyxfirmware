@@ -55,10 +55,10 @@ int getandcheckCBUS( FT_HANDLE ftHandle0 ) {
 
   Data.Signature1 = 0x00000000;
   Data.Signature2 = 0xffffffff;
-  Data.Manufacturer = (char *)malloc(256);			// "FTDI"
-  Data.ManufacturerId = (char *)malloc(256);		// "FT"
+  Data.Manufacturer = (char *)malloc(256);		// "FTDI"
+  Data.ManufacturerId = (char *)malloc(256);	// "FT"
   Data.Description = (char *)malloc(256);			// "USB HS Serial Converter"
-  Data.SerialNumber = (char *)malloc(256);			// "FT000001" if fixed, or NULL
+  Data.SerialNumber = (char *)malloc(256);		// "FT000001" if fixed, or NULL
   ftStatus = FT_EE_Read(ftHandle0, &Data);
   if(ftStatus != FT_OK) {
     printf("FT_EE_Read failed\n");
