@@ -4,6 +4,7 @@
 #include "flashstorage.h"
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 int log_position = 0;
 
@@ -30,7 +31,16 @@ int log_read_block(char *buf) {
   }
 
   if(log_position<logsize) {
-    sprintf(buf,"{\"unixtime\":%u,\"cpm\":%u,\"duration\":30,",flash_log[log_position].time,flash_log[log_position].cpm);
+    time_t current_time = flash_log[log_position].time;
+
+    struct tm *time;
+    time = gmtime(&current_time);
+    char timestr[50];
+    sprintf(timestr,"%u-%u-%uT%u:%u:%u",time->tm_year,time->tm_mon,time->tm_mday,time->tm_hour,time->tm_min,time->tm_sec);
+
+    sprintf(buf,"{\"unixtime\":%u,\"iso8601time\":%s,",flash_log[log_position].time,timestr);
+    buf += strlen(buf);
+    sprintf(buf,"\"cpm\":%u,\"duration\":30,",flash_log[log_position].cpm);
     buf += strlen(buf);
     sprintf(buf,"\"accel_x_start\":%d,\"accel_y_start\":%d,\"accel_z_start\":%d,",flash_log[log_position].accel_x_start,flash_log[log_position].accel_y_start,flash_log[log_position].accel_z_start);
     buf += strlen(buf);
