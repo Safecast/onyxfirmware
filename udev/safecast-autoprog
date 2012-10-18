@@ -3,21 +3,28 @@
 export DISPLAY=:0.0
 
 function program(){
- killall display   
- display /home/safecast/bunniegeiger/udev/programming.png &
- /home/safecast/bunniegeiger/firmware_loader/fwload -f /home/safecast/bunniegeiger/firmware/safecast_latest.bin > /tmp/safecast.log
+ echo "********* GENERATING CRYPTO KEYS" >> /tmp/safecast.log
  /home/safecast/bunniegeiger/crypto/genkeys >> /tmp/safecast.log 2>&1
- /home/safecast/bunniegeiger/firmware_loader/pkload -f /tmp/secblock.bin >> /tmp/safecast.log
+ UUID=`grep UUID /tmp/safecast.log | awk -F' ' '{ print $2 }'`
+ echo "********* PROGRAMMING FIRMWARE" >> /tmp/safecast.log
+ /home/safecast/bunniegeiger/firmware_loader/pkload -f /home/safecast/bunniegeiger/firmware/safecast_latest.bin -p /tmp/secblock.bin >> /tmp/safecast.log
+# /home/safecast/bunniegeiger/firmware_loader/pkload -f /tmp/secblock.bin >> /tmp/safecast.log
  modprobe usbserial
  modprobe ftdi_sio
  sleep 5
- killall display
+ echo "********* IDLE" >> /tmp/safecast.log
+ sync
+ cp -f /tmp/safecast.log /home/safecast/logs/$UUID/
+ sync
  rmdir /tmp/safecast-semaphore
- display /home/safecast/bunniegeiger/udev/idle.png &
 } 
 
 if mkdir /tmp/safecast-semaphore
 then
+  echo " " > /tmp/safecast.log  # some newlines
+  echo " " >> /tmp/safecast.log
+  echo " " >> /tmp/safecast.log
+  echo "********* STARTED" >> /tmp/safecast.log
   rmmod ftdi_sio
   rmmod usbserial
   program &
