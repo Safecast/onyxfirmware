@@ -24,6 +24,9 @@
 #include "buzzer.h"
 #include <stdio.h>
 #include <string.h>
+    
+extern uint8_t _binary___binary_data_private_key_data_start;
+extern uint8_t _binary___binary_data_private_key_data_size;
 
 // Force init to be called *first*, i.e. before static object allocation.
 // Otherwise, statically allocated objects that need libmaple may fail.
@@ -43,6 +46,8 @@ int main(void) {
     realtime_initialise();
     g.initialise();
 
+    uint8_t *private_key = ((uint8_t *) &_binary___binary_data_private_key_data_start);
+    delay_us(private_key[0]);
 
     delay_us(10000);  // can be removed?
 

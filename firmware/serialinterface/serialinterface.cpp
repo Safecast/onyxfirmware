@@ -298,7 +298,7 @@ void serial_process_command(char *line) {
     serial_setdevicetag();
   } else 
   if(strcmp(line,"READPRIVATEKEY") == 0) {
-    //    serial_readprivatekey();  // removed for production
+   // serial_readprivatekey();  // removed for production
   } else
   if(strcmp(line,"WRITEPRIVATEKEY") == 0) {
     serial_writeprivatekey(); // maybe this should be removed for production?
