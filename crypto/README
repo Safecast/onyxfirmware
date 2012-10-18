@@ -37,3 +37,6 @@ on the keyboard, or other users tickling the network port, etc. etc.
 Granted, we *are* manufacturing geiger counters which is a great source
 of randomness but it's a whole other project to plug those into the
 rng for linux.
+
+You can also install audio-entropyd-2.0.3 (have to compile from source,
+but it's not painful) for good measure.
