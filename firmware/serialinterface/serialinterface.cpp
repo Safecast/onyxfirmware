@@ -62,14 +62,14 @@ void serial_sendlog() {
   flashstorage_log_pause();
   log_read_start();
 
-  //TODO: would be neater if looped on size
-  for(;;) {
-    char buffer[1024];
-    int size = log_read_block(buffer);
+  char buffer[1024];
+  int size = log_read_block(buffer);
 
+  for(;size!=0;) {
     if(size != 0) serial_write_string(buffer);
-    if(size == 0) break;
+    size = log_read_block(buffer);
   }
+
   flashstorage_log_resume();
 }
 
