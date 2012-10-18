@@ -690,7 +690,7 @@ GUI::GUI(Controller &r) : receive_gui_events(r) {
 
   m_displaying_help = false;
   m_repeat_time = 0;
-  m_repeat_delay= 5;
+  m_repeat_delay= 8;
   m_repeating = false;
   new_keys_size = 0;
   clear_next_render=false;

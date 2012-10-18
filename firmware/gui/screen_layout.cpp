@@ -64,7 +64,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_GRAPH   , 4 , 110, "RECENTDATA"     , 255 },
     { ITEM_TYPE_LABEL   ,255, 112, "CPM last 2 mins", 17  }
   }
-  ,7
+  ,3
 },
 
 //Screen 5 - Calibration Confirmation
@@ -76,7 +76,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU , 3 , 4  , "     Cancel     " , 18 },
     { ITEM_TYPE_LABEL,255, 16 , "Are you sure?"    , 19 }
   }
-  ,7
+  ,4
 },
 
 //Screen 6 - Calibration Wait 1
@@ -88,7 +88,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL,255, 80, "to source."      , 22 },
     { ITEM_TYPE_DELAY, 60,100,"DELAYA\0 16,7"    , 255 } // 16 second delay, then go to screen 7
   } 
-  ,7
+  ,255
 },
 
 //Screen 7 - Calibration Wait 2
@@ -98,7 +98,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL,255, 32, "Acquiring, 30s" , 23 },
     { ITEM_TYPE_DELAY, 60,100,"DELAYB\0 31,8"   , 255 } // 31 second delay
   } 
-  ,7
+  ,255
 }, 
     
 
@@ -114,7 +114,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Calib", 2 },
     { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE", 255 }
   }
-  ,7
+  ,4
 },
 
 //Screen 9 - Set time/date
@@ -211,7 +211,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARLABEL   ,255,90, "TTTIME"     , 255},
     { ITEM_TYPE_ACTION     ,  2, 2, "TOTALTIMER" , 255}
   }
-  ,7
+  ,2
 },
 
 //Screen 16 - User interface settings
