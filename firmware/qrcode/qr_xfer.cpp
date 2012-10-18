@@ -8,6 +8,7 @@
 #include "display.h"
 #include "captouch.h"
 #include "GUI.h"
+#include "log_read.h"
 
 using namespace std;
 
@@ -15,11 +16,12 @@ extern GUI *system_gui;
 
 void qr_logxfer() {
 
-  char inputdata[200];
-//  char *inputdata = "TESTTESTTESTTEST";
-//  char *inputdata = "abcdefghijklmnop";
+  int id_pos =0;
+  char inputdata[1024];
   
   int first_keys = cap_lastkey();
+
+  log_read_start();
   for(int z=0;;z++) {
 
     int keys = cap_lastkey();
@@ -29,30 +31,28 @@ void qr_logxfer() {
       return;
     }
 
-    char i = 'A'+(z%10);
-    for(int n=0;n<50;n++) {
-      inputdata[n] = i+n;
-      inputdata[n+1]=0;
-    }
-    i = 'A'+(z%10)-2;
-    for(int n=0;n<50;n++) {
-      inputdata[n+50] = i+n;
-      inputdata[n+50+1]=0;
+    // fill data
+    if(id_pos >= strlen(inputdata)) {
+      inputdata[0] = z;
+      int size = log_read_block(inputdata+1);
+      if(size == 0) {
+        z=0;
+        log_read_start();
+        log_read_block(inputdata+1);
+      }
+      id_pos = 0;
     }
 
 		int outputdata_len=16;
 		uint8_t image[2048]; // can be smaller
 
 		int width=2;
-		int ok = qr_encode_data(0,0,0,1,(uint8_t *) inputdata,55,image,&outputdata_len,&width);
+		int ok = qr_encode_data(0,0,0,1,(uint8_t *) inputdata+id_pos,55,image,&outputdata_len,&width);
+    id_pos+=55;
 
 		display_clear(0xFFFF);
 	  if(ok != 0) display_draw_text(0,64-8,"QR Error",0);
 	  if(ok != 0) display_draw_number(0,80,ok,5,0);
-    //display_draw_text(0,50,"OK",0);
-	  //display_draw_number(0,80,width,5,0);
-  //display_draw_number(0,100,ok,5,0);
-//    if(width == 0) return;
 
 		int block_count = 4;
 		int scale       = 3;
