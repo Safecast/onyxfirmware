@@ -47,7 +47,7 @@ int main(void) {
     g.initialise();
 
     uint8_t *private_key = ((uint8_t *) &_binary___binary_data_private_key_data_start);
-    delay_us(private_key[0]);
+    if(private_key[0] != 0) delay_us(1000);
 
     delay_us(10000);  // can be removed?
 
