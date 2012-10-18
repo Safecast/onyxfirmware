@@ -7,6 +7,7 @@ cd /home/safecast/holding
 wget http://41j.com/safecast_latest.bin
 
 chmod a+r /home/safecast/holding/safecast_latest.bin
+sha1sum /home/safecast/holding/safecast_latest.bin
 
 if [ ! -e /home/safecast/holding/safecast_latest.bin ]
 then
@@ -27,6 +28,9 @@ if [[ $SIZE -gt 50000 ]] # 50k seems like a good lower bound
 fi
 
 sha1sum /home/safecast/bunniegeiger/firmware/safecast_latest.bin
+
+echo "Please check that the two hashes above match."
+
 echo "Finsihed installing new firmware."
 
 sleep 10
