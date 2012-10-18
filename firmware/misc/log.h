@@ -1,6 +1,8 @@
 #ifndef LOG_H
 #define LOG_H
 
+#include <stdint.h>
+
 struct log_data_t {
   uint32_t time;
   uint32_t cpm;

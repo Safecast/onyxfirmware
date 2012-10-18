@@ -10,6 +10,7 @@
 #include "display.h"
 #include <limits.h>
 #include "dac.h"
+#include "log_read.h"
 
 extern "C" {
   static void signing_test();
@@ -58,33 +59,18 @@ void serial_write_string(const char *str) {
 
 void serial_sendlog() {
 
-  log_data_t *flash_log = (log_data_t *) flashstorage_log_get();
+  flashstorage_log_pause();
+  log_read_start();
 
-  uint32_t logsize = flashstorage_log_size()/sizeof(log_data_t);
+  char buffer[1024];
+  int size = log_read_block(buffer);
 
-  char lsize[20];
-  sprintf(lsize,"Log size: %u\n",logsize);
-  serial_write_string(lsize);
-  //char s[1000];
-  //sprintf(s,"%u",flashstorage_log_size());
-  //serial_write_string(s);
-  serial_write_string("{\n");
-  for(uint32_t n=0;n<logsize;n++) {
-      
-    char strdata1[500];
-    char strdata2[500];
-    char strdata3[500];
-    sprintf(strdata1,"{\"unixtime\":%u,\"cpm\":%u,",flash_log[n].time,flash_log[n].cpm);
-    sprintf(strdata2,"\"accel_x_start\":%d,\"accel_y_start\":%d,\"accel_z_start\":%d,",flash_log[n].accel_x_start,flash_log[n].accel_y_start,flash_log[n].accel_z_start);
-    sprintf(strdata3,"\"accel_x_end\":%d,\"accel_y_end\":%d,\"accel_z_end\":%d}\r\n",flash_log[n].accel_x_end,flash_log[n].accel_y_end,flash_log[n].accel_z_end);
-    strdata1[499]=0;
-    strdata2[499]=0;
-    strdata3[499]=0;
-    serial_write_string(strdata1);
-    serial_write_string(strdata2);
-    serial_write_string(strdata3);
+  for(;size!=0;) {
+    if(size != 0) serial_write_string(buffer);
+    size = log_read_block(buffer);
   }
-  serial_write_string("}");
+
+  flashstorage_log_resume();
 }
 
 void serial_readprivatekey() {

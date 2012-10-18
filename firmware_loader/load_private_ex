@@ -1,6 +1,6 @@
 sudo rmmod ftdi_sio
 sudo rmmod usbserial
-./pkload -f ./priv
+./pkload -f -p ./priv
 sudo modprobe usbserial
 sudo modprobe ftdi_sio
 

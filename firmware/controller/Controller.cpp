@@ -314,6 +314,8 @@ void Controller::receive_gui_event(char *event,char *value) {
     char sloginterval[50];
     sprintf(sloginterval,"%u",m_log_interval_seconds);
     flashstorage_keyval_set("LOGINTERVAL",sloginterval);
+    uint32_t current_time = realtime_get_unixtime();
+    rtc_set_alarm(RTC,current_time+m_log_interval_seconds);
     m_gui->jump_to_screen(0);
   } else
   if(strcmp(event,"CALIBRATE") == 0) {

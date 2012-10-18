@@ -12,6 +12,8 @@ extern uint8_t _binary___binary_data_flash_data_size;
 uint8_t  *flash_data_area_aligned;
 uint32_t  flash_data_area_aligned_size;
 
+bool log_pause = false;
+
 #define flash_log_base  10240
 #define keyval_size     50
 #define keyval_size_all 100
@@ -253,6 +255,9 @@ bool flashstorage_log_isfull() {
 
 void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
 
+  // if datalogging is paused (usually for data transfer) just return.
+  if(log_pause == true) return;
+
   uint32_t flash_data_size = flashstorage_log_size();
 
   // If we're falling off the end of the logging area just return, -2048 to cope with any potential edge case, TODO: more testing.
@@ -321,6 +326,13 @@ void flashstorage_log_userchange() {
   flashstorage_log_pushback(data,sizeof(log_data_t));
 }
 
+void flashstorage_log_pause() {
+  log_pause = true;
+}
+
+void flashstorage_log_resume() {
+  log_pause = false;
+}
 
 
 uint8_t *flashstorage_log_get() {
