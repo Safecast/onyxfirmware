@@ -7,9 +7,14 @@ sudo cp safecast-autoprog /usr/sbin/
 sudo chmod a+x /usr/sbin/safecast-autoprog
 sudo cp safecast-timeout /usr/sbin/
 sudo chmod a+x /usr/sbin/safecast-timeout
+sudo cp safecast-update /usr/sbin/
+sudo chmod a+x /usr/sbin/safecast-update
 
 cp monitor-burn.desktop ~/Dekstop   # if you want the quicklaunch icon to monitor burning as it happens
 sudo cp S99touch /etc/rc2.d/        # or to whatever your runlevel is, this script restores /tmp/safecast.log after a reboot
+cp safecast-update.desktop ~/Desktop
+# note that you'll have to manually grant exec permissions to these icons
+# right click on icon and go to properties->permissions and tick "allow executing file as program"
 
 This has been tested under Ubuntu 10.04 LTE and Ubuntu 12.04.
 
