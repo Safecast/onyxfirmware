@@ -757,7 +757,8 @@ GUI::GUI(Controller &r) : receive_gui_events(r) {
 }
 
 void GUI::show_help_screen(uint8_t helpscreen) {
-  display_draw_helpscreen(helpscreen);
+  if(m_language == LANGUAGE_ENGLISH ) display_draw_helpscreen_en(helpscreen);
+  if(m_language == LANGUAGE_JAPANESE) display_draw_helpscreen_jp(helpscreen);
   m_displaying_dialog=true;
   m_displaying_dialog_complete=false;
   m_pause_display_updates = true;
