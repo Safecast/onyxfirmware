@@ -2,8 +2,30 @@ udev rules for auto-programming devices when plugged in
 
 To use:
 
-1. copy 99-safecast.rules to /lib/udev/rules.d/ (as superuser)
-2. copy safecast-autoprog to /usr/sbin (as superuser)
-3. make sure permission on /usr/sbin/safecast-autoprog is a+x
+sudo cp 99-safecast.rules /lib/udev/rules.d/
+sudo cp safecast-autoprog /usr/sbin/
+sudo chmod a+x /usr/sbin/safecast-autoprog
+sudo cp safecast-timeout /usr/sbin/
+sudo chmod a+x /usr/sbin/safecast-timeout
+sudo cp safecast-update /usr/sbin/
+sudo chmod a+x /usr/sbin/safecast-update
 
-This has been tested under Ubuntu 10.04 LTE.
+cp monitor-burn.desktop ~/Dekstop   # if you want the quicklaunch icon to monitor burning as it happens
+sudo cp S99touch /etc/rc2.d/        # or to whatever your runlevel is, this script restores /tmp/safecast.log after a reboot
+cp safecast-update.desktop ~/Desktop
+# note that you'll have to manually grant exec permissions to these icons
+# right click on icon and go to properties->permissions and tick "allow executing file as program"
+
+This has been tested under Ubuntu 10.04 LTE and Ubuntu 12.04.
+
+No auto-install script is provided because your life will suck
+if you accidentally install this on the wrong machine. Install
+only if you think you know what you're doing.
+
+Note that there is a very hard assumption in these scripts that
+the root path to the git tree is
+
+/home/safecast/bunniegeiger
+
+Sorry for the hard-coding, but this is intended to run only on
+one machine in the world anyways (the factory burning machine).

@@ -2,22 +2,93 @@
 
 export DISPLAY=:0.0
 
+GITPREFIX=/home/safecast/bunniegeiger
+LOGLOC=/tmp/safecast.log
+
+function cleanup_fail(){
+ echo " " >> $LOGLOC
+ echo " " >> $LOGLOC
+ echo "xxxxxxxxxxxxxxxxxxxx DEVICE FAILED xxxxxxxxxxxxxxxxxxxxxx" >> $LOGLOC
+ echo "xxxxxxxxxxxxxxxxxxxx DEVICE FAILED xxxxxxxxxxxxxxxxxxxxxx" >> $LOGLOC
+ echo "xxxxxxxxxxxxxxxxxxxx DEVICE FAILED xxxxxxxxxxxxxxxxxxxxxx" >> $LOGLOC
+ echo "********* IDLE" >> $LOGLOC
+ sleep 1
+ sync
+ cp -f $LOGLOC /home/safecast/logs/$UUID/
+ sync
+ rmdir /tmp/safecast-semaphore
+}
+
 function program(){
- killall display   
- display /home/safecast/bunniegeiger/udev/programming.png &
- /home/safecast/bunniegeiger/firmware_loader/fwload -f /home/safecast/bunniegeiger/firmware/safecast_latest.bin > /tmp/safecast.log
- /home/safecast/bunniegeiger/crypto/genkeys >> /tmp/safecast.log 2>&1
- /home/safecast/bunniegeiger/firmware_loader/pkload -f /tmp/secblock.bin >> /tmp/safecast.log
+
+ echo "********* GENERATING CRYPTO KEYS" >> $LOGLOC
+ $GITPREFIX/crypto/genkeys >> $LOGLOC 2>&1
+ UUID=`grep UUID $LOGLOC | awk -F' ' '{ print $2 }'`
+
+ echo "********* PROGRAMMING FIRMWARE" >> $LOGLOC
+ safecast-timeout 150 pkload &
+ $GITPREFIX/firmware_loader/pkload -f $GITPREFIX/firmware/safecast_latest.bin -p /tmp/secblock.bin >> $LOGLOC 2>&1
+ killall safecast-timeout
+ killall sleep
  modprobe usbserial
  modprobe ftdi_sio
  sleep 5
- killall display
+
+ echo "********* BASIC TESTS" >> $LOGLOC
+ safecast-timeout 10 auto_test &
+ $GITPREFIX/auto_test/auto_test valid >> $LOGLOC 2>&1
+ killall safecast-timeout
+ killall sleep
+ KEYVALID=`grep uu_valid $LOGLOC | awk -F' ' '{ print $2 }'`
+ if [ "$KEYVALID" != 'VALID' ]
+ then
+     echo "*********** INVALID KEY" >> $LOGLOC
+     cleanup_fail
+     exit 1
+ fi
+
+ $GITPREFIX/auto_test/auto_test guid >> $LOGLOC 2>&1
+ GUID=`grep uu_guid $LOGLOC | awk -F' ' '{ print $2 }'`
+ if [ "$GUID" != "$UUID" ]
+ then
+     echo "*********** GUID MATCH FAILURE" >> $LOGLOC
+     cleanup_fail
+     exit 1
+ fi
+
+ $GITPREFIX/auto_test/auto_test pub >> $LOGLOC 2>&1
+
+ echo "********* SIGNING TEST -- may take up to 30 seconds to run (UI freezes during test)" >> $LOGLOC
+ safecast-timeout 60 auto_test &
+ $GITPREFIX/auto_test/auto_test pktest >> $LOGLOC 2>&1
+ killall safecast-timeout
+ killall sleep
+ PKTEST=`grep uu_pktest $LOGLOC | awk -F' ' '{ print $2 }'`
+ if [ "$PKTEST" != 'PASS' ]
+ then
+     echo "*********** SIGNING TEST FAILED" >> $LOGLOC
+     cleanup_fail
+     exit 1
+ fi
+
+
+ echo " " >> $LOGLOC
+ echo "********* DEVICE PASSED *********" >> $LOGLOC
+ echo "********* IDLE" >> $LOGLOC
+ sleep 1
+ sync
+ cp -f $LOGLOC /home/safecast/logs/$UUID/
+ sync
  rmdir /tmp/safecast-semaphore
- display /home/safecast/bunniegeiger/udev/idle.png &
+
 } 
 
 if mkdir /tmp/safecast-semaphore
 then
+  echo " " > $LOGLOC  # some newlines
+  echo " " >> $LOGLOC
+  echo " " >> $LOGLOC
+  echo "********* STARTED" >> $LOGLOC
   rmmod ftdi_sio
   rmmod usbserial
   program &

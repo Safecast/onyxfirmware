@@ -385,9 +385,9 @@ void serial_process_command(char *line) {
   } else 
   if(strcmp(line,"KEYVALID") == 0) {
     if( signing_isKeyValid() == 1 )
-      serial_write_string("VALID KEY\r\n");
+      serial_write_string("uu_valid VALID KEY\r\n");
     else
-      serial_write_string("IMPROPER OR UNINITIALIZED KEY\r\n");
+      serial_write_string("uu_valid IMPROPER OR UNINITIALIZED KEY\r\n");
   } else 
   if(strcmp(line,"LOGSIG") == 0) {
     signing_hashLog();
