@@ -32,10 +32,10 @@ int log_read_block(char *buf) {
   }
 
   if(log_position<logsize) {
-    time_t current_time = flash_log[log_position].time;
+    int64_t current_time = flash_log[log_position].time;
     
-    int16_t offset_mins = realtime_getutcoffset_mins();
-    current_time -= offset_mins*60;
+    int64_t offset_mins = realtime_getutcoffset_mins();
+    current_time += offset_mins*60;
 
     bool offset_is_valid = realtime_getutcoffset_available();
 
@@ -56,7 +56,8 @@ int log_read_block(char *buf) {
     }
 
     struct tm *time;
-    time = gmtime(&current_time);
+    time_t current_time_u32 = current_time;
+    time = gmtime(&current_time_u32);
     char timestr[50];
     sprintf(timestr,"%u-%02u-%02uT%02u:%02u:%02u%s",time->tm_year+1900,time->tm_mon+1,time->tm_mday,time->tm_hour,time->tm_min,time->tm_sec,offset_string);
 

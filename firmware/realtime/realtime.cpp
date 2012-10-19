@@ -28,7 +28,7 @@ void realtime_setdate(uint8_t hours,uint8_t min,uint8_t sec,uint8_t day,uint8_t 
 }
 
 bool    utc_offset_set   = false;
-int8_t utc_offset_mins   = 0;
+int16_t utc_offset_mins  = 0;
 
 
 void realtime_setutcoffset_mins(int16_t mins) {
@@ -45,13 +45,14 @@ int16_t realtime_getutcoffset_mins() {
 }
 
 void realtime_getdate_local(uint8_t &hours,uint8_t &min,uint8_t &sec,uint8_t &day,uint8_t &month,uint16_t &year) {
-  uint32_t unix_time = realtime_get_unixtime();
-  time_t current_time = unix_time;
+  int64_t unix_time_ll = realtime_get_unixtime();
 
   if(realtime_getutcoffset_available()) {
     int16_t offset = realtime_getutcoffset_mins();
-    current_time += ((int32_t)offset)*60;
+    unix_time_ll += ((int64_t)offset)*60;
   }
+
+  time_t current_time = unix_time_ll;
 
   struct tm *time;
   time = gmtime(&current_time);

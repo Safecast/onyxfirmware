@@ -139,6 +139,20 @@ char *flashstorage_keyval_get_unalloced() {
   }
 }
 
+void flashstorage_keyval_by_idx(int idx,char *key,char *val) {
+
+  uint32_t n = (keyval_size*2)*idx;
+
+  if(flash_data_area_aligned[n] == 0) {
+    key[0]=0;
+    val[0]=0;
+    return;
+  }
+
+  strcpy(key,(char *) flash_data_area_aligned+n);
+  strcpy(val,(char *) flash_data_area_aligned+n+keyval_size);
+}
+
 const char *flashstorage_keyval_get(const char *key) {
 
   char *v = flashstorage_keyval_get_address(key);
