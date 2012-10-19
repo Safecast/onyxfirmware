@@ -98,7 +98,9 @@ bool qr_encode_data(int nLevel, int nVersion,bool bAutoExtent, int nMaskingNo, c
 	int m_nMaskingNo = nMaskingNo;
 
 	// データ長が指定されていない場合は lstrlen によって取得
-	int ncLength = ncSource > 0 ? ncSource : strlen((char *) lpsSource);
+	int ncLength;
+  if(ncSource > 0) { ncLength = ncSource; }
+             else  { ncLength = strlen((const char *)lpsSource); }
 
 	if (ncLength == 0) {
 		return 1; // データなし

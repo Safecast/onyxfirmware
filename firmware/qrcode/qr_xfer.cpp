@@ -17,6 +17,7 @@ extern GUI *system_gui;
 void qr_draw(char *inputdata) {
   int first_keys = cap_lastkey();
 
+  display_clear(0xFFFF);
   for(;;) {
     int keys = cap_lastkey();
     if(keys != first_keys) {
@@ -31,7 +32,6 @@ void qr_draw(char *inputdata) {
 		int width=2;
 		int ok = qr_encode_data(0,0,0,1,(uint8_t *) inputdata,strlen(inputdata),image,&outputdata_len,&width);
 
-		display_clear(0xFFFF);
 	  if(ok != 0) display_draw_text(0,64-8,"QR Error",0);
 	  if(ok != 0) display_draw_number(0,80,ok,5,0);
 
@@ -64,6 +64,7 @@ void qr_logxfer() {
   int id_pos =0;
   char inputdata[1024];
   
+  int data_per_qr = 50;
   int first_keys = cap_lastkey();
 
   log_read_start();
@@ -92,8 +93,10 @@ void qr_logxfer() {
 		uint8_t image[2048]; // can be smaller
 
 		int width=2;
-		int ok = qr_encode_data(0,0,0,1,(uint8_t *) inputdata+id_pos,55,image,&outputdata_len,&width);
-    id_pos+=55;
+    int len=data_per_qr;
+    if(strlen(inputdata+id_pos) < data_per_qr) len = strlen(inputdata+id_pos);
+		int ok = qr_encode_data(0,0,0,1,(uint8_t *) inputdata+id_pos,len,image,&outputdata_len,&width);
+    id_pos+=data_per_qr;
 
 		display_clear(0xFFFF);
 	  if(ok != 0) display_draw_text(0,64-8,"QR Error",0);
