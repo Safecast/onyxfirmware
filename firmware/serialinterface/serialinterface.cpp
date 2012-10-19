@@ -224,7 +224,7 @@ void serial_process_command(char *line) {
     serial_displayparams();
   } else
   if(strcmp(line,"HELP") == 0) {
-    serial_write_string("Available commands: HELP, LOGXFER, WRITEKEY, DISPLAYTEST, HELLO");
+    serial_write_string("Available commands: HELP, LOGXFER, DISPLAYTEST, HELLO");
   } else 
   if(strcmp(line,"DISPLAYTEST") == 0) {
     display_test();
