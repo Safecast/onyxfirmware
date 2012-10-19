@@ -120,11 +120,12 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 9 - Set time/date
 {
-  3,
+  4,
   {
-    { ITEM_TYPE_HEAD,             0, 0, "CPMDEADINT"   , 255 }, 
-    { ITEM_TYPE_MENU,            10, 1, "Set Time"     , 15 },
-    { ITEM_TYPE_MENU,            11, 2, "Set Date/Zone", 16 }
+    { ITEM_TYPE_HEAD,             0, 0, "CPMDEADINT"    , 255 }, 
+    { ITEM_TYPE_MENU,            10, 1, "Set Time (UTC)", 15  },
+    { ITEM_TYPE_MENU,            11, 2, "Set Date (UTC)", 16  },
+    { ITEM_TYPE_MENU,            20, 3, "Set UTC Offset", 255 }
   }
   ,7
 },
@@ -265,14 +266,20 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   ,7
 },
 
-//Screen 20 - NO LONGER USED REMOVE
+//Screen 20 - Set UTC offset
 {
-  1,
+  8,
   {
-    { ITEM_TYPE_HEAD, 0, 0, "CPMDEADINT", 255}, 
+    { ITEM_TYPE_HEAD       , 0 , 0 , "CPMDEADINT" , 255 }, 
+    { ITEM_TYPE_VARNUM     , 10, 50, "SIGN:-,+,"  , 255 },
+    { ITEM_TYPE_VARNUM     , 32, 50, "OFFHOUR1"   , 255 },
+    { ITEM_TYPE_VARNUM     , 54, 50, "OFFHOUR2"   , 255 },
+    { ITEM_TYPE_VARNUM     , 76, 50, "OFFMIN1"    , 255 },
+    { ITEM_TYPE_VARNUM     , 98, 50, "OFFMIN2"    , 255 },
+    { ITEM_TYPE_MENU_ACTION,  0,  7, "Save:UTCOff", 2   },
+    { ITEM_TYPE_LABEL      , 0 , 20,  "HH:MM"     , 255 }
   }
   ,7
-
 },
 
 //Screen 21 - Becquerel

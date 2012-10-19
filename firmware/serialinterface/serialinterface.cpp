@@ -392,6 +392,12 @@ void serial_process_command(char *line) {
   if(strcmp(line,"LOGSIG") == 0) {
     signing_hashLog();
     serial_write_string("\n\r");
+  } else
+  if(strcmp(line,"LOGPAUSE") == 0) {
+    flashstorage_log_pause();
+  } else 
+  if(strcmp(line,"LOGRESUME") == 0) {
+    flashstorage_log_resume();
   }
 
   serial_write_string("\r\n>");

@@ -147,6 +147,17 @@ uint8_t get_item_state_varnum(const char *name) {
 }
 
 void set_item_state_varnum(char *name,uint8_t value) {
+
+  int itemcount=0;
+  int len = strlen(name);
+  for(int n=0;n<len;n++) {
+    if(name[n]==',') itemcount++;
+  }
+
+  if(itemcount != 0) {
+    if(value > itemcount) return;
+  }
+  
   for(uint32_t n=0;n<varnum_size;n++) {
     if(strcmp(varnum_names[n],name) == 0) {
       varnum_values[n] = value;
@@ -165,13 +176,46 @@ void render_item_varnum(screen_item &item, bool selected) {
   uint8_t x = item.val1;
   uint8_t y = item.val2;
 
+  int len = strlen(item.text);
+  int colon_pos=-1;
+  for(int n=0;n<len;n++) {
+    if(item.text[n] == ':') colon_pos=n;
+  }
+  
+  bool nonnumeric = false;
+  char selitem[10][10];
+  if(colon_pos != -1) {
+    nonnumeric=true;
+
+    char current[10];
+    int  current_pos=0;
+    int  cselitem=0;
+    for(int n=colon_pos+1;n<len;n++) {
+ 
+      if(item.text[n] != ',') {
+        current[current_pos  ] = item.text[n];
+        current[current_pos+1] = 0;
+        current_pos++;
+      } else {
+        strcpy(selitem[cselitem],current);
+        current_pos=0;
+        current[0]=0;
+        cselitem++;
+      }
+    }
+  }
+
   uint8_t val = get_item_state_varnum(item.text);
 
   uint16_t color;
   if(selected) color = 0xcccc; else color = FOREGROUND_COLOR;
   display_draw_equtriangle(x,y,9,color);
   display_draw_equtriangle_inv(x,y+33,9,color);
-  display_draw_number(x-4,y+9,val,1,FOREGROUND_COLOR);
+  if(nonnumeric == false) {
+    display_draw_number(x-4,y+9,val,1,FOREGROUND_COLOR);
+  } else {
+    display_draw_text(x-4,y+9,selitem[val],FOREGROUND_COLOR);
+  }
 }
       
 uint8_t get_item_state_varnum(screen_item &item) {
@@ -577,7 +621,7 @@ void update_item_head(screen_item &item,const void *value) {
 
   uint8_t hours,min,sec,day,month;
   uint16_t year;
-  realtime_getdate(hours,min,sec,day,month,year);
+  realtime_getdate_local(hours,min,sec,day,month,year);
   month+=1;
   year+=1900;
   if(year >= 2000) {year-=2000;} else

@@ -237,6 +237,24 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_geiger.set_becquerel_eff(beff);
     m_gui->jump_to_screen(0);
   } else
+  if(strcmp(event,"Save:UTCOff") == 0) {
+    int h1 = m_gui->get_item_state_uint8("OFFHOUR1");
+    int h2 = m_gui->get_item_state_uint8("OFFHOUR2");
+    int m1 = m_gui->get_item_state_uint8("OFFMIN1");
+    int m2 = m_gui->get_item_state_uint8("OFFMIN2");
+    
+    int utcoffset = (((h1*10)+h2)*60) + (m1*10) + m2;
+    if(m_gui->get_item_state_uint8("SIGN:-,+,") == 0) {
+      utcoffset = 0-utcoffset;
+    }
+    realtime_setutcoffset_mins(utcoffset);
+
+    char sutcoffset[50];
+    sprintf(sutcoffset,"%d",utcoffset);
+    flashstorage_keyval_set("UTCOFFSETMINS",sutcoffset);
+
+    m_gui->jump_to_screen(0);
+  } else
   if(strcmp(event,"Save:Time") == 0) {
     save_time();
   } else
@@ -627,6 +645,7 @@ void Controller::update() {
   uint16_t year;
   realtime_getdate(hours,min,sec,day,month,year);
 
+/*
   char text_time[50];
   int_to_char(hours,text_time,3);
   text_time[3]=':';
@@ -642,6 +661,7 @@ void Controller::update() {
   text_date[6]='/';
   int_to_char(year+1900,text_date+7,4);
   text_date[11] = 0;
+*/
 
   char text_totaltimer_count[50];
   char text_totaltimer_time [50];
@@ -666,8 +686,8 @@ void Controller::update() {
   m_gui->receive_update("RECENTDATA",graph_data);
   m_gui->receive_update("DELAYA",NULL);
   m_gui->receive_update("DELAYB",NULL);
-  m_gui->receive_update("TIME",text_time);
-  m_gui->receive_update("DATE",text_date);
+//  m_gui->receive_update("TIME",text_time);
+//  m_gui->receive_update("DATE",text_date);
   m_gui->receive_update("TTCOUNT",text_totaltimer_count);
   m_gui->receive_update("TTTIME" ,text_totaltimer_time);
 

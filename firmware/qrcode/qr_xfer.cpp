@@ -65,6 +65,7 @@ void qr_logxfer() {
 
   int id_pos =0;
   char inputdata[1024];
+  inputdata[0]=0;
   
   int data_per_qr = 50;
   int first_keys = cap_lastkey();
@@ -82,18 +83,11 @@ void qr_logxfer() {
 
     // fill data
     if(id_pos >= strlen(inputdata)) {
-      char zstr[10];
-      sprintf(zstr,"%04u",z);
-      inputdata[0] = zstr[0];
-      inputdata[1] = zstr[1];
-      inputdata[2] = zstr[2];
-      inputdata[3] = zstr[3];
-      inputdata[4] = 0;
-      int size = log_read_block(inputdata+4);
+      int size = log_read_block(inputdata);
       if(size == 0) {
         z=0;
         log_read_start();
-        log_read_block(inputdata+1);
+        log_read_block(inputdata);
       }
       id_pos = 0;
     }
@@ -103,9 +97,24 @@ void qr_logxfer() {
 
 		int width=2;
     int len=data_per_qr;
-    if(strlen(inputdata+id_pos) < data_per_qr) len = strlen(inputdata+id_pos);
-		int ok = qr_encode_data(0,0,0,1,(uint8_t *) inputdata+id_pos,len,image,&outputdata_len,&width);
-    id_pos+=data_per_qr;
+
+
+    if((strlen(inputdata+id_pos)+4) < data_per_qr) len = strlen(inputdata+id_pos)+4;
+
+    // add QR number tag to inputdata
+    char renderdata[1028];
+    for(int n=0;n<1028;n++) renderdata[n]='0';
+    strcpy(renderdata+4,inputdata+id_pos);
+    
+    char zstr[10];
+    sprintf(zstr,"%04u",z);
+    renderdata[0] = zstr[0];
+    renderdata[1] = zstr[1];
+    renderdata[2] = zstr[2];
+    renderdata[3] = zstr[3];
+
+		int ok = qr_encode_data(0,0,0,1,(uint8_t *) renderdata,len,image,&outputdata_len,&width);
+    id_pos+=(data_per_qr-4);
 
 		display_clear(0xFFFF);
 	  if(ok != 0) display_draw_text(0,64-8,"QR Error",0);

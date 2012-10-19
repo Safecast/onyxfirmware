@@ -90,6 +90,16 @@ int main(void) {
     u.initialise();
     serial_initialise();
   
+    int8_t utcoffsetmins_n = 0;
+    const char *utcoffsetmins = flashstorage_keyval_get("UTCOFFSETMINS");
+    if(utcoffsetmins != 0) {
+      unsigned int c;
+      sscanf(utcoffsetmins, "%u", &c);
+      utcoffsetmins_n = c;
+
+      realtime_setutcoffset_mins(utcoffsetmins_n);
+    }
+
 
     // Need to refactor out stored settings
     if(c.m_sleeping == false) {   

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include "realtime.h"
 
 int log_position = 0;
 
@@ -32,11 +33,32 @@ int log_read_block(char *buf) {
 
   if(log_position<logsize) {
     time_t current_time = flash_log[log_position].time;
+    
+    int16_t offset_mins = realtime_getutcoffset_mins();
+    current_time -= offset_mins*60;
+
+    bool offset_is_valid = realtime_getutcoffset_available();
+
+    char offset_string[10];
+    bool offset_is_negative=false;
+    if(offset_mins < 0) {
+      offset_is_negative=true;
+      offset_mins = 0-offset_mins;
+    }
+
+    if(offset_is_valid) {
+      if(offset_is_negative) offset_string[0] = '-'; else offset_string[0] = '+';
+      sprintf(offset_string+1,"%02u",(int)offset_mins/60);
+      sprintf(offset_string+3,"%02u",(int)offset_mins%60);
+      offset_string[5] = 0;
+    } else {
+      offset_string[0] = 0;
+    }
 
     struct tm *time;
     time = gmtime(&current_time);
     char timestr[50];
-    sprintf(timestr,"%u-%02u-%02uT%02u:%02u:%02u",time->tm_year+1900,time->tm_mon+1,time->tm_mday,time->tm_hour,time->tm_min,time->tm_sec);
+    sprintf(timestr,"%u-%02u-%02uT%02u:%02u:%02u%s",time->tm_year+1900,time->tm_mon+1,time->tm_mday,time->tm_hour,time->tm_min,time->tm_sec,offset_string);
 
     // time is iso8601, with no timezone.
     sprintf(buf,"{\"time\":\"%s\",",timestr);
