@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <algorithm>
 #include "qr_encodeem.h"
 #include "flashstorage.h"
@@ -81,8 +82,14 @@ void qr_logxfer() {
 
     // fill data
     if(id_pos >= strlen(inputdata)) {
-      inputdata[0] = z;
-      int size = log_read_block(inputdata+1);
+      char zstr[10];
+      sprintf(zstr,"%04u",z);
+      inputdata[0] = zstr[0];
+      inputdata[1] = zstr[1];
+      inputdata[2] = zstr[2];
+      inputdata[3] = zstr[3];
+      inputdata[4] = 0;
+      int size = log_read_block(inputdata+4);
       if(size == 0) {
         z=0;
         log_read_start();
