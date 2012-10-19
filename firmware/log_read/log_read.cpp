@@ -36,7 +36,7 @@ int log_read_block(char *buf) {
     struct tm *time;
     time = gmtime(&current_time);
     char timestr[50];
-    sprintf(timestr,"%u-%02u-%02uT%02u:%02u:%02u",time->tm_year+1900,time->tm_mon,time->tm_mday,time->tm_hour,time->tm_min,time->tm_sec);
+    sprintf(timestr,"%u-%02u-%02uT%02u:%02u:%02u",time->tm_year+1900,time->tm_mon+1,time->tm_mday,time->tm_hour,time->tm_min,time->tm_sec);
 
     // time is iso8601, with no timezone.
     sprintf(buf,"{\"time\":\"%s\",",timestr);

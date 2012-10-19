@@ -449,7 +449,7 @@ void Controller::receive_gui_event(char *event,char *value) {
   } else
   if(strcmp(event,"QR Tweet") == 0) {
     char str[1024];
-    sprintf(str,"http://twitter.com/home?status=My%%20CPM%%20is%%20%u%%20#scast",(int)m_geiger.get_cpm());
+    sprintf(str,"http://twitter.com/home?status=My%%20CPM:%%20%u%%23sc",(int)m_geiger.get_cpm());
     qr_draw(str);
   }
 }

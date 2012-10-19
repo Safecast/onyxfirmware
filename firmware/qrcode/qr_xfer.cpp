@@ -56,7 +56,6 @@ void qr_draw(char *inputdata) {
 			display_draw_image(0+pad,block_y+pad,(width*scale),block_size,block_data);
 			block_y += block_size;
 		}
-
   }
 }
 
