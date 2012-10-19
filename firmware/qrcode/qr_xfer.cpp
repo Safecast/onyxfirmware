@@ -4,6 +4,7 @@
 #include <string.h>
 #include <algorithm>
 #include "qr_encodeem.h"
+#include "flashstorage.h"
 #include <iostream>
 #include "display.h"
 #include "captouch.h"
@@ -60,6 +61,7 @@ void qr_draw(char *inputdata) {
 }
 
 void qr_logxfer() {
+  flashstorage_log_pause();
 
   int id_pos =0;
   char inputdata[1024];
@@ -74,6 +76,7 @@ void qr_logxfer() {
     if(keys != first_keys) {
       display_clear(0);
       system_gui->redraw();
+      flashstorage_log_resume();
       return;
     }
 
@@ -123,7 +126,7 @@ void qr_logxfer() {
 			block_y += block_size;
 		}
     delay_us(200000);
-
   }
 
+  flashstorage_log_resume();
 }
