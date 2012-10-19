@@ -224,7 +224,9 @@ void serial_setkeyval_run(char *line) {
     key[n]=line[n];
     key[n+1]=0;
   }
-  for(int n=eqpos+1;n<=len ;n++) {
+
+  eqpos+=1;
+  for(int n=eqpos;n<=len ;n++) {
     val[n-eqpos]=line[n];
     val[n-eqpos+1]=0;
   }
