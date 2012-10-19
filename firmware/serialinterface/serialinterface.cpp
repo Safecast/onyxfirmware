@@ -240,6 +240,7 @@ void serial_setrtc() {
 
   char info[100];
   sprintf(info,"Current unixtime is %u\r\n",realtime_get_unixtime());
+  serial_write_string(info);
   serial_write_string("#>");
   in_setrtc=true;
 }
