@@ -11,6 +11,7 @@
 #include <limits.h>
 #include "dac.h"
 #include "log_read.h"
+#include "rtc.h"
 #include "realtime.h"
 
 extern "C" {
@@ -493,6 +494,10 @@ void serial_process_command(char *line) {
   } else
   if(strcmp(line,"SETRTC") == 0) {
     serial_setrtc();
+  } else
+  if(strcmp(line,"RTCALARM") == 0) {
+    serial_write_string("Alarm triggered for 10s\r\n");
+    rtc_set_alarm(RTC,rtc_get_time(RTC)+10);
   }
 
   serial_write_string("\r\n>");

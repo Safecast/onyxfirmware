@@ -24,7 +24,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_BIGVARLABEL , 0 , 26, "CPMDEAD"   , 255},
     { ITEM_TYPE_VARLABEL    ,104, 60, "CPMSLABEL" , 255},
     { ITEM_TYPE_BIGVARLABEL , 0 , 73, "SVREM"     , 255},
-    { ITEM_TYPE_VARLABEL    , 88,104, "SVREMLABEL", 255},
+    { ITEM_TYPE_VARLABEL    , 80,104, "SVREMLABEL", 255},
   }
   ,0
 },

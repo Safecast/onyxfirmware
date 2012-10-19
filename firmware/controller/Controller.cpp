@@ -718,7 +718,7 @@ void Controller::update() {
 
 
     m_gui->receive_update("SVREM", text_sieverts);
-    m_gui->receive_update("SVREMLABEL","\x80Sv/h");
+    m_gui->receive_update("SVREMLABEL"," \x80Sv/h");
   }
   
   char text_becq_tmp[50];

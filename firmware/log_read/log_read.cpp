@@ -27,15 +27,7 @@ int log_read_block(char *buf) {
   uint32_t logsize = flashstorage_log_size()/sizeof(log_data_t);
 
   if(log_position==0) {
-    sprintf(buf,"{\"log_size\":%u,\"onyx_version\":%s,\"log_data\":[",logsize,OS100VERSION);
-    buf += strlen(buf);
-  }
-
-  if(log_position<logsize) {
-    int64_t current_time = flash_log[log_position].time;
-    
     int64_t offset_mins = realtime_getutcoffset_mins();
-    current_time += offset_mins*60;
 
     bool offset_is_valid = realtime_getutcoffset_available();
 
@@ -52,14 +44,27 @@ int log_read_block(char *buf) {
       sprintf(offset_string+3,"%02u",(int)offset_mins%60);
       offset_string[5] = 0;
     } else {
-      offset_string[0] = 0;
+      offset_string[0] = 'u';
+      offset_string[1] = 'n';
+      offset_string[2] = 'd';
+      offset_string[3] = 'e';
+      offset_string[4] = 'f';
+      offset_string[5] = 0;
     }
+
+    sprintf(buf,"{\"log_size\":%u,\"onyx_version\":%s,\"UTC_offset\":\"%s\",\"log_data\":[",logsize,OS100VERSION,offset_string);
+    buf += strlen(buf);
+  }
+
+  if(log_position<logsize) {
+    int64_t current_time = flash_log[log_position].time;
+    
 
     struct tm *time;
     time_t current_time_u32 = current_time;
     time = gmtime(&current_time_u32);
-    char timestr[50];
-    sprintf(timestr,"%u-%02u-%02uT%02u:%02u:%02u%s",time->tm_year+1900,time->tm_mon+1,time->tm_mday,time->tm_hour,time->tm_min,time->tm_sec,offset_string);
+    char timestr[200];
+    sprintf(timestr,"%u-%02u-%02uT%02u:%02u:%02uZ",time->tm_year+1900,time->tm_mon+1,time->tm_mday,time->tm_hour,time->tm_min,time->tm_sec);
 
     // time is iso8601, with no timezone.
     sprintf(buf,"{\"time\":\"%s\",",timestr);
