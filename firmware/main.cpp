@@ -24,6 +24,9 @@
 #include "buzzer.h"
 #include <stdio.h>
 #include <string.h>
+    
+extern uint8_t _binary___binary_data_private_key_data_start;
+extern uint8_t _binary___binary_data_private_key_data_size;
 
 // Force init to be called *first*, i.e. before static object allocation.
 // Otherwise, statically allocated objects that need libmaple may fail.
@@ -36,13 +39,20 @@ premain() {
 
 int main(void) {
 
+
     Geiger g;
     power_initialise();
+    if(power_battery_level() < 1) {
+      power_standby();
+    }
+
     flashstorage_initialise();
     buzzer_initialise();
     realtime_initialise();
     g.initialise();
 
+    uint8_t *private_key = ((uint8_t *) &_binary___binary_data_private_key_data_start);
+    if(private_key[0] != 0) delay_us(1000);
 
     delay_us(10000);  // can be removed?
 
@@ -85,6 +95,16 @@ int main(void) {
     u.initialise();
     serial_initialise();
   
+    int8_t utcoffsetmins_n = 0;
+    const char *utcoffsetmins = flashstorage_keyval_get("UTCOFFSETMINS");
+    if(utcoffsetmins != 0) {
+      unsigned int c;
+      sscanf(utcoffsetmins, "%u", &c);
+      utcoffsetmins_n = c;
+
+      realtime_setutcoffset_mins(utcoffsetmins_n);
+    }
+
 
     // Need to refactor out stored settings
     if(c.m_sleeping == false) {   
@@ -124,11 +144,19 @@ int main(void) {
     m_gui.jump_to_screen(1);
     m_gui.push_stack(0,1);
     for(;;) {
+      if(power_battery_level() < 1) {
+        power_standby();
+      }
+
+      //display_draw_text(0,110,"preupdate",0);
       c.update();
+      //display_draw_text(0,110,"prerender",0);
       m_gui.render();
 
+      //display_draw_text(0,110,"preserial",0);
       serial_eventloop();
 
+      //display_draw_text(0,110,"preserial",0);
       // It might be a good idea to move the following code to Controller.
       // Hack to check that captouch is ok, and reset it if not.
       bool c = cap_check();

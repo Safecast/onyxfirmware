@@ -5,25 +5,44 @@
 ### sudo echo "HRNGDEVICE=/dev/urandom" >> /etc/default/rng-tools
 ### sudo /etc/init.d/rng-tools start
 
+TMPPATH=/tmp
+ABSPATH=/home/safecast/bunniegeiger/crypto
+LOGPATH=/home/safecast/logs
+
+echo $TMPPATH
 
 # start a find to "create" randomness
 find / -type f 2> /dev/null | xargs grep makerandomdata > /dev/null 2>&1 &
-sleep 3
+sleep 2
 
 # clean up any files from a previous run
-rm -f ./pubring.gpg
-rm -f ./secring.gpg
-rm -f ./secblock.bin
-rm -f ./pubkey.txt
+rm -f $TMPPATH/pubring.gpg
+rm -f $TMPPATH/secring.gpg
+rm -f $TMPPATH/secblock.bin
+rm -f $TMPPATH/pubkey.txt
 
-gpg --no-options --batch --no-default-keyring --keyring ./pubring.gpg --secret-keyring ./secring.gpg --gen-key gen-key-config 
-gpg --keyring ./pubring.gpg --export -a signing-keys@safecast.org > pubkey.txt
+gpg --no-options --batch --no-default-keyring --keyring $TMPPATH/pubring.gpg --secret-keyring $TMPPATH/secring.gpg --gen-key $ABSPATH/gen-key-config 
+gpg --keyring $TMPPATH/pubring.gpg --export -a signing-keys@safecast.org > $TMPPATH/pubkey.txt
 
 killall find
 killall xargs
 killall grep
 
-./catkeys
+# hard-code path...well, this script should *only* be run on one computer anyways.
+UUID=`sudo $ABSPATH/catkeys $TMPPATH/secring.gpg $TMPPATH/pubkey.txt $TMPPATH/secblock.bin`
 
-echo "New key file is now in secblock.bin"
+echo -n "UUID "
+echo $UUID
+#./catkeys
+
+if mkdir $LOGPATH/$UUID
+then
+    cp $TMPPATH/pubkey.txt $LOGPATH/$UUID/pubkey.txt
+    sha1sum $TMPPATH/secring.gpg > $LOGPATH/$UUID/secringhash.txt
+    sha1sum $TMPPATH/secblock.bin > $LOGPATH/$UUID/secblockhash.txt
+else
+    echo "######### BIG PROBLEM, UUID REPEATED, REPROGRAM THIS UNIT!!! ########"
+fi
+
+echo "genkeys attempt finished"
 

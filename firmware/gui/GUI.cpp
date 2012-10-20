@@ -147,6 +147,17 @@ uint8_t get_item_state_varnum(const char *name) {
 }
 
 void set_item_state_varnum(char *name,uint8_t value) {
+
+  int itemcount=0;
+  int len = strlen(name);
+  for(int n=0;n<len;n++) {
+    if(name[n]==',') itemcount++;
+  }
+
+  if(itemcount != 0) {
+    if(value > itemcount) return;
+  }
+  
   for(uint32_t n=0;n<varnum_size;n++) {
     if(strcmp(varnum_names[n],name) == 0) {
       varnum_values[n] = value;
@@ -165,13 +176,46 @@ void render_item_varnum(screen_item &item, bool selected) {
   uint8_t x = item.val1;
   uint8_t y = item.val2;
 
+  int len = strlen(item.text);
+  int colon_pos=-1;
+  for(int n=0;n<len;n++) {
+    if(item.text[n] == ':') colon_pos=n;
+  }
+  
+  bool nonnumeric = false;
+  char selitem[10][10];
+  if(colon_pos != -1) {
+    nonnumeric=true;
+
+    char current[10];
+    int  current_pos=0;
+    int  cselitem=0;
+    for(int n=colon_pos+1;n<len;n++) {
+ 
+      if(item.text[n] != ',') {
+        current[current_pos  ] = item.text[n];
+        current[current_pos+1] = 0;
+        current_pos++;
+      } else {
+        strcpy(selitem[cselitem],current);
+        current_pos=0;
+        current[0]=0;
+        cselitem++;
+      }
+    }
+  }
+
   uint8_t val = get_item_state_varnum(item.text);
 
   uint16_t color;
   if(selected) color = 0xcccc; else color = FOREGROUND_COLOR;
   display_draw_equtriangle(x,y,9,color);
   display_draw_equtriangle_inv(x,y+33,9,color);
-  display_draw_number(x-4,y+9,val,1,FOREGROUND_COLOR);
+  if(nonnumeric == false) {
+    display_draw_number(x-4,y+9,val,1,FOREGROUND_COLOR);
+  } else {
+    display_draw_text(x-4,y+9,selitem[val],FOREGROUND_COLOR);
+  }
 }
       
 uint8_t get_item_state_varnum(screen_item &item) {
@@ -203,8 +247,25 @@ void clear_item_varnum(screen_item &item, bool selected) {
 
 
 void render_item_label(screen_item &item, bool selected) {
-  if(item.val1 == 255) {display_draw_text_center          (item.val2,item.text,FOREGROUND_COLOR);}
-                  else {display_draw_text       (item.val1,item.val2,item.text,FOREGROUND_COLOR);}
+
+  if(m_language == LANGUAGE_ENGLISH) {
+    if(item.val1 == 255) {display_draw_text_center          (item.val2,item.text,FOREGROUND_COLOR);}
+                    else {display_draw_text       (item.val1,item.val2,item.text,FOREGROUND_COLOR);}
+  }
+
+  if(m_language == LANGUAGE_JAPANESE) {
+    if(item.kanji_image != 255) {
+			if((item.val1 != 255) && (item.val1 != 0)) {
+				display_draw_fixedimage_xlimit(item.val1,item.val2,item.kanji_image,FOREGROUND_COLOR,128-item.val1);
+			} else {
+				// we can't center fixed images as we don't know their width, just draw at 0, full width.
+				display_draw_fixedimage(0,item.val2,item.kanji_image,FOREGROUND_COLOR);
+			}
+    } else {
+      if(item.val1 == 255) {display_draw_text_center          (item.val2,item.text,FOREGROUND_COLOR);}
+                      else {display_draw_text       (item.val1,item.val2,item.text,FOREGROUND_COLOR);}
+    }
+  }
 }
 
 void render_item_smalllabel(screen_item &item, bool selected) {
@@ -216,9 +277,9 @@ void render_item_head(screen_item &item, bool selected) {
   draw_text(0,0,"                ",header_color);
 }
 
-float m_graph_data[240];
+float m_old_graph_data[120];
+float m_graph_data[120];
 float *source_graph_data;
-bool  graph_first;
 
 void render_item_graph(screen_item &item, bool selected) {
 
@@ -231,62 +292,78 @@ void render_item_graph(screen_item &item, bool selected) {
   int32_t m_x = item.val1;
   int32_t m_y = item.val2;
   
-  graph_first = first_render;
+//  display_draw_rectangle(0,16,128,128,BACKGROUND_COLOR);
 
-  // find min and max in old data
-  int32_t omax = m_graph_data[0];
-  int32_t omin = m_graph_data[0];
-  for(uint32_t n=0;n<(data_size/data_increment);n++) {
-    if(m_graph_data[n+data_offset] > omax) omax = m_graph_data[n+data_offset];
-    if(m_graph_data[n+data_offset] < omin) omin = m_graph_data[n+data_offset];
-  }
-
-  // find min and max in new data
+  // find min and max in data
   int32_t nmax = source_graph_data[data_offset];
   int32_t nmin = source_graph_data[data_offset];
-  for(uint32_t n=0;n<data_size;n++) {
-    if(source_graph_data[n+data_offset] > nmax) nmax = source_graph_data[n+data_offset];
-    if(source_graph_data[n+data_offset] < nmin) nmin = source_graph_data[n+data_offset];
+  for(uint32_t n=data_offset;n<(data_offset+data_size);n++) {
+    if(source_graph_data[n] > nmax) nmax = source_graph_data[n];
+    if(source_graph_data[n] < nmin) nmin = source_graph_data[n];
   }
-
-
+  
+  // axis
   display_draw_line(m_x,m_y           ,m_x+(data_size/data_increment),m_y           ,FOREGROUND_COLOR);
   display_draw_line(m_x,m_y-max_height,m_x+(data_size/data_increment),m_y-max_height,FOREGROUND_COLOR);
-  
+
+  // if there's no data just draw labels and return.
   if((nmin == 0) && (nmax == 0)) {
-    display_draw_tinynumber(m_x+5,m_y-max_height+10,nmax,4,FOREGROUND_COLOR);
+    display_draw_tinynumber(m_x+5,m_y-max_height-10,nmax,4,FOREGROUND_COLOR);
     display_draw_tinynumber(m_x+5,m_y-10           ,nmin,4,FOREGROUND_COLOR);
     return;
   }
 
-  int32_t lastx=m_x;
-  int32_t lastoy=m_graph_data[0];
-  int32_t lastny=m_y-((((float)source_graph_data[data_offset]-(float)nmin)/(float)(nmax-nmin))*max_height);
-  int32_t cx = m_x+x_spacing;
-  for(uint32_t n=0;n<data_size;n+=data_increment) {
-    int oy = m_graph_data[n/data_increment];
 
-    
-    float source_data=0;
-    for(uint32_t i=0;i<data_increment;i++) {
-      float datapoint = source_graph_data[n+data_offset+i];
-      source_data += datapoint;
-    }
-    source_data = source_data/data_increment;
+  // rescale data
+  float source_y_range = nmax-nmin;
+  float   dest_y_range = max_height;
+  float source_x_range = data_size;
+  float   dest_x_range = 120;
 
-    int ny = m_y-((((float)source_data-(float)nmin)/(float)(nmax-nmin))*max_height);
-    if(!((lastoy == lastny) && (oy == ny) && !graph_first)) {
-      if(!first_render) display_draw_line(lastx,lastoy,cx,oy,BACKGROUND_COLOR);
-                        display_draw_line(lastx,lastny,cx,ny,FOREGROUND_COLOR);
-    }
-    m_graph_data[n/data_increment] = ny;
-    lastx=cx;
-    lastoy=oy;
-    lastny=ny;
-    cx+=x_spacing;
+  float m_graph_count[120];
+  for(int n=0;n<120;n++) m_graph_count[n]=0;
+  for(int n=0;n<120;n++) m_graph_data [n]=0;
+
+  for(uint32_t n=data_offset;n<(data_offset+data_size);n++) {
+    // put data point in the range 0->1
+    float data_point = (source_graph_data[n]-nmin)/source_y_range;
+
+    // put data point in the range m_y -> m_y+dest_y_range
+    data_point = (data_point*dest_y_range);
+
+    uint32_t xpos = ((float)(n-data_offset)/source_x_range)*dest_x_range;
+    m_graph_data [xpos] += data_point;
+    m_graph_count[xpos]++;
   }
-  display_draw_tinynumber(m_x+5,m_y-max_height+10,nmax,4,FOREGROUND_COLOR);
+
+  // apply averaging, and offset to data.
+  for(int n=0;n<120;n++) {
+    if(m_graph_count[n] != 0) m_graph_data[n] = m_y - m_graph_data[n]/m_graph_count[n];
+                         else m_graph_data[n] = 0;
+  }
+
+  // start clearing data, clear first 2.
+  if(!first_render) display_draw_line(0,m_old_graph_data[0],1,m_old_graph_data[1],BACKGROUND_COLOR);
+  if(!first_render) display_draw_line(1,m_old_graph_data[1],2,m_old_graph_data[2],BACKGROUND_COLOR);
+
+  // render the data
+  for(uint32_t n=1;n<120;n++) {
+    uint32_t cx = n;
+
+    if(!first_render && (n<118)) {
+      display_draw_line(cx+1,m_old_graph_data[n+1],cx+2,m_old_graph_data[n+2],BACKGROUND_COLOR);
+    }
+
+    display_draw_line(cx-1,m_graph_data[n-1],cx,m_graph_data[n],FOREGROUND_COLOR);
+  }
+
+  for(uint32_t n=0;n<120;n++) {
+    m_old_graph_data[n] = m_graph_data[n];
+  }
+  
+  display_draw_tinynumber(m_x+5,m_y-max_height-10,nmax,4,FOREGROUND_COLOR);
   display_draw_tinynumber(m_x+5,m_y-10           ,nmin,4,FOREGROUND_COLOR);
+  
 }
 
 void clear_item_menu(screen_item &item, bool selected) {
@@ -363,24 +440,6 @@ void clear_item_varlabel(screen_item &item, bool selected) {
 void clear_item_graph(screen_item &item, bool selected) {
 
   display_draw_rectangle(0,16,128,128,BACKGROUND_COLOR);
-/*
-  int32_t m_x = item.val1;
-  int32_t m_y = item.val2;
-  
-  graph_first = true;
-  int32_t size=60;
-
-  int offset=60;
-  int32_t lastx=m_x;
-  int32_t lastoy=m_y-m_graph_data[offset];
-  for(uint32_t n=0;n<size;n++) {
-    int cx = m_x+n;
-    int oy = m_y-m_graph_data[n+offset];
-    display_draw_line(lastx,lastoy,cx,oy,BACKGROUND_COLOR);
-    lastx=cx;
-    lastoy=oy;
-  }
-*/
 }
 
 void clear_item_delay(screen_item &item, bool selected) {
@@ -579,7 +638,7 @@ void update_item_head(screen_item &item,const void *value) {
 
   uint8_t hours,min,sec,day,month;
   uint16_t year;
-  realtime_getdate(hours,min,sec,day,month,year);
+  realtime_getdate_local(hours,min,sec,day,month,year);
   month+=1;
   year+=1900;
   if(year >= 2000) {year-=2000;} else
@@ -606,7 +665,7 @@ void update_item_head(screen_item &item,const void *value) {
 
   display_draw_tinytext(128-75,2,time,header_color);//HEADER_COLOR);
   display_draw_tinytext(128-75,9,date,header_color);//HEADER_COLOR);
-  display_draw_tinytext(0,128-5,OS100VERSION,FOREGROUND_COLOR);
+//  display_draw_tinytext(0,128-5,OS100VERSION,FOREGROUND_COLOR);
 }
 
 void update_item_varnum(screen_item &item,const void *value) {
@@ -690,6 +749,10 @@ void GUI::push_stack(int current_screen,int selected_item) {
 
 GUI::GUI(Controller &r) : receive_gui_events(r) {
 
+  m_displaying_help = false;
+  m_repeat_time = 0;
+  m_repeat_delay= 8;
+  m_repeating = false;
   new_keys_size = 0;
   clear_next_render=false;
   current_screen = 0;
@@ -702,33 +765,35 @@ GUI::GUI(Controller &r) : receive_gui_events(r) {
   m_language = LANGUAGE_ENGLISH;
   m_displaying_dialog =false;
   m_displaying_dialog_complete=false;
-  m_dialog_text1[0]=0;
-  m_dialog_text2[0]=0;
-  m_dialog_text3[0]=0;
-  m_dialog_text4[0]=0;
+  //m_dialog_text1[0]=0;
+  //m_dialog_text2[0]=0;
+  //m_dialog_text3[0]=0;
+  //m_dialog_text4[0]=0;
   m_dialog_buzz=false;
   m_pause_display_updates=false;
 }
 
 void GUI::show_help_screen(uint8_t helpscreen) {
-  display_draw_helpscreen(helpscreen);
+  if(m_language == LANGUAGE_ENGLISH ) display_draw_helpscreen_en(helpscreen);
+  if(m_language == LANGUAGE_JAPANESE) display_draw_helpscreen_jp(helpscreen);
   m_displaying_dialog=true;
   m_displaying_dialog_complete=false;
   m_pause_display_updates = true;
   m_dialog_buzz = false;
+  m_displaying_help = true;
 }
 
-void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,char *dialog_text4,bool buzz) {
+void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,char *dialog_text4,bool buzz,int img1,int img2,int img3,int img4) {
   display_draw_rectangle(0,0,128,128,BACKGROUND_COLOR);
-  strcpy(m_dialog_text1,dialog_text1);
-  strcpy(m_dialog_text2,dialog_text2);
-  strcpy(m_dialog_text3,dialog_text3);
-  strcpy(m_dialog_text4,dialog_text4);
+  //strcpy(m_dialog_text1,dialog_text1);
+  //strcpy(m_dialog_text2,dialog_text2);
+  //strcpy(m_dialog_text3,dialog_text3);
+  //strcpy(m_dialog_text4,dialog_text4);
   m_dialog_buzz = buzz;
   m_displaying_dialog=true;
   m_displaying_dialog_complete=false;
   m_pause_display_updates = true;
-  render_dialog(m_dialog_text1,m_dialog_text2,m_dialog_text3,m_dialog_text4);
+  render_dialog(dialog_text1,dialog_text2,dialog_text3,dialog_text4,img1,img2,img3,img4);
 }
 
 void GUI::render() {
@@ -736,6 +801,17 @@ void GUI::render() {
   if(m_sleeping) {
      process_keys();
      return;  
+  }
+
+  
+  if(m_repeating) {
+    // This would be better incremented in a timer, but I don't want to use another timer.
+    if(m_repeat_time == m_repeat_delay) {
+      if(m_repeat_key == KEY_DOWN) process_key_down();
+      if(m_repeat_key == KEY_UP  ) process_key_up();
+      m_repeat_time = 0;
+    }
+    m_repeat_time++;
   }
 
   if(m_displaying_dialog) {
@@ -784,7 +860,14 @@ void GUI::render() {
     if(n==0) near_selected = false;
 
     if(first_render || (selected) || (near_selected) || do_redraw) {
-      render_item(screens_layout[cscreen].items[n],selected);
+      bool do_render = true;
+ 
+      // don't render labels, just because they are near other things...
+      if(!first_render && near_selected && (screens_layout[cscreen].items[n].type == ITEM_TYPE_LABEL)) {
+        do_render = false;
+      } 
+
+      if(do_render) render_item(screens_layout[cscreen].items[n],selected);
     }
   }
   first_render=false;
@@ -813,8 +896,13 @@ void GUI::redraw() {
 }
 
 void GUI::receive_key(int key_id,int type) {
+    
+  // don't activate HELP key when in a help screen
+  if((m_displaying_help == true) && (key_id == KEY_HELP)) return;
+
   if(m_displaying_dialog==true) {
     m_displaying_dialog=false;
+    m_displaying_help = false;
     m_displaying_dialog_complete=true;
   }
 
@@ -842,6 +930,42 @@ void GUI::leave_screen_actions(int screen) {
   }
 }
 
+void GUI::process_key_down() {
+	if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_VARNUM) {
+		uint8_t current = get_item_state_varnum(screens_layout[current_screen].items[selected_item]);
+
+		int8_t val[1];
+		val[0] = current-1;
+		if(val[0] < 0) val[0] = 0;
+		update_item(screens_layout[current_screen].items[selected_item],val);
+
+		receive_gui_events.receive_gui_event("varnumchange",screens_layout[current_screen].items[selected_item].text);
+		return;
+	}
+
+	selected_item++;
+	if(selected_item >= screens_layout[current_screen].item_count) {
+		selected_item = screens_layout[current_screen].item_count-1;
+	}
+}
+
+void GUI::process_key_up() {
+	if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_VARNUM) {
+		uint8_t current = get_item_state_varnum(screens_layout[current_screen].items[selected_item]);
+
+		int8_t val[1];
+		val[0] = current+1;
+		if(val[0] > 9) val[0] = 9;
+		update_item(screens_layout[current_screen].items[selected_item],val);
+		receive_gui_events.receive_gui_event("varnumchange",screens_layout[current_screen].items[selected_item].text);
+		return;
+	}
+
+
+	if(selected_item == 1) return;
+	selected_item--;
+}
+
 void GUI::process_key(int key_id,int type) {
 
   if(m_screen_lock) return;
@@ -853,46 +977,28 @@ void GUI::process_key(int key_id,int type) {
 
   if(m_sleeping) return;
 
-  if((key_id == KEY_HELP) && (type == KEY_RELEASED)) {
+  if((key_id == KEY_HELP) && (type == KEY_RELEASED) && (!m_displaying_help)) {
     if(screens_layout[current_screen].help_screen != 255) show_help_screen(screens_layout[current_screen].help_screen);
   }
 
+  if((key_id == KEY_UP) && (type == KEY_PRESSED)) {
+    m_repeating=true;
+    m_repeat_key = KEY_UP;
+  }
+
+  if((key_id == KEY_DOWN) && (type == KEY_PRESSED)) {
+    m_repeating=true;
+    m_repeat_key = KEY_DOWN;
+  }
+
   if((key_id == KEY_DOWN) && (type == KEY_RELEASED)) {
-
-    if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_VARNUM) {
-      uint8_t current = get_item_state_varnum(screens_layout[current_screen].items[selected_item]);
-
-      int8_t val[1];
-      val[0] = current-1;
-      if(val[0] < 0) val[0] = 0;
-      update_item(screens_layout[current_screen].items[selected_item],val);
-  
-      receive_gui_events.receive_gui_event("varnumchange",screens_layout[current_screen].items[selected_item].text);
-      return;
-    }
-
-    selected_item++;
-    if(selected_item >= screens_layout[current_screen].item_count) {
-      selected_item = screens_layout[current_screen].item_count-1;
-    }
+    m_repeating=false;
+    process_key_down();
   }
 
   if((key_id == KEY_UP) && (type == KEY_RELEASED)) {
-
-    if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_VARNUM) {
-      uint8_t current = get_item_state_varnum(screens_layout[current_screen].items[selected_item]);
-
-      int8_t val[1];
-      val[0] = current+1;
-      if(val[0] > 9) val[0] = 9;
-      update_item(screens_layout[current_screen].items[selected_item],val);
-      receive_gui_events.receive_gui_event("varnumchange",screens_layout[current_screen].items[selected_item].text);
-      return;
-    }
-
-
-    if(selected_item == 1) return;
-    selected_item--;
+    m_repeating=false;
+    process_key_up();
   }
 
   if((key_id == KEY_SELECT) && (type == KEY_RELEASED)) {
@@ -1021,16 +1127,34 @@ void GUI::set_language(uint8_t lang) {
   m_language = lang;
 }
 
-void GUI::render_dialog(char *text1,char *text2,char *text3,char *text4) {
+void GUI::render_dialog(char *text1,char *text2,char *text3,char *text4,int img1,int img2,int img3,int img4) {
 
-  //display_clear(0);
-  display_draw_text_center(20,text1,FOREGROUND_COLOR);
-  display_draw_text_center(36,text2,FOREGROUND_COLOR);
-  display_draw_text_center(52,text3,FOREGROUND_COLOR);
-  display_draw_text_center(68,text4,FOREGROUND_COLOR);
-  display_draw_text_center(94,"PRESS ANY KEY",FOREGROUND_COLOR);
+  if(m_language == LANGUAGE_JAPANESE) {
+    if(img1 == 255) { display_draw_text_center(20,text1,FOREGROUND_COLOR); } else
+    if(img1 == 254) { } else
+                    { display_draw_fixedimage(0,20,img1,FOREGROUND_COLOR); }
 
-}
+    if(img2 == 255) { display_draw_text_center(36,text2,FOREGROUND_COLOR); } else
+    if(img2 == 254) { } else
+                    { display_draw_fixedimage(0,36,img2,FOREGROUND_COLOR); }
 
-void GUI::show_dialog_image(int image1,int image2,int image3,int image4,bool buzz) {
+    if(img3 == 255) { display_draw_text_center(52,text3,FOREGROUND_COLOR); } else
+    if(img3 == 254) { } else
+                    { display_draw_fixedimage(0,52,img3,FOREGROUND_COLOR); }
+
+
+    if(img4 == 255) { display_draw_text_center(68,text4,FOREGROUND_COLOR); } else
+    if(img4 == 254) { } else
+                    { display_draw_fixedimage(0,68,img4,FOREGROUND_COLOR); }
+
+    display_draw_fixedimage(0,94,49,FOREGROUND_COLOR); // press any key kanji image
+  }
+
+  if(m_language == LANGUAGE_ENGLISH) {
+    display_draw_text_center(20,text1,FOREGROUND_COLOR);
+    display_draw_text_center(36,text2,FOREGROUND_COLOR);
+    display_draw_text_center(52,text3,FOREGROUND_COLOR);
+    display_draw_text_center(68,text4,FOREGROUND_COLOR);
+    display_draw_text_center(94,"PRESS ANY KEY",FOREGROUND_COLOR);
+  }
 }

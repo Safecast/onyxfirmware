@@ -1,0 +1,37 @@
+#!/bin/bash
+
+rm /home/safecast/holding/*
+
+cd /home/safecast/holding
+
+wget http://41j.com/safecast_latest.bin
+
+chmod a+r /home/safecast/holding/safecast_latest.bin
+sha1sum /home/safecast/holding/safecast_latest.bin
+
+if [ ! -e /home/safecast/holding/safecast_latest.bin ]
+then
+    echo "Failed to install new firmware: can't download firmware, are you connected to the internet?"
+    sleep 10
+    exit 1
+fi
+
+SIZE=`stat -c %s /home/safecast/holding/safecast_latest.bin`
+
+if [[ $SIZE -gt 50000 ]] # 50k seems like a good lower bound
+ then
+   mv /home/safecast/holding/safecast_latest.bin /home/safecast/bunniegeiger/firmware/
+ else
+   echo "Failed to install new firmware: downloaded firmware does not seem sane."
+   sleep 10
+   exit 1
+fi
+
+sha1sum /home/safecast/bunniegeiger/firmware/safecast_latest.bin
+
+echo "Please check that the two hashes above match."
+
+echo "Finsihed installing new firmware."
+
+sleep 10
+

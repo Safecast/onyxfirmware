@@ -5,24 +5,38 @@
 #define SECLEN  2048
 #define PUBLEN  2032
 
-int main() {
+void print_uuid(uuid_t *uuid) {
+  unsigned char *data;
+  int i;
+  
+  data = (char *)uuid;
+  for( i = 0; i < 16; i++ ) {
+    printf( "%02x", data[i] );
+  }
+  printf( "\n" );
+}
+
+int main(int argc, char *argv[]) {
   FILE *secret, *pub, *out;
   int len = 0;
   uuid_t uuid;
 
-  secret = fopen("./secring.gpg", "rb");
+  if( argc != 4 ) {
+    printf( "Usage: catkeys <secret key file> <pubkey file> <outputfile>\n" );
+  }
+  secret = fopen(argv[1], "rb");
   if( secret == NULL ) {
-    printf( "Can't open secret key file, failing.\n" );
+    printf( "Can't open secret key file %s, failing.\n", argv[1] );
     exit(0);
   }
-  pub = fopen( "./pubkey.txt", "r" );
+  pub = fopen( argv[2], "r" );
   if( pub == NULL ) {
-    printf( "Can't open public key file, failing.\n" );
+    printf( "Can't open public key file %s, failing.\n", argv[2] );
     exit(0);
   }
-  out = fopen( "./secblock.bin", "wb" );
+  out = fopen( argv[3], "wb" );
   if( out == NULL ) {
-    printf( "Can't open binary output file, failing.\n" );
+    printf( "Can't open binary output file %s, failing.\n", argv[3] );
     exit(0);
   }
 
@@ -54,6 +68,8 @@ int main() {
   uuid_generate(uuid);
 
   fwrite( uuid, sizeof(uuid), 1, out );
+  
+  print_uuid(&uuid);
 
   fclose(out);
   fclose(secret);

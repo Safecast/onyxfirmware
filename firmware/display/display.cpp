@@ -14,8 +14,11 @@ extern uint8_t _binary___binary_data_splashscreen_size;
 extern uint8_t _binary___binary_data_fixed_images_start;
 extern uint8_t _binary___binary_data_fixed_images_size;
 
-extern uint8_t _binary___binary_data_help_screens_start;
-extern uint8_t _binary___binary_data_help_screens_size;
+extern uint8_t _binary___binary_data_help_screens_en_start;
+extern uint8_t _binary___binary_data_help_screens_en_size;
+
+extern uint8_t _binary___binary_data_help_screens_jp_start;
+extern uint8_t _binary___binary_data_help_screens_jp_size;
 
 uint8_t brightness;
 
@@ -249,13 +252,15 @@ void display_test() {
   }
 }
 
+// the following 2 help screen functions need to be refactored into a single functions
+
 //TODO: should be refactored into the same code as fixedimages
-void display_draw_helpscreen(uint8_t n) {
+void display_draw_helpscreen_en(uint8_t n) {
 
   // fixed image data is 2bit grayscale, convert to 16bit, it's also fixed size (128x16)
 
   uint16_t image_data[2048];
-  uint8_t *source_data = ((uint8_t *) &_binary___binary_data_help_screens_start);
+  uint8_t *source_data = ((uint8_t *) &_binary___binary_data_help_screens_en_start);
   source_data += (n*((128*128*2)/8));
 
   for(uint32_t y_block=0;y_block<8;y_block++) {
@@ -285,3 +290,41 @@ void display_draw_helpscreen(uint8_t n) {
   }
 
 }
+
+//TODO: should be refactored into the same code as fixedimages
+void display_draw_helpscreen_jp(uint8_t n) {
+
+  // fixed image data is 2bit grayscale, convert to 16bit, it's also fixed size (128x16)
+
+  uint16_t image_data[2048];
+  uint8_t *source_data = ((uint8_t *) &_binary___binary_data_help_screens_jp_start);
+  source_data += (n*((128*128*2)/8));
+
+  for(uint32_t y_block=0;y_block<8;y_block++) {
+		for(uint32_t n=0;n<2048;n++) {
+			uint32_t byte = n/4;
+			uint32_t bit  = n%4;
+			bit = (bit * 2)+1;
+			bit = 7-bit;
+
+			uint16_t bit_1 = *(source_data+byte) & (1 << bit);
+			uint16_t bit_2 = *(source_data+byte) & (1 << (bit+1));
+			if(bit_1 > 0) bit_1 = 1;
+			if(bit_2 > 0) bit_2 = 1;
+			uint16_t value = bit_1 + (bit_2 << 1);
+
+			if(value == 0) {value = 0;   }
+			if(value == 1) {value = 85;  }
+			if(value == 2) {value = 170; }
+			if(value == 3) {value = 255; }
+
+			value = to565(value,value,value);
+
+			image_data[n] = value;
+		}
+    source_data += (128*16*2)/8;
+    oled_draw_rect(0,y_block*(128/8),128,16,(uint8_t *) image_data);
+  }
+
+}
+

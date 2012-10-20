@@ -10,6 +10,9 @@
 #include "display.h"
 #include <limits.h>
 #include "dac.h"
+#include "log_read.h"
+#include "rtc.h"
+#include "realtime.h"
 
 extern "C" {
   static void signing_test();
@@ -58,33 +61,18 @@ void serial_write_string(const char *str) {
 
 void serial_sendlog() {
 
-  log_data_t *flash_log = (log_data_t *) flashstorage_log_get();
+  flashstorage_log_pause();
+  log_read_start();
 
-  uint32_t logsize = flashstorage_log_size()/sizeof(log_data_t);
+  char buffer[1024];
+  int size = log_read_block(buffer);
 
-  char lsize[20];
-  sprintf(lsize,"Log size: %u\n",logsize);
-  serial_write_string(lsize);
-  //char s[1000];
-  //sprintf(s,"%u",flashstorage_log_size());
-  //serial_write_string(s);
-  serial_write_string("{\n");
-  for(uint32_t n=0;n<logsize;n++) {
-      
-    char strdata1[500];
-    char strdata2[500];
-    char strdata3[500];
-    sprintf(strdata1,"{\"unixtime\":%u,\"cpm\":%u,",flash_log[n].time,flash_log[n].cpm);
-    sprintf(strdata2,"\"accel_x_start\":%d,\"accel_y_start\":%d,\"accel_z_start\":%d,",flash_log[n].accel_x_start,flash_log[n].accel_y_start,flash_log[n].accel_z_start);
-    sprintf(strdata3,"\"accel_x_end\":%d,\"accel_y_end\":%d,\"accel_z_end\":%d}\r\n",flash_log[n].accel_x_end,flash_log[n].accel_y_end,flash_log[n].accel_z_end);
-    strdata1[499]=0;
-    strdata2[499]=0;
-    strdata3[499]=0;
-    serial_write_string(strdata1);
-    serial_write_string(strdata2);
-    serial_write_string(strdata3);
+  for(;size!=0;) {
+    if(size != 0) serial_write_string(buffer);
+    size = log_read_block(buffer);
   }
-  serial_write_string("}");
+
+  flashstorage_log_resume();
 }
 
 void serial_readprivatekey() {
@@ -121,13 +109,13 @@ void serial_readprivatekey() {
 
     if((n%32) == 0) {
       serial_write_string("\r\n");
-      sprintf(stemp,"%x : ",source_data+n);
+      sprintf(stemp,"%x : ",source_data_programmable+n);
       serial_write_string(stemp);
     }
 
     if(n == (4*1024)) {
       serial_write_string("\r\nShowing following 2k region, to confirm code not overwritten:\r\n");
-      sprintf(stemp,"%x : ",source_data+n);
+      sprintf(stemp,"%x : ",source_data_programmable+n);
       serial_write_string(stemp);
     }
 
@@ -209,8 +197,84 @@ void serial_displayparams_run(char *line) {
   oled_reinit(clock,multiplex,functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh);
 }
 
+bool in_setkeyval=false;
+
+void serial_setkeyval() {
+
+  serial_write_string("KEY=VAL\r\n");
+  serial_write_string("#>");
+  in_setkeyval=true;
+}
+
+void serial_setkeyval_run(char *line) {
+
+  char key[200];
+  char val[200];
+
+  int eqpos=-1;
+  int len=strlen(line);
+  for(int n=0;n<len;n++) {
+    if(line[n] == '=') {
+      eqpos = n;
+    }
+  }
+  
+  if(eqpos==-1) return;
+
+  for(int n=0;n<eqpos;n++) {
+    key[n]=line[n];
+    key[n+1]=0;
+  }
+
+  eqpos+=1;
+  for(int n=eqpos;n<=len ;n++) {
+    val[n-eqpos]=line[n];
+    val[n-eqpos+1]=0;
+  }
+  
+  flashstorage_keyval_set(key,val);
+}
+
+bool in_setrtc=false;
+
+void serial_setrtc() {
+
+  char info[100];
+  sprintf(info,"Current unixtime is %u\r\n",realtime_get_unixtime());
+  serial_write_string(info);
+  serial_write_string("#>");
+  in_setrtc=true;
+}
+
+void serial_setrtc_run(char *line) {
+
+  uint32_t unixtime = 0;
+  sscanf(line,"%u\r\n",&unixtime);
+ 
+  realtime_set_unixtime(unixtime); 
+}
+
+void serial_keyvaldump() {
+
+  char key[100];
+  char val[100];
+
+  char str[200];
+  sprintf(str,"key=val\r\n");
+  serial_write_string(str);
+  for(int n=0;;n++) {
+    flashstorage_keyval_by_idx(n,key,val);
+    if(key[0] == 0) return;
+    sprintf(str,"%s=%s\r\n",key,val);
+    serial_write_string(str);
+  }
+
+}
+
+
 char currentline[1024];
 uint32_t currentline_position=0;
+
 
 void serial_process_command(char *line) {
 
@@ -222,6 +286,16 @@ void serial_process_command(char *line) {
   if(in_setdevicetag) {
     serial_setdevicetag_run(line);
     in_setdevicetag = false;
+  }
+
+  if(in_setrtc) {
+    serial_setrtc_run(line);
+    in_setrtc = false;
+  }
+
+  if(in_setkeyval) {
+    serial_setkeyval_run(line);
+    in_setkeyval = false;
   }
 
   serial_write_string("\r\n");
@@ -238,14 +312,13 @@ void serial_process_command(char *line) {
     serial_displayparams();
   } else
   if(strcmp(line,"HELP") == 0) {
-    serial_write_string("Available commands: HELP, LOGXFER, WRITEKEY, DISPLAYTEST, HELLO");
+    serial_write_string("Available commands: HELP, LOGXFER, DISPLAYTEST, HELLO");
   } else 
   if(strcmp(line,"DISPLAYTEST") == 0) {
     display_test();
   } else
   if(strcmp(line,"LOGTEST") == 0) {
     char stemp[100];
-
 
     sprintf(stemp,"Raw log data\r\n");
     serial_write_string(stemp);
@@ -285,23 +358,23 @@ void serial_process_command(char *line) {
     serial_write_string(stemp);
   } else 
   if(strcmp(line,"GETDEVICETAG") == 0) {
-   const char *devicetag = flashstorage_keyval_get("DEVICETAG");
-   if(devicetag != 0) {
-     char stemp[100];
-     sprintf(stemp,"Devicetag: %s\r\n",devicetag);
-     serial_write_string(stemp);
-   } else {
-     serial_write_string("No device tag set");
-   }
+    const char *devicetag = flashstorage_keyval_get("DEVICETAG");
+    if(devicetag != 0) {
+      char stemp[100];
+      sprintf(stemp,"Devicetag: %s\r\n",devicetag);
+      serial_write_string(stemp);
+    } else {
+      serial_write_string("No device tag set");
+    }
   } else
   if(strcmp(line,"SETDEVICETAG") == 0) {
     serial_setdevicetag();
   } else 
   if(strcmp(line,"READPRIVATEKEY") == 0) {
-    //    serial_readprivatekey();  // removed for production
+   // serial_readprivatekey();  // removed for production
   } else
   if(strcmp(line,"WRITEPRIVATEKEY") == 0) {
-    serial_writeprivatekey(); // maybe this should be removed for production?
+   // serial_writeprivatekey(); // maybe this should be removed for production?
   } else 
   if(strcmp(line,"MAGREAD") == 0) {
     gpio_set_mode (PIN_MAP[41].gpio_device,PIN_MAP[41].gpio_bit, GPIO_OUTPUT_PP); // MAGPOWER
@@ -399,13 +472,37 @@ void serial_process_command(char *line) {
   } else 
   if(strcmp(line,"KEYVALID") == 0) {
     if( signing_isKeyValid() == 1 )
-      serial_write_string("VALID KEY\r\n");
+      serial_write_string("uu_valid VALID KEY\r\n");
     else
-      serial_write_string("IMPROPER OR UNINITIALIZED KEY\r\n");
+      serial_write_string("uu_valid IMPROPER OR UNINITIALIZED KEY\r\n");
   } else 
   if(strcmp(line,"LOGSIG") == 0) {
     signing_hashLog();
     serial_write_string("\n\r");
+  } else
+  if(strcmp(line,"LOGPAUSE") == 0) {
+    flashstorage_log_pause();
+  } else 
+  if(strcmp(line,"LOGRESUME") == 0) {
+    flashstorage_log_resume();
+  } else
+  if(strcmp(line,"LOGCLEAR") == 0) {
+    serial_write_string("Clearing flash log\r\n");
+    flashstorage_log_clear();
+    serial_write_string("Cleared\r\n");
+  } else
+  if(strcmp(line,"KEYVALDUMP") == 0) {
+    serial_keyvaldump();
+  } else
+  if(strcmp(line,"KEYVALSET") == 0) {
+    serial_setkeyval();
+  } else
+  if(strcmp(line,"SETRTC") == 0) {
+    serial_setrtc();
+  } else
+  if(strcmp(line,"RTCALARM") == 0) {
+    serial_write_string("Alarm triggered for 10s\r\n");
+    rtc_set_alarm(RTC,rtc_get_time(RTC)+10);
   }
 
   serial_write_string("\r\n>");

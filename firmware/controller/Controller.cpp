@@ -36,9 +36,10 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
   m_warning_raised = false;
   m_changing_brightness = false;
 
-  m_last_cpmd = 0;
   m_cpm_cps_switch = false;
   m_current_units = 2;
+  m_cpm_cps_threshold = 1100.0;
+  m_cps_cpm_threshold = 1000.0;
 
   // Get warning cpm from flash
   m_warncpm = -1;
@@ -223,7 +224,7 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_gui->receive_update("TTTIME" ,blank);
     m_gui->redraw();
   } else
-  if(strcmp(event,"Save:Calib") == 0) { //TODO: refactor to say at least "SaveCalibration"
+  if(strcmp(event,"Save:Calib") == 0) {
     save_calibration();
   } else
   if(strcmp(event,"Save:Becq") == 0) {
@@ -234,6 +235,24 @@ void Controller::receive_gui_event(char *event,char *value) {
     
     float beff = b1*1000 + b2*100 + b3*10 + b4;
     m_geiger.set_becquerel_eff(beff);
+    m_gui->jump_to_screen(0);
+  } else
+  if(strcmp(event,"Save:UTCOff") == 0) {
+    int h1 = m_gui->get_item_state_uint8("OFFHOUR1");
+    int h2 = m_gui->get_item_state_uint8("OFFHOUR2");
+    int m1 = m_gui->get_item_state_uint8("OFFMIN1");
+    int m2 = m_gui->get_item_state_uint8("OFFMIN2");
+    
+    int utcoffset = (((h1*10)+h2)*60) + (m1*10) + m2;
+    if(m_gui->get_item_state_uint8("SIGN:-,+,") == 0) {
+      utcoffset = 0-utcoffset;
+    }
+    realtime_setutcoffset_mins(utcoffset);
+
+    char sutcoffset[50];
+    sprintf(sutcoffset,"%d",utcoffset);
+    flashstorage_keyval_set("UTCOFFSETMINS",sutcoffset);
+
     m_gui->jump_to_screen(0);
   } else
   if(strcmp(event,"Save:Time") == 0) {
@@ -286,7 +305,7 @@ void Controller::receive_gui_event(char *event,char *value) {
   } else
   if(strcmp(event,"Clear Log") == 0) {
     flashstorage_log_clear();
-    m_gui->show_dialog("Log Cleared",0,0,0,1);
+    m_gui->show_dialog("Log Cleared",0,0,0,1,48,254,254,254);
   } else 
   if(strcmp(event,"Save:Brightness") == 0) {
     uint8 b = m_gui->get_item_state_uint8("BRIGHTNESS");
@@ -313,6 +332,8 @@ void Controller::receive_gui_event(char *event,char *value) {
     char sloginterval[50];
     sprintf(sloginterval,"%u",m_log_interval_seconds);
     flashstorage_keyval_set("LOGINTERVAL",sloginterval);
+    uint32_t current_time = realtime_get_unixtime();
+    rtc_set_alarm(RTC,current_time+m_log_interval_seconds);
     m_gui->jump_to_screen(0);
   } else
   if(strcmp(event,"CALIBRATE") == 0) {
@@ -441,8 +462,20 @@ void Controller::receive_gui_event(char *event,char *value) {
     display_draw_text(0,48,"Xfer Complete",0);
   } else 
   if(strcmp(event,"QR Transfer") == 0) {
-    display_draw_text(0,100,"QR Xfer",0);
+ //   display_draw_text(0,100,"QR Xfer",0);
     qr_logxfer();
+  } else
+  if(strcmp(event,"QR Tweet") == 0) {
+    char str[1024];
+
+    if(m_geiger.is_cpm_valid()) {
+                 //12345678901234567890123456789012345    1   2 34567890
+      sprintf(str,"http://twitter.com/home?status=CPM:%u%%20%%23scast",(int)m_geiger.get_cpm());
+    } else {
+                 //12345678901234567890123456789012345    1   2 34567890
+      sprintf(str,"http://twitter.com/home?status=CPM:%u%%20%%23bad",(int)m_geiger.get_cpm());
+    }
+    qr_draw(str);
   }
 }
 
@@ -452,7 +485,7 @@ void Controller::update() {
     if(m_sleeping) display_powerup();
     char text_cpm[20];
     sprintf(text_cpm,"%8.3f",m_geiger.get_cpm_deadtime_compensated());
-    m_gui->show_dialog("WARNING LEVEL","EXCEEDED",text_cpm,"CPM",true);
+    m_gui->show_dialog("WARNING LEVEL","EXCEEDED",text_cpm,"CPM",true,42,254,255,255);
     m_warning_raised = true;
 
     #ifndef NEVERSLEEP
@@ -491,7 +524,7 @@ void Controller::update() {
 
       bool full = flashstorage_log_isfull();
       if(full == true) {
-        m_gui->show_dialog("Flash Log","is full",0,0,0);
+        m_gui->show_dialog("Flash Log","is full",0,0,0,43,44,255,255);
       }
 
       m_alarm_log = false;
@@ -564,33 +597,29 @@ void Controller::update() {
   char text_cpmdint[50];
   char text_cpmd[50];
 
-  text_cpmdint[0] =0;
+  text_cpmdint[0] = 0;
   int_to_char(m_geiger.get_cpm_deadtime_compensated()+0.5,text_cpmdint,7);
   if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
-    sprintf(text_cpmdint,"TOO HIGH");
+    sprintf(text_cpmdint,"TOO HIGH"); // kanji image is 45
   }
   //float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,7);
-  
-  if(!m_cpm_cps_switch) {
+
+  if(!m_cpm_cps_switch) {       // no auto switch, just display CPM
     char text_cpmd_tmp[30];
     sprintf(text_cpmd_tmp,"%8.3f",m_geiger.get_cpm_deadtime_compensated());
     sprintf(text_cpmd    ,"%8.8s",text_cpmd_tmp);
     m_gui->receive_update("CPMSLABEL","CPM");
-  }
-
-
-
-  if(m_cpm_cps_switch) {
+  } else {
 
     float cpm = m_geiger.get_cpm_deadtime_compensated();
 
-    if((cpm > 1100) && (m_last_cpmd < 1100)) { 
+    if(cpm > m_cpm_cps_threshold) {
       m_current_units = UNITS_CPS;
     }
-
-    if((cpm < 1000) && (m_last_cpmd > 1000)) {
+    else if(cpm < m_cps_cpm_threshold) {
      m_current_units = UNITS_CPM;
     }
+    // else { we are in the gray zone, do not switch }
 
     if(m_current_units == UNITS_CPM) {
       char text_cpmd_tmp[30];
@@ -603,8 +632,6 @@ void Controller::update() {
       sprintf(text_cpmd    ,"%8.8s",text_cpmd_tmp);
       m_gui->receive_update("CPMSLABEL","CPS");
     }
-    
-    m_last_cpmd = m_geiger.get_cpm_deadtime_compensated();
   }
 
   if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
@@ -618,6 +645,7 @@ void Controller::update() {
   uint16_t year;
   realtime_getdate(hours,min,sec,day,month,year);
 
+/*
   char text_time[50];
   int_to_char(hours,text_time,3);
   text_time[3]=':';
@@ -633,6 +661,7 @@ void Controller::update() {
   text_date[6]='/';
   int_to_char(year+1900,text_date+7,4);
   text_date[11] = 0;
+*/
 
   char text_totaltimer_count[50];
   char text_totaltimer_time [50];
@@ -657,8 +686,8 @@ void Controller::update() {
   m_gui->receive_update("RECENTDATA",graph_data);
   m_gui->receive_update("DELAYA",NULL);
   m_gui->receive_update("DELAYB",NULL);
-  m_gui->receive_update("TIME",text_time);
-  m_gui->receive_update("DATE",text_date);
+//  m_gui->receive_update("TIME",text_time);
+//  m_gui->receive_update("DATE",text_date);
   m_gui->receive_update("TTCOUNT",text_totaltimer_count);
   m_gui->receive_update("TTTIME" ,text_totaltimer_time);
 
@@ -689,7 +718,7 @@ void Controller::update() {
 
 
     m_gui->receive_update("SVREM", text_sieverts);
-    m_gui->receive_update("SVREMLABEL","\x80Sv/h");
+    m_gui->receive_update("SVREMLABEL"," \x80Sv/h");
   }
   
   char text_becq_tmp[50];
@@ -706,6 +735,6 @@ void Controller::update() {
 
     m_gui->receive_update("BECQ",text_becq);
   } else {
-    m_gui->receive_update("BECQINFO","Becquerel unset");
+    m_gui->receive_update("BECQINFO","Becquerel unset"); // kanji image is: 46
   }
 }
