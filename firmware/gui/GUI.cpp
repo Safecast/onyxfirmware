@@ -247,8 +247,25 @@ void clear_item_varnum(screen_item &item, bool selected) {
 
 
 void render_item_label(screen_item &item, bool selected) {
-  if(item.val1 == 255) {display_draw_text_center          (item.val2,item.text,FOREGROUND_COLOR);}
-                  else {display_draw_text       (item.val1,item.val2,item.text,FOREGROUND_COLOR);}
+
+  if(m_language == LANGUAGE_ENGLISH) {
+    if(item.val1 == 255) {display_draw_text_center          (item.val2,item.text,FOREGROUND_COLOR);}
+                    else {display_draw_text       (item.val1,item.val2,item.text,FOREGROUND_COLOR);}
+  }
+
+  if(m_language == LANGUAGE_JAPANESE) {
+    if(item.kanji_image != 255) {
+			if((item.val1 != 255) && (item.val1 != 0)) {
+				display_draw_fixedimage_xlimit(item.val1,item.val2,item.kanji_image,FOREGROUND_COLOR,128-item.val1);
+			} else {
+				// we can't center fixed images as we don't know their width, just draw at 0, full width.
+				display_draw_fixedimage(0,item.val2,item.kanji_image,FOREGROUND_COLOR);
+			}
+    } else {
+      if(item.val1 == 255) {display_draw_text_center          (item.val2,item.text,FOREGROUND_COLOR);}
+                      else {display_draw_text       (item.val1,item.val2,item.text,FOREGROUND_COLOR);}
+    }
+  }
 }
 
 void render_item_smalllabel(screen_item &item, bool selected) {
@@ -748,10 +765,10 @@ GUI::GUI(Controller &r) : receive_gui_events(r) {
   m_language = LANGUAGE_ENGLISH;
   m_displaying_dialog =false;
   m_displaying_dialog_complete=false;
-  m_dialog_text1[0]=0;
-  m_dialog_text2[0]=0;
-  m_dialog_text3[0]=0;
-  m_dialog_text4[0]=0;
+  //m_dialog_text1[0]=0;
+  //m_dialog_text2[0]=0;
+  //m_dialog_text3[0]=0;
+  //m_dialog_text4[0]=0;
   m_dialog_buzz=false;
   m_pause_display_updates=false;
 }
@@ -766,17 +783,17 @@ void GUI::show_help_screen(uint8_t helpscreen) {
   m_displaying_help = true;
 }
 
-void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,char *dialog_text4,bool buzz) {
+void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,char *dialog_text4,bool buzz,int img1,int img2,int img3,int img4) {
   display_draw_rectangle(0,0,128,128,BACKGROUND_COLOR);
-  strcpy(m_dialog_text1,dialog_text1);
-  strcpy(m_dialog_text2,dialog_text2);
-  strcpy(m_dialog_text3,dialog_text3);
-  strcpy(m_dialog_text4,dialog_text4);
+  //strcpy(m_dialog_text1,dialog_text1);
+  //strcpy(m_dialog_text2,dialog_text2);
+  //strcpy(m_dialog_text3,dialog_text3);
+  //strcpy(m_dialog_text4,dialog_text4);
   m_dialog_buzz = buzz;
   m_displaying_dialog=true;
   m_displaying_dialog_complete=false;
   m_pause_display_updates = true;
-  render_dialog(m_dialog_text1,m_dialog_text2,m_dialog_text3,m_dialog_text4);
+  render_dialog(dialog_text1,dialog_text2,dialog_text3,dialog_text4,img1,img2,img3,img4);
 }
 
 void GUI::render() {
@@ -1110,16 +1127,34 @@ void GUI::set_language(uint8_t lang) {
   m_language = lang;
 }
 
-void GUI::render_dialog(char *text1,char *text2,char *text3,char *text4) {
+void GUI::render_dialog(char *text1,char *text2,char *text3,char *text4,int img1,int img2,int img3,int img4) {
 
-  //display_clear(0);
-  display_draw_text_center(20,text1,FOREGROUND_COLOR);
-  display_draw_text_center(36,text2,FOREGROUND_COLOR);
-  display_draw_text_center(52,text3,FOREGROUND_COLOR);
-  display_draw_text_center(68,text4,FOREGROUND_COLOR);
-  display_draw_text_center(94,"PRESS ANY KEY",FOREGROUND_COLOR);
+  if(m_language == LANGUAGE_JAPANESE) {
+    if(img1 == 255) { display_draw_text_center(20,text1,FOREGROUND_COLOR); } else
+    if(img1 == 254) { } else
+                    { display_draw_fixedimage(0,20,img1,FOREGROUND_COLOR); }
 
-}
+    if(img2 == 255) { display_draw_text_center(36,text2,FOREGROUND_COLOR); } else
+    if(img2 == 254) { } else
+                    { display_draw_fixedimage(0,36,img2,FOREGROUND_COLOR); }
 
-void GUI::show_dialog_image(int image1,int image2,int image3,int image4,bool buzz) {
+    if(img3 == 255) { display_draw_text_center(52,text3,FOREGROUND_COLOR); } else
+    if(img3 == 254) { } else
+                    { display_draw_fixedimage(0,52,img3,FOREGROUND_COLOR); }
+
+
+    if(img4 == 255) { display_draw_text_center(68,text4,FOREGROUND_COLOR); } else
+    if(img4 == 254) { } else
+                    { display_draw_fixedimage(0,68,img4,FOREGROUND_COLOR); }
+
+    display_draw_fixedimage(0,94,49,FOREGROUND_COLOR); // press any key kanji image
+  }
+
+  if(m_language == LANGUAGE_ENGLISH) {
+    display_draw_text_center(20,text1,FOREGROUND_COLOR);
+    display_draw_text_center(36,text2,FOREGROUND_COLOR);
+    display_draw_text_center(52,text3,FOREGROUND_COLOR);
+    display_draw_text_center(68,text4,FOREGROUND_COLOR);
+    display_draw_text_center(94,"PRESS ANY KEY",FOREGROUND_COLOR);
+  }
 }

@@ -486,6 +486,11 @@ void serial_process_command(char *line) {
   if(strcmp(line,"LOGRESUME") == 0) {
     flashstorage_log_resume();
   } else
+  if(strcmp(line,"LOGCLEAR") == 0) {
+    serial_write_string("Clearing flash log\r\n");
+    flashstorage_log_clear();
+    serial_write_string("Cleared\r\n");
+  } else
   if(strcmp(line,"KEYVALDUMP") == 0) {
     serial_keyvaldump();
   } else

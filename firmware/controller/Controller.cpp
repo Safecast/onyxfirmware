@@ -305,7 +305,7 @@ void Controller::receive_gui_event(char *event,char *value) {
   } else
   if(strcmp(event,"Clear Log") == 0) {
     flashstorage_log_clear();
-    m_gui->show_dialog("Log Cleared",0,0,0,1);
+    m_gui->show_dialog("Log Cleared",0,0,0,1,48,254,254,254);
   } else 
   if(strcmp(event,"Save:Brightness") == 0) {
     uint8 b = m_gui->get_item_state_uint8("BRIGHTNESS");
@@ -485,7 +485,7 @@ void Controller::update() {
     if(m_sleeping) display_powerup();
     char text_cpm[20];
     sprintf(text_cpm,"%8.3f",m_geiger.get_cpm_deadtime_compensated());
-    m_gui->show_dialog("WARNING LEVEL","EXCEEDED",text_cpm,"CPM",true);
+    m_gui->show_dialog("WARNING LEVEL","EXCEEDED",text_cpm,"CPM",true,42,254,255,255);
     m_warning_raised = true;
 
     #ifndef NEVERSLEEP
@@ -524,7 +524,7 @@ void Controller::update() {
 
       bool full = flashstorage_log_isfull();
       if(full == true) {
-        m_gui->show_dialog("Flash Log","is full",0,0,0);
+        m_gui->show_dialog("Flash Log","is full",0,0,0,43,44,255,255);
       }
 
       m_alarm_log = false;
@@ -600,7 +600,7 @@ void Controller::update() {
   text_cpmdint[0] = 0;
   int_to_char(m_geiger.get_cpm_deadtime_compensated()+0.5,text_cpmdint,7);
   if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
-    sprintf(text_cpmdint,"TOO HIGH");
+    sprintf(text_cpmdint,"TOO HIGH"); // kanji image is 45
   }
   //float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,7);
 
@@ -735,6 +735,6 @@ void Controller::update() {
 
     m_gui->receive_update("BECQ",text_becq);
   } else {
-    m_gui->receive_update("BECQINFO","Becquerel unset");
+    m_gui->receive_update("BECQINFO","Becquerel unset"); // kanji image is: 46
   }
 }

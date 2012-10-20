@@ -39,8 +39,13 @@ premain() {
 
 int main(void) {
 
+
     Geiger g;
     power_initialise();
+    if(power_battery_level() < 1) {
+      power_standby();
+    }
+
     flashstorage_initialise();
     buzzer_initialise();
     realtime_initialise();
@@ -139,11 +144,19 @@ int main(void) {
     m_gui.jump_to_screen(1);
     m_gui.push_stack(0,1);
     for(;;) {
+      if(power_battery_level() < 1) {
+        power_standby();
+      }
+
+      //display_draw_text(0,110,"preupdate",0);
       c.update();
+      //display_draw_text(0,110,"prerender",0);
       m_gui.render();
 
+      //display_draw_text(0,110,"preserial",0);
       serial_eventloop();
 
+      //display_draw_text(0,110,"preserial",0);
       // It might be a good idea to move the following code to Controller.
       // Hack to check that captouch is ok, and reset it if not.
       bool c = cap_check();

@@ -8,6 +8,9 @@
 #include "exti.h"
 #include "adc.h"
 #include "bkp.h"
+#include "display.h"
+
+#include <stdio.h>
 
 #define MANUAL_WAKEUP_GPIO 18 // PC3
 #define CHG_STAT2_GPIO     44 // PC11
@@ -114,8 +117,12 @@ uint16 power_battery_level(void) {
   //float batvolts = ((((float)battVal)/(float)vrefVal)*1.2)+2.1;
   float batratio = (float)battVal/(float)vrefVal;
 
-  float bat_min = 1.4;  //3.7;
-  float bat_max = 1.75; //4.2;
+  float bat_min = 1.25; //3.1;
+  float bat_max = 1.72; //4.2;
+
+  //char v[50];
+  //sprintf(v,"%f",batratio);
+  //display_draw_text(0,100,v,0);
 
   int16 bat_percent = ((batratio-bat_min)/(bat_max-bat_min))*100;         //((batvolts-battery_min_voltage)/(battery_max_voltage-battery_min_voltage))*100;
 
@@ -169,7 +176,7 @@ int power_is_battery_low(void) {
   gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
  
   // normally 0, 5 for testing
-  if( power_battery_level() <= 5 ) return 1;
+  if( power_battery_level() <= 1 ) return 1;
                               else return 0;
 }
 

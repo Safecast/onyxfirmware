@@ -50,9 +50,8 @@ public:
   void push_stack(int current_screen,int selected_item);
   void toggle_screen_lock();
   void set_language(uint8_t lang);
-  void show_dialog_image(int   image1,int   image2,int  image3,int  image4,bool buzz);
-  void show_dialog      (char *text1 ,char *text2 ,char *text3,char *text4,bool buzz);
-  void render_dialog      (char *text1 ,char *text2 ,char *text3,char *text4);
+  void show_dialog      (char *text1 ,char *text2 ,char *text3,char *text4,bool buzz,int img1=255,int img2=255,int img3=255,int img4=255);
+  void render_dialog      (char *text1 ,char *text2 ,char *text3,char *text4,int img1,int img2,int img3,int img4);
   Controller &receive_gui_events;
 
   uint8_t get_item_state_uint8(const char *tag);
