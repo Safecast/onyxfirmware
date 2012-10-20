@@ -81,15 +81,3 @@ Add additional Japanese language translations.
 bugfix: it's occasionally possible to jump out of the current screen and back to home without trigger a screen clear. I'm not sure what triggers this bug. Requires further investigation. --- Appears to be triggered by pressing both back and home at the same time.
 bugfix: If I mash buttons a lot I can get the header and other display items to stop working.
 bugfix: in settings, brightness. When selected the SaveBrightness item causes a flashing box to appear where the lock icon is.
-
-id:            32
-name:          release10
-description:   release10
-start_date:    2012-10-09 00:00:00
-release_date:  2012-10-10 00:00:00
-created:       2012-10-09 19:47:34
-last_modified: 2012-10-09 19:47:34
-
-tasks:
-state        id       summary
-=============================
