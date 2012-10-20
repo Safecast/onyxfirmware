@@ -1,3 +1,45 @@
+Changes for release 10 (20th October 2012)
+
+* static QR code of current level
+* dynamic QR code for data transfer
+* log signing
+* battery level calibration
+* Bug: Some graph artefacts present
+* key auto repeat on menus.
+* power off system if battery below N
+* do not power on system if battery below N
+* Add help screen text
+* When in a help screen, pressing help again dismisses the help screen.
+* Verified CPM/CPS switch. Logic tidying thanks to Kalin.
+* firmware loaders, new pkload tool which loads the private key region only. fwload tool that loads everything bar the private key region.
+* relocate CPM and Sievert tags
+* reorganise menus
+* version number always displayed removed.
+* fill out log rendering functions
+* change cpm invalid header color to "amber"
+* Complete Japanese language translations
+* change time format in logs
+* add version to log json
+* Quick check screen over/tidy up.
+* Add commands to pause and resume logging
+* japanese language help screen infrastructure
+* ability to set UTC offset
+* added non-numerical selection box functionality to VARNUM widget
+* ability to read and set keyval items over the serial interface
+* ability to set the rtc over the serial interface
+* log can be cleared from serial interface
+* verified jam signal detection
+
+Changes for release 9 (14th October 2012)
+
+* Numbers that are too large to fit on the screen are displayed as "TOO HIGH".
+* CPM/CPS autoswitching - enabled from settings.
+* serial interface to probe magsensor.
+* Ran through tests against radiation samples, found and correct numerious number rendering issues.
+* serial code to read ADCs and writh DACs, send data over HPCOMBINED.
+* serial interface to set MICIPHONE and MICREVERSE
+* Merge in crypto simulator from bunnie.
+
 Changes for release 8 (8th October 2012)
 
 * dialog display, for log clearing report etc.                                                                                          
@@ -40,3 +82,14 @@ bugfix: it's occasionally possible to jump out of the current screen and back to
 bugfix: If I mash buttons a lot I can get the header and other display items to stop working.
 bugfix: in settings, brightness. When selected the SaveBrightness item causes a flashing box to appear where the lock icon is.
 
+id:            32
+name:          release10
+description:   release10
+start_date:    2012-10-09 00:00:00
+release_date:  2012-10-10 00:00:00
+created:       2012-10-09 19:47:34
+last_modified: 2012-10-09 19:47:34
+
+tasks:
+state        id       summary
+=============================
