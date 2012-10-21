@@ -149,6 +149,7 @@ void cap_clear_press() {
 
 static void cap_change(void) {
 
+  // first read
   int key_state=0;
   key_state  = mpr121Read(TCH_STATL);
   key_state |= mpr121Read(TCH_STATH) << 8;
@@ -162,16 +163,33 @@ static void cap_change(void) {
   // detect keys released
   int keys_released  = (~key_state) & last_key_state; //TODO: ! bitwise NOT
 
+  delay_us(100);
+  // second read
+  int key_state2=0;
+  key_state2  = mpr121Read(TCH_STATL);
+  key_state2 |= mpr121Read(TCH_STATH) << 8;
 
-  if(!captouch_disable_messages) {
+  // clear unconnected electrodes
+  key_state2 &= touchList;
+
+  // detect keys pressed
+  int keys_pressed2 = key_state & (~last_key_state); //TODO: ! bitwise NOT
+
+  // detect keys released
+  int keys_released2  = (~key_state) & last_key_state; //TODO: ! bitwise NOT
+
+  bool readok=false;
+  if((keys_pressed == keys_pressed2) && (keys_released == keys_released2)) readok=true;
+
+  if((!captouch_disable_messages) && (readok == true)) {
     for (int key=0; key<16; key++) {
       if (keys_pressed &(1<<key)) { system_gui->receive_key(key,KEY_PRESSED );   press_time[key] = realtime_get_unixtime(); press_time_any=realtime_get_unixtime(); }
       if (keys_released&(1<<key)) { system_gui->receive_key(key,KEY_RELEASED); release_time[key] = realtime_get_unixtime(); release_time_any = realtime_get_unixtime(); }
     }
+    last_key_state = key_state;
   }
 
 
-  last_key_state = key_state;
 }
 
 bool cap_ispressed(int key) {
