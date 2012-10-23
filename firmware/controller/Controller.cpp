@@ -16,6 +16,7 @@
 #include "buzzer.h"
 #include <string.h>
 #include <limits.h>
+#include "serialinterface.h"
 //#define DISABLE_ACCEL
 //#define NEVERSLEEP
 #define UNITS_CPS 1
@@ -28,7 +29,6 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
   m_powerup=false;
   m_log_interval_seconds = 60*30;
   rtc_clear_alarmed();
-  rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_interval_seconds);
   rtc_enable_alarm(RTC);
   m_alarm_log = false;
   system_controller = this;
@@ -57,7 +57,7 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
     sscanf(sloginter, "%d", &c);
     m_log_interval_seconds = c;
   }
-
+  rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_interval_seconds);
 }
 
 void Controller::set_gui(GUI &g) {
@@ -158,6 +158,7 @@ void Controller::save_time() {
   min   = new_min;
   sec   = new_sec;
   realtime_setdate(hours,min,sec,day,month,year);
+  rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_interval_seconds);
 
   flashstorage_log_userchange();
   m_gui->jump_to_screen(0);
@@ -182,6 +183,7 @@ void Controller::save_date() {
   month = new_mon-1;
   year  = (2000+new_year)-1900;
   realtime_setdate(hours,min,sec,day,month,year);
+  rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_interval_seconds);
 
   flashstorage_log_userchange();
   m_gui->jump_to_screen(0);
@@ -531,6 +533,9 @@ void Controller::update() {
 
       rtc_set_alarm(RTC,m_last_alarm_time+m_log_interval_seconds);
       rtc_enable_alarm(RTC);
+      if(m_sleeping) {
+        power_standby();
+      }
     }
   }
 
@@ -541,8 +546,10 @@ void Controller::update() {
     m_last_switch_state = sstate;
 
     if(sstate == false) {
-      if(m_alarm_log) { m_sleeping=true; display_powerdown(); } else {
-        power_standby();
+      if(m_alarm_log && (!m_sleeping)) { m_sleeping=true; display_powerdown(); } else {
+        if(!m_sleeping) {
+          power_standby();
+        }
       }
     }
     

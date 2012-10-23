@@ -121,6 +121,7 @@ void __irq_rtc(void);
 
 int rtc_alarmed();
 void rtc_clear_alarmed();
+void rtc_set_alarmed();
 
 
 #ifdef __cplusplus

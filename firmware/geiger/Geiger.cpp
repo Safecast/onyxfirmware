@@ -236,15 +236,17 @@ float Geiger::get_cpm30() {
 
   float sum = 0;
 
+
+  int windows_in_30s = WINDOWS_PER_MIN/2;
   int32_t c_position = last_windows_position-1;
-  for(uint32_t n=0;n<max_averaging_period;n++) {
+  for(uint32_t n=0;n<windows_in_30s;n++) {
    
     sum += last_windows[c_position];
  
     c_position--;
     if(c_position < 0) c_position = WINDOWS_PER_MIN-1;
   }
-  if(m_samples_collected > max_averaging_period) return (sum/((float)max_averaging_period))*((float)WINDOWS_PER_MIN);
+  if(m_samples_collected > windows_in_30s) return (sum/((float)windows_in_30s))*((float)WINDOWS_PER_MIN);
  
   // returns an estimation before enough data has been collected. 
   return (sum/((float)m_samples_collected))*((float)WINDOWS_PER_MIN);
@@ -305,7 +307,7 @@ bool Geiger::is_cpm_valid() {
 
 bool Geiger::is_cpm30_valid() {
 
-  if(m_samples_collected > max_averaging_period) return true;
+  if(m_samples_collected > ((WINDOWS_PER_MIN/2)+1)) return true;
 
   return false;
 }

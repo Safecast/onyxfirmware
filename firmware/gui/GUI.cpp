@@ -799,8 +799,8 @@ void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,c
 void GUI::render() {
 
   if(m_sleeping) {
-     process_keys();
-     return;  
+//     process_keys();
+    return;  
   }
 
   
