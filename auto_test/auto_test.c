@@ -29,6 +29,7 @@ int dummyp(const char *format, ...) {
 #define VALIDTEST 2
 #define PUBTEST   3
 #define LOGTEST   4
+#define RTCTEST   5
 
 // file descriptors
 int serial;
@@ -153,10 +154,11 @@ int main(int argc, char **argv) {
   unsigned char iBuf[16384];
   unsigned int len = 16384;
   int testNum;
+  unsigned char timeBuf[256];
 
   if( argc == 1 ) {
     printf( "\n\nMicrocontroller testing: defaulting to guid test. \n" );
-    printf( "Valid test args: guid pktest valid pub log\n" );
+    printf( "Valid test args: guid pktest valid pub log rtc\n" );
   }
   if( argc > 1 ) {
     if( strcmp(argv[1], "guid") == 0 )
@@ -169,6 +171,8 @@ int main(int argc, char **argv) {
       testNum = PUBTEST;
     else if( strcmp(argv[1], "log") == 0 )
       testNum = LOGTEST;
+    else if( strcmp(argv[1], "rtc") == 0 )
+      testNum = RTCTEST;
     else {
       printf( "test specifier not valid, aborting.\n" );
       exit(0);
@@ -255,7 +259,22 @@ int main(int argc, char **argv) {
 
     printf( "%s", iBuf );
     break;
-
+    
+  case RTCTEST:
+    putString( "SETRTC\n" );
+    getString( iBuf, &len );
+    iBuf[len] = '\0';
+    printf( "received %d characters:\n", len );
+    printf( "%s", iBuf );
+    
+    sprintf( timeBuf, "%d", (unsigned int) time(NULL));
+    putString( timeBuf );
+    putString( "\n" );
+    getString( iBuf, &len );
+    iBuf[len] = '\0';
+    printf( "received %d characters:\n", len );
+    printf( "%s", iBuf );
+    break;
 
   default:
     printf( "test not yet implemented, nothing happened.\n" );

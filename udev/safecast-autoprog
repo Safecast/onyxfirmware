@@ -71,6 +71,17 @@ function program(){
      exit 1
  fi
 
+ echo "********* SETTING RTC" >> $LOGLOC
+ safecast-timeout 60 auto_test &
+ $GITPREFIX/auto_test/auto_test rtc >> $LOGLOC 2>&1
+ killall safecast-timeout
+ killall sleep
+ sleep 1  # do it again just to get the setting into the log
+ safecast-timeout 60 auto_test &
+ $GITPREFIX/auto_test/auto_test rtc >> $LOGLOC 2>&1
+ killall safecast-timeout
+ killall sleep
+ echo "Please manually check that the time on the device is about right."
 
  echo " " >> $LOGLOC
  echo "********* DEVICE PASSED *********" >> $LOGLOC
