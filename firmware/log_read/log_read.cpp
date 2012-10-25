@@ -52,7 +52,7 @@ int log_read_block(char *buf) {
       offset_string[5] = 0;
     }
 
-    sprintf(buf,"{\"log_size\":%u,\"onyx_version\":%s,\"UTC_offset\":\"%s\",\"log_data\":[",logsize,OS100VERSION,offset_string);
+    sprintf(buf,"{\"log_size\":%u,\"onyx_version\":\"%s\",\"UTC_offset\":\"%s\",\"log_data\":[",logsize,OS100VERSION,offset_string);
     buf += strlen(buf);
   }
 
