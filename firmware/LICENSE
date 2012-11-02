@@ -2,7 +2,9 @@ This package contains components from libmaple, which is made available under a 
 
 It also contains components from the Psytec QR code library, please see: https://github.com/new299/QRImageEm
 
-Use of this code is under the following (BSD style) terms:
+The log signing code contains portions of Beecrypt (http://beecrypt.sourceforge.net) which is made available under the terms of the LGPL license.
+
+Use of original code is under the following (BSD style) terms:
 
 Copyright (c) 2012 IMI - International Medcom, Inc., Safecast, Nava Whiteford, Andrew 'bunnie' Huang, Sean 'xobs' Cross and others. All rights reserved.
 
