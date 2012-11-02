@@ -33,6 +33,10 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
   m_alarm_log = false;
   system_controller = this;
   m_last_switch_state = true;
+
+  bool sstate = switch_state();
+  m_last_switch_state = sstate;
+
   m_warning_raised = false;
   m_changing_brightness = false;
 
@@ -525,7 +529,7 @@ void Controller::update() {
       flashstorage_log_pushback((uint8_t *) &data,sizeof(log_data_t));
 
       bool full = flashstorage_log_isfull();
-      if(full == true) {
+      if((full == true) && (!m_sleeping)) {
         m_gui->show_dialog("Flash Log","is full",0,0,0,43,44,255,255);
       }
 
@@ -538,7 +542,6 @@ void Controller::update() {
       }
     }
   }
-
 
   #ifndef NEVERSLEEP
   bool sstate = switch_state();
@@ -566,6 +569,15 @@ void Controller::update() {
     m_gui->redraw();
     m_sleeping=false;
     m_powerup =false;
+
+    buzzer_nonblocking_buzz(0.05);
+    display_initialise();
+    const char *devicetag = flashstorage_keyval_get("DEVICETAG");
+    char revtext[10];
+    sprintf(revtext,"VERSION: %s ",OS100VERSION);
+    display_splashscreen(devicetag,revtext);
+    delay_us(3000000);
+    display_clear(0);
   }
 
 
@@ -598,7 +610,6 @@ void Controller::update() {
       }
     }
   }
- 
 
   //TODO: I should change this so it only sends the messages the GUI currently needs.
   char text_cpmdint[50];

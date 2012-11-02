@@ -154,6 +154,7 @@ uint8_t display_get_brightness() {
 }
 
 void display_powerup() {
+  oled_platform_init();
   oled_init();
 }
 
