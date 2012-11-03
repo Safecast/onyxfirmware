@@ -201,7 +201,6 @@ uint32_t  _get_CONTROL()
 void power_standby(void) {
 
   // ensure display is shutdown
-  display_powerdown();
 
   adc_foreach(adc_disable);
   timer_foreach(timer_disable);

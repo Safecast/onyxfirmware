@@ -51,8 +51,7 @@ void write_d(unsigned char out_data)
 
 
 void oled_platform_init(void) {
-    spi_aux_enable_device(SPI2,true,SPI_18MHZ,SPI_FRAME_MSB,SPI_MODE_3);
-
+  spi_aux_enable_device(SPI2,true,SPI_18MHZ,SPI_FRAME_MSB,SPI_MODE_3);
 }
 
 
