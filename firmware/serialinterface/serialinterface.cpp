@@ -13,21 +13,24 @@
 #include "log_read.h"
 #include "rtc.h"
 #include "realtime.h"
+#include <stdint.h>
+#include <inttypes.h>
+
 
 extern "C" {
-  static void signing_test();
-  static int signing_isKeyValid();
-  static void signing_printPubKey();
-  static void signing_printGUID();
-  static void signing_hashLog();
+  void signing_test();
+  int signing_isKeyValid();
+  void signing_printPubKey();
+  void signing_printGUID();
+  void signing_hashLog();
 }
 
 extern "C" {
-  static void signing_test();
-  static int signing_isKeyValid();
-  static void signing_printPubKey();
-  static void signing_printGUID();
-  static void signing_hashLog();
+  void signing_test();
+  int signing_isKeyValid();
+  void signing_printPubKey();
+  void signing_printGUID();
+  void signing_hashLog();
 }
 
 extern uint8_t _binary___binary_data_private_key_data_start;
@@ -36,21 +39,29 @@ extern uint8_t _binary___binary_data_private_key_data_size;
 #define TX1 BOARD_USART1_TX_PIN
 #define RX1 BOARD_USART1_RX_PIN
 
-void serial_initialise() {
-  const stm32_pin_info *txi = &PIN_MAP[TX1];
-  const stm32_pin_info *rxi = &PIN_MAP[RX1];
+typedef void (*command_process_t)(char *);
 
-  gpio_set_mode(txi->gpio_device, txi->gpio_bit, GPIO_AF_OUTPUT_OD); 
-  gpio_set_mode(rxi->gpio_device, rxi->gpio_bit, GPIO_INPUT_FLOATING);
+command_process_t command_stack[10];
+int  command_stack_size = 0;
 
-  if (txi->timer_device != NULL) {
-      /* Turn off any PWM if there's a conflict on this GPIO bit. */
-      timer_set_mode(txi->timer_device, txi->timer_channel, TIMER_DISABLED);
-  }
+void serial_process_command(char *line) {
+  (*command_stack[command_stack_size-1])(line);
+}
 
-  usart_init(USART1);
-  usart_set_baud_rate(USART1, STM32_PCLK2, 115200); 
-  usart_enable(USART1);
+#define MAX_COMMANDS 30
+
+char              command_list [MAX_COMMANDS][30];
+command_process_t command_funcs[MAX_COMMANDS];
+int               command_list_size;
+
+void register_cmd(const char *cmd,command_process_t func) {
+
+  if(command_list_size > MAX_COMMANDS) return;
+
+  strcpy(command_list[command_list_size],cmd);
+  command_funcs[command_list_size] = func;
+
+  command_list_size++;
 }
 
 void serial_write_string(const char *str) {
@@ -59,7 +70,15 @@ void serial_write_string(const char *str) {
   }
 }
 
-void serial_sendlog() {
+void cmd_hello(char *line) {
+ serial_write_string("GREETINGS PROFESSOR FALKEN.\r\n");
+}
+
+void cmd_games(char *line) {
+  serial_write_string("I'M KIND OF BORED OF GAMES, TURNS OUT THE ONLY WAY TO WIN IS NOT TO PLAY...\r\n");
+}
+
+void cmd_logxfer(char *line) {
 
   flashstorage_log_pause();
   log_read_start();
@@ -75,6 +94,354 @@ void serial_sendlog() {
   flashstorage_log_resume();
 }
 
+void serial_displayparams_run(char *line) {
+
+  uint32_t clock, multiplex, functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh;
+
+  sscanf(line,"%"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32"",&clock,&multiplex,&functionselect,&vsl,&phaselen,&prechargevolt,&prechargeperiod,&vcomh);
+
+  char outline[1024];
+  sprintf(outline,"Received values: %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32", calling reinit\r\n",clock,multiplex,functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh); //"
+  serial_write_string(outline); 
+
+  oled_reinit(clock,multiplex,functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh);
+  command_stack_size--;
+}
+
+void cmd_displayparams(char *line) {
+
+  serial_write_string("DISPLAY REINIT MODE\r\n");
+  serial_write_string("COMMAND IS: <CLOCK> <MULTIPLEX> <FUNCTIONSELECT> <VSL> <PHASELEN> <PRECHARGEVOLT> <PRECHARGEPERIOD> <VCOMH>\r\n");
+  serial_write_string("e.g: 241 127 1 1 50 23 8 5\r\n");
+  serial_write_string("#>");
+
+  command_stack[command_stack_size] = serial_displayparams_run;
+  command_stack_size++;
+}
+
+void cmd_help(char *line) {
+
+  serial_write_string("Available commands: ");
+  for(int n=0;n<command_list_size;n++) {
+    serial_write_string(command_list[n]);
+    serial_write_string(" ");
+  }
+  serial_write_string("\n");
+
+}
+
+void cmd_displaytest(char *line) {
+  display_test();
+}
+
+void cmd_version(char *line) {
+  char stemp[50];
+  printf(stemp,"Version: %s\r\n",OS100VERSION);
+  serial_write_string(stemp);
+}
+
+void cmd_getdevicetag(char *line) {
+  const char *devicetag = flashstorage_keyval_get("DEVICETAG");
+  if(devicetag != 0) {
+    char stemp[100];
+    sprintf(stemp,"Devicetag: %s\r\n",devicetag);
+    serial_write_string(stemp);
+  } else {
+    serial_write_string("No device tag set");
+  }
+}
+
+void serial_setdevicetag_run(char *line) {
+
+  char devicetag[100];
+
+  sscanf(line,"%s\r\n",devicetag);
+
+  flashstorage_keyval_set("DEVICETAG",devicetag);
+  command_stack_size--;
+}
+
+void cmd_setdevicetag(char *line) {
+
+  serial_write_string("SETDEVICETAG:\r\n");
+  serial_write_string("#>");
+
+  command_stack[command_stack_size] = serial_setdevicetag_run;
+  command_stack_size++;
+}
+
+void cmd_magread(char *line) {
+  gpio_set_mode (PIN_MAP[41].gpio_device,PIN_MAP[41].gpio_bit, GPIO_OUTPUT_PP); // MAGPOWER
+  gpio_set_mode (PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit, GPIO_INPUT_PU);  // MAGSENSE
+
+  // Power up magsense
+  gpio_write_bit(PIN_MAP[41].gpio_device,PIN_MAP[41].gpio_bit,1);
+
+  // wait...
+  delay_us(1000);
+  
+  // Read magsense
+  int magsense = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
+
+  char magsenses[50];
+  sprintf(magsenses,"%u\r\n",magsense);
+  serial_write_string(magsenses);
+}
+
+void cmd_writedac(char *line) {
+  dac_init(DAC,DAC_CH2);
+
+  int8_t idelta=1;
+  uint8_t i=0;
+  for(int n=0;n<1000000;n++) {
+    
+    if(i == 254) idelta = -1;
+    if(i == 0  ) idelta =  1;
+
+    i += idelta;
+
+    dac_write_channel(DAC,2,i);
+  }
+  serial_write_string("WRITEDACFIN");
+}
+
+void cmd_testhp(char *line) {
+  gpio_set_mode (PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit, GPIO_OUTPUT_PP);  // HP_COMBINED
+  for(int n=0;n<100000;n++) {
+    gpio_write_bit(PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,1);
+    delay_us(100);
+    gpio_write_bit(PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,0);
+    delay_us(100);
+  }
+}
+
+void cmd_readadc(char *line) {
+  adc_init(PIN_MAP[12].adc_device); // all on ADC1
+
+  adc_set_extsel(PIN_MAP[12].adc_device, ADC_SWSTART);
+  adc_set_exttrig(PIN_MAP[12].adc_device, true);
+
+  adc_enable(PIN_MAP[12].adc_device);
+  adc_calibrate(PIN_MAP[12].adc_device);
+  adc_set_sample_rate(PIN_MAP[12].adc_device, ADC_SMPR_55_5);
+
+  gpio_set_mode (PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit, GPIO_INPUT_ANALOG);
+  gpio_set_mode (PIN_MAP[19].gpio_device,PIN_MAP[19].gpio_bit, GPIO_INPUT_ANALOG);
+  gpio_set_mode (PIN_MAP[20].gpio_device,PIN_MAP[20].gpio_bit, GPIO_INPUT_ANALOG);
+
+  uint16 value1 = adc_read(PIN_MAP[12].adc_device,PIN_MAP[12].adc_channel);
+  uint16 value2 = adc_read(PIN_MAP[19].adc_device,PIN_MAP[19].adc_channel);
+  uint16 value3 = adc_read(PIN_MAP[20].adc_device,PIN_MAP[20].adc_channel);
+  char values[50];
+  sprintf(values,"PA6 ADC Read: %u\r\n",value1);
+  serial_write_string(values);
+  sprintf(values,"PC4 ADC Read: %u\r\n",value2);
+  serial_write_string(values);
+  sprintf(values,"PC5 ADC Read: %u\r\n",value3);
+  serial_write_string(values);
+}
+
+void cmd_setmicreverse(char *line) {
+  gpio_set_mode (PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit, GPIO_OUTPUT_PP);  // MICREVERSE
+  gpio_set_mode (PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit, GPIO_OUTPUT_PP);  // MICIPHONE
+  gpio_write_bit(PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,1); // MICREVERSE
+  gpio_write_bit(PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit,0); // MICIPHONE
+  serial_write_string("Set MICREVERSE to 1, MICIPHONE to 0\r\n");
+}
+
+void cmd_setmiciphone(char *line) {
+  gpio_set_mode (PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit, GPIO_OUTPUT_PP);  // MICREVERSE
+  gpio_set_mode (PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit, GPIO_OUTPUT_PP);  // MICIPHONE
+  gpio_write_bit(PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,0); // MICREVERSE
+  gpio_write_bit(PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit,1); // MICIPHONE
+  serial_write_string("Set MICREVERSE to 0, MICIPHONE to 1\r\n");
+}
+
+void cmd_testsign(char *line) {
+  signing_test();
+}
+    
+void cmd_pubkey(char *line) {
+  signing_printPubKey();
+  serial_write_string("\n\r");
+}
+
+void cmd_guid(char *line) {
+  signing_printGUID();
+  serial_write_string("\n\r");
+}
+
+void cmd_keyvalid(char *line) {
+  if( signing_isKeyValid() == 1 )
+    serial_write_string("uu_valid VALID KEY\r\n");
+  else
+    serial_write_string("uu_valid IMPROPER OR UNINITIALIZED KEY\r\n");
+}
+
+void cmd_logsig(char *line) {
+  signing_hashLog();
+  serial_write_string("\n\r");
+}
+
+void cmd_logpause(char *line) {
+  flashstorage_log_pause();
+}
+
+void cmd_logresume(char *line) {
+  flashstorage_log_resume();
+}
+
+void cmd_logclear(char *line) {
+  serial_write_string("Clearing flash log\r\n");
+  flashstorage_log_clear();
+  serial_write_string("Cleared\r\n");
+}
+
+void cmd_keyvaldump(char *line) {
+
+  char key[100];
+  char val[100];
+
+  char str[200];
+  sprintf(str,"key=val\r\n");
+  serial_write_string(str);
+  for(int n=0;;n++) {
+    flashstorage_keyval_by_idx(n,key,val);
+    if(key[0] == 0) return;
+    sprintf(str,"%s=%s\r\n",key,val);
+    serial_write_string(str);
+  }
+
+}
+
+void serial_setkeyval_run(char *line) {
+
+  char key[200];
+  char val[200];
+
+  int eqpos=-1;
+  int len=strlen(line);
+  for(int n=0;n<len;n++) {
+    if(line[n] == '=') {
+      eqpos = n;
+    }
+  }
+  
+  if(eqpos==-1) return;
+
+  for(int n=0;n<eqpos;n++) {
+    key[n]=line[n];
+    key[n+1]=0;
+  }
+
+  eqpos+=1;
+  for(int n=eqpos;n<=len ;n++) {
+    val[n-eqpos]=line[n];
+    val[n-eqpos+1]=0;
+  }
+  
+  flashstorage_keyval_set(key,val);
+  command_stack_size--;
+}
+
+void cmd_keyvalset(char *line) {
+  serial_write_string("KEY=VAL\r\n");
+  serial_write_string("#>");
+
+  command_stack[command_stack_size] = serial_setkeyval_run;
+  command_stack_size++;
+}
+
+void serial_setrtc_run(char *line) {
+
+  uint32_t unixtime = 0;
+  sscanf(line,"%"PRIu32"\r\n",&unixtime);
+ 
+  realtime_set_unixtime(unixtime); 
+  command_stack_size--;
+}
+
+void cmd_setrtc(char *line) {
+  char info[100];
+  sprintf(info,"Current unixtime is %"PRIu32"\r\n",realtime_get_unixtime());
+  serial_write_string(info);
+  serial_write_string("#>");
+
+  command_stack[command_stack_size] = serial_setrtc_run;
+  command_stack_size++;
+}
+
+void cmd_setalarm(char *line) {
+  serial_write_string("Alarm triggered for 10s\r\n");
+  rtc_set_alarm(RTC,rtc_get_time(RTC)+10);
+}
+
+void register_cmds() {
+
+  register_cmd("HELLO"        ,cmd_hello);
+  register_cmd("LIST GAMES"   ,cmd_games);
+  register_cmd("LOGXFER"      ,cmd_logxfer);
+  register_cmd("DISPLAYPARAMS",cmd_displayparams);
+  register_cmd("HELP"         ,cmd_help);
+  register_cmd("DISPLAYTEST"  ,cmd_displaytest);
+  register_cmd("VERSION"      ,cmd_version);
+  register_cmd("GETDEVICETAG" ,cmd_getdevicetag);
+  register_cmd("SETDEVICETAG" ,cmd_setdevicetag);
+  register_cmd("MAGREAD"      ,cmd_magread);
+  register_cmd("WRITEDAC"     ,cmd_writedac);
+  register_cmd("TESTHP"       ,cmd_testhp);
+  register_cmd("READADC"      ,cmd_readadc);
+  register_cmd("SETMICREVERSE",cmd_setmicreverse);
+  register_cmd("SETMICIPHONE" ,cmd_setmiciphone);
+  register_cmd("TESTSIGN"     ,cmd_testsign);
+  register_cmd("PUBKEY"       ,cmd_pubkey);
+  register_cmd("GUID"         ,cmd_guid);
+  register_cmd("KEYVALID"     ,cmd_keyvalid);
+  register_cmd("LOGSIG"       ,cmd_logsig);
+  register_cmd("LOGPAUSE"     ,cmd_logpause);
+  register_cmd("LOGRESUME"    ,cmd_logresume);
+  register_cmd("LOGCLEAR"     ,cmd_logclear);
+  register_cmd("KEYVALDUMP"   ,cmd_keyvaldump);
+  register_cmd("KEYVALSET"    ,cmd_keyvalset);
+  register_cmd("SETRTC"       ,cmd_setrtc);
+  register_cmd("SETALARM"     ,cmd_setalarm);
+}
+
+void cmd_main_menu(char *line) {
+
+  for(int n=0;n<command_list_size;n++) {
+    if(strcmp(line,command_list[n]) == 0) {
+      (*command_funcs[n])(line);
+      return;
+    }
+  }
+ 
+  serial_write_string("\r\n>");
+}
+
+void serial_initialise() {
+  const stm32_pin_info *txi = &PIN_MAP[TX1];
+  const stm32_pin_info *rxi = &PIN_MAP[RX1];
+
+  gpio_set_mode(txi->gpio_device, txi->gpio_bit, GPIO_AF_OUTPUT_OD); 
+  gpio_set_mode(rxi->gpio_device, rxi->gpio_bit, GPIO_INPUT_FLOATING);
+
+  if (txi->timer_device != NULL) {
+      /* Turn off any PWM if there's a conflict on this GPIO bit. */
+      timer_set_mode(txi->timer_device, txi->timer_channel, TIMER_DISABLED);
+  }
+
+  register_cmds();
+  command_stack[0] = cmd_main_menu;
+  command_stack_size = 1;
+
+  usart_init(USART1);
+  usart_set_baud_rate(USART1, STM32_PCLK2, 115200); 
+  usart_enable(USART1);
+}
+
+
+/*
 void serial_readprivatekey() {
 
   char stemp[50];
@@ -127,10 +494,6 @@ void serial_readprivatekey() {
 
 }
 
-void serial_signing_test() {
-  signing_test();
-}
-
 void serial_writeprivatekey() {
 
   // TODO: Will add code to read from serial and write data to flash region here.
@@ -155,358 +518,11 @@ void serial_writeprivatekey() {
   flashstorage_writepage(pagedata,source_data_programmable);
   flashstorage_lock();
 }
-
-bool in_displayparams = false;
-bool in_setdevicetag = false;
-
-void serial_displayparams() {
-
-  serial_write_string("DISPLAY REINIT MODE\r\n");
-  serial_write_string("COMMAND IS: <CLOCK> <MULTIPLEX> <FUNCTIONSELECT> <VSL> <PHASELEN> <PRECHARGEVOLT> <PRECHARGEPERIOD> <VCOMH>\r\n");
-  serial_write_string("e.g: 241 127 1 1 50 23 8 5\r\n");
-  serial_write_string("#>");
-  in_displayparams=true;
-}
-
-void serial_setdevicetag() {
-
-  serial_write_string("SETDEVICETAG:\r\n");
-  serial_write_string("#>");
-  in_setdevicetag=true;
-}
-
-void serial_setdevicetag_run(char *line) {
-
-  char devicetag[100];
-
-  sscanf(line,"%s\r\n",&devicetag);
-
-  flashstorage_keyval_set("DEVICETAG",devicetag);
-}
-
-void serial_displayparams_run(char *line) {
-
-  uint32_t clock, multiplex, functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh;
-
-  sscanf(line,"%u %u %u %u %u %u %u %u",&clock,&multiplex,&functionselect,&vsl,&phaselen,&prechargevolt,&prechargeperiod,&vcomh);
-
-  char outline[1024];
-  sprintf(outline,"Received values: %u %u %u %u %u %u %u %u, calling reinit\r\n",clock,multiplex,functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh);
-  serial_write_string(outline);
-
-  oled_reinit(clock,multiplex,functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh);
-}
-
-bool in_setkeyval=false;
-
-void serial_setkeyval() {
-
-  serial_write_string("KEY=VAL\r\n");
-  serial_write_string("#>");
-  in_setkeyval=true;
-}
-
-void serial_setkeyval_run(char *line) {
-
-  char key[200];
-  char val[200];
-
-  int eqpos=-1;
-  int len=strlen(line);
-  for(int n=0;n<len;n++) {
-    if(line[n] == '=') {
-      eqpos = n;
-    }
-  }
-  
-  if(eqpos==-1) return;
-
-  for(int n=0;n<eqpos;n++) {
-    key[n]=line[n];
-    key[n+1]=0;
-  }
-
-  eqpos+=1;
-  for(int n=eqpos;n<=len ;n++) {
-    val[n-eqpos]=line[n];
-    val[n-eqpos+1]=0;
-  }
-  
-  flashstorage_keyval_set(key,val);
-}
-
-bool in_setrtc=false;
-
-void serial_setrtc() {
-
-  char info[100];
-  sprintf(info,"Current unixtime is %u\r\n",realtime_get_unixtime());
-  serial_write_string(info);
-  serial_write_string("#>");
-  in_setrtc=true;
-}
-
-void serial_setrtc_run(char *line) {
-
-  uint32_t unixtime = 0;
-  sscanf(line,"%u\r\n",&unixtime);
- 
-  realtime_set_unixtime(unixtime); 
-}
-
-void serial_keyvaldump() {
-
-  char key[100];
-  char val[100];
-
-  char str[200];
-  sprintf(str,"key=val\r\n");
-  serial_write_string(str);
-  for(int n=0;;n++) {
-    flashstorage_keyval_by_idx(n,key,val);
-    if(key[0] == 0) return;
-    sprintf(str,"%s=%s\r\n",key,val);
-    serial_write_string(str);
-  }
-
-}
+*/
 
 
 char currentline[1024];
 uint32_t currentline_position=0;
-
-
-void serial_process_command(char *line) {
-
-  if(in_displayparams) {
-    serial_displayparams_run(line);
-    in_displayparams = false;
-  }
-
-  if(in_setdevicetag) {
-    serial_setdevicetag_run(line);
-    in_setdevicetag = false;
-  }
-
-  if(in_setrtc) {
-    serial_setrtc_run(line);
-    in_setrtc = false;
-  }
-
-  if(in_setkeyval) {
-    serial_setkeyval_run(line);
-    in_setkeyval = false;
-  }
-
-  serial_write_string("\r\n");
-  if(strcmp(line,"HELLO") == 0) {
-   serial_write_string("GREETINGS PROFESSOR FALKEN.\r\n");
-  } else 
-  if(strcmp(line,"LIST GAMES") == 0) {
-    serial_write_string("I'M KIND OF BORED OF GAMES, TURNS OUT THE ONLY WAY TO WIN IS NOT TO PLAY...\r\n");
-  } else 
-  if(strcmp(line,"LOGXFER") == 0) {
-    serial_sendlog();
-  } else 
-  if(strcmp(line,"DISPLAYPARAMS") == 0) {
-    serial_displayparams();
-  } else
-  if(strcmp(line,"HELP") == 0) {
-    serial_write_string("Available commands: HELP, LOGXFER, DISPLAYTEST, HELLO");
-  } else 
-  if(strcmp(line,"DISPLAYTEST") == 0) {
-    display_test();
-  } else
-  if(strcmp(line,"LOGTEST") == 0) {
-    char stemp[100];
-
-    sprintf(stemp,"Raw log data\r\n");
-    serial_write_string(stemp);
-
-    uint8_t *flash_log = flashstorage_log_get();
-    for(int n=0;n<1024;n++) {
-      sprintf(stemp,"%u ",flash_log[n]);
-      serial_write_string(stemp);
-      if(n%64 == 0) serial_write_string("\r\n");
-    }
-    serial_write_string("\r\n");
-
-    log_data_t data;
-    data.time = 0;
-    data.cpm  = 1;
-    data.accel_x_start = 2;
-    data.accel_y_start = 3;
-    data.accel_z_start = 4;
-    data.accel_x_end   = 5;
-    data.accel_y_end   = 6;
-    data.accel_z_end   = 7;
-    data.log_type      = UINT_MAX;
-    sprintf(stemp,"Log size: %u\r\n",flashstorage_log_size());
-    serial_write_string(stemp);
-
-    sprintf(stemp,"Writing test log entry of size: %u\r\n",sizeof(log_data_t));
-    serial_write_string(stemp);
-
-    flashstorage_log_pushback((uint8 *) &data,sizeof(log_data_t));
-
-    sprintf(stemp,"Log size: %u\r\n",flashstorage_log_size());
-    serial_write_string(stemp);
-  } else 
-  if(strcmp(line,"VERSION") == 0) {
-    char stemp[50];
-    sprintf(stemp,"Version: %s\r\n",OS100VERSION);
-    serial_write_string(stemp);
-  } else 
-  if(strcmp(line,"GETDEVICETAG") == 0) {
-    const char *devicetag = flashstorage_keyval_get("DEVICETAG");
-    if(devicetag != 0) {
-      char stemp[100];
-      sprintf(stemp,"Devicetag: %s\r\n",devicetag);
-      serial_write_string(stemp);
-    } else {
-      serial_write_string("No device tag set");
-    }
-  } else
-  if(strcmp(line,"SETDEVICETAG") == 0) {
-    serial_setdevicetag();
-  } else 
-  if(strcmp(line,"READPRIVATEKEY") == 0) {
-   // serial_readprivatekey();  // removed for production
-  } else
-  if(strcmp(line,"WRITEPRIVATEKEY") == 0) {
-   // serial_writeprivatekey(); // maybe this should be removed for production?
-  } else 
-  if(strcmp(line,"MAGREAD") == 0) {
-    gpio_set_mode (PIN_MAP[41].gpio_device,PIN_MAP[41].gpio_bit, GPIO_OUTPUT_PP); // MAGPOWER
-    gpio_set_mode (PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit, GPIO_INPUT_PU);  // MAGSENSE
-
-    // Power up magsense
-    gpio_write_bit(PIN_MAP[41].gpio_device,PIN_MAP[41].gpio_bit,1);
-
-    // wait...
-    delay_us(1000);
-    
-    // Read magsense
-    int magsense = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
-
-    char magsenses[50];
-    sprintf(magsenses,"%u\r\n",magsense);
-    serial_write_string(magsenses);
-  } else
-  if(strcmp(line,"WRITEDAC") == 0) {
-    dac_init(DAC,DAC_CH2);
-
-    int8_t idelta=1;
-    uint8_t i=0;
-    for(int n=0;n<1000000;n++) {
-      
-      if(i == 254) idelta = -1;
-      if(i == 0  ) idelta =  1;
-
-      i += idelta;
-
-      dac_write_channel(DAC,2,i);
-    }
-    serial_write_string("WRITEDACFIN");
-  } else
-  if(strcmp(line,"TESTHP") == 0) {
-    gpio_set_mode (PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit, GPIO_OUTPUT_PP);  // HP_COMBINED
-    for(int n=0;n<100000;n++) {
-      gpio_write_bit(PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,1);
-      delay_us(100);
-      gpio_write_bit(PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,0);
-      delay_us(100);
-    }
-  } else 
-  if(strcmp(line,"READADC") == 0) {
-
-    adc_init(PIN_MAP[12].adc_device); // all on ADC1
-
-    adc_set_extsel(PIN_MAP[12].adc_device, ADC_SWSTART);
-    adc_set_exttrig(PIN_MAP[12].adc_device, true);
-
-    adc_enable(PIN_MAP[12].adc_device);
-    adc_calibrate(PIN_MAP[12].adc_device);
-    adc_set_sample_rate(PIN_MAP[12].adc_device, ADC_SMPR_55_5);
-
-    gpio_set_mode (PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit, GPIO_INPUT_ANALOG);
-    gpio_set_mode (PIN_MAP[19].gpio_device,PIN_MAP[19].gpio_bit, GPIO_INPUT_ANALOG);
-    gpio_set_mode (PIN_MAP[20].gpio_device,PIN_MAP[20].gpio_bit, GPIO_INPUT_ANALOG);
-
-    int n=0;
-    uint16 value1 = adc_read(PIN_MAP[12].adc_device,PIN_MAP[12].adc_channel);
-    uint16 value2 = adc_read(PIN_MAP[19].adc_device,PIN_MAP[19].adc_channel);
-    uint16 value3 = adc_read(PIN_MAP[20].adc_device,PIN_MAP[20].adc_channel);
-    char values[50];
-    sprintf(values,"PA6 ADC Read: %u\r\n",value1);
-    serial_write_string(values);
-    sprintf(values,"PC4 ADC Read: %u\r\n",value2);
-    serial_write_string(values);
-    sprintf(values,"PC5 ADC Read: %u\r\n",value3);
-    serial_write_string(values);
-  } else
-  if(strcmp(line,"SETMICREVERSE") == 0) {
-    gpio_set_mode (PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit, GPIO_OUTPUT_PP);  // MICREVERSE
-    gpio_set_mode (PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit, GPIO_OUTPUT_PP);  // MICIPHONE
-    gpio_write_bit(PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,1); // MICREVERSE
-    gpio_write_bit(PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit,0); // MICIPHONE
-    serial_write_string("Set MICREVERSE to 1, MICIPHONE to 0\r\n");
-  } else 
-  if(strcmp(line,"SETMICIPHONE") == 0) {
-    gpio_set_mode (PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit, GPIO_OUTPUT_PP);  // MICREVERSE
-    gpio_set_mode (PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit, GPIO_OUTPUT_PP);  // MICIPHONE
-    gpio_write_bit(PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,0); // MICREVERSE
-    gpio_write_bit(PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit,1); // MICIPHONE
-    serial_write_string("Set MICREVERSE to 0, MICIPHONE to 1\r\n");
-  } else
-  if(strcmp(line,"TESTSIGN") == 0) {
-    serial_signing_test();
-  } else 
-  if(strcmp(line,"PUBKEY") == 0) {
-    signing_printPubKey();
-    serial_write_string("\n\r");
-  } else 
-  if(strcmp(line,"GUID") == 0) {
-    signing_printGUID();
-    serial_write_string("\n\r");
-  } else 
-  if(strcmp(line,"KEYVALID") == 0) {
-    if( signing_isKeyValid() == 1 )
-      serial_write_string("uu_valid VALID KEY\r\n");
-    else
-      serial_write_string("uu_valid IMPROPER OR UNINITIALIZED KEY\r\n");
-  } else 
-  if(strcmp(line,"LOGSIG") == 0) {
-    signing_hashLog();
-    serial_write_string("\n\r");
-  } else
-  if(strcmp(line,"LOGPAUSE") == 0) {
-    flashstorage_log_pause();
-  } else 
-  if(strcmp(line,"LOGRESUME") == 0) {
-    flashstorage_log_resume();
-  } else
-  if(strcmp(line,"LOGCLEAR") == 0) {
-    serial_write_string("Clearing flash log\r\n");
-    flashstorage_log_clear();
-    serial_write_string("Cleared\r\n");
-  } else
-  if(strcmp(line,"KEYVALDUMP") == 0) {
-    serial_keyvaldump();
-  } else
-  if(strcmp(line,"KEYVALSET") == 0) {
-    serial_setkeyval();
-  } else
-  if(strcmp(line,"SETRTC") == 0) {
-    serial_setrtc();
-  } else
-  if(strcmp(line,"RTCALARM") == 0) {
-    serial_write_string("Alarm triggered for 10s\r\n");
-    rtc_set_alarm(RTC,rtc_get_time(RTC)+10);
-  }
-
-  serial_write_string("\r\n>");
-}
 
 void serial_eventloop() {
   char buf[1024];

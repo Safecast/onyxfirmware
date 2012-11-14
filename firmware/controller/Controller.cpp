@@ -463,13 +463,7 @@ void Controller::receive_gui_event(char *event,char *value) {
       m_gui->receive_update("TIMESEC2",&s2);
     } 
   } else
-  if(strcmp(event,"Serial Transfer") == 0) {
-    display_draw_text(0,48,"Sending Log",0);
-    serial_sendlog();
-    display_draw_text(0,48,"Xfer Complete",0);
-  } else 
   if(strcmp(event,"QR Transfer") == 0) {
- //   display_draw_text(0,100,"QR Xfer",0);
     qr_logxfer();
   } else
   if(strcmp(event,"QR Tweet") == 0) {
