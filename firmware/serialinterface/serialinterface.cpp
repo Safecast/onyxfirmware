@@ -15,7 +15,7 @@
 #include "realtime.h"
 #include <stdint.h>
 #include <inttypes.h>
-
+#include "captouch.h"
 
 extern "C" {
   void signing_test();
@@ -382,6 +382,55 @@ void cmd_setalarm(char *line) {
   rtc_set_alarm(RTC,rtc_get_time(RTC)+10);
 }
 
+
+void cmd_captouchparams_run(char *line) {
+
+  uint8_t mhd_r, nhd_r, ncl_r, fdl_r;
+  uint8_t mhd_f, nhd_f, ncl_f, fdl_f;
+  uint8_t dbr,touchthres,relthres;
+
+  sscanf(line,"%"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8""
+             ,&mhd_r,&nhd_r,&ncl_r,&fdl_r
+             ,&mhd_f,&nhd_f,&ncl_f,&fdl_f
+             ,&dbr,&touchthres,&relthres);
+  
+  char outline[1024];
+  sprintf(outline,"Read values: %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8"\n"
+             ,mhd_r,nhd_r,ncl_r,fdl_r
+             ,mhd_f,nhd_f,ncl_f,fdl_f
+             ,dbr,touchthres,relthres);
+  serial_write_string(outline); 
+
+  cap_set_mhd_r(mhd_r);
+  cap_set_nhd_r(nhd_r);
+  cap_set_ncl_r(ncl_r);
+  cap_set_fdl_r(fdl_r);
+
+  cap_set_mhd_f(mhd_f);
+  cap_set_nhd_f(nhd_f);
+  cap_set_ncl_f(ncl_f);
+  cap_set_fdl_f(fdl_f);
+
+  cap_set_dbr  (dbr);
+  cap_set_touch_threshold  (touchthres);
+  cap_set_release_threshold(relthres);
+
+  cap_deinit();
+  cap_init();
+  command_stack_pop();
+}
+
+
+void cmd_captouchparams(char *line) {
+  serial_write_string("CAPTOUCH PARAMS TEST\r\n");
+  serial_write_string("COMMAND IS: <MHD_R> <NHD_R> <NCL_R> <FDL_R> <MHD_F> <NHD_F> <NCL_F> <FDL_F> <DBR> <TOUCHTHRES> <RELTHRES>\r\n");
+  serial_write_string("#>");
+
+  command_stack[command_stack_size] = cmd_captouchparams_run;
+  command_stack_size++;
+}
+
+
 void register_cmds() {
 
   register_cmd("HELLO"        ,cmd_hello);
@@ -411,6 +460,7 @@ void register_cmds() {
   register_cmd("KEYVALSET"    ,cmd_keyvalset);
   register_cmd("SETRTC"       ,cmd_setrtc);
   register_cmd("SETALARM"     ,cmd_setalarm);
+  register_cmd("CAPTOUCHTEST" ,cmd_captouchparams);
 }
 
 void cmd_main_menu(char *line) {
