@@ -70,6 +70,11 @@ void serial_write_string(const char *str) {
   }
 }
 
+void command_stack_pop() {
+  command_stack_size--;
+  serial_write_string("\r\n>");
+}
+
 void cmd_hello(char *line) {
  serial_write_string("GREETINGS PROFESSOR FALKEN.\r\n");
 }
@@ -105,7 +110,7 @@ void serial_displayparams_run(char *line) {
   serial_write_string(outline); 
 
   oled_reinit(clock,multiplex,functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh);
-  command_stack_size--;
+  command_stack_pop();
 }
 
 void cmd_displayparams(char *line) {
@@ -124,7 +129,8 @@ void cmd_help(char *line) {
   serial_write_string("Available commands: ");
   for(int n=0;n<command_list_size;n++) {
     serial_write_string(command_list[n]);
-    serial_write_string(" ");
+    serial_write_string(" , ");
+    if((n%10 == 0) && (n != 0)) serial_write_string("\r\n");
   }
   serial_write_string("\n");
 
@@ -135,9 +141,9 @@ void cmd_displaytest(char *line) {
 }
 
 void cmd_version(char *line) {
-  char stemp[50];
-  printf(stemp,"Version: %s\r\n",OS100VERSION);
-  serial_write_string(stemp);
+  serial_write_string("Version: ");
+  serial_write_string(OS100VERSION);
+  serial_write_string("\r\n");
 }
 
 void cmd_getdevicetag(char *line) {
@@ -158,7 +164,7 @@ void serial_setdevicetag_run(char *line) {
   sscanf(line,"%s\r\n",devicetag);
 
   flashstorage_keyval_set("DEVICETAG",devicetag);
-  command_stack_size--;
+  command_stack_pop();
 }
 
 void cmd_setdevicetag(char *line) {
@@ -341,7 +347,6 @@ void serial_setkeyval_run(char *line) {
   }
   
   flashstorage_keyval_set(key,val);
-  command_stack_size--;
 }
 
 void cmd_keyvalset(char *line) {
@@ -352,13 +357,14 @@ void cmd_keyvalset(char *line) {
   command_stack_size++;
 }
 
+
 void serial_setrtc_run(char *line) {
 
   uint32_t unixtime = 0;
   sscanf(line,"%"PRIu32"\r\n",&unixtime);
  
-  realtime_set_unixtime(unixtime); 
-  command_stack_size--;
+  realtime_set_unixtime(unixtime);
+  command_stack_pop();
 }
 
 void cmd_setrtc(char *line) {
@@ -412,11 +418,10 @@ void cmd_main_menu(char *line) {
   for(int n=0;n<command_list_size;n++) {
     if(strcmp(line,command_list[n]) == 0) {
       (*command_funcs[n])(line);
-      return;
     }
   }
  
-  serial_write_string("\r\n>");
+  if(command_stack_size == 1) serial_write_string("\r\n>");
 }
 
 void serial_initialise() {
