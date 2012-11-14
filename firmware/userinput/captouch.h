@@ -13,7 +13,7 @@ void cap_init(void);
 void cap_deinit(void);
 int cap_lastkey();
 void cap_clearlastkey();
-char *diag_data(int e);
+char *cap_diagdata(int e);
 bool cap_check();
 bool cap_ispressed(int key);
 

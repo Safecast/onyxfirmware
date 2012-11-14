@@ -7,7 +7,7 @@
 #include "UserInput.h"
 
 #define MAX_SCREEN_STACK 10
-#define NEW_KEYS_MAX_SIZE 10
+#define NEW_KEYS_MAX_SIZE 40
 #define FOREGROUND_COLOR 65535
 #define BACKGROUND_COLOR 0
 #define HEADER_COLOR_NORMAL 0xF800
@@ -34,6 +34,7 @@ class GUI {
 private:
   int current_screen;
   int selected_item;
+  int last_selected_item;
 
 public:
 
@@ -72,6 +73,7 @@ private:
   void clear_screen(int32_t c_screen,int32_t c_selected);
   void show_help_screen(uint8_t help_screen);
   void leave_screen_actions(int screen);
+  void clear_pending_keys();
 
   int32_t clear_screen_selected;
   int32_t clear_screen_screen;
@@ -81,7 +83,9 @@ private:
   bool    m_redraw;
   bool    m_screen_lock;
 
-  int new_keys_size;
+
+  int new_keys_start;
+  int new_keys_end;
   int new_keys_key [NEW_KEYS_MAX_SIZE];
   int new_keys_type[NEW_KEYS_MAX_SIZE];
   bool m_displaying_dialog;
@@ -97,6 +101,7 @@ private:
   int m_repeat_time;
   int m_repeat_delay;
   bool m_displaying_help;
+  bool m_repeated;
 };
 
 void tick_item(char *name,bool tick_val);

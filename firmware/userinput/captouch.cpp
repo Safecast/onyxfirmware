@@ -5,7 +5,9 @@
 #include <stdio.h>
 #include "captouch.h"
 #include "realtime.h"
+#include "buzzer.h"
 #include "GUI.h"
+#include "serialinterface.h"
 
 #define CAPTOUCH_ADDR 0x5A
 #define CAPTOUCH_I2C I2C1
@@ -63,7 +65,7 @@ static uint8 mpr121Read(uint8 addr) {
 }
 
 char c[100];
-char *diag_data(int e) {
+char *cap_diagdata(int e) {
 
   int elech;
   int elecl;
@@ -108,7 +110,11 @@ char *diag_data(int e) {
 
   int bs = mpr121Read(TCH_STATL);
       bs = bs | ((0x1F & mpr121Read(TCH_STATH)) << 8);
-  sprintf(c,"%d %d %d  ",elecv,elec_base,bs);
+
+  int is_pressed=0;
+  if(bs & (1 << e)) is_pressed=1; else is_pressed=0;
+
+  sprintf(c,"%d %d %d %d",elecv,elec_base,bs,is_pressed);
 
   return c; 
 }
@@ -154,8 +160,21 @@ static void cap_change(void) {
   key_state  = mpr121Read(TCH_STATL);
   key_state |= mpr121Read(TCH_STATH) << 8;
 
+
+  // there appears to be a bug where it suddenly outputs a lot of bits set.
+  unsigned int v=key_state; // count the number of bits set in v
+  unsigned int c; // c accumulates the total bits set in v
+  for (c = 0; v; c++) {
+    v &= v - 1; // clear the least significant bit set
+  }
+  if(c > 3) return;
+
+
   // clear unconnected electrodes
   key_state &= touchList;
+  //char s[50];
+  //sprintf(s,"cappress: %d\r\n",key_state);
+  //serial_write_string(s);
 
   // detect keys pressed
   int keys_pressed = key_state & (~last_key_state); //TODO: ! bitwise NOT
@@ -189,7 +208,6 @@ static void cap_change(void) {
     }
     last_key_state = key_state;
   }
-
 
 }
 
@@ -236,6 +254,20 @@ void cap_set_touch_threshold  (uint8_t v) { cap_touch_threshold   = v; }
 void cap_set_release_threshold(uint8_t v) { cap_release_threshold = v; }
 
 void cap_init(void) {
+
+    // 63 2 4 1 63 2 4 1 0 8 4
+    cap_set_mhd_r(63);
+    cap_set_nhd_r(2);
+    cap_set_ncl_r(4);
+    cap_set_fdl_r(1);
+    cap_set_mhd_f(63);
+    cap_set_nhd_f(2);
+    cap_set_ncl_r(4);
+    cap_set_fdl_f(1);
+    cap_set_dbr(0);
+    cap_set_touch_threshold(8);
+    cap_set_release_threshold(4);
+
     gpio_set_mode(PIN_MAP[9].gpio_device,PIN_MAP[9].gpio_bit,GPIO_OUTPUT_PP);
     gpio_set_mode(PIN_MAP[5].gpio_device,PIN_MAP[5].gpio_bit,GPIO_OUTPUT_PP);
     gpio_write_bit(PIN_MAP[9].gpio_device,PIN_MAP[9].gpio_bit,1);
@@ -261,8 +293,8 @@ void cap_init(void) {
 
     mpr121Write(MHD_F, cap_mhd_f); // (1 to 63) largest value to pass through filer
     mpr121Write(NHD_F, cap_nhd_f); // (1 to 63) maximum change allowed
-    mpr121Write(NCL_F, cap_ncl_f); // 
-    mpr121Write(FDL_F, cap_fdl_f); // 
+    mpr121Write(NCL_F, cap_ncl_f); // (0 to 255) number of samples required to determine non-noise
+    mpr121Write(FDL_F, cap_fdl_f); // (0 to 255) rate of filter operation, larger = slower.
     
     //mpr121Write(NHD_T, 0x01); // (1 to 63) maximum change allowed
     //mpr121Write(NCL_T, 0xFF); // 

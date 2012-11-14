@@ -385,17 +385,17 @@ void cmd_setalarm(char *line) {
 
 void cmd_captouchparams_run(char *line) {
 
-  uint8_t mhd_r, nhd_r, ncl_r, fdl_r;
-  uint8_t mhd_f, nhd_f, ncl_f, fdl_f;
-  uint8_t dbr,touchthres,relthres;
+  uint32_t mhd_r, nhd_r, ncl_r, fdl_r;
+  uint32_t mhd_f, nhd_f, ncl_f, fdl_f;
+  uint32_t dbr,touchthres,relthres;
 
-  sscanf(line,"%"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8""
+  sscanf(line,"%"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32""
              ,&mhd_r,&nhd_r,&ncl_r,&fdl_r
              ,&mhd_f,&nhd_f,&ncl_f,&fdl_f
              ,&dbr,&touchthres,&relthres);
   
   char outline[1024];
-  sprintf(outline,"Read values: %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8" %"PRIu8"\n"
+  sprintf(outline,"Read values: %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32"\n"
              ,mhd_r,nhd_r,ncl_r,fdl_r
              ,mhd_f,nhd_f,ncl_f,fdl_f
              ,dbr,touchthres,relthres);
@@ -430,6 +430,16 @@ void cmd_captouchparams(char *line) {
   command_stack_size++;
 }
 
+void cmd_captouchdump(char *line) {
+
+  serial_write_string("CAPTOUCH ELECTRODE STATE\r\n");
+  serial_write_string("ELECV ELECBASELINE KEYSTATE THISKEYSTATE\r\n");
+  for(int n=0;n<11;n++) {
+    char *s = cap_diagdata(n);
+    serial_write_string(s);
+    serial_write_string("\r\n");
+  }
+}
 
 void register_cmds() {
 
@@ -461,6 +471,7 @@ void register_cmds() {
   register_cmd("SETRTC"       ,cmd_setrtc);
   register_cmd("SETALARM"     ,cmd_setalarm);
   register_cmd("CAPTOUCHTEST" ,cmd_captouchparams);
+  register_cmd("CAPTOUCHDUMP" ,cmd_captouchdump);
 }
 
 void cmd_main_menu(char *line) {
