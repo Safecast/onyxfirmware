@@ -1,4 +1,12 @@
-udev rules for auto-programming devices when plugged in
+Note: when using this to program devices, you will want to have ntp
+installed. This is because this program will also initialize the
+RTC on the device, and you'd like the programmer to have an accurate
+time. To do this, run
+
+sudo apt-get install ntp
+
+Now, on with the program. This directory contains udev rules for
+auto-programming devices when plugged in
 
 To use:
 

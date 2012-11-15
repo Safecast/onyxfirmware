@@ -5,7 +5,9 @@
 #include <stdio.h>
 #include "captouch.h"
 #include "realtime.h"
+#include "buzzer.h"
 #include "GUI.h"
+#include "serialinterface.h"
 
 #define CAPTOUCH_ADDR 0x5A
 #define CAPTOUCH_I2C I2C1
@@ -63,7 +65,7 @@ static uint8 mpr121Read(uint8 addr) {
 }
 
 char c[100];
-char *diag_data(int e) {
+char *cap_diagdata(int e) {
 
   int elech;
   int elecl;
@@ -108,7 +110,11 @@ char *diag_data(int e) {
 
   int bs = mpr121Read(TCH_STATL);
       bs = bs | ((0x1F & mpr121Read(TCH_STATH)) << 8);
-  sprintf(c,"%d %d %d  ",elecv,elec_base,bs);
+
+  int is_pressed=0;
+  if(bs & (1 << e)) is_pressed=1; else is_pressed=0;
+
+  sprintf(c,"%d %d %d %d",elecv,elec_base,bs,is_pressed);
 
   return c; 
 }
@@ -149,12 +155,26 @@ void cap_clear_press() {
 
 static void cap_change(void) {
 
+  // first read
   int key_state=0;
   key_state  = mpr121Read(TCH_STATL);
   key_state |= mpr121Read(TCH_STATH) << 8;
 
+
+  // there appears to be a bug where it suddenly outputs a lot of bits set.
+  unsigned int v=key_state; // count the number of bits set in v
+  unsigned int c; // c accumulates the total bits set in v
+  for (c = 0; v; c++) {
+    v &= v - 1; // clear the least significant bit set
+  }
+  if(c > 3) return;
+
+
   // clear unconnected electrodes
   key_state &= touchList;
+  //char s[50];
+  //sprintf(s,"cappress: %d\r\n",key_state);
+  //serial_write_string(s);
 
   // detect keys pressed
   int keys_pressed = key_state & (~last_key_state); //TODO: ! bitwise NOT
@@ -162,16 +182,33 @@ static void cap_change(void) {
   // detect keys released
   int keys_released  = (~key_state) & last_key_state; //TODO: ! bitwise NOT
 
+  //delay_us(100);
+  // second read
+  //int key_state2=0;
+  //key_state2  = mpr121Read(TCH_STATL);
+  //key_state2 |= mpr121Read(TCH_STATH) << 8;
 
-  if(!captouch_disable_messages) {
+  // clear unconnected electrodes
+  //key_state2 &= touchList;
+
+  // detect keys pressed
+  //int keys_pressed2 = key_state & (~last_key_state); //TODO: ! bitwise NOT
+
+  // detect keys released
+  //int keys_released2  = (~key_state) & last_key_state; //TODO: ! bitwise NOT
+
+   bool readok=true;
+  //bool readok=false;
+  //if((keys_pressed == keys_pressed2) && (keys_released == keys_released2)) readok=true;
+
+  if((!captouch_disable_messages) && (readok == true)) {
     for (int key=0; key<16; key++) {
       if (keys_pressed &(1<<key)) { system_gui->receive_key(key,KEY_PRESSED );   press_time[key] = realtime_get_unixtime(); press_time_any=realtime_get_unixtime(); }
       if (keys_released&(1<<key)) { system_gui->receive_key(key,KEY_RELEASED); release_time[key] = realtime_get_unixtime(); release_time_any = realtime_get_unixtime(); }
     }
+    last_key_state = key_state;
   }
 
-
-  last_key_state = key_state;
 }
 
 bool cap_ispressed(int key) {
@@ -187,8 +224,50 @@ int cap_lastkey() {
   return last_key_state;
 }
 
+uint8_t cap_mhd_r = 0x01;
+uint8_t cap_nhd_r = 0x01;
+uint8_t cap_ncl_r = 0xFF;
+uint8_t cap_fdl_r = 0x02;
+
+uint8_t cap_mhd_f = 0x01;
+uint8_t cap_nhd_f = 0x01;
+uint8_t cap_ncl_f = 0xFF;
+uint8_t cap_fdl_f = 0x02;
+
+uint8_t cap_dbr   = 0x77;
+
+uint8_t cap_touch_threshold   = 0x0F;
+uint8_t cap_release_threshold = 0x0A;
+
+void cap_set_mhd_r(uint8_t v) { cap_mhd_r = v; }
+void cap_set_nhd_r(uint8_t v) { cap_nhd_r = v; }
+void cap_set_ncl_r(uint8_t v) { cap_ncl_r = v; }
+void cap_set_fdl_r(uint8_t v) { cap_fdl_r = v; }
+
+void cap_set_mhd_f(uint8_t v) { cap_mhd_f = v; }
+void cap_set_nhd_f(uint8_t v) { cap_nhd_f = v; }
+void cap_set_ncl_f(uint8_t v) { cap_ncl_f = v; }
+void cap_set_fdl_f(uint8_t v) { cap_fdl_f = v; }
+
+void cap_set_dbr  (uint8_t v) { cap_dbr = v; }
+void cap_set_touch_threshold  (uint8_t v) { cap_touch_threshold   = v; }
+void cap_set_release_threshold(uint8_t v) { cap_release_threshold = v; }
 
 void cap_init(void) {
+
+    // 63 2 4 1 63 2 4 1 0 8 4
+    cap_set_mhd_r(63);
+    cap_set_nhd_r(2);
+    cap_set_ncl_r(4);
+    cap_set_fdl_r(1);
+    cap_set_mhd_f(63);
+    cap_set_nhd_f(2);
+    cap_set_ncl_r(4);
+    cap_set_fdl_f(1);
+    cap_set_dbr(0);
+    cap_set_touch_threshold(8);
+    cap_set_release_threshold(4);
+
     gpio_set_mode(PIN_MAP[9].gpio_device,PIN_MAP[9].gpio_bit,GPIO_OUTPUT_PP);
     gpio_set_mode(PIN_MAP[5].gpio_device,PIN_MAP[5].gpio_bit,GPIO_OUTPUT_PP);
     gpio_write_bit(PIN_MAP[9].gpio_device,PIN_MAP[9].gpio_bit,1);
@@ -206,17 +285,20 @@ void cap_init(void) {
     mpr121Write(ELE_CFG, 0x00);   // disable electrodes for config
     delay_us(100);
 
-    // Section A
-    mpr121Write(MHD_R, 0x3F); // was 0x01 
-    mpr121Write(NHD_R, 0x02); // was 0x02
-    mpr121Write(NCL_R, 0xFF); // was 0x00 
-    mpr121Write(FDL_R, 0x00); // was 0x08
+    // Section A and B - R (rise) F (fall) T (touch)
+    mpr121Write(MHD_R, cap_mhd_r); // (1 to 63)
+    mpr121Write(NHD_R, cap_nhd_r); // (1 to 63)
+    mpr121Write(NCL_R, cap_ncl_r); // (0 to 255) 
+    mpr121Write(FDL_R, cap_fdl_r); // (0 to 255)
 
-    // Section B
-    mpr121Write(MHD_F, 0x3F); // was 0x01 , largest value to pass through filer
-    mpr121Write(NHD_F, 0x02); // was 0x02 , maximum change allowed
-    mpr121Write(NCL_F, 0xFF); // was 0xFF
-    mpr121Write(FDL_F, 0x00); // was 0x08
+    mpr121Write(MHD_F, cap_mhd_f); // (1 to 63) largest value to pass through filer
+    mpr121Write(NHD_F, cap_nhd_f); // (1 to 63) maximum change allowed
+    mpr121Write(NCL_F, cap_ncl_f); // (0 to 255) number of samples required to determine non-noise
+    mpr121Write(FDL_F, cap_fdl_f); // (0 to 255) rate of filter operation, larger = slower.
+    
+    //mpr121Write(NHD_T, 0x01); // (1 to 63) maximum change allowed
+    //mpr121Write(NCL_T, 0xFF); // 
+    //mpr121Write(FDL_T, 0x02); // 
 
     // Section D
     // Set the Filter Configuration
@@ -224,11 +306,10 @@ void cap_init(void) {
 
     // was 0x01, 0x25
     mpr121Write(AFE_CONF, 0x01); //AFE_CONF  0x5C
-    mpr121Write(FIL_CFG , 0x25); //FIL_CFG   0x5D
+    mpr121Write(FIL_CFG , 0x04); //FIL_CFG   0x5D
 
     // Section F
-    //mpr121Write(ATO_CFG0, 0x05); // ATO_CFG0 0x7B
-    mpr121Write(ATO_CFG0, 0x05); // ATO_CFG0 0x7B
+    mpr121Write(ATO_CFG0, 0x0B); // ATO_CFG0 0x7B
 
     // limits
     // was0xFF,0x00,0x0E
@@ -236,32 +317,35 @@ void cap_init(void) {
     mpr121Write(ATO_CFGL, 0x65); // ATO_CFGL 0x7E
     mpr121Write(ATO_CFGT, 0x8C); // ATO_CFGT 0x7F
 
+    // enable debouncing
+    mpr121Write(DBR     , cap_dbr); // set debouncing, in this case 7 for both touch and release.
+
     // Section C
     // This group sets touch and release thresholds for each electrode
-    mpr121Write(ELE0_T , TOU_THRESH);
-    mpr121Write(ELE0_R , REL_THRESH);
-    mpr121Write(ELE1_T , TOU_THRESH);
-    mpr121Write(ELE1_R , REL_THRESH);
-    mpr121Write(ELE2_T , TOU_THRESH);
-    mpr121Write(ELE2_R , REL_THRESH);
-    mpr121Write(ELE3_T , TOU_THRESH);
-    mpr121Write(ELE3_R , REL_THRESH);
-    mpr121Write(ELE4_T , TOU_THRESH);
-    mpr121Write(ELE4_R , REL_THRESH);
-    mpr121Write(ELE5_T , TOU_THRESH);
-    mpr121Write(ELE5_R , REL_THRESH);
-    mpr121Write(ELE6_T , TOU_THRESH);
-    mpr121Write(ELE6_R , REL_THRESH);
-    mpr121Write(ELE7_T , TOU_THRESH);
-    mpr121Write(ELE7_R , REL_THRESH);
-    mpr121Write(ELE8_T , TOU_THRESH);
-    mpr121Write(ELE8_R , REL_THRESH);
-    mpr121Write(ELE9_T , TOU_THRESH);
-    mpr121Write(ELE9_R , REL_THRESH);
-    mpr121Write(ELE10_T, TOU_THRESH);
-    mpr121Write(ELE10_R, REL_THRESH);
-    mpr121Write(ELE11_T, TOU_THRESH);
-    mpr121Write(ELE11_R, REL_THRESH);
+    mpr121Write(ELE0_T , cap_touch_threshold);
+    mpr121Write(ELE0_R , cap_release_threshold);
+    mpr121Write(ELE1_T , cap_touch_threshold);
+    mpr121Write(ELE1_R , cap_release_threshold);
+    mpr121Write(ELE2_T , cap_touch_threshold);
+    mpr121Write(ELE2_R , cap_release_threshold);
+    mpr121Write(ELE3_T , cap_touch_threshold);
+    mpr121Write(ELE3_R , cap_release_threshold);
+    mpr121Write(ELE4_T , cap_touch_threshold);
+    mpr121Write(ELE4_R , cap_release_threshold);
+    mpr121Write(ELE5_T , cap_touch_threshold);
+    mpr121Write(ELE5_R , cap_release_threshold);
+    mpr121Write(ELE6_T , cap_touch_threshold);
+    mpr121Write(ELE6_R , cap_release_threshold);
+    mpr121Write(ELE7_T , cap_touch_threshold);
+    mpr121Write(ELE7_R , cap_release_threshold);
+    mpr121Write(ELE8_T , cap_touch_threshold);
+    mpr121Write(ELE8_R , cap_release_threshold);
+    mpr121Write(ELE9_T , cap_touch_threshold);
+    mpr121Write(ELE9_R , cap_release_threshold);
+    mpr121Write(ELE10_T, cap_touch_threshold);
+    mpr121Write(ELE10_R, cap_release_threshold);
+    mpr121Write(ELE11_T, cap_touch_threshold);
+    mpr121Write(ELE11_R, cap_release_threshold);
 
     delay_us(100);
 

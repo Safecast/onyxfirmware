@@ -13,7 +13,7 @@ void cap_init(void);
 void cap_deinit(void);
 int cap_lastkey();
 void cap_clearlastkey();
-char *diag_data(int e);
+char *cap_diagdata(int e);
 bool cap_check();
 bool cap_ispressed(int key);
 
@@ -24,5 +24,22 @@ uint32_t cap_last_press(int key);
 uint32_t cap_last_release(int key);
 void cap_clear_press();
 void cap_set_disable_messages(bool b);
+
+
+void cap_set_mhd_r(uint8_t v);
+void cap_set_nhd_r(uint8_t v);
+void cap_set_ncl_r(uint8_t v);
+void cap_set_fdl_r(uint8_t v);
+
+void cap_set_mhd_f(uint8_t v);
+void cap_set_nhd_f(uint8_t v);
+void cap_set_ncl_f(uint8_t v);
+void cap_set_fdl_f(uint8_t v);
+
+void cap_set_dbr  (uint8_t v);
+void cap_set_touch_threshold  (uint8_t v);
+void cap_set_release_threshold(uint8_t v);
+
+
 
 #endif /* __CAPTOUCH_H__ */

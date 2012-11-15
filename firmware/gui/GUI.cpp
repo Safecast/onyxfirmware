@@ -13,7 +13,7 @@
 #include <string.h>
 #include "buzzer.h"
 #include "captouch.h"
-
+#include "serialinterface.h"
 
 bool first_render=true;
 
@@ -734,6 +734,7 @@ void GUI::pop_stack(int &current_screen,int &selected_item) {
   if(selected_stack_size == 0) return;
 
   current_screen = selected_screen_stack[selected_stack_size-1];
+  last_selected_item = selected_item;
   selected_item  = selected_item_stack[selected_stack_size-1];
   selected_stack_size--;
 }
@@ -749,14 +750,17 @@ void GUI::push_stack(int current_screen,int selected_item) {
 
 GUI::GUI(Controller &r) : receive_gui_events(r) {
 
+  m_repeated =false;
   m_displaying_help = false;
   m_repeat_time = 0;
   m_repeat_delay= 8;
   m_repeating = false;
-  new_keys_size = 0;
+  new_keys_start = 0;
+  new_keys_end   = 0;
   clear_next_render=false;
   current_screen = 0;
   selected_item=1;
+  last_selected_item=1;
   clear_stack();
   m_trigger_any_key=false;
   m_sleeping=false;
@@ -799,19 +803,8 @@ void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,c
 void GUI::render() {
 
   if(m_sleeping) {
-     process_keys();
-     return;  
-  }
-
-  
-  if(m_repeating) {
-    // This would be better incremented in a timer, but I don't want to use another timer.
-    if(m_repeat_time == m_repeat_delay) {
-      if(m_repeat_key == KEY_DOWN) process_key_down();
-      if(m_repeat_key == KEY_UP  ) process_key_up();
-      m_repeat_time = 0;
-    }
-    m_repeat_time++;
+//     process_keys();
+    return;  
   }
 
   if(m_displaying_dialog) {
@@ -823,12 +816,30 @@ void GUI::render() {
     m_displaying_dialog_complete=false;
     m_pause_display_updates = false;
     display_clear(0);
+    clear_pending_keys();
     redraw();
   }
+  
+  if(m_repeating) {
+    // This would be better incremented in a timer, but I don't want to use another timer.
+    if(m_repeat_time == m_repeat_delay) {
+      // verify button still pressed
+      if(cap_ispressed(m_repeat_key) == false) {
+        m_repeating=false;
+        m_repeat_time=0;
+      } else {
+        if(m_repeat_key == KEY_DOWN) { receive_key(KEY_DOWN,KEY_PRESSED); }
+        if(m_repeat_key == KEY_UP  ) { receive_key(KEY_UP  ,KEY_PRESSED); }
+        m_repeat_time = 0;
+        m_repeated = true;
+      }
+    }
+    m_repeat_time++;
+  }
+
 
   // following two items really need to be atomic...
   int32_t cscreen = current_screen;
-  int32_t citem   = selected_item;
 
   if(clear_next_render) {
     clear_next_render=false;
@@ -850,26 +861,27 @@ void GUI::render() {
       }
     }
 
-    bool selected = false;
-    bool near_selected = false;
-    if(n == citem) selected = true;
+    //bool selected = false;
+    bool select_render = false;
+    if(n == selected_item     ) select_render = true;
+    if(n == last_selected_item) select_render = true;
 
-    if(n-1 == citem) near_selected = true;
-    if(n+1 == citem) near_selected = true;
-
-    if(n==0) near_selected = false;
-
-    if(first_render || (selected) || (near_selected) || do_redraw) {
-      bool do_render = true;
+    if(first_render || select_render || do_redraw) {
+      //bool do_render = true;
  
       // don't render labels, just because they are near other things...
-      if(!first_render && near_selected && (screens_layout[cscreen].items[n].type == ITEM_TYPE_LABEL)) {
-        do_render = false;
-      } 
+      //if(!first_render && select_render && (screens_layout[cscreen].items[n].type == ITEM_TYPE_LABEL)) {
+      //  do_render = false;
+      //} 
 
-      if(do_render) render_item(screens_layout[cscreen].items[n],selected);
+      //if(do_render)
+      bool selected = false;
+      if(selected_item == n) selected=true;
+      render_item(screens_layout[cscreen].items[n],selected);
     }
   }
+  //last_selected_item = selected_item;
+
   first_render=false;
   process_keys();
 }
@@ -896,6 +908,13 @@ void GUI::redraw() {
 }
 
 void GUI::receive_key(int key_id,int type) {
+  //char s[50];
+  //if(key_id == KEY_HELP  ) sprintf(s,"rkey: HELP   %d\r\n",type);
+  //if(key_id == KEY_UP    ) sprintf(s,"rkey: UP     %d\r\n",type);
+  //if(key_id == KEY_DOWN  ) sprintf(s,"rkey: DOWN   %d\r\n",type);
+  //if(key_id == KEY_SELECT) sprintf(s,"rkey: SELECT %d\r\n",type);
+  //if(key_id == KEY_HOME  ) sprintf(s,"rkey: HOME   %d\r\n",type);
+  //serial_write_string(s);
     
   // don't activate HELP key when in a help screen
   if((m_displaying_help == true) && (key_id == KEY_HELP)) return;
@@ -904,22 +923,35 @@ void GUI::receive_key(int key_id,int type) {
     m_displaying_dialog=false;
     m_displaying_help = false;
     m_displaying_dialog_complete=true;
+    return;
   }
+  
+//  char s[25];
+//  sprintf(s,"keys cache: %d %d\r\n",new_keys_start,new_keys_end);
+//  serial_write_string(s);
 
-  if(new_keys_size >= NEW_KEYS_MAX_SIZE) return;
+  new_keys_key [new_keys_end] = key_id;
+  new_keys_type[new_keys_end] = type;
+  new_keys_end++;
 
-  new_keys_key [new_keys_size] = key_id;
-  new_keys_type[new_keys_size] = type;
-  new_keys_size++;
+  if(new_keys_end >= NEW_KEYS_MAX_SIZE) new_keys_end=0;
+}
+    
+
+void GUI::clear_pending_keys() {
+  new_keys_end   = 0;
+  new_keys_start = 0;
 }
 
 void GUI::process_keys() {
 
-  //TODO: if a key press happens while we are in this loop, it will be lost
-  for(uint32_t n=0;n<new_keys_size;n++) {
-    process_key(new_keys_key[n],new_keys_type[n]);
+  if(new_keys_start != new_keys_end) {
+    process_key(new_keys_key[new_keys_start],new_keys_type[new_keys_start]);
+
+    new_keys_start++;
+    if(new_keys_start >= NEW_KEYS_MAX_SIZE) new_keys_start=0;
   }
-  new_keys_size=0;
+
 }
 
 void GUI::leave_screen_actions(int screen) {
@@ -943,9 +975,9 @@ void GUI::process_key_down() {
 		return;
 	}
 
-	selected_item++;
-	if(selected_item >= screens_layout[current_screen].item_count) {
-		selected_item = screens_layout[current_screen].item_count-1;
+	if((selected_item+1) < screens_layout[current_screen].item_count) {
+    last_selected_item = selected_item;
+	  selected_item++;
 	}
 }
 
@@ -963,10 +995,19 @@ void GUI::process_key_up() {
 
 
 	if(selected_item == 1) return;
+  last_selected_item = selected_item;
 	selected_item--;
 }
 
 void GUI::process_key(int key_id,int type) {
+
+  //char s[50];
+  //if(key_id == KEY_HELP  ) sprintf(s,"key: HELP   %d\r\n",type);
+  //if(key_id == KEY_UP    ) sprintf(s,"key: UP     %d\r\n",type);
+  //if(key_id == KEY_DOWN  ) sprintf(s,"key: DOWN   %d\r\n",type);
+  //if(key_id == KEY_SELECT) sprintf(s,"key: SELECT %d\r\n",type);
+  //if(key_id == KEY_HOME  ) sprintf(s,"key: HOME   %d\r\n",type);
+  //serial_write_string(s);
 
   if(m_screen_lock) return;
 
@@ -981,24 +1022,29 @@ void GUI::process_key(int key_id,int type) {
     if(screens_layout[current_screen].help_screen != 255) show_help_screen(screens_layout[current_screen].help_screen);
   }
 
+
   if((key_id == KEY_UP) && (type == KEY_PRESSED)) {
+    process_key_up();
     m_repeating=true;
     m_repeat_key = KEY_UP;
   }
 
   if((key_id == KEY_DOWN) && (type == KEY_PRESSED)) {
+    process_key_down();
     m_repeating=true;
     m_repeat_key = KEY_DOWN;
   }
 
   if((key_id == KEY_DOWN) && (type == KEY_RELEASED)) {
+//    if(!m_repeated) process_key_down();
     m_repeating=false;
-    process_key_down();
+    m_repeated =false;
   }
 
   if((key_id == KEY_UP) && (type == KEY_RELEASED)) {
+//    if(!m_repeated) process_key_up();
     m_repeating=false;
-    process_key_up();
+    m_repeated =false;
   }
 
   if((key_id == KEY_SELECT) && (type == KEY_RELEASED)) {
@@ -1007,6 +1053,7 @@ void GUI::process_key(int key_id,int type) {
     if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_VARNUM) {
       if(selected_item != 0) {
         if((selected_item+1) < screens_layout[current_screen].item_count) {
+          last_selected_item = selected_item;
           selected_item++;
           return;
         }
@@ -1025,6 +1072,7 @@ void GUI::process_key(int key_id,int type) {
 
         push_stack(current_screen,selected_item);
         current_screen = screens_layout[current_screen].items[selected_item].val1;
+        last_selected_item = 1;
         selected_item = 1;
       }
     } else 
@@ -1041,6 +1089,7 @@ void GUI::process_key(int key_id,int type) {
       if(selected_item != 0) {
         if((selected_item-1) >= 0) {
           if(screens_layout[current_screen].items[selected_item-1].type == ITEM_TYPE_VARNUM) {
+            last_selected_item = selected_item;
 		        selected_item--;
             receive_gui_events.receive_gui_event("varnumchange",screens_layout[current_screen].items[selected_item].text);
             return;
@@ -1073,6 +1122,7 @@ void GUI::process_key(int key_id,int type) {
       leave_screen_actions(current_screen);
       clear_stack();
       current_screen = 0;
+      last_selected_item = 1;
       selected_item  = 1;
     }
   }
@@ -1088,6 +1138,7 @@ void GUI::jump_to_screen(const char screen) {
 
   clear_stack();
   current_screen = screen; 
+  last_selected_item = 1;
   selected_item  = 1;
 }
 

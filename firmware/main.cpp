@@ -24,7 +24,8 @@
 #include "buzzer.h"
 #include <stdio.h>
 #include <string.h>
-    
+#include "rtc.h"
+  
 extern uint8_t _binary___binary_data_private_key_data_start;
 extern uint8_t _binary___binary_data_private_key_data_size;
 
@@ -38,6 +39,7 @@ premain() {
 }
 
 int main(void) {
+
 
 
     Geiger g;
@@ -66,6 +68,7 @@ int main(void) {
     // if we woke up on an alarm, we're going to be sending the system back.
     #ifndef NEVERSLEEP
     if(power_get_wakeup_source() == WAKEUP_RTC) {
+      rtc_set_alarmed(); // if we woke up from the RTC, force the the alarm trigger.
       c.m_sleeping = true;
     } else {
       buzzer_nonblocking_buzz(0.05);
@@ -85,9 +88,11 @@ int main(void) {
 
 
     GUI m_gui(c);
-    bool full = flashstorage_log_isfull();
-    if((full == true) && (c.m_sleeping == false)) {
-      m_gui.show_dialog("Flash Log","is full",0,0,0);
+    if(!c.m_sleeping) {
+      bool full = flashstorage_log_isfull();
+      if((full == true) && (c.m_sleeping == false)) {
+        m_gui.show_dialog("Flash Log","is full",0,0,0);
+      }
     }
 
     c.set_gui(m_gui);
@@ -117,8 +122,10 @@ int main(void) {
  
       const char *sbeep = flashstorage_keyval_get("GEIGERBEEP");
       if(sbeep != 0) {
-        if(strcmp(sbeep,"true") == 0) { g.set_beep(true); tick_item("Geiger Beep",true); }
-                                 else g.set_beep(false);
+        if(!c.m_sleeping) {
+          if(strcmp(sbeep,"true") == 0) { g.set_beep(true); tick_item("Geiger Beep",true); }
+                                   else g.set_beep(false);
+        }
       }
 
       const char *scpmcps = flashstorage_keyval_get("CPMCPSAUTO");
@@ -148,40 +155,37 @@ int main(void) {
         power_standby();
       }
 
-      //display_draw_text(0,110,"preupdate",0);
       c.update();
-      //display_draw_text(0,110,"prerender",0);
-      m_gui.render();
+      if(!c.m_sleeping) m_gui.render();
+      if(!c.m_sleeping) serial_eventloop();
 
-      //display_draw_text(0,110,"preserial",0);
-      serial_eventloop();
+      if(!c.m_sleeping) {
+				// It might be a good idea to move the following code to Controller.
+				// Hack to check that captouch is ok, and reset it if not.
+				bool c = cap_check();
+				if(c == false) {
+					display_draw_text(0,90,"CAPFAIL",0);
+					cap_init(); 
+				}
 
-      //display_draw_text(0,110,"preserial",0);
-      // It might be a good idea to move the following code to Controller.
-      // Hack to check that captouch is ok, and reset it if not.
-      bool c = cap_check();
-      if(c == false) {
-        display_draw_text(0,90,"CAPFAIL",0);
-        cap_init(); 
+				// Screen lock code
+				uint32_t release1_time = cap_last_press(KEY_BACK);
+				uint32_t   press1_time = cap_last_release(KEY_BACK);
+				uint32_t release2_time = cap_last_press(KEY_SELECT);
+				uint32_t   press2_time = cap_last_release(KEY_SELECT);
+				uint32_t current_time = realtime_get_unixtime();
+				if((release1_time != 0) &&
+					 (release2_time != 0) &&
+					 ((current_time-press1_time) > 3) &&
+					 ((current_time-press2_time) > 3) &&
+					 cap_ispressed(KEY_BACK  ) &&
+					 cap_ispressed(KEY_SELECT)) {
+					system_gui->toggle_screen_lock();
+					cap_clear_press();
+				}
+
+				power_wfi();
       }
-
-      // Screen lock code
-      uint32_t release1_time = cap_last_press(KEY_BACK);
-      uint32_t   press1_time = cap_last_release(KEY_BACK);
-      uint32_t release2_time = cap_last_press(KEY_SELECT);
-      uint32_t   press2_time = cap_last_release(KEY_SELECT);
-      uint32_t current_time = realtime_get_unixtime();
-      if((release1_time != 0) &&
-         (release2_time != 0) &&
-         ((current_time-press1_time) > 3) &&
-         ((current_time-press2_time) > 3) &&
-         cap_ispressed(KEY_BACK  ) &&
-         cap_ispressed(KEY_SELECT)) {
-        system_gui->toggle_screen_lock();
-        cap_clear_press();
-      }
-
-      power_wfi();
     }
 
     // should never get here

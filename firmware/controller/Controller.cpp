@@ -16,6 +16,7 @@
 #include "buzzer.h"
 #include <string.h>
 #include <limits.h>
+#include "serialinterface.h"
 //#define DISABLE_ACCEL
 //#define NEVERSLEEP
 #define UNITS_CPS 1
@@ -28,11 +29,14 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
   m_powerup=false;
   m_log_interval_seconds = 60*30;
   rtc_clear_alarmed();
-  rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_interval_seconds);
   rtc_enable_alarm(RTC);
   m_alarm_log = false;
   system_controller = this;
   m_last_switch_state = true;
+
+  bool sstate = switch_state();
+  m_last_switch_state = sstate;
+
   m_warning_raised = false;
   m_changing_brightness = false;
 
@@ -57,7 +61,7 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
     sscanf(sloginter, "%d", &c);
     m_log_interval_seconds = c;
   }
-
+  rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_interval_seconds);
 }
 
 void Controller::set_gui(GUI &g) {
@@ -158,6 +162,7 @@ void Controller::save_time() {
   min   = new_min;
   sec   = new_sec;
   realtime_setdate(hours,min,sec,day,month,year);
+  rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_interval_seconds);
 
   flashstorage_log_userchange();
   m_gui->jump_to_screen(0);
@@ -182,6 +187,7 @@ void Controller::save_date() {
   month = new_mon-1;
   year  = (2000+new_year)-1900;
   realtime_setdate(hours,min,sec,day,month,year);
+  rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_interval_seconds);
 
   flashstorage_log_userchange();
   m_gui->jump_to_screen(0);
@@ -208,6 +214,7 @@ void Controller::receive_gui_event(char *event,char *value) {
       m_sleeping=true;
       m_gui->set_key_trigger();
       m_gui->set_sleeping(true);
+      display_powerdown();
       power_standby();
     }
     #endif
@@ -456,13 +463,7 @@ void Controller::receive_gui_event(char *event,char *value) {
       m_gui->receive_update("TIMESEC2",&s2);
     } 
   } else
-  if(strcmp(event,"Serial Transfer") == 0) {
-    display_draw_text(0,48,"Sending Log",0);
-    serial_sendlog();
-    display_draw_text(0,48,"Xfer Complete",0);
-  } else 
   if(strcmp(event,"QR Transfer") == 0) {
- //   display_draw_text(0,100,"QR Xfer",0);
     qr_logxfer();
   } else
   if(strcmp(event,"QR Tweet") == 0) {
@@ -480,6 +481,7 @@ void Controller::receive_gui_event(char *event,char *value) {
 }
 
 void Controller::update() {
+//  serial_write_string("CUPDATE 1\r\n");
 
   if((m_warncpm > 0) && (m_geiger.get_cpm() >= m_warncpm) && (m_warning_raised == false) && m_geiger.is_cpm_valid()) {
     if(m_sleeping) display_powerup();
@@ -493,6 +495,7 @@ void Controller::update() {
     #endif
   }
   m_keytrigger=false;
+//  serial_write_string("CUPDATE 2\r\n");
 
   if(rtc_alarmed()) {
     m_alarm_log = true;
@@ -504,14 +507,17 @@ void Controller::update() {
     // set new alarm for log_interval_seconds from now.
     rtc_clear_alarmed();
   }
+//  serial_write_string("CUPDATE 3\r\n");
 
   if(m_alarm_log == true) {
     if(m_geiger.is_cpm30_valid()) {
+//      serial_write_string("CUPDATE 3a\r\n");
 
       log_data_t data;
       #ifndef DISABLE_ACCEL
       int8 res = accel_read_state(&data.accel_x_end,&data.accel_y_end,&data.accel_z_end);
       #endif
+//      serial_write_string("CUPDATE 3b\r\n");
 
       data.time  = rtc_get_time(RTC);
       data.cpm   = m_geiger.get_cpm30();
@@ -519,20 +525,30 @@ void Controller::update() {
       data.accel_y_start = m_accel_y_stored;
       data.accel_z_start = m_accel_z_stored;
       data.log_type      = UINT_MAX;
+//      serial_write_string("CUPDATE 3c\r\n");
 
       flashstorage_log_pushback((uint8_t *) &data,sizeof(log_data_t));
+//      serial_write_string("CUPDATE 3d\r\n");
 
       bool full = flashstorage_log_isfull();
-      if(full == true) {
+      if((full == true) && (!m_sleeping)) {
         m_gui->show_dialog("Flash Log","is full",0,0,0,43,44,255,255);
       }
+//      serial_write_string("CUPDATE 3e\r\n");
 
       m_alarm_log = false;
 
       rtc_set_alarm(RTC,m_last_alarm_time+m_log_interval_seconds);
+//      serial_write_string("CUPDATE 3e1\r\n");
       rtc_enable_alarm(RTC);
+//      serial_write_string("CUPDATE 3f\r\n");
+      if(m_sleeping) {
+        power_standby();
+      }
+//      serial_write_string("CUPDATE 3g\r\n");
     }
   }
+//  serial_write_string("CUPDATE 4\r\n");
 
 
   #ifndef NEVERSLEEP
@@ -541,8 +557,11 @@ void Controller::update() {
     m_last_switch_state = sstate;
 
     if(sstate == false) {
-      if(m_alarm_log) { m_sleeping=true; display_powerdown(); } else {
-        power_standby();
+      if(m_alarm_log && (!m_sleeping)) { m_sleeping=true; display_powerdown(); } else {
+        if(!m_sleeping) {
+          display_powerdown();
+          power_standby();
+        }
       }
     }
     
@@ -552,14 +571,28 @@ void Controller::update() {
     }
   }
   #endif
+//  serial_write_string("CUPDATE 5\r\n");
 
   if(m_powerup == true) {
+//  serial_write_string("CUPDATE 5a\r\n");
     display_powerup();
     m_gui->set_sleeping(false);
     m_gui->redraw();
     m_sleeping=false;
     m_powerup =false;
+//    serial_write_string("CUPDATE 5b\r\n");
+
+    buzzer_nonblocking_buzz(0.05);
+    const char *devicetag = flashstorage_keyval_get("DEVICETAG");
+    char revtext[10];
+    sprintf(revtext,"VERSION: %s ",OS100VERSION);
+    display_splashscreen(devicetag,revtext);
+//    serial_write_string("CUPDATE 5c\r\n");
+    delay_us(3000000);
+    display_clear(0);
+//    serial_write_string("CUPDATE 5d\r\n");
   }
+//  serial_write_string("CUPDATE 6\r\n");
 
 
   if(m_sleeping) {
@@ -569,6 +602,7 @@ void Controller::update() {
     }
     return;
   }
+//  serial_write_string("CUPDATE 7\r\n");
 
   // only dim if not in brightness changing mode
   if(!m_changing_brightness) {
@@ -591,7 +625,6 @@ void Controller::update() {
       }
     }
   }
- 
 
   //TODO: I should change this so it only sends the messages the GUI currently needs.
   char text_cpmdint[50];

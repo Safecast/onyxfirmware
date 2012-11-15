@@ -6,8 +6,11 @@
 #include <string.h>
 #include <time.h>
 #include "realtime.h"
+#include "Geiger.h"
 
 int log_position = 0;
+extern Geiger *system_geiger;
+
 
 extern "C" {
 
@@ -52,7 +55,7 @@ int log_read_block(char *buf) {
       offset_string[5] = 0;
     }
 
-    sprintf(buf,"{\"log_size\":%u,\"onyx_version\":%s,\"UTC_offset\":\"%s\",\"log_data\":[",logsize,OS100VERSION,offset_string);
+    sprintf(buf,"{\"log_size\":%u,\"onyx_version\":\"%s\",\"UTC_offset\":\"%s\",\"user_calibration\":%f,\"log_data\":[",logsize,OS100VERSION,offset_string,system_geiger->calibration_scaling);
     buf += strlen(buf);
   }
 

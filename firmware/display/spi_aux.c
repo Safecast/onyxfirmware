@@ -41,11 +41,13 @@ static spi_baud_rate determine_baud_rate(spi_dev *dev, SPIFrequency freq);
 
 uint8 spi_aux_write(spi_dev *spi_device, const uint8 *data, uint32 length) {
     uint32 txed = 0;
-    while (txed < length) {
-        uint32 ret = spi_tx(spi_device, data + txed, length - txed);
-        if(ret == -1) return 1;
-        txed += ret;
+
+    for(;(txed < length);) {
+      uint32 ret = spi_tx(spi_device, data + txed, length - txed);
+      if(ret == -1) return 1;
+      txed += ret;
     }
+   
     return 0;
 }
 
