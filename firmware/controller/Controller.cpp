@@ -346,23 +346,81 @@ void Controller::receive_gui_event(char *event,char *value) {
   if(strcmp(event,"CALIBRATE") == 0) {
     initialise_calibration();
   } else
-  if(strcmp(event,"DATESCREEN") == 0) {
-    uint8 m1,m2,d1,d2,y1,y2;
-    d1 = m_gui->get_item_state_uint8("DATEDAY1");
-    d2 = m_gui->get_item_state_uint8("DATEDAY2");
-    m1 = m_gui->get_item_state_uint8("DATEMON1");
-    m2 = m_gui->get_item_state_uint8("DATEMON2");
-    y1 = m_gui->get_item_state_uint8("DATEYEAR1");
-    y2 = m_gui->get_item_state_uint8("DATEYEAR2");
+  if(strcmp(event,"TIMESCREEN") == 0) {
+    uint8_t hours;
+    uint8_t min;
+    uint8_t sec;
+    uint8_t day;
+    uint8_t month;
+    uint16_t year;
 
-    if((d1 == 0) && (d2 == 0)) {
-      m1=0;m2=1;d1=0;d2=1;
-      m_gui->receive_update("DATEMON1",&m1);
-      m_gui->receive_update("DATEMON2",&m2);
-      m_gui->receive_update("DATEDAY1",&d1);
-      m_gui->receive_update("DATEDAY2",&d2);
-      m_gui->redraw();
+    realtime_getdate(hours,min,sec,day,month,year);
+
+    uint8 h1,h2,m1,m2,s1,s2;
+    h1 = hours/10;
+    h2 = hours%10;
+    m1 = min/10;
+    m2 = min%10;
+    s1 = sec/10;
+    s2 = sec%10;
+
+    m_gui->receive_update("TIMEHOUR1",&h1);
+    m_gui->receive_update("TIMEHOUR2",&h2);
+    m_gui->receive_update("TIMEMIN1" ,&m1);
+    m_gui->receive_update("TIMEMIN2" ,&m2);
+    m_gui->receive_update("TIMESEC1" ,&s1);
+    m_gui->receive_update("TIMESEC2" ,&s2);
+    m_gui->redraw();
+  } else
+  if(strcmp(event,"WARNSCREEN") == 0) {
+    int32_t warn_level = 0;
+    const char *val = flashstorage_keyval_get("WARNCPM");
+    if(val != NULL) {
+      sscanf(val,"%d",&warn_level);
     }
+
+    uint8_t w1 = (warn_level%100000)/10000;
+    uint8_t w2 = (warn_level%10000) /1000;
+    uint8_t w3 = (warn_level%1000)  /100;
+    uint8_t w4 = (warn_level%100)   /10;
+    uint8_t w5 = (warn_level%10)    /1;
+
+    m_gui->receive_update("WARNCPM1",&w1);
+    m_gui->receive_update("WARNCPM2",&w2);
+    m_gui->receive_update("WARNCPM3",&w3);
+    m_gui->receive_update("WARNCPM4",&w4);
+    m_gui->receive_update("WARNCPM5",&w5);
+    m_gui->redraw();
+  } else
+  if(strcmp(event,"DATESCREEN") == 0) {
+    uint8_t hours;
+    uint8_t min;
+    uint8_t sec;
+    uint8_t day;
+    uint8_t month;
+    uint16_t year;
+
+    realtime_getdate(hours,min,sec,day,month,year);
+
+    month+=1;
+    
+    year  = (year+1900)-2000;
+
+    uint8 m1,m2,d1,d2,y1,y2;
+    d1 = day/10;
+    d2 = day%10;
+    m1 = month/10;
+    m2 = month%10;
+    y1 = year/10;
+    y2 = year%10;
+
+    m_gui->receive_update("DATEMON1",&m1);
+    m_gui->receive_update("DATEMON2",&m2);
+    m_gui->receive_update("DATEDAY1",&d1);
+    m_gui->receive_update("DATEDAY2",&d2);
+    m_gui->receive_update("DATEYEAR1",&y1);
+    m_gui->receive_update("DATEYEAR2",&y2);
+    m_gui->redraw();
   } else
   if(strcmp(event,"BrightnessSCN") == 0) {
 
@@ -471,10 +529,10 @@ void Controller::receive_gui_event(char *event,char *value) {
 
     if(m_geiger.is_cpm_valid()) {
                  //12345678901234567890123456789012345    1   2 34567890
-      sprintf(str,"http://twitter.com/home?status=CPM:%u%%20%%23scast",(int)m_geiger.get_cpm());
+      sprintf(str,"http://twitter.com/home?status=CPM:%u%%23scast",(int)m_geiger.get_cpm());
     } else {
                  //12345678901234567890123456789012345    1   2 34567890
-      sprintf(str,"http://twitter.com/home?status=CPM:%u%%20%%23bad",(int)m_geiger.get_cpm());
+      sprintf(str,"http://twitter.com/home?status=CPM:%u%%23bad",(int)m_geiger.get_cpm());
     }
     qr_draw(str);
   }
@@ -674,27 +732,9 @@ void Controller::update() {
   float *graph_data;
   graph_data = m_geiger.get_cpm_last_windows();
 
-  uint8_t hours,min,sec,day,month;
-  uint16_t year;
-  realtime_getdate(hours,min,sec,day,month,year);
-
-/*
-  char text_time[50];
-  int_to_char(hours,text_time,3);
-  text_time[3]=':';
-  int_to_char(min  ,text_time+4,3);
-  text_time[6]=':';
-  int_to_char(sec  ,text_time+7,3);
-  text_time[10] = 0;
-
-  char text_date[50];
-  int_to_char(day,text_date,3);
-  text_date[3]='/';
-  int_to_char(month+1,text_date+4,3);
-  text_date[6]='/';
-  int_to_char(year+1900,text_date+7,4);
-  text_date[11] = 0;
-*/
+  //uint8_t hours,min,sec,day,month;
+  //uint16_t year;
+  //realtime_getdate(hours,min,sec,day,month,year);
 
   char text_totaltimer_count[50];
   char text_totaltimer_time [50];

@@ -132,7 +132,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 10 - Set time
 {
-  9,
+  10,
   {
     { ITEM_TYPE_HEAD       , 0 , 0 , "CPMDEADINT" , 255 }, 
     { ITEM_TYPE_VARNUM     , 10, 50, "TIMEHOUR1"  , 255 },
@@ -142,7 +142,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 98, 50, "TIMESEC1"   , 255 },
     { ITEM_TYPE_VARNUM     ,118, 50, "TIMESEC2"   , 255 },
     { ITEM_TYPE_MENU_ACTION,  0,  7, "Save:Time"  , 2   },
-    { ITEM_TYPE_LABEL      , 0 , 20, "HH:MM:SS"   , 50  }
+    { ITEM_TYPE_LABEL      ,  0, 20, "HH:MM:SS"   , 50  },
+    { ITEM_TYPE_ACTION     ,  0,  0, "TIMESCREEN" , 255 }
   }
   ,7
 },
@@ -180,7 +181,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 13 - Warning configuration
 {
-  8,
+  9,
   {
     { ITEM_TYPE_HEAD       , 0 , 0  , "CPMDEADINT"  , 255 }, 
     { ITEM_TYPE_VARNUM     , 10, 50 , "WARNCPM1"    , 255 },
@@ -189,7 +190,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 76, 50 , "WARNCPM4"    , 255 },
     { ITEM_TYPE_VARNUM     , 98, 50 , "WARNCPM5"    , 255 },
     { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:WarnCPM", 2   },
-    { ITEM_TYPE_LABEL      , 0 ,  20, "Warning CPM" , 47  }
+    { ITEM_TYPE_LABEL      , 0 ,  20, "Warning CPM" , 47  },
+    { ITEM_TYPE_ACTION     ,  0,   0, "WARNSCREEN"  , 255 }
   }
   ,7
 },
