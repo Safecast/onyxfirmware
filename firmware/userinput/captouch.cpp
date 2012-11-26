@@ -236,8 +236,8 @@ uint8_t cap_fdl_f = 0x02;
 
 uint8_t cap_dbr   = 0x77;
 
-uint8_t cap_touch_threshold   = 0x0F;
-uint8_t cap_release_threshold = 0x0A;
+uint8_t cap_touch_threshold   = 0x10;
+uint8_t cap_release_threshold = 0x0B;
 
 void cap_set_mhd_r(uint8_t v) { cap_mhd_r = v; }
 void cap_set_nhd_r(uint8_t v) { cap_nhd_r = v; }
