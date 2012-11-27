@@ -16,6 +16,8 @@ Some users may have issues with previous FTDI drivers, a version which unloads e
 
 http://41j.com/OnyxLoaderA.zip
 
+Source code for these firmware loaders is available here: http://github.com/new299/onyxloader
+
 Building
 ========
 
