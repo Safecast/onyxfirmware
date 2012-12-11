@@ -539,7 +539,6 @@ void Controller::receive_gui_event(char *event,char *value) {
 }
 
 void Controller::update() {
-//  serial_write_string("CUPDATE 1\r\n");
 
   if((m_warncpm > 0) && (m_geiger.get_cpm() >= m_warncpm) && (m_warning_raised == false) && m_geiger.is_cpm_valid()) {
     if(m_sleeping) display_powerup();
@@ -553,7 +552,6 @@ void Controller::update() {
     #endif
   }
   m_keytrigger=false;
-//  serial_write_string("CUPDATE 2\r\n");
 
   if(rtc_alarmed()) {
     m_alarm_log = true;
@@ -565,17 +563,14 @@ void Controller::update() {
     // set new alarm for log_interval_seconds from now.
     rtc_clear_alarmed();
   }
-//  serial_write_string("CUPDATE 3\r\n");
 
   if(m_alarm_log == true) {
     if(m_geiger.is_cpm30_valid()) {
-//      serial_write_string("CUPDATE 3a\r\n");
 
       log_data_t data;
       #ifndef DISABLE_ACCEL
       int8 res = accel_read_state(&data.accel_x_end,&data.accel_y_end,&data.accel_z_end);
       #endif
-//      serial_write_string("CUPDATE 3b\r\n");
 
       data.time  = rtc_get_time(RTC);
       data.cpm   = m_geiger.get_cpm30();
@@ -583,30 +578,23 @@ void Controller::update() {
       data.accel_y_start = m_accel_y_stored;
       data.accel_z_start = m_accel_z_stored;
       data.log_type      = UINT_MAX;
-//      serial_write_string("CUPDATE 3c\r\n");
 
       flashstorage_log_pushback((uint8_t *) &data,sizeof(log_data_t));
-//      serial_write_string("CUPDATE 3d\r\n");
 
       bool full = flashstorage_log_isfull();
       if((full == true) && (!m_sleeping)) {
         m_gui->show_dialog("Flash Log","is full",0,0,0,43,44,255,255);
       }
-//      serial_write_string("CUPDATE 3e\r\n");
 
       m_alarm_log = false;
 
       rtc_set_alarm(RTC,m_last_alarm_time+m_log_interval_seconds);
-//      serial_write_string("CUPDATE 3e1\r\n");
       rtc_enable_alarm(RTC);
-//      serial_write_string("CUPDATE 3f\r\n");
       if(m_sleeping) {
         power_standby();
       }
-//      serial_write_string("CUPDATE 3g\r\n");
     }
   }
-//  serial_write_string("CUPDATE 4\r\n");
 
 
   #ifndef NEVERSLEEP
@@ -629,28 +617,22 @@ void Controller::update() {
     }
   }
   #endif
-//  serial_write_string("CUPDATE 5\r\n");
 
   if(m_powerup == true) {
-//  serial_write_string("CUPDATE 5a\r\n");
     display_powerup();
     m_gui->set_sleeping(false);
     m_gui->redraw();
     m_sleeping=false;
     m_powerup =false;
-//    serial_write_string("CUPDATE 5b\r\n");
 
     buzzer_nonblocking_buzz(0.05);
     const char *devicetag = flashstorage_keyval_get("DEVICETAG");
     char revtext[10];
     sprintf(revtext,"VERSION: %s ",OS100VERSION);
     display_splashscreen(devicetag,revtext);
-//    serial_write_string("CUPDATE 5c\r\n");
     delay_us(3000000);
     display_clear(0);
-//    serial_write_string("CUPDATE 5d\r\n");
   }
-//  serial_write_string("CUPDATE 6\r\n");
 
 
   if(m_sleeping) {
@@ -660,7 +642,6 @@ void Controller::update() {
     }
     return;
   }
-//  serial_write_string("CUPDATE 7\r\n");
 
   // only dim if not in brightness changing mode
   if(!m_changing_brightness) {
