@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include "captouch.h"
+#include "power.h"
 
 extern "C" {
   void signing_test();
@@ -441,12 +442,24 @@ void cmd_captouchdump(char *line) {
   }
 }
 
+void cmd_batinfodisp(char *line) {
+  for(int n=0;n<100;n++) {
+    int bat = power_battery_level();
+    char s[20];
+    sprintf(s,"%d   ",bat);
+
+		display_draw_text(0,0,s,0);
+    delay_us(1000000);
+  }
+}
+
 void register_cmds() {
 
   register_cmd("HELLO"        ,cmd_hello);
   register_cmd("LIST GAMES"   ,cmd_games);
   register_cmd("LOGXFER"      ,cmd_logxfer);
   register_cmd("DISPLAYPARAMS",cmd_displayparams);
+  register_cmd("BATINFODISP"  ,cmd_batinfodisp);
   register_cmd("HELP"         ,cmd_help);
   register_cmd("DISPLAYTEST"  ,cmd_displaytest);
   register_cmd("VERSION"      ,cmd_version);

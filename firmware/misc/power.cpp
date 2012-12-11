@@ -117,7 +117,7 @@ uint16 power_battery_level(void) {
   //float batvolts = ((((float)battVal)/(float)vrefVal)*1.2)+2.1;
   float batratio = (float)battVal/(float)vrefVal;
 
-  float bat_min = 1.25; //3.1;
+  float bat_min = 1.36; //3.3;
   float bat_max = 1.72; //4.2;
 
   //char v[50];
