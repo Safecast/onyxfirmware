@@ -36,6 +36,10 @@ public:
   uint32_t get_total_count();
   float get_becquerel();
   void  set_becquerel_eff(float v);
+  void enable_headphones();
+  void disable_headphones();
+  void toggle_headphone();
+  bool is_headphone();
 
   uint16_t last_windows_position;
   uint16_t last_windows[WINDOWS_STORED];

@@ -25,7 +25,7 @@ uint32_t current_count;
 bool enable_beep=false;
 
 uint32_t total_count;
-
+bool headphone_output=false;
 
 void static geiger_min_log(void) {
   system_geiger->update_last_windows();
@@ -34,6 +34,11 @@ void static geiger_min_log(void) {
 void pulse_output_end(void) {
   gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,0);
   dac_write_channel(DAC,2,0);
+  //gpio_write_bit(PIN_MAP[13].gpio_device,PIN_MAP[13].gpio_bit,0);
+  if(headphone_output) {
+    gpio_write_bit(PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,0);
+  }
+
   timer_pause(TIMER3);
 }
 
@@ -51,6 +56,11 @@ void static geiger_rising(void) {
 
   gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,1);
   dac_write_channel(DAC,2,255);
+  //gpio_write_bit(PIN_MAP[13].gpio_device,PIN_MAP[13].gpio_bit,1);
+  
+  if(headphone_output) {
+    gpio_write_bit(PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,1);
+  }
 
   timer_generate_update(TIMER3); // refresh timer count, prescale, overflow
   timer_resume(TIMER3);
@@ -108,13 +118,16 @@ void Geiger::initialise() {
   int bit = gpio_read_bit(PIN_MAP[GEIGER_PULSE_GPIO].gpio_device,PIN_MAP[GEIGER_PULSE_GPIO].gpio_bit);
   if(bit) geiger_rising();
   exti_attach_interrupt((afio_exti_num)PIN_MAP[GEIGER_PULSE_GPIO].gpio_bit,
-			gpio_exti_port(PIN_MAP[GEIGER_PULSE_GPIO].gpio_device),geiger_rising,EXTI_RISING);
+  gpio_exti_port(PIN_MAP[GEIGER_PULSE_GPIO].gpio_device),geiger_rising,EXTI_RISING);
   
   // flashing/buzz timer.
   gpio_set_mode(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,GPIO_OUTPUT_PP);
 
-//  gpio_set_mode(PIN_MAP[10].gpio_device,PIN_MAP[10].gpio_bit,GPIO_OUTPUT_PP);
-//  gpio_set_mode (PIN_MAP[13].gpio_device,PIN_MAP[13].gpio_bit,GPIO_OUTPUT_PP);
+  //gpio_set_mode(PIN_MAP[10].gpio_device,PIN_MAP[10].gpio_bit,GPIO_OUTPUT_PP);
+
+  // If you want to use it as a digital output
+  //gpio_set_mode (PIN_MAP[13].gpio_device,PIN_MAP[13].gpio_bit,GPIO_OUTPUT_PP);
+  //gpio_write_bit(PIN_MAP[13].gpio_device,PIN_MAP[13].gpio_bit,0);
   dac_init(DAC,DAC_CH2);
 
   gpio_set_mode (PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit,GPIO_OUTPUT_PP);
@@ -122,10 +135,14 @@ void Geiger::initialise() {
 
   gpio_set_mode (PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,GPIO_OUTPUT_PP);
   gpio_write_bit(PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,0);
-//  gpio_set_mode(PIN_MAP[6].gpio_device,PIN_MAP[6].gpio_bit,GPIO_INPUT_PD);
+
+  // headphone output
+  gpio_set_mode (PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,GPIO_OUTPUT_PP);
+  gpio_write_bit(PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,0);
 
   timer_pause(TIMER3);
-  timer_set_prescaler(TIMER3,((10000*CYCLES_PER_MICROSECOND)/MAX_RELOAD));
+  // was 10000
+  timer_set_prescaler(TIMER3,((1*CYCLES_PER_MICROSECOND)/MAX_RELOAD));
   timer_set_reload(TIMER3,MAX_RELOAD);
 
   // setup interrupt on channel 3
@@ -359,3 +376,19 @@ void  Geiger::set_becquerel_eff(float c) {
 
 void Geiger::powerup  () {}
 void Geiger::powerdown() {}
+
+void Geiger::enable_headphones() {
+  headphone_output=true;
+}
+
+void Geiger::disable_headphones() {
+  headphone_output=false;
+}
+
+void Geiger::toggle_headphone() {
+  headphone_output = !headphone_output;
+}
+
+bool Geiger::is_headphone() {
+  return headphone_output;
+}

@@ -295,6 +295,11 @@ void Controller::receive_gui_event(char *event,char *value) {
       tick_item("CPM/CPS Auto",false);
     }
   } else
+  if(strcmp(event,"Headphone out") == 0) {
+    m_geiger.toggle_headphone();
+     if(m_geiger.is_headphone()) { flashstorage_keyval_set("HEADPHONE","true");  tick_item("Headphone out",true);  }
+                          else   { flashstorage_keyval_set("HEADPHONE","false"); tick_item("Headphone out",false); }
+  } else
   if(strcmp(event,"Geiger Beep") == 0) {
      m_geiger.toggle_beep();
      if(m_geiger.is_beeping()) { flashstorage_keyval_set("GEIGERBEEP","true");  tick_item("Geiger Beep",true);  }
