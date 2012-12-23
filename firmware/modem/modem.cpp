@@ -6,24 +6,27 @@
 #include "dac.h"
 #include "display.h"
 #include "timer.h"
+#include "buzzer.h"
 
-//#define SAMPLES_PER_BIT  32
-//#define SAMPLES_PER_BYTE 256
-#define SAMPLES_PER_BIT  256
-#define SAMPLES_PER_BYTE 2048
+#define SAMPLES_PER_BIT  32
+#define SAMPLES_PER_BYTE 256
+//#define SAMPLES_PER_BIT  256
+//#define SAMPLES_PER_BYTE 2048
 
 using namespace std;
 uint8_t *transmit_data;
 int     transmit_data_position = 0;
 int     transmit_data_size     = 0;
 
-bool transmission_complete = false;
+volatile bool transmission_complete = false;
 
 void modem_send_byte(int b);
 
 void byte_transmission_complete() {
+  buzzer_blocking_buzz(1);
   display_draw_text(0,0,"transint",0);
   transmission_complete=true;
+  return;
 
   transmit_data_position++;
   if(transmit_data_position > transmit_data_size) {
@@ -78,8 +81,9 @@ void modem_send_byte(int b) {
   uint8_t data_buffer_one [SAMPLES_PER_BIT];
   uint8_t data_buffer_zero[SAMPLES_PER_BIT];
 
-  if(b == 1)  for(int n=0;n<SAMPLES_PER_BIT;n++) data_buffer_one [n] = 255;
-  if(b == 0)  for(int n=0;n<SAMPLES_PER_BIT;n++) data_buffer_zero[n] = 0;
+  int v=0;
+  for(int n=0;n<SAMPLES_PER_BIT;n++) {data_buffer_one [n] = v; if(v==0) v=255; else v=0;}
+  for(int n=0;n<SAMPLES_PER_BIT;n++) {data_buffer_zero[n] = v; if(v==0) v=128; else v=0;}
 
   uint8_t data_buffer[SAMPLES_PER_BYTE];
 
@@ -87,13 +91,12 @@ void modem_send_byte(int b) {
 
   // fill data buffer
   for(int bit=0;bit<8;bit++) {
-    uint8_t *d = 0;
-
-    if((b & (1 << bit)) > 0) d = data_buffer_one;
-                             d = data_buffer_zero;
 
     for(int i=0;i<SAMPLES_PER_BIT;i++) {
-      data_buffer[pos] = d[i];
+      int v=0;
+      if((b & (1 << bit)) > 0) v =  data_buffer_one[i];
+                          else v = data_buffer_zero[i];
+      data_buffer[pos] = v;
       pos++;
     }
   }
@@ -108,10 +111,12 @@ void modem_send_byte(int b) {
 
   dma_setup_transfer(DMA2, DMA_CH4, &DAC->regs->DHR8R2, DMA_SIZE_8BITS,
                      data_buffer, DMA_SIZE_8BITS, (DMA_MINC_MODE | DMA_TRNS_CMPLT | DMA_CIRC_MODE | DMA_HALF_TRNS | DMA_FROM_MEM));
-//                     data_buffer, DMA_SIZE_8BITS, (DMA_MINC_MODE | DMA_TRNS_CMPLT | DMA_CIRC_MODE | DMA_HALF_TRNS | DMA_FROM_MEM));
 
-  display_draw_text(0,0,"preatt",0);
+  display_draw_text(0,0,"preatt  ",0);
   dma_attach_interrupt(DMA2, DMA_CH4, byte_transmission_complete);
+  //uint32_t *dma2ch4int = (uint32_t *) 0x0000012C;
+  //*dma2ch4int = (uint32_t) &byte_transmission_complete;
+
 
   display_draw_text(0,0,"prepri",0);
   //8. Setup the priority for the DMA transfer.
@@ -146,9 +151,15 @@ void modem_send(uint8_t *data,int size) {
   modem_send_byte(data[0]); 
   
   for(int a=0;;a++) {
-    if(transmission_complete) return;
-    display_draw_number(0,32,TIMER7->regs.bas->CNT,10,0);
+    if(transmission_complete) {
+      display_draw_text(0,0,"exit 1",0);
+      return;
+    }
+
+    display_draw_number(0,16,a,5,0);
+    //display_draw_number(0,32,TIMER7->regs.bas->CNT,10,0);
   }
+  display_draw_text(0,0,"exit 2",0);
 }
 
 void modem_logxfer() {
@@ -174,6 +185,7 @@ void modem_logxfer() {
 
     display_draw_text(0,0,"xfloop",0);
     display_draw_number(0,128-16-16-16,z,15,0);
+    break;
   }
 
   modem_deinit();
