@@ -25,7 +25,7 @@ uint32_t current_count;
 bool enable_beep=false;
 
 uint32_t total_count;
-bool headphone_output=false;
+bool mic_output=true;
 
 void static geiger_min_log(void) {
   system_geiger->update_last_windows();
@@ -33,10 +33,8 @@ void static geiger_min_log(void) {
 
 void pulse_output_end(void) {
   gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,0);
-  dac_write_channel(DAC,2,0);
-  //gpio_write_bit(PIN_MAP[13].gpio_device,PIN_MAP[13].gpio_bit,0);
-  if(headphone_output) {
-    gpio_write_bit(PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,0);
+  if(mic_output) {
+    dac_write_channel(DAC,2,0);
   }
 
   timer_pause(TIMER3);
@@ -55,11 +53,9 @@ void static geiger_rising(void) {
   total_count++;
 
   gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,1);
-  dac_write_channel(DAC,2,255);
-  //gpio_write_bit(PIN_MAP[13].gpio_device,PIN_MAP[13].gpio_bit,1);
   
-  if(headphone_output) {
-    gpio_write_bit(PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,1);
+  if(mic_output) {
+    dac_write_channel(DAC,2,255);
   }
 
   timer_generate_update(TIMER3); // refresh timer count, prescale, overflow
@@ -72,6 +68,7 @@ Geiger::Geiger() {
 
 void Geiger::initialise() {
 
+  m_pulsewidth = 0;
   calibration_scaling=1;
   m_cpm_valid = false;
 
@@ -140,15 +137,8 @@ void Geiger::initialise() {
   gpio_set_mode (PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,GPIO_OUTPUT_PP);
   gpio_write_bit(PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,0);
 
-  timer_pause(TIMER3);
-  // was 10000
-  timer_set_prescaler(TIMER3,((1*CYCLES_PER_MICROSECOND)/MAX_RELOAD));
-  timer_set_reload(TIMER3,MAX_RELOAD);
+  pulse_timer_init();
 
-  // setup interrupt on channel 3
-  timer_set_mode(TIMER3,TIMER_CH3,TIMER_OUTPUT_COMPARE);
-  timer_set_compare(TIMER3,TIMER_CH3,MAX_RELOAD-1);
-  timer_attach_interrupt(TIMER3,TIMER_CH3,pulse_output_end);
 
   // initialise timer
   timer_pause(TIMER4);
@@ -166,6 +156,31 @@ void Geiger::initialise() {
   timer_resume(TIMER4);
   m_samples_collected=0;
   m_becquerel_eff = -1;
+}
+
+void Geiger::pulse_timer_init() {
+  timer_pause(TIMER3);
+  // was 10000
+  timer_set_prescaler(TIMER3,0);
+  
+  uint32_t r=0;
+  if(m_pulsewidth == 0) { r = MAX_RELOAD/2048; } else
+  if(m_pulsewidth == 1) { r = MAX_RELOAD/1024; } else
+  if(m_pulsewidth == 2) { r = MAX_RELOAD/512;  } else
+  if(m_pulsewidth == 3) { r = MAX_RELOAD/256;  } else
+  if(m_pulsewidth == 4) { r = MAX_RELOAD/128;  } else
+  if(m_pulsewidth == 5) { r = MAX_RELOAD/64;   } else
+  if(m_pulsewidth == 6) { r = MAX_RELOAD/32;   } else
+  if(m_pulsewidth == 7) { r = MAX_RELOAD/16;   } else
+  if(m_pulsewidth == 8) { r = MAX_RELOAD/8;    } else
+  if(m_pulsewidth == 9) { r = MAX_RELOAD/4;    }
+
+  timer_set_reload(TIMER3,r);
+
+  // setup interrupt on channel 3
+  timer_set_mode(TIMER3,TIMER_CH3,TIMER_OUTPUT_COMPARE);
+  timer_set_compare(TIMER3,TIMER_CH3,MAX_RELOAD-1);
+  timer_attach_interrupt(TIMER3,TIMER_CH3,pulse_output_end);
 }
 
 
@@ -377,18 +392,18 @@ void  Geiger::set_becquerel_eff(float c) {
 void Geiger::powerup  () {}
 void Geiger::powerdown() {}
 
-void Geiger::enable_headphones() {
-  headphone_output=true;
+void Geiger::enable_micout() {
+  mic_output=true;
 }
 
-void Geiger::disable_headphones() {
-  headphone_output=false;
+void Geiger::disable_micout() {
+  mic_output=false;
 }
 
-void Geiger::toggle_headphone() {
-  headphone_output = !headphone_output;
+void Geiger::set_pulsewidth(uint8_t p) {
+  m_pulsewidth = p;
 }
 
-bool Geiger::is_headphone() {
-  return headphone_output;
+uint8_t Geiger::get_pulsewidth() {
+  return m_pulsewidth;
 }

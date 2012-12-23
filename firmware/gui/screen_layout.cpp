@@ -31,14 +31,15 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 2 - Advanced menu
 {
-  6,
+  7,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"    ,255 }, 
     { ITEM_TYPE_MENU       , 4, 1, "Graphs"        ,1   },
     { ITEM_TYPE_MENU       ,15, 2, "Accumulate/Avg",6   },
     { ITEM_TYPE_MENU       ,21, 3, "Becquerel"     ,31  },
     { ITEM_TYPE_MENU_ACTION, 0, 4, "QR Transfer"   ,7   },
-    { ITEM_TYPE_MENU_ACTION, 0, 5, "QR Tweet"      ,32   }
+    { ITEM_TYPE_MENU_ACTION, 0, 5, "QR Tweet"      ,32  },
+    { ITEM_TYPE_MENU_ACTION, 0, 6, "Audio Transfer",255 }
   }
   ,7
 },
@@ -221,12 +222,12 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 16 - User interface settings
 {
-  5,
+  4,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"   , 255}, 
     { ITEM_TYPE_MENU       ,12, 1, "Brightness"   , 10 },
     { ITEM_TYPE_MENU_ACTION, 0, 2, "Geiger Beep"  , 11 },
-    { ITEM_TYPE_MENU_ACTION, 0, 3, "Headphone out", 255},
+    { ITEM_TYPE_MENU       ,24, 3, "Geiger Pulse" , 255},
     { ITEM_TYPE_MENU       ,14, 4, "Language"     , 12 }
   }
   ,7
@@ -322,6 +323,17 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 74, 50 , "LOGINTER3"     , 255 },
     { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:LogInter" , 2   },
     { ITEM_TYPE_LABEL      , 90,  61, "mins"          , 41  }
+  }
+  ,7
+},
+
+//Screen 24 - Geiger Pulse width
+{
+  3,
+  {
+    { ITEM_TYPE_HEAD       , 0 ,  0 , "CPMDEADINT"      , 255 }, 
+    { ITEM_TYPE_VARNUM     , 38, 50 , "PULSEWIDTH1"     , 255 },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:PulseWidth" ,2    },
   }
   ,7
 },

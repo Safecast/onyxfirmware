@@ -17,6 +17,7 @@
 #include <string.h>
 #include <limits.h>
 #include "serialinterface.h"
+#include "modem.h"
 //#define DISABLE_ACCEL
 //#define NEVERSLEEP
 #define UNITS_CPS 1
@@ -231,6 +232,15 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_gui->receive_update("TTTIME" ,blank);
     m_gui->redraw();
   } else
+  if(strcmp(event,"Save:PulseWidth") == 0) {
+    int p1 = m_gui->get_item_state_uint8("PULSEWIDTH1");
+    char sp[50];
+    sprintf(sp,"%d",p1);
+    flashstorage_keyval_set("PULSEWIDTH",sp);
+    m_geiger.set_pulsewidth(p1);
+    m_geiger.pulse_timer_init();
+    m_gui->jump_to_screen(0);
+  } else
   if(strcmp(event,"Save:Calib") == 0) {
     save_calibration();
   } else
@@ -294,11 +304,6 @@ void Controller::receive_gui_event(char *event,char *value) {
       flashstorage_keyval_set("CPMCPSAUTO","false");
       tick_item("CPM/CPS Auto",false);
     }
-  } else
-  if(strcmp(event,"Headphone out") == 0) {
-    m_geiger.toggle_headphone();
-     if(m_geiger.is_headphone()) { flashstorage_keyval_set("HEADPHONE","true");  tick_item("Headphone out",true);  }
-                          else   { flashstorage_keyval_set("HEADPHONE","false"); tick_item("Headphone out",false); }
   } else
   if(strcmp(event,"Geiger Beep") == 0) {
      m_geiger.toggle_beep();
@@ -528,6 +533,11 @@ void Controller::receive_gui_event(char *event,char *value) {
   } else
   if(strcmp(event,"QR Transfer") == 0) {
     qr_logxfer();
+  } else
+  if(strcmp(event,"Audio Transfer") == 0) {
+    m_gui->show_dialog("Audio Transfer","in progress",0,0,0,255,255,255,255);
+    modem_logxfer();
+    m_gui->jump_to_screen(0);
   } else
   if(strcmp(event,"QR Tweet") == 0) {
     char str[1024];

@@ -113,6 +113,16 @@ int main(void) {
 
     // Need to refactor out stored settings
     if(c.m_sleeping == false) {   
+
+
+      const char *spulsewidth = flashstorage_keyval_get("PULSEWIDTH");
+      if(spulsewidth != 0) {
+        unsigned int c;
+        sscanf(spulsewidth, "%u", &c);
+        g.set_pulsewidth(c);
+        g.pulse_timer_init();
+      }
+
       const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
       if(sbright != 0) {
         unsigned int c;
