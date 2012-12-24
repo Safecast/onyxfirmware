@@ -7,10 +7,7 @@
 #include "display.h"
 #include "timer.h"
 #include "buzzer.h"
-#include <math.h>
 
-//#define SAMPLES_PER_BIT  32
-//#define SAMPLES_PER_BYTE 256
 #define SAMPLES_PER_BIT  128
 #define SAMPLES_PER_BYTE 2048
 
