@@ -7,11 +7,19 @@
 #include "display.h"
 #include "timer.h"
 #include "buzzer.h"
+#include <math.h>
 
 //#define SAMPLES_PER_BIT  32
 //#define SAMPLES_PER_BYTE 256
 #define SAMPLES_PER_BIT  128
 #define SAMPLES_PER_BYTE 2048
+
+uint8_t data_buffer_one [SAMPLES_PER_BIT] = {
+128, 176, 218, 246, 255, 246, 218, 177, 128, 79, 37, 9, 0, 9, 37, 78, 127, 176, 218, 246, 255, 246, 218, 177, 128, 79, 37, 9, 0, 9, 37, 78, 127, 176, 218, 246, 255, 246, 218, 177, 128, 79, 37, 9, 0, 9, 37, 78, 127, 176, 218, 246, 255, 246, 218, 177, 128, 79, 37, 9, 0, 9, 37, 78, 127, 176, 218, 246, 255, 246, 218, 177, 128, 79, 37, 10, 0, 9, 36, 78, 127, 176, 217, 245, 255, 246, 219, 177, 128, 79, 38, 10, 0, 9, 36, 78, 127, 176, 217, 245, 255, 246, 219, 177, 128, 79, 38, 10, 0, 9, 36, 78, 126, 175, 217, 245, 255, 246, 219, 178, 129, 80, 38, 10, 0, 9, 36, 77 };
+
+uint8_t data_buffer_zero[SAMPLES_PER_BIT] = {
+128, 218, 255, 218, 128, 37, 0, 37, 127, 218, 255, 218, 128, 37, 0, 37, 127, 218, 255, 218, 128, 37, 0, 37, 127, 218, 255, 218, 128, 37, 0, 37, 127, 218, 255, 218, 128, 37, 0, 36, 127, 217, 255, 219, 128, 38, 0, 36, 127, 217, 255, 219, 128, 38, 0, 36, 126, 217, 255, 219, 129, 38, 0, 36, 126, 217, 255, 219, 129, 38, 0, 36, 126, 217, 255, 219, 129, 38, 0, 36, 126, 217, 255, 219, 129, 38, 0, 36, 126, 217, 255, 219, 129, 38, 0, 36, 126, 217, 255, 219, 129, 38, 0, 36, 126, 217, 255, 219, 130, 38, 0, 36, 125, 216, 255, 220, 130, 39, 0, 35, 125, 216, 255, 220, 130, 39, 0, 35 };
+
 
 using namespace std;
 uint8_t *transmit_data;
@@ -26,12 +34,13 @@ uint8_t data_buffer[SAMPLES_PER_BYTE];
 
 void write_to_buffer(int half,int b) {
 
-  uint8_t data_buffer_one [SAMPLES_PER_BIT];
-  uint8_t data_buffer_zero[SAMPLES_PER_BIT];
+  int offset = 0;
+  if(half == 0) offset = 0;
+  if(half == 1) offset = SAMPLES_PER_BYTE/2;
 
-  int v=0;
-  for(int n=0;n<SAMPLES_PER_BIT;n++) {data_buffer_one [n] = v; if(v==0) v=255; else v=0;}
-  for(int n=0;n<SAMPLES_PER_BIT;n++) {data_buffer_zero[n] = v; if(v==0) v=128; else v=0;}
+//  int v=0;
+//  for(int n=0;n<SAMPLES_PER_BIT;n++) {data_buffer_one [n] = sin((n*(2*3.141)/16))*((0xFF+1)/2)+128;}
+//  for(int n=0;n<SAMPLES_PER_BIT;n++) {data_buffer_zero[n] = sin((n*(2*3.141)/8))*((0xFF+1)/2)+128; }
 
   int pos=0;
 
@@ -42,7 +51,7 @@ void write_to_buffer(int half,int b) {
       int v=0;
       if((b & (1 << bit)) > 0) v =  data_buffer_one[i];
                           else v = data_buffer_zero[i];
-      data_buffer[pos] = v;
+      data_buffer[offset+pos] = v;
       pos++;
     }
   }
