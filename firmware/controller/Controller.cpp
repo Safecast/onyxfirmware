@@ -535,9 +535,12 @@ void Controller::receive_gui_event(char *event,char *value) {
     qr_logxfer();
   } else
   if(strcmp(event,"Audio Transfer") == 0) {
-    m_gui->show_dialog("Audio Transfer","in progress",0,0,0,255,255,255,255);
+    display_clear(0);
+    display_draw_text(0,16," Audio Transfer ",65535);
+    display_draw_text(4,32,"  in progress  " ,65535);
     modem_logxfer();
     m_gui->jump_to_screen(0);
+
   } else
   if(strcmp(event,"QR Tweet") == 0) {
     char str[1024];
