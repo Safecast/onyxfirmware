@@ -8,10 +8,10 @@
 #include "timer.h"
 #include "buzzer.h"
 
-#define SAMPLES_PER_BIT  32
-#define SAMPLES_PER_BYTE 256
-//#define SAMPLES_PER_BIT  256
-//#define SAMPLES_PER_BYTE 2048
+//#define SAMPLES_PER_BIT  32
+//#define SAMPLES_PER_BYTE 256
+#define SAMPLES_PER_BIT  256
+#define SAMPLES_PER_BYTE 2048
 
 using namespace std;
 uint8_t *transmit_data;
@@ -23,14 +23,14 @@ volatile bool transmission_complete = false;
 void modem_send_byte(int b);
 
 void byte_transmission_complete() {
-  buzzer_blocking_buzz(1);
+  buzzer_blocking_buzz(0.1);
   display_draw_text(0,0,"transint",0);
-  transmission_complete=true;
+//  transmission_complete=true;
   return;
 
   transmit_data_position++;
   if(transmit_data_position > transmit_data_size) {
-    transmission_complete=true;
+  //  transmission_complete=true;
     display_draw_text(0,0,"transcomp",0);
     return;
   }
@@ -77,6 +77,8 @@ void modem_deinit() {
   dma_disable(DMA2, DMA_CH4);
 }
 
+uint8_t data_buffer[SAMPLES_PER_BYTE];
+
 void modem_send_byte(int b) {
   uint8_t data_buffer_one [SAMPLES_PER_BIT];
   uint8_t data_buffer_zero[SAMPLES_PER_BIT];
@@ -85,7 +87,6 @@ void modem_send_byte(int b) {
   for(int n=0;n<SAMPLES_PER_BIT;n++) {data_buffer_one [n] = v; if(v==0) v=255; else v=0;}
   for(int n=0;n<SAMPLES_PER_BIT;n++) {data_buffer_zero[n] = v; if(v==0) v=128; else v=0;}
 
-  uint8_t data_buffer[SAMPLES_PER_BYTE];
 
   int pos=0;
 

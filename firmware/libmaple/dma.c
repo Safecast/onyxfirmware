@@ -114,9 +114,9 @@ void dma_setup_transfer(dma_dev       *dev,
     dma_channel_reg_map *channel_regs = dma_channel_regs(dev, channel);
 
     dma_disable(dev, channel);  /* can't write to CMAR/CPAR otherwise */
-    channel_regs->CCR = (memory_size << 10) | (peripheral_size << 8) | mode;
     channel_regs->CMAR = (uint32)memory_address;
     channel_regs->CPAR = (uint32)peripheral_address;
+    channel_regs->CCR = (memory_size << 10) | (peripheral_size << 8) | mode;
 }
 
 /**
