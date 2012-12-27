@@ -130,7 +130,7 @@ void render_item_menu(screen_item &item, bool selected) {
 
 }
 
-#define VARNUM_MAXSIZE 10
+#define VARNUM_MAXSIZE 50
 
 char    varnum_names[VARNUM_MAXSIZE][10];
 uint8_t varnum_values[VARNUM_MAXSIZE];

@@ -273,7 +273,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 20 - Set UTC offset
 {
-  8,
+  9,
   {
     { ITEM_TYPE_HEAD       , 0 , 0 , "CPMDEADINT" , 255 }, 
     { ITEM_TYPE_VARNUM     , 10, 50, "SIGN:-,+,"  , 255 },
@@ -282,7 +282,9 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 76, 50, "OFFMIN1"    , 255 },
     { ITEM_TYPE_VARNUM     , 98, 50, "OFFMIN2"    , 255 },
     { ITEM_TYPE_MENU_ACTION,  0,  7, "Save:UTCOff", 2   },
-    { ITEM_TYPE_LABEL      , 0 , 20, "HH:MM"      , 40  }
+    { ITEM_TYPE_LABEL      , 0 , 20, "HH:MM"      , 40  },
+    { ITEM_TYPE_ACTION     ,  0,  0, "UTCSCREEN"  , 255 }
+
   }
   ,7
 },

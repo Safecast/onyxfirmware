@@ -356,6 +356,33 @@ void Controller::receive_gui_event(char *event,char *value) {
   if(strcmp(event,"CALIBRATE") == 0) {
     initialise_calibration();
   } else
+  if(strcmp(event,"UTCSCREEN") == 0) {
+
+    int offset = realtime_getutcoffset_mins();
+    if(offset < 0) offset = 0-offset;
+
+    int hours = offset/60;
+    int min   = offset-(hours*60);
+
+    uint8 h1,h2,m1,m2,s1,s2;
+    h1 = hours/10;
+    h2 = hours%10;
+    m1 = min/10;
+    m2 = min%10;
+
+    m_gui->receive_update("OFFHOUR1",&h1);
+    m_gui->receive_update("OFFHOUR2",&h2);
+    m_gui->receive_update("OFFMIN1" ,&m1);
+    m_gui->receive_update("OFFMIN2" ,&m2);
+    
+    uint8 zero=0;
+    uint8 one =1;
+
+    offset = realtime_getutcoffset_mins();
+    if(offset <= 0) m_gui->receive_update("SIGN:-,+,",&zero);
+               else m_gui->receive_update("SIGN:-,+,",&one);
+    m_gui->redraw();
+  } else
   if(strcmp(event,"TIMESCREEN") == 0) {
     uint8_t hours;
     uint8_t min;
