@@ -104,7 +104,7 @@ int main(void) {
     const char *utcoffsetmins = flashstorage_keyval_get("UTCOFFSETMINS");
     if(utcoffsetmins != 0) {
       unsigned int c;
-      sscanf(utcoffsetmins, "%u", &c);
+      sscanf(utcoffsetmins, "%d", &c);
       utcoffsetmins_n = c;
 
       realtime_setutcoffset_mins(utcoffsetmins_n);
