@@ -100,10 +100,10 @@ int main(void) {
     u.initialise();
     serial_initialise();
   
-    int8_t utcoffsetmins_n = 0;
+    int utcoffsetmins_n = 0;
     const char *utcoffsetmins = flashstorage_keyval_get("UTCOFFSETMINS");
     if(utcoffsetmins != 0) {
-      unsigned int c;
+      int c;
       sscanf(utcoffsetmins, "%d", &c);
       utcoffsetmins_n = c;
 
