@@ -7,6 +7,8 @@
 #include "display.h"
 #include "timer.h"
 #include "buzzer.h"
+#include "switch.h"
+#include "power.h"
 
 #define SAMPLES_PER_BIT  204
 #define SAMPLES_PER_BYTE 8976
@@ -25,6 +27,8 @@ int     transmit_data_position = 0;
 int     transmit_data_size     = 0;
 
 volatile bool transmission_complete = false;
+
+volatile bool modem_full_range = false;
 
 void modem_send_byte(int b);
 
@@ -46,8 +50,15 @@ void write_to_buffer(int half,int b) {
     for(int j=0;j<2;j++)
     for(int i=0;i<SAMPLES_PER_BIT;i++) {
       int v=0;
-      if((b & (1 << bit)) > 0) v = 60 + (data_buffer_one[i]/4);
-                          else v = 60 + (data_buffer_zero[i]/4);
+
+      if(modem_full_range == false) {
+        if((b & (1 << bit)) > 0) v = 60 + (data_buffer_one[i]/4);
+                            else v = 60 + (data_buffer_zero[i]/4);
+      } else {
+        if((b & (1 << bit)) > 0) v = data_buffer_one[i];
+                            else v = data_buffer_zero[i];
+      }
+
       data_buffer[offset+pos] = v;
       pos++;
     }
@@ -55,9 +66,14 @@ void write_to_buffer(int half,int b) {
 }
 
 void byte_transmission_complete() {
-  buzzer_blocking_buzz(0.00001);
 
   dma_irq_cause event = dma_get_irq_cause(DMA2, DMA_CH4);
+  
+  if(transmit_data_position > transmit_data_size) {
+    transmission_complete=true;
+    dma_disable(DMA2, DMA_CH4);
+    return;
+  }
 
   if(event == DMA_TRANSFER_COMPLETE) {
 
@@ -76,10 +92,6 @@ void byte_transmission_complete() {
     write_to_buffer(0,b);
   }
 
-  if(transmit_data_position > transmit_data_size) {
-    transmission_complete=true;
-    return;
-  }
 }
 
 void modem_init() {
@@ -87,7 +99,7 @@ void modem_init() {
   // manual timer7 config
   TIMER7->regs.bas->PSC = 0x2;// was F
   TIMER7->regs.bas->EGR = 1; // set UG BIT!
-  TIMER7->regs.bas->ARR = 24; // was 20
+  TIMER7->regs.bas->ARR = 23; // was 24
   TIMER7->regs.bas->CR2 &= (uint16_t)~((uint16_t)0x0070);
   TIMER7->regs.bas->CR2 |= 0x0020; // was 50
   TIMER7->regs.bas->DIER = TIMER7->regs.bas->DIER | (1 & (1 << 8)); // enable DMA update?
@@ -168,20 +180,24 @@ void modem_logxfer() {
   flashstorage_log_pause();
 
   int id_pos =0;
-  char inputdata[1024];
+  char inputdata[2048];
   inputdata[0]=0;
   
   log_read_start();
+  bool last_switch_state = switch_state();
   for(int z=0;;z++) {
 
     // fill data
-
     int size = log_read_block(inputdata);
     if(size == 0) break;
 
-    //for(int n=0;n<1020;n++) {inputdata[n] = 'A'; inputdata[n+1]=0;}
     // send inputdata...
     modem_send((uint8_t *) inputdata,size);
+    bool sstate = switch_state();
+    if(sstate != last_switch_state) {
+      display_powerdown();
+      power_standby();
+    }
   }
 
   modem_deinit();

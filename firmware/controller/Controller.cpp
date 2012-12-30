@@ -561,13 +561,21 @@ void Controller::receive_gui_event(char *event,char *value) {
   if(strcmp(event,"QR Transfer") == 0) {
     qr_logxfer();
   } else
-  if(strcmp(event,"Audio Transfer") == 0) {
+  if(strcmp(event,"Audio Xfer Mod") == 0) {
     display_clear(0);
+    modem_full_range = false;
     display_draw_text(0,16," Audio Transfer ",65535);
     display_draw_text(4,32,"  in progress  " ,65535);
     modem_logxfer();
     m_gui->jump_to_screen(0);
-
+  } else
+  if(strcmp(event,"Audio Xfer Full") == 0) {
+    display_clear(0);
+    modem_full_range = true;
+    display_draw_text(0,16," Audio Transfer ",65535);
+    display_draw_text(4,32,"  in progress  " ,65535);
+    modem_logxfer();
+    m_gui->jump_to_screen(0);
   } else
   if(strcmp(event,"QR Tweet") == 0) {
     char str[1024];

@@ -3,4 +3,6 @@
 
 void modem_logxfer();
 
+extern volatile bool modem_full_range;
+
 #endif

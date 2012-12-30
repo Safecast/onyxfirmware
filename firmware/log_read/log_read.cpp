@@ -83,9 +83,10 @@ int log_read_block(char *buf) {
     if(log_position != (logsize-1)) {
       buf[0] = ',';
       buf[1] = 0;
-      buf+=2;
+      buf+=1;
     }
   }
+  buf[0]=0;
 
   log_position++;
   if((log_position==logsize) || ((log_position==1) && (logsize == 0))) {
@@ -93,7 +94,7 @@ int log_read_block(char *buf) {
     buf[1] = '}';
     buf[2] = '\n';
     buf[3] = 0;
-    buf+=4;
+    buf+=3;
   }
   return strlen(buf_start);
 }
