@@ -52,8 +52,8 @@ void write_to_buffer(int half,int b) {
       int v=0;
 
       if(modem_full_range == false) {
-        if((b & (1 << bit)) > 0) v = 60 + (data_buffer_one[i]/4);
-                            else v = 60 + (data_buffer_zero[i]/4);
+        if((b & (1 << bit)) > 0) v = (data_buffer_one[i]/15);
+                            else v = (data_buffer_zero[i]/15);
       } else {
         if((b & (1 << bit)) > 0) v = data_buffer_one[i];
                             else v = data_buffer_zero[i];

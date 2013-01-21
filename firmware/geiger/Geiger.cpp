@@ -34,7 +34,9 @@ void static geiger_min_log(void) {
 void pulse_output_end(void) {
   gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,0);
   if(mic_output) {
-    dac_write_channel(DAC,2,0);
+    dac_write_channel(DAC,2,10);
+    //gpio_set_mode (PIN_MAP[13].gpio_device,PIN_MAP[13].gpio_bit,GPIO_INPUT_PD);
+    //gpio_write_bit(PIN_MAP[13].gpio_device,PIN_MAP[13].gpio_bit,0);
   }
 
   timer_pause(TIMER3);
@@ -55,7 +57,8 @@ void static geiger_rising(void) {
   gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,1);
   
   if(mic_output) {
-    dac_write_channel(DAC,2,255);
+    dac_init(DAC,DAC_CH2);
+    dac_write_channel(DAC,2,20);
   }
 
   timer_generate_update(TIMER3); // refresh timer count, prescale, overflow
@@ -127,14 +130,14 @@ void Geiger::initialise() {
   //gpio_write_bit(PIN_MAP[13].gpio_device,PIN_MAP[13].gpio_bit,0);
   dac_init(DAC,DAC_CH2);
 
-  gpio_set_mode (PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit,GPIO_OUTPUT_PP);
+  gpio_set_mode (PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit,GPIO_OUTPUT_PP); // PC6 , MIC_IPHONE
   gpio_write_bit(PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit,1);
 
-  gpio_set_mode (PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,GPIO_OUTPUT_PP);
+  gpio_set_mode (PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,GPIO_OUTPUT_PP); // PC7 , MIC_REVERSE
   gpio_write_bit(PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,0);
 
   // headphone output
-  gpio_set_mode (PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,GPIO_OUTPUT_PP);
+  gpio_set_mode (PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,GPIO_OUTPUT_PP); // PA6 , HP_COMBINED
   gpio_write_bit(PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,0);
 
   pulse_timer_init();
