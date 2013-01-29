@@ -34,7 +34,7 @@ void static geiger_min_log(void) {
 void pulse_output_end(void) {
   gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,0);
   if(mic_output) {
-    dac_write_channel(DAC,2,10);
+    dac_write_channel(DAC,2,0);
     //gpio_set_mode (PIN_MAP[13].gpio_device,PIN_MAP[13].gpio_bit,GPIO_INPUT_PD);
     //gpio_write_bit(PIN_MAP[13].gpio_device,PIN_MAP[13].gpio_bit,0);
   }
@@ -57,7 +57,7 @@ void static geiger_rising(void) {
   gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,1);
   
   if(mic_output) {
-    dac_init(DAC,DAC_CH2);
+   // dac_init(DAC,DAC_CH2);
     dac_write_channel(DAC,2,20);
   }
 
@@ -71,7 +71,7 @@ Geiger::Geiger() {
 
 void Geiger::initialise() {
 
-  m_pulsewidth = 0;
+  m_pulsewidth = 5;
   calibration_scaling=1;
   m_cpm_valid = false;
 
