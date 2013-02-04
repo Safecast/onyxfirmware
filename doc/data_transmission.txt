@@ -1,7 +1,5 @@
-	Some rough ideas for data transmission
+3 Modes of log transmission are available in the device:
 
-FSK or ASK over 44.1k audio input, can expect throughput of 1200bps (150Bps).
-USB on iPod dock, requires licensing encryption chip, make 56kbps (7KBps).
-Bluetooth, requires encryption chip/power hungry.
-AdHoc wifi transmission, power hungry.
-QR Code?
+* USB Serial interface.
+* Animated QR code based data transfer.
+* An AFSK modem, implemented to comply with "AudioSoftModem" for the iPhone.
