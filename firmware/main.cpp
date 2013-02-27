@@ -121,6 +121,8 @@ int main(void) {
         sscanf(spulsewidth, "%u", &c);
         g.set_pulsewidth(c);
         g.pulse_timer_init();
+      } else {
+        g.set_pulsewidth(6);
       }
 
       const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
