@@ -209,35 +209,44 @@ float Geiger::get_cpm() {
   // makes the windows look crazy.
 
   // cpm for last 5 seconds
-//  if(m_cpm_valid) {
-		int32_t last5sum=0;
-    int32_t c_position = last_windows_position-1;
-		for(uint32_t n=0;n<10;n++) {
-			if(c_position < 0) c_position = WINDOWS_STORED+c_position;
-			last5sum += last_windows[c_position];
+  int32_t last5sum=0;
+  int32_t c_position = last_windows_position-1;
+  for(uint32_t n=0;n<10;n++) {
+    if(c_position < 0) c_position = WINDOWS_STORED+c_position;
+    last5sum += last_windows[c_position];
 
-	    c_position--;
-		}
-		
-		// cpm for 5 seconds prior to above
-		int32_t old5sum=0;
-    c_position = last_windows_position-1-10;
-		for(uint32_t n=0;n<10;n++) {
-			if(c_position < 0) c_position = WINDOWS_STORED+c_position;
-			old5sum += last_windows[c_position];
-	 
-			c_position--;
-		}
+    c_position--;
+  }
+  
+  // cpm for 5 seconds prior to above
+  int32_t old5sum=0;
+  c_position = last_windows_position-1-10;
+  for(uint32_t n=0;n<10;n++) {
+    if(c_position < 0) c_position = WINDOWS_STORED+c_position;
+    old5sum += last_windows[c_position];
+ 
+    c_position--;
+  }
 
-		uint32_t delta = old5sum-last5sum;
-		if(delta < 0) delta = 0-delta;
-		uint32_t mincpm = min(old5sum,last5sum);
-		uint32_t maxcpm = max(old5sum,last5sum);
-		if(((mincpm*100) < maxcpm) && (mincpm != 0)) {
-			m_cpm_valid = false;
-			m_samples_collected=5;
-		}
-//  }
+  // Invalidate if the last 2 5second windows differ by more than 100times.
+  uint32_t delta = old5sum-last5sum;
+  if(delta < 0) delta = 0-delta;
+  uint32_t mincpm = min(old5sum,last5sum);
+  uint32_t maxcpm = max(old5sum,last5sum);
+  if(((mincpm*100) < maxcpm) && (mincpm != 0)) {
+    m_cpm_valid = false;
+    m_samples_collected=5;
+  }
+
+  // Invalidate if the cpm30 differs from the cpm5 reading by more than 100 times the cpm5 reading.
+  float cpm30 = get_cpm30();
+  float cpm5  = last5sum*12;
+  float delta30 = cpm5 - cpm30;
+  if(delta30 < 0) delta30 = 0-delta30;
+  if(delta30 > (cpm5*100)) {
+    m_cpm_valid = false;
+    m_samples_collected=5;
+  }
 
   float sum = 0;
 

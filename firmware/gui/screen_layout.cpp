@@ -38,7 +38,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU       ,15, 2, "Accumulate/Avg" ,6   },
     { ITEM_TYPE_MENU       ,21, 3, "Becquerel"      ,31  },
 //    { ITEM_TYPE_MENU_ACTION, 0, 4, "QR Transfer"    ,7   },
-    { ITEM_TYPE_MENU_ACTION, 0, 5, "QR Tweet"       ,32  }
+    { ITEM_TYPE_MENU_ACTION, 0, 4, "QR Tweet"       ,32  }
 //    { ITEM_TYPE_MENU_ACTION, 0, 6, "Audio Xfer Mod" ,255 },
 //    { ITEM_TYPE_MENU_ACTION, 0, 7, "Audio Xfer Full",255 }
   }
@@ -239,7 +239,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   8,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"      , 255},
-    { ITEM_TYPE_MENU       ,19, 1, "Sv/Rem"          , 255},
+    { ITEM_TYPE_MENU       ,19, 1, "\x80Sv/\x80R"    , 255},
     { ITEM_TYPE_MENU       , 5, 2, "Calibration"     , 26 },
     { ITEM_TYPE_MENU_ACTION, 0, 3, "Clear Log"       , 27 },
     { ITEM_TYPE_MENU       ,23, 4, "Log Interval"    , 34 },
@@ -297,7 +297,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD        , 0  ,  0, "CPMDEADINT", 255}, 
     { ITEM_TYPE_VARLABEL    , 0  , 30, "BECQINFO"  , 255},
     { ITEM_TYPE_BIGVARLABEL , 0  , 43, "BECQ"      , 255},
-    { ITEM_TYPE_LABEL        ,112, 74, "Bq"        , 255}
+    { ITEM_TYPE_LABEL        ,80 , 74, "Bq/cm2"    , 255}
   }
   ,1
 },
