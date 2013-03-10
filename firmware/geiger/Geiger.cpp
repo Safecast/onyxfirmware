@@ -243,7 +243,7 @@ float Geiger::get_cpm() {
   float cpm5  = last5sum*12;
   float delta30 = cpm5 - cpm30;
   if(delta30 < 0) delta30 = 0-delta30;
-  if(delta30 > (cpm5*100)) {
+  if((delta30 > (cpm5*100)) && (cpm5 > 500)) {
     m_cpm_valid = false;
     m_samples_collected=5;
   }

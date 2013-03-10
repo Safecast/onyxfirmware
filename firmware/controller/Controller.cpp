@@ -310,15 +310,15 @@ void Controller::receive_gui_event(char *event,char *value) {
      if(m_geiger.is_beeping()) { flashstorage_keyval_set("GEIGERBEEP","true");  tick_item("Geiger Beep",true);  }
                           else { flashstorage_keyval_set("GEIGERBEEP","false"); tick_item("Geiger Beep",false); }
   } else 
-  if(strcmp(event,"Sievert") == 0) {
+  if(strcmp(event,"\x80Sv") == 0) {
     flashstorage_keyval_set("SVREM","SV");
-    tick_item("Sievert" ,true);
-    tick_item("Roentgen",false);
+    tick_item("\x80Sv" ,true);
+    tick_item("\x80R",false);
   } else
-  if(strcmp(event,"Roentgen") == 0) {
+  if(strcmp(event,"\x80R") == 0) {
     flashstorage_keyval_set("SVREM","REM");
-    tick_item("Sievert" ,false);
-    tick_item("Roentgen",true);
+    tick_item("\x80Sv" ,false);
+    tick_item("\x80R",true);
   } else
   if(strcmp(event,"Clear Log") == 0) {
     flashstorage_log_clear();
@@ -812,7 +812,7 @@ void Controller::update() {
 
 
     m_gui->receive_update("SVREM", text_rem);
-    m_gui->receive_update("SVREMLABEL","\x80rem/h");
+    m_gui->receive_update("SVREMLABEL","  \x80R/h");
   } else {
     char text_sieverts[50];
     char text_sieverts_tmp[50];

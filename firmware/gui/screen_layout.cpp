@@ -266,8 +266,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   3,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT", 255}, 
-    { ITEM_TYPE_MENU_ACTION, 1, 1, "Sievert"   , 38 },
-    { ITEM_TYPE_MENU_ACTION, 2, 2, "Roentgen"  , 39 }
+    { ITEM_TYPE_MENU_ACTION, 1, 1, "\x80Sv"    , 38 },
+    { ITEM_TYPE_MENU_ACTION, 2, 2, "\x80R"     , 39 }
   }
   ,7
 },
