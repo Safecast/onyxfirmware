@@ -39,7 +39,7 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
   m_last_switch_state = sstate;
 
   m_warning_raised = false;
-  m_changing_brightness = false;
+  m_dim_off = false;
 
   m_cpm_cps_switch = false;
   m_current_units = 2;
@@ -79,7 +79,7 @@ void Controller::update_calibration() {
   char text_sieverts[50];
   float_to_char(m_calibration_base*calibration_scaling,text_sieverts,5);
   text_sieverts[5] = ' ';
-  text_sieverts[6] = 'u';
+  text_sieverts[6] = '\x80';
   text_sieverts[7] = 'S';
   text_sieverts[8] = 'v';
   text_sieverts[9] = 0;
@@ -97,22 +97,25 @@ void Controller::save_calibration() {
   char text_sieverts[50];
   float_to_char(base_sieverts*calibration_scaling,text_sieverts,5);
   text_sieverts[5] = ' ';
-  text_sieverts[6] = 'u';
+  text_sieverts[6] = '\x80';
   text_sieverts[7] = 'S';
   text_sieverts[8] = 'v';
   text_sieverts[9] = 0;
 
   m_gui->receive_update("Sieverts",text_sieverts);
   m_geiger.set_calibration(calibration_scaling);
+  m_dim_off=false;
   m_gui->jump_to_screen(0);
 }
 
 void Controller::initialise_calibration() {
+  m_dim_off=true;
+  display_set_brightness(15);
   m_calibration_base = m_geiger.get_microsieverts();
   char text_sieverts[50];
   float_to_char(m_calibration_base,text_sieverts,5);
   text_sieverts[5] = ' ';
-  text_sieverts[6] = 'u';
+  text_sieverts[6] = '\x80';
   text_sieverts[7] = 'S';
   text_sieverts[8] = 'v';
   text_sieverts[9] = 0;
@@ -336,7 +339,7 @@ void Controller::receive_gui_event(char *event,char *value) {
     sprintf(sbright,"%u",br);
     flashstorage_keyval_set("BRIGHTNESS",sbright);
 
-    m_changing_brightness=false;
+    m_dim_off=false;
     m_gui->jump_to_screen(0);
   } else
   if(strcmp(event,"Save:LogInter") == 0) {
@@ -482,13 +485,13 @@ void Controller::receive_gui_event(char *event,char *value) {
       sscanf(sbright, "%u", &c);
       display_set_brightness(c);
     }
-    m_changing_brightness=false;
+    m_dim_off=false;
 
   } else
   if(strcmp(event,"varnumchange") == 0) {
     if(strcmp("BRIGHTNESS",value) == 0) {
       int b = m_gui->get_item_state_uint8("BRIGHTNESS");
-      m_changing_brightness=true;
+      m_dim_off=true;
 
       int br;
       if(b<= 5) br = (b*2) +1;
@@ -697,7 +700,7 @@ void Controller::update() {
   }
 
   // only dim if not in brightness changing mode
-  if(!m_changing_brightness) {
+  if(!m_dim_off) {
     // Check for no key presses then dim screen
     uint32_t release_time = cap_last_press_any();
     uint32_t   press_time = cap_last_release_any();

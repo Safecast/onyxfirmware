@@ -37,7 +37,7 @@ public:
   bool     m_keytrigger;
   bool     m_warning_raised;
   uint32   m_total_timer_start;
-  bool     m_changing_brightness;
+  bool     m_dim_off;
 
   float    m_cpm_cps_threshold;
   float    m_cps_cpm_threshold;
