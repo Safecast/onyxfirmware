@@ -109,14 +109,14 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
   8,
   {
-    { ITEM_TYPE_ACTION     ,  0,   0, "DUMMY"    , 255 },
-    { ITEM_TYPE_VARNUM     , 20, 50 , "CAL1"     , 255 },
-    { ITEM_TYPE_VARNUM     , 56, 50 , "CAL2"     , 255 },
-    { ITEM_TYPE_VARNUM     , 74, 50 , "CAL3"     , 255 },
-    { ITEM_TYPE_VARNUM     , 92, 50 , "CAL4"     , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Calib", 2  },
-    { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE", 255 },
-    { ITEM_TYPE_VARLABEL   ,  0,   0, "FIXEDSV"  , 255 }
+    { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE" , 255 },
+    { ITEM_TYPE_VARNUM     , 20, 50 , "CAL1"      , 255 },
+    { ITEM_TYPE_VARNUM     , 56, 50 , "CAL2"      , 255 },
+    { ITEM_TYPE_VARNUM     , 74, 50 , "CAL3"      , 255 },
+    { ITEM_TYPE_VARNUM     , 92, 50 , "CAL4"      , 255 },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Calib", 2   },
+    { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE" , 255 },
+    { ITEM_TYPE_VARLABEL   ,  0,   0, "FIXEDSV"   , 255 }
   }
   ,4
 },

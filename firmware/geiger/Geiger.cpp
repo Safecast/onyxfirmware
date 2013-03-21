@@ -318,6 +318,12 @@ float Geiger::get_microsieverts() {
   return microsieverts;
 }
 
+float Geiger::get_microsieverts_nocal() {
+  float conversionCoefficient = 0.00294;
+  float microsieverts =  (get_cpm_deadtime_compensated() * conversionCoefficient);
+  return microsieverts;
+}
+
 float *Geiger::get_cpm_last_windows() {
 
   float cpm_last_windows_temp[WINDOWS_STORED];
@@ -354,6 +360,10 @@ bool Geiger::is_cpm30_valid() {
   if(m_samples_collected > ((WINDOWS_PER_MIN/2)+1)) return true;
 
   return false;
+}
+
+float Geiger::get_calibration() {
+  return calibration_scaling;
 }
 
 void Geiger::set_calibration(float c) {

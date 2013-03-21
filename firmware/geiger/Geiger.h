@@ -19,8 +19,10 @@ public:
   float get_cpm30();
   float get_cpm_deadtime_compensated();
   float get_microsieverts();
+  float get_microsieverts_nocal();
   float get_microrems();
   void  set_calibration(float c);
+  float get_calibration();
 
   float *get_cpm_last_windows();
   void powerup  ();

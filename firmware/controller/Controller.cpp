@@ -92,7 +92,7 @@ void Controller::save_calibration() {
   int c3 = m_gui->get_item_state_uint8("CAL3");
   int c4 = m_gui->get_item_state_uint8("CAL4");
   float calibration_scaling = ((float)c1) + (((float)c2)/10) + (((float)c3)/100) + (((float)c4)/1000);
-  float base_sieverts = m_geiger.get_microsieverts();    
+  float base_sieverts = m_geiger.get_microsieverts_nocal();
 
   char text_sieverts[50];
   float_to_char(base_sieverts*calibration_scaling,text_sieverts,5);
@@ -111,17 +111,24 @@ void Controller::save_calibration() {
 void Controller::initialise_calibration() {
   m_dim_off=true;
   display_set_brightness(15);
-  m_calibration_base = m_geiger.get_microsieverts();
+  m_calibration_base = m_geiger.get_microsieverts_nocal();
   char text_sieverts[50];
-  float_to_char(m_calibration_base,text_sieverts,5);
+  float_to_char(m_calibration_base*m_geiger.get_calibration(),text_sieverts,5);
   text_sieverts[5] = ' ';
   text_sieverts[6] = '\x80';
   text_sieverts[7] = 'S';
   text_sieverts[8] = 'v';
   text_sieverts[9] = 0;
   m_gui->receive_update("FIXEDSV",text_sieverts);
-  uint8_t val=1;
-  m_gui->receive_update("CAL1",&val);
+  
+  uint8_t c1=m_geiger.get_calibration();
+  uint8_t c2=((uint32_t)(m_geiger.get_calibration()*10))%10;
+  uint8_t c3=((uint32_t)(m_geiger.get_calibration()*100))%10;
+  uint8_t c4=((uint32_t)(m_geiger.get_calibration()*1000))%10;
+  m_gui->receive_update("CAL1",&c1);
+  m_gui->receive_update("CAL2",&c2);
+  m_gui->receive_update("CAL3",&c3);
+  m_gui->receive_update("CAL4",&c4);
 }
 
 void Controller::save_warncpm() {
