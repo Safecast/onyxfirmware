@@ -69,7 +69,11 @@ tar xzvf gcc-arm-none-eabi-latest-linux32.tar.gz
 
 ```
 export PATH=$PATH:$HOME/armcompiler/arm/bin
+```
 
+*  And then checkout and build:
+
+```
 cd $HOME/gitcode # or whereever you want to keep your code 
 git clone git@github.com:Safecast/bunniegeiger.git
 git checkout release7 # work on a release branch
