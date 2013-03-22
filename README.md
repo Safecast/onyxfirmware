@@ -51,12 +51,12 @@ To program the firmware you can use the tool provided in the firmware_loader sub
 Example Build Setup
 ===================
 
-1. Install imagemagick
+* Install imagemagick
 
 ```
 sudo apt-get install imagemagick
 ```
-2. Get the codesourcey tool chain
+* Get the codesourcey tool chain
 
 ```
 mkdir $HOME/armcompiler
@@ -65,7 +65,7 @@ wget http://static.leaflabs.com/pub/codesourcery/gcc-arm-none-eabi-latest-linux3
 tar xzvf gcc-arm-none-eabi-latest-linux32.tar.gz
 ```
 
-3. Add codesourcery tools to your path, this can be added to your .bashrc:
+* Add codesourcery tools to your path, this can be added to your .bashrc:
 
 ```
 export PATH=$PATH:$HOME/armcompiler/arm/bin
