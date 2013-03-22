@@ -51,16 +51,23 @@ To program the firmware you can use the tool provided in the firmware_loader sub
 Example Build Setup
 ===================
 
-#Install imagemagick
-sudo apt-get install imagemagick
+1. Install imagemagick
 
-#Get the codesourcey tool chain
+```
+sudo apt-get install imagemagick
+```
+2. Get the codesourcey tool chain
+
+```
 mkdir $HOME/armcompiler
 cd $HOME/armcompiler
 wget http://static.leaflabs.com/pub/codesourcery/gcc-arm-none-eabi-latest-linux32.tar.gz
 tar xzvf gcc-arm-none-eabi-latest-linux32.tar.gz
+```
 
-#Add codesourcery tools to your path, this can be added to your .bashrc:
+3. Add codesourcery tools to your path, this can be added to your .bashrc:
+
+```
 export PATH=$PATH:$HOME/armcompiler/arm/bin
 
 cd $HOME/gitcode # or whereever you want to keep your code 
@@ -68,3 +75,4 @@ git clone git@github.com:Safecast/bunniegeiger.git
 git checkout release7 # work on a release branch
 cd firmware
 make
+```
