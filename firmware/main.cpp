@@ -48,6 +48,7 @@ int main(void) {
       power_standby();
     }
 
+    serial_initialise();
     flashstorage_initialise();
     buzzer_initialise();
     realtime_initialise();
@@ -98,7 +99,6 @@ int main(void) {
     c.set_gui(m_gui);
     UserInput  u(m_gui);
     u.initialise();
-    serial_initialise();
   
     int utcoffsetmins_n = 0;
     const char *utcoffsetmins = flashstorage_keyval_get("UTCOFFSETMINS");

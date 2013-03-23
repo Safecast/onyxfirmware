@@ -10,7 +10,7 @@ void flashstorage_keyval_set(const char *key,const char *value);
 void flashstorage_keyval_by_idx(int idx,char *key,char *val);
 
 void     flashstorage_log_clear();
-void     flashstorage_log_pushback(uint8_t *data,uint32_t size);
+int      flashstorage_log_pushback(uint8_t *data,uint32_t size);
 uint32_t flashstorage_log_size();
 uint8_t *flashstorage_log_get();
 bool     flashstorage_log_isfull();

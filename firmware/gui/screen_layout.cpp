@@ -298,7 +298,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD        , 0  ,  0, "CPMDEADINT", 255}, 
     { ITEM_TYPE_VARLABEL    , 0  , 30, "BECQINFO"  , 255},
     { ITEM_TYPE_BIGVARLABEL , 0  , 43, "BECQ"      , 255},
-    { ITEM_TYPE_LABEL        ,80 , 74, "Bq/cm2"    , 255}
+    { ITEM_TYPE_LABEL        ,81 , 74, "Bq/m2"     , 255}
   }
   ,1
 },

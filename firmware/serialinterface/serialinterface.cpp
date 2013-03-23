@@ -304,6 +304,28 @@ void cmd_logclear(char *line) {
   serial_write_string("Cleared\r\n");
 }
 
+void cmd_logstress(char *line) {
+  serial_write_string("Log stress testing - 5000 writes\r\n");
+
+  log_data_t data;
+
+  data.time  = rtc_get_time(RTC);
+  data.cpm   = 1;
+  data.accel_x_start = 2;
+  data.accel_y_start = 3;
+  data.accel_z_start = 4;
+  data.log_type      = UINT_MAX;
+
+  char err[50];
+  for(int n=0;n<5000;n++) {
+    data.cpm = n;
+    int r = flashstorage_log_pushback((uint8_t *) &data,sizeof(log_data_t));
+    sprintf(err,"return code: %d\r\n",r);
+    serial_write_string(err);
+  }
+  serial_write_string("Complete\r\n");
+}
+
 void cmd_keyvaldump(char *line) {
 
   char key[100];
@@ -479,6 +501,7 @@ void register_cmds() {
   register_cmd("LOGPAUSE"     ,cmd_logpause);
   register_cmd("LOGRESUME"    ,cmd_logresume);
   register_cmd("LOGCLEAR"     ,cmd_logclear);
+  register_cmd("LOGSTRESS"    ,cmd_logstress);
   register_cmd("KEYVALDUMP"   ,cmd_keyvaldump);
   register_cmd("KEYVALSET"    ,cmd_keyvalset);
   register_cmd("SETRTC"       ,cmd_setrtc);

@@ -5,9 +5,11 @@
 #include "display.h"
 #include "log.h"
 #include <string.h>
+#include "serialinterface.h"
+#include <stdio.h>
 
-extern uint8_t _binary___binary_data_flash_data_start;
-extern uint8_t _binary___binary_data_flash_data_size;
+extern uint32_t _binary___binary_data_flash_data_start;
+extern uint32_t _binary___binary_data_flash_data_size;
 
 uint8_t  *flash_data_area_aligned;
 uint32_t  flash_data_area_aligned_size;
@@ -108,9 +110,8 @@ void flashstorage_initialise() {
     flash_addr += unusable;
   }
 
-
   flash_data_area_aligned = (uint8_t *) flash_addr;
-  flash_data_area_aligned_size = _binary___binary_data_flash_data_size - unusable;
+  flash_data_area_aligned_size = (uint32_t) (&_binary___binary_data_flash_data_size) - unusable;
 }
 
 char *flashstorage_keyval_get_address(const char *key) {
@@ -137,6 +138,7 @@ char *flashstorage_keyval_get_unalloced() {
       return (char *) (flash_data_area_aligned)+n;
     }
   }
+  return 0;
 }
 
 void flashstorage_keyval_by_idx(int idx,char *key,char *val) {
@@ -191,6 +193,8 @@ void flashstorage_keyval_set(const char *key,const char *value) {
   char *kvaddr     = flashstorage_keyval_get_address(key);
 
   if(kvaddr == 0) kvaddr = flashstorage_keyval_get_unalloced();
+
+  if(kvaddr == 0) return;
 
   uint8_t *page_address    = flashstorage_get_pageaddr((uint8_t *) kvaddr);
   flashstorage_readpage(page_address,pagedata);
@@ -251,31 +255,23 @@ uint32_t flashstorage_log_size() {
   }
 
   // there doesn't seem to a page with any free data, so return max size.
-  return flash_data_area_aligned_size-pagesize-flash_log_base;
-}
-
-uint32_t flashstorage_log_full() {
-  if(flashstorage_log_size() == (flash_data_area_aligned_size-pagesize-flash_log_base)) return true;
-  return false;
+  return flash_data_area_aligned_size-flash_log_base;
 }
 
 bool flashstorage_log_isfull() {
-  uint32_t flash_data_size = flashstorage_log_size();
-
-  // 2048 to cope with any potential edge case, TODO: more testing.
-  if((flash_data_size+20) > (flash_data_area_aligned_size-2048)) return true;
+  if(flashstorage_log_size() == (flash_data_area_aligned_size-flash_log_base)) return true;
   return false;
 }
 
-void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
+int flashstorage_log_pushback(uint8_t *data,uint32_t size) {
 
   // if datalogging is paused (usually for data transfer) just return.
-  if(log_pause == true) return;
+  if(log_pause == true) return 1;
 
   uint32_t flash_data_size = flashstorage_log_size();
 
   // If we're falling off the end of the logging area just return, -2048 to cope with any potential edge case, TODO: more testing.
-  if((flash_data_size+size) > (flash_data_area_aligned_size-2048)) return;
+  if((flash_data_size+size) > (flash_data_area_aligned_size-2048)) return 2;
 
   // 1. Identify current page.
   uint8_t *address      = flash_data_area_aligned+flash_log_base+flash_data_size;
@@ -285,6 +281,9 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
   uint8_t  *data_position = data;
   uint32_t write_size     = size;
 
+  // Sanity checks
+  if(page_address < flash_data_area_aligned) return 3;
+  if(page_address > (flash_data_area_aligned+flash_data_area_aligned_size)) return 4;
 
   // 2. Write data segment covering current page.
   if(excess != 0) {
@@ -306,6 +305,10 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
     flashstorage_lock();
     page_address += pagesize;
   }
+  
+  // Sanity checks
+  if(page_address < flash_data_area_aligned) return 5;
+  if(page_address > (flash_data_area_aligned+flash_data_area_aligned_size)) return 6;
 
   // 3. Write full pages until all data is written
   for(;write_size != 0;) {
@@ -328,10 +331,18 @@ void flashstorage_log_pushback(uint8_t *data,uint32_t size) {
     flashstorage_writepage(pagedata,page_address);
     flashstorage_lock();
     page_address += pagesize;
+   
+    if(write_size == 0) break;
+ 
+    // Sanity checks
+    if(page_address < flash_data_area_aligned) return 7;
+    if(page_address > (flash_data_area_aligned+flash_data_size)) return 8;
   }
 
   // 4. Update log size
   flashstorage_log_size_set(flash_data_size+size);
+
+  return 0;
 }
 
 void flashstorage_log_userchange() {
