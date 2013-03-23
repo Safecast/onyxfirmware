@@ -1,5 +1,0 @@
-3 Modes of log transmission are available in the device:
-
-* USB Serial interface.
-* Animated QR code based data transfer.
-* An AFSK modem, implemented to comply with "AudioSoftModem" for the iPhone.

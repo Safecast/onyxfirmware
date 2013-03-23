@@ -15,7 +15,7 @@ A simple tool for updating to the latest firmware release and uploading logs for
 
 http://41j.com/OnyxLoader.zip
 
-Some users may have issues with previous FTDI drivers, a version which unloads existing FTDI drivers is available here:
+Some users may have issues with previous FTDI drivers ( **Arduino** **users** **this** **means** **you** ), a version which unloads existing FTDI drivers is available here:
 
 http://41j.com/OnyxLoaderA.zip
 
@@ -51,20 +51,32 @@ To program the firmware you can use the tool provided in the firmware_loader sub
 Example Build Setup
 ===================
 
-#Install imagemagick
-sudo apt-get install imagemagick
+* Install imagemagick
 
-#Get the codesourcey tool chain
+```
+sudo apt-get install imagemagick
+```
+* Get the codesourcey tool chain
+
+```
 mkdir $HOME/armcompiler
 cd $HOME/armcompiler
 wget http://static.leaflabs.com/pub/codesourcery/gcc-arm-none-eabi-latest-linux32.tar.gz
 tar xzvf gcc-arm-none-eabi-latest-linux32.tar.gz
+```
 
-#Add codesourcery tools to your path, this can be added to your .bashrc:
+* Add codesourcery tools to your path, this can be added to your .bashrc:
+
+```
 export PATH=$PATH:$HOME/armcompiler/arm/bin
+```
 
+*  And then checkout and build:
+
+```
 cd $HOME/gitcode # or whereever you want to keep your code 
 git clone git@github.com:Safecast/bunniegeiger.git
 git checkout release7 # work on a release branch
 cd firmware
 make
+```
