@@ -26,3 +26,5 @@ Troubleshooting
 4. When running OnyxLoaderA ensure you are using the correct password.
 
 5. The tools require a working internet connection, make sure your internet connection is working and you can connect to 41j.com in a web browser.
+
+6. If all the above fail please file a github issue, please include the firmware version number used, and any errors displayed.
