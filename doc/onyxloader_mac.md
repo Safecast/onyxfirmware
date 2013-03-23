@@ -17,10 +17,12 @@ Arduino drivers you will need to reboot in order to reactivate the Arduino tools
 Troubleshooting
 ===============
 
-1. Ensure you have the latest available loaders supplied at the links above.
+1. Try rebooting the system.
 
-2. Try **both** OnyxLoader and OnyxLoaderA, even if you know you have the Arduino drivers on you system.
+2. Ensure you have the latest available loaders supplied at the links above.
 
-3. When running OnyxLoaderA ensure you are using the correct password.
+3. Try **both** OnyxLoader and OnyxLoaderA, even if you know you have the Arduino drivers on you system.
 
-4. The tools require a working internet connection, make sure your internet connection is working and you can connect to 41j.com in a web browser.
+4. When running OnyxLoaderA ensure you are using the correct password.
+
+5. The tools require a working internet connection, make sure your internet connection is working and you can connect to 41j.com in a web browser.
