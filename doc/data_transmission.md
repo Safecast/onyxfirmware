@@ -14,6 +14,7 @@ Log Transmission
 * USB Serial interface.
 * Animated QR code based data transfer.
 * An AFSK modem, implemented to comply with "AudioSoftModem" for the iPhone.
+* Pulse transmission.
 
 In order to see the QR code and AFSK modem options you will currently need to use the
 Beta firmware. For AFSK modem transmission you will also need the cable referenced above.
