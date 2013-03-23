@@ -419,6 +419,25 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_gui->receive_update("TIMESEC2" ,&s2);
     m_gui->redraw();
   } else
+  if(strcmp(event,"BECQSCREEN") == 0) {
+  
+    float becq_val = 0;
+    const char *val = flashstorage_keyval_get("BECQEFF");
+    if(val != NULL) {
+      sscanf(val,"%f",&becq_val);
+    }
+
+    uint8_t b1 = ((int)becq_val%10000) /1000;
+    uint8_t b2 = ((int)becq_val%1000)  /100;
+    uint8_t b3 = ((int)becq_val%100)   /10;
+    uint8_t b4 = ((int)becq_val%10);
+
+    m_gui->receive_update("BECQ1",&b1);
+    m_gui->receive_update("BECQ2",&b2);
+    m_gui->receive_update("BECQ3",&b3);
+    m_gui->receive_update("BECQ4",&b4);
+    m_gui->redraw();
+  } else
   if(strcmp(event,"WARNSCREEN") == 0) {
     int32_t warn_level = 0;
     const char *val = flashstorage_keyval_get("WARNCPM");

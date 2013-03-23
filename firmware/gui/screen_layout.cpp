@@ -305,14 +305,15 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 22 - Set Becquerel conversion value
 {
-  6,
+  7,
   {
     { ITEM_TYPE_HEAD       , 0 ,  0 , "CPMDEADINT", 255 }, 
     { ITEM_TYPE_VARNUM     , 38, 50 , "BECQ1"     , 255 },
     { ITEM_TYPE_VARNUM     , 56, 50 , "BECQ2"     , 255 },
     { ITEM_TYPE_VARNUM     , 74, 50 , "BECQ3"     , 255 },
     { ITEM_TYPE_VARNUM     , 92, 50 , "BECQ4"     , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Becq"  , 2 },
+    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Becq" , 2   },
+    { ITEM_TYPE_ACTION     ,  0,   0, "BECQSCREEN", 255 },
   }
   ,7
 },
