@@ -19,6 +19,8 @@ Troubleshooting
 
 1. Try rebooting the system.
 
+2. Ensure that OnyxLoader isn't already running, force quit if required (right click with the Option key pressed and select "force quit").
+
 2. Ensure you have the latest available loaders supplied at the links above.
 
 3. Try **both** OnyxLoader and OnyxLoaderA, even if you know you have the Arduino drivers on you system.

@@ -158,7 +158,6 @@ void Geiger::initialise() {
 
   timer_resume(TIMER4);
   m_samples_collected=0;
-  m_becquerel_eff = -1;
 }
 
 void Geiger::pulse_timer_init() {
