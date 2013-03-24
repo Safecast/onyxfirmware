@@ -19,7 +19,7 @@ Troubleshooting
 
 1. Try rebooting the system.
 
-2. Ensure that OnyxLoader isn't already running, force quit if required (right click with the Option key pressed and select "force quit").
+2. Ensure that OnyxLoader isn't already running, force quit if required (click on the dock icon with the Option key pressed and select "force quit").
 
 2. Ensure you have the latest available loaders supplied at the links above.
 
