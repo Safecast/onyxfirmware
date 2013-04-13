@@ -531,7 +531,7 @@ void serial_initialise() {
   command_stack_size = 1;
 
   usart_init(USART1);
-  usart_set_baud_rate(USART1, STM32_PCLK2, 115200); 
+  usart_set_baud_rate(USART1, STM32_PCLK2, ERROR_USART_BAUD); 
   usart_enable(USART1);
 }
 
