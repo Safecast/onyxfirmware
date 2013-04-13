@@ -21,7 +21,7 @@ OUROBJS = ./display/display.o ./display/spi_aux.o ./display/oled.o ./userinput/c
 
 BINARYOBJS = ./binary_data/tinyfont_data.o ./binary_data/font_data.o ./binary_data/bignumbers_data.o ./binary_data/flash_data.o ./binary_data/fixed_images.o ./binary_data/splashscreen.o ./binary_data/private_key_data.o ./binary_data/help_screens_en.o ./binary_data/help_screens_jp.o 
 
-PICTUREOBJS = ./binary_data/{fixed_images,bignumbers_data,font_data,help_screens_en,help_screens_jp,splashscreen,splashscreen888}
+PICTUREOBJS = ./binary_data/{fixed_images,bignumbers_data,font_data,tinyfont_data,help_screens_en,help_screens_jp,splashscreen,splashscreen888}
 
 AESFILES = ./signing/aes.o
 MPARITH = ./signing/mp.o ./signing/mpbarrett.o

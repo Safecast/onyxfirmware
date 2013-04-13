@@ -2,9 +2,12 @@ APP = catkeys
 
 all: $(APP)
 
-$(APP): catkeys.c 
-	$(CC) -c -o catkeys.o catkeys.c
-	$(CC) -o $(APP) $(CFLAGS) catkeys.o -luuid
+$(APP): $(APP).c
+	$(CC) -c -o $(APP).o $(APP).c
+	$(CC) -o $(APP) $(CFLAGS) $(APP).o -luuid
 
 clean:
-	rm -f *.o ; rm $(APP)
+	rm -f *.o
+
+distclean: clean
+	rm -f $(APP)

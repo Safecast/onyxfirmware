@@ -33,14 +33,15 @@ CRYPTOFILES = $(AESFILES) $(SHA1FILES) $(RSAFILES) $(MPARITH)
 SHELLFILES = main.o parse.o
 
 OBJS = $(SHELLFILES) beecrypt412_sm.a
+EXECUTABLES := simpleAuth testCrypto genkeys exportKeys testBlock
 
-all: simpleAuth testCrypto genkeys exportKeys testBlock
+all: $(EXECUTABLES)
 
 ##############################################
 # Targets
 ##############################################
 
-%.o: %.c 
+%.o: %.c
 	$(CC) $(CFLAGS) $(THUMBFLAGS) -c -o $@ $<
 
 # builds the crypto library
@@ -82,6 +83,7 @@ exportKeys: exportKeys.o beecrypt412_sm.a
 ###############################################
 
 clean:
-	rm -rf *.o
-	rm -rf *.a
-	rm -rf *.exe
+	rm -f *.o *.a
+
+distclean: clean
+	rm -f $(EXECUTABLES)
