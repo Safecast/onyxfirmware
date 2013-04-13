@@ -94,6 +94,22 @@ void cmd_logxfer(char *line) {
   flashstorage_log_resume();
 }
 
+void cmd_logcsv(char *line) {
+
+  flashstorage_log_pause();
+  log_read_start();
+
+  char buffer[1024];
+  int size = log_read_csv(buffer);
+
+  for(;size!=0;) {
+    if(size != 0) serial_write_string(buffer);
+    size = log_read_csv(buffer);
+  }
+
+  flashstorage_log_resume();
+}
+
 void serial_displayparams_run(char *line) {
 
   uint32_t clock, multiplex, functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh;
@@ -475,6 +491,7 @@ void register_cmds() {
   register_cmd("HELP"         ,cmd_help);
   // log
   register_cmd("LOGXFER"      ,cmd_logxfer);
+  register_cmd("READ CSV LOG" ,cmd_logcsv);
   register_cmd("LOGSIG"       ,cmd_logsig);
   register_cmd("LOGPAUSE"     ,cmd_logpause);
   register_cmd("LOGRESUME"    ,cmd_logresume);

@@ -99,4 +99,63 @@ int log_read_block(char *buf) {
   return strlen(buf_start);
 }
 
+// return size of data written on success or 0 on failure.
+int log_read_csv(char *buf) {
+
+  buf[0]=0;
+
+  char *buf_start = buf;
+
+  log_data_t *flash_log = (log_data_t *) flashstorage_log_get();
+  uint32_t logsize = flashstorage_log_size()/sizeof(log_data_t);
+
+  if (log_position==0) {	// print the header
+    int64_t offset_mins = realtime_getutcoffset_mins();
+
+    bool offset_is_valid = realtime_getutcoffset_available();
+
+    char offset_string[10];
+    bool offset_is_negative=false;
+    if(offset_mins < 0) {
+      offset_is_negative=true;
+      offset_mins = 0-offset_mins;
+    }
+
+    if(offset_is_valid) {
+      offset_string[0] =  (offset_is_negative) ? '-' : '+';
+      sprintf(offset_string+1,"%02u",(int)offset_mins/60);
+      sprintf(offset_string+3,"%02u",(int)offset_mins%60);
+      offset_string[5] = 0;
+    } else {
+      offset_string[0] = 'u';
+      offset_string[1] = 'n';
+      offset_string[2] = 'd';
+      offset_string[3] = 'e';
+      offset_string[4] = 'f';
+      offset_string[5] = 0;
+    }
+
+    sprintf(buf,"# \%Onyx CSV log: firmware: %s, records: %u, UTC_offset: %s, user_calibration: %f\r\n# timestamp,cpm\r\n",OS100VERSION,logsize,offset_string,system_geiger->calibration_scaling);
+    buf += strlen(buf);
+  }
+
+  if(log_position<logsize) {
+    int64_t current_time = flash_log[log_position].time;
+
+    struct tm *time;
+    time_t current_time_u32 = current_time;
+    time = gmtime(&current_time_u32);
+    char timestr[200];
+    sprintf(timestr,"%u-%02u-%02uT%02u:%02u:%02uZ",time->tm_year+1900,time->tm_mon+1,time->tm_mday,time->tm_hour,time->tm_min,time->tm_sec);
+
+    // time is iso8601, with no timezone.
+    sprintf(buf,"%s,%u\r\n",timestr,flash_log[log_position].cpm);
+    buf += strlen(buf);
+  }
+  buf[0]=0;
+
+  log_position++;
+  return strlen(buf_start);
+}
+
 }
