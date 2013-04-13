@@ -135,7 +135,7 @@ int log_read_csv(char *buf) {
       offset_string[5] = 0;
     }
 
-    sprintf(buf,"# \%Onyx CSV log: firmware: %s, records: %u, UTC_offset: %s, user_calibration: %f\r\n# timestamp,cpm\r\n",OS100VERSION,logsize,offset_string,system_geiger->calibration_scaling);
+    sprintf(buf,"# Onyx CSV log: firmware: %s, records: %u, UTC_offset: %s, user_calibration: %f\r\n# timestamp,cpm\r\n",OS100VERSION,logsize,offset_string,system_geiger->calibration_scaling);
     buf += strlen(buf);
   }
 
