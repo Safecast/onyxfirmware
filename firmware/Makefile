@@ -91,11 +91,19 @@ release:	safecast.elf
 	arm-none-eabi-objcopy -v -Obinary safecast.elf $(RELEASE_NAME).bin
 
 upload:	release
-	sudo rmmod ftdi_sio
-	sudo rmmod usbserial
-	sudo ../firmware_loader/fwload -f $(RELEASE_NAME).bin
+	@echo
+	@echo "Checking for valid firmware uploader..."
+	[ -e ../firmware_loader/fwload ] || exit
+	@echo
+	@echo
+	@echo "Starting device firmware upload..."
+	sudo modprobe -r ftdi_sio
+	sudo modprobe -r usbserial
+	../firmware_loader/fwload -f $(RELEASE_NAME).bin
 	sudo modprobe usbserial
 	sudo modprobe ftdi_sio
+	@echo
+	@echo "All seems to have worked fine ;-)"
 
 monitor:
 	screen /dev/ttyUSB0 115200
