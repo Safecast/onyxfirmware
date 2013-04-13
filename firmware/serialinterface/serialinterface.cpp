@@ -41,8 +41,9 @@ void serial_process_command(char *line) {
   (*command_stack[command_stack_size-1])(line);
 }
 
-#define MAX_COMMAND_LEN	30
-#define MAX_COMMANDS	30
+#define MAX_COMMAND_LEN 16
+/* Make sure to increment when adding new commands */
+#define MAX_COMMANDS 32
 
 int command_list_size;
 char command_list [MAX_COMMANDS][MAX_COMMAND_LEN];
@@ -120,11 +121,12 @@ void cmd_displayparams(char *line) {
 
 void cmd_help(char *line) {
 
-  serial_write_string("Available commands: ");
+  serial_write_string("Available commands:\r\n\t");
   for(int n=0;n<command_list_size;n++) {
     serial_write_string(command_list[n]);
-    serial_write_string(" , ");
-    if((n%10 == 0) && (n != 0)) serial_write_string("\r\n");
+    serial_write_string(", ");
+    if ((n%10 == 0) && (n > 0))
+      serial_write_string("\r\n\t");	// put 10 commands per line
   }
   serial_write_string("\n");
 
@@ -463,44 +465,50 @@ void cmd_batinfodisp(char *line) {
     char s[20];
     sprintf(s,"%d   ",bat);
 
-		display_draw_text(0,0,s,0);
+    display_draw_text(0,0,s,0);
     delay_us(1000000);
   }
 }
 
 void register_cmds() {
-
-  register_cmd("HELLO"        ,cmd_hello);
-  register_cmd("LIST GAMES"   ,cmd_games);
-  register_cmd("LOGXFER"      ,cmd_logxfer);
-  register_cmd("DISPLAYPARAMS",cmd_displayparams);
-  register_cmd("BATINFODISP"  ,cmd_batinfodisp);
+  // help
   register_cmd("HELP"         ,cmd_help);
-  register_cmd("DISPLAYTEST"  ,cmd_displaytest);
-  register_cmd("VERSION"      ,cmd_version);
-  register_cmd("GETDEVICETAG" ,cmd_getdevicetag);
-  register_cmd("SETDEVICETAG" ,cmd_setdevicetag);
-  register_cmd("MAGREAD"      ,cmd_magread);
-  register_cmd("WRITEDAC"     ,cmd_writedac);
-  register_cmd("TESTHP"       ,cmd_testhp);
-  register_cmd("READADC"      ,cmd_readadc);
-  register_cmd("SETMICREVERSE",cmd_setmicreverse);
-  register_cmd("SETMICIPHONE" ,cmd_setmiciphone);
-  register_cmd("TESTSIGN"     ,cmd_testsign);
-  register_cmd("PUBKEY"       ,cmd_pubkey);
-  register_cmd("GUID"         ,cmd_guid);
-  register_cmd("KEYVALID"     ,cmd_keyvalid);
+  // log
+  register_cmd("LOGXFER"      ,cmd_logxfer);
   register_cmd("LOGSIG"       ,cmd_logsig);
   register_cmd("LOGPAUSE"     ,cmd_logpause);
   register_cmd("LOGRESUME"    ,cmd_logresume);
   register_cmd("LOGCLEAR"     ,cmd_logclear);
-  register_cmd("LOGSTRESS"    ,cmd_logstress);
-  register_cmd("KEYVALDUMP"   ,cmd_keyvaldump);
-  register_cmd("KEYVALSET"    ,cmd_keyvalset);
+  // get
+  register_cmd("VERSION"      ,cmd_version);		// GETVERSION
+  register_cmd("GUID"         ,cmd_guid);		// GETGUID
+  register_cmd("GETDEVICETAG" ,cmd_getdevicetag);
+  register_cmd("MAGREAD"      ,cmd_magread);		// GETMAG ? hall sensor?
+  // ??
+  register_cmd("WRITEDAC"     ,cmd_writedac);
+  register_cmd("READADC"      ,cmd_readadc);
+  // set
+  register_cmd("SETDEVICETAG" ,cmd_setdevicetag);
+  register_cmd("SETMICREVERSE",cmd_setmicreverse);
+  register_cmd("SETMICIPHONE" ,cmd_setmiciphone);
+  register_cmd("DISPLAYPARAMS",cmd_displayparams);	// SETDIAPLAYPARAMS
   register_cmd("SETRTC"       ,cmd_setrtc);
   register_cmd("SETALARM"     ,cmd_setalarm);
+  // test/debug
+  register_cmd("DISPLAYTEST"  ,cmd_displaytest);	// TESTDISPLAY
+  register_cmd("BATINFODISP"  ,cmd_batinfodisp);	// TESTBATDISPLAY
+  register_cmd("TESTHP"       ,cmd_testhp);		// ??
+  register_cmd("LOGSTRESS"    ,cmd_logstress);		// TESTLOG
+  register_cmd("TESTSIGN"     ,cmd_testsign);
+  register_cmd("PUBKEY"       ,cmd_pubkey);
+  register_cmd("KEYVALID"     ,cmd_keyvalid);
+  register_cmd("KEYVALDUMP"   ,cmd_keyvaldump);
+  register_cmd("KEYVALSET"    ,cmd_keyvalset);
   register_cmd("CAPTOUCHTEST" ,cmd_captouchparams);
   register_cmd("CAPTOUCHDUMP" ,cmd_captouchdump);
+  // misc
+  register_cmd("HELLO"        ,cmd_hello);
+  register_cmd("LIST GAMES"   ,cmd_games);
 }
 
 void cmd_main_menu(char *line) {
@@ -511,7 +519,8 @@ void cmd_main_menu(char *line) {
     }
   }
  
-  if(command_stack_size == 1) serial_write_string("\r\n>");
+  if (command_stack_size == 1)
+    serial_write_string("\r\n>");
 }
 
 void serial_initialise() {
