@@ -114,4 +114,4 @@ clean:
 	rm -f misc/to565
 
 distclean:	clean
-	rm -f $(RELEASE_NAME).bin
+	rm -f firmware-*.bin
