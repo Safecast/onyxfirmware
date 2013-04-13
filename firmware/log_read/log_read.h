@@ -5,6 +5,7 @@ extern "C" {
 
 void log_read_start();
 int log_read_block(char *buf);
+int log_read_csv(char *buf);
 
 }
 
