@@ -26,14 +26,6 @@ extern "C" {
   void signing_hashLog();
 }
 
-extern "C" {
-  void signing_test();
-  int signing_isKeyValid();
-  void signing_printPubKey();
-  void signing_printGUID();
-  void signing_hashLog();
-}
-
 extern uint8_t _binary___binary_data_private_key_data_start;
 extern uint8_t _binary___binary_data_private_key_data_size;
 
@@ -49,11 +41,12 @@ void serial_process_command(char *line) {
   (*command_stack[command_stack_size-1])(line);
 }
 
-#define MAX_COMMANDS 30
+#define MAX_COMMAND_LEN	30
+#define MAX_COMMANDS	30
 
-char              command_list [MAX_COMMANDS][30];
+int command_list_size;
+char command_list [MAX_COMMANDS][MAX_COMMAND_LEN];
 command_process_t command_funcs[MAX_COMMANDS];
-int               command_list_size;
 
 void register_cmd(const char *cmd,command_process_t func) {
 
