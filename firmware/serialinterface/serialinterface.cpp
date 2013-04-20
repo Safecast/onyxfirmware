@@ -281,12 +281,12 @@ void cmd_testsign(char *line) {
     
 void cmd_pubkey(char *line) {
   signing_printPubKey();
-  serial_write_string("\n\r");
+  serial_write_string("\r\n");
 }
 
 void cmd_guid(char *line) {
   signing_printGUID();
-  serial_write_string("\n\r");
+  serial_write_string("\r\n");
 }
 
 void cmd_keyvalid(char *line) {
@@ -298,7 +298,7 @@ void cmd_keyvalid(char *line) {
 
 void cmd_logsig(char *line) {
   signing_hashLog();
-  serial_write_string("\n\r");
+  serial_write_string("\r\n");
 }
 
 void cmd_logpause(char *line) {

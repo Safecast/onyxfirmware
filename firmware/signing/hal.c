@@ -29,12 +29,12 @@ void print_mp(size_t size, const mpw* data)
   while (size--)
     {
       if( (i % 16 == 0) && (i != 0))
-	serial_write_string("\n\r");
+	serial_write_string("\r\n");
       sprintf(stemp, "%08x", *(data++));
       serial_write_string(stemp);
       i++;
     }
-  serial_write_string("\n\r");
+  serial_write_string("\r\n");
 }
 
 void print_mp_nocrlf(size_t size, const mpw* data)
@@ -65,7 +65,7 @@ void signing_test() {
   struct privKeyInFlash *kdat = KEYDATABASE;
 
   // just a quick routine to exercise the RSA signing abilities and SHA-1 hashing
-  serial_write_string("Initializing PK system.\n\r" );
+  serial_write_string("Initializing PK system.\r\n" );
 
   mpnzero(&hash_mpn);
   rsakpInit(&keypair);
@@ -73,7 +73,7 @@ void signing_test() {
 
   serial_write_string("Computing SHA-1 hash of: " );
   serial_write_string(testStr);
-  serial_write_string("\n\r");
+  serial_write_string("\r\n");
   if( sha1Update(&param, (byte *) testStr, 24 ) ) { serial_write_string( "FAIL" ); goto cleanup; }
   if( sha1Digest(&param, hash_str) ) { serial_write_string( "FAIL" ); goto cleanup; }
   if(mpnsetbin(&hash_mpn, (byte *) hash_str, (size_t) 20) != 0) { serial_write_string( "FAIL" ); goto cleanup; }
@@ -82,40 +82,40 @@ void signing_test() {
   serial_write_string("Hashed result to sign: " );
   print_mp(hash_mpn.size, hash_mpn.data);
 
-  serial_write_string("Initializing key parameters for 2048-bit RSA.\n\r" );
+  serial_write_string("Initializing key parameters for 2048-bit RSA.\r\n" );
   //  if( mpnsetbin(&keypair.e, kdat->e, 4) != 0 ) { serial_write_string( "FAIL" ); goto cleanup; }
   if( mpbsetbin(&keypair.n, kdat->n, 256) != 0) { serial_write_string( "FAIL" ); goto cleanup; }
-  serial_write_string("n:\n\r" ); // n & e are the pubkey so okay to print this
+  serial_write_string("n:\r\n" ); // n & e are the pubkey so okay to print this
   print_mp(256/4, keypair.n.modl);
   if( mpnsetbin(&keypair.d, kdat->d, 256) != 0 ) { serial_write_string( "FAIL" ); goto cleanup; }
   ///// don't print the private key for production!
-  //  serial_write_string("d:\n\r" );
+  //  serial_write_string("d:\r\n" );
   //  print_mp(keypair.d.size, keypair.d.data);
   /////
   //  if( mpbsetbin(&keypair.p, kdat->p, 128) != 0) { serial_write_string( "FAIL" ); goto cleanup; }
   //  if( mpbsetbin(&keypair.q, kdat->q, 128) != 0) { serial_write_string( "FAIL" ); goto cleanup; }
 
-  serial_write_string("Signing hash...\n\r" );
+  serial_write_string("Signing hash...\r\n" );
   mpnzero(&signed_hash);
   rsapri(&keypair.n, &keypair.d, &hash_mpn, &signed_hash);
 
-  serial_write_string("Signature is (in hex):\n\r" );
+  serial_write_string("Signature is (in hex):\r\n" );
   // at this point, signed_hash should be returned to the console as the 'signature'...we'll figure that out later
   print_mp(signed_hash.size, signed_hash.data);
 
-  serial_write_string("Decrypting test hash...\n\r" );
+  serial_write_string("Decrypting test hash...\r\n" );
   mpnzero(&decipher);
   rsapub(&keypair.n, &keypair.e, &signed_hash, &decipher);
 
-  serial_write_string("Decrypted hash (should match original hash):\n\r" );
+  serial_write_string("Decrypted hash (should match original hash):\r\n" );
   print_mp(decipher.size, decipher.data);
 
   if (mpnex(hash_mpn.size, hash_mpn.data, decipher.size, decipher.data))
-    serial_write_string ( "uu_pktest FAIL\n\r" );
+    serial_write_string ( "uu_pktest FAIL\r\n" );
   else
-    serial_write_string ( "uu_pktest PASS\n\r" );
+    serial_write_string ( "uu_pktest PASS\r\n" );
 
-  serial_write_string("Done.\n\r" );
+  serial_write_string("Done.\r\n" );
 
  cleanup: // dealloc anything that could have been alloc'd...
   mpnfree(&hash_mpn);
@@ -149,7 +149,7 @@ void signing_printGUID() {
   mpnsetbin(&guid, bin_guid, 16);
   serial_write_string( "uu_guid " );
   print_mp(guid.size, guid.data);
-  serial_write_string( "\n\r" );
+  serial_write_string( "\r\n" );
   mpnfree(&guid);
 }
 // to do:
@@ -170,7 +170,7 @@ void signing_hashLog() {
   char *tbuf;
 
   if( signing_isKeyValid() == 0 ) {
-    serial_write_string("WARNING: System uses a test private key. This signature is worthless and should be disregarded.\n\r");
+    serial_write_string("WARNING: System uses a test private key. This signature is worthless and should be disregarded.\r\n");
   }
   // just a quick routine to exercise the RSA signing abilities and SHA-1 hashing
   mpnzero(&hash_mpn);
@@ -200,7 +200,7 @@ void signing_hashLog() {
   // print the hash for diagnostic purposes
   serial_write_string("{\"hash\":\"");
   print_mp_nocrlf(hash_mpn.size, hash_mpn.data);
-  serial_write_string("\",\n\r");
+  serial_write_string("\",\r\n");
 
   // set private key params and encrypt the hash
   if( mpbsetbin(&keypair.n, kdat->n, 256) != 0) { serial_write_string( "FAIL" ); goto cleanup; }
@@ -212,13 +212,13 @@ void signing_hashLog() {
   // print the encrypted hash
   serial_write_string("\"signature\":\"");
   print_mp_nocrlf(signed_hash.size, signed_hash.data);
-  serial_write_string("\",\n\r");
+  serial_write_string("\",\r\n");
 
   serial_write_string("\"guid\":\"");
   mpnzero(&guid);
   mpnsetbin(&guid, bin_guid, 16);
   print_mp_nocrlf(guid.size, guid.data);
-  serial_write_string("\",\n\r");
+  serial_write_string("\",\r\n");
   mpnfree(&guid);
 
   serial_write_string("\"pubkey\":\"");
@@ -231,7 +231,7 @@ void signing_hashLog() {
       serial_write_string("\\n");
     j++;
   }
-  serial_write_string("\"}\n\r");
+  serial_write_string("\"}\r\n");
 
  cleanup: // dealloc anything that could have been alloc'd...
   mpnfree(&hash_mpn);
