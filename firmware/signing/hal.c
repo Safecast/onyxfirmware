@@ -170,7 +170,7 @@ void signing_hashLog() {
   char *tbuf;
 
   if( signing_isKeyValid() == 0 ) {
-    serial_write_string("WARNING: System uses a test private key. This signature is worthless and should not be disregarded.\n\r");
+    serial_write_string("WARNING: System uses a test private key. This signature is worthless and should be disregarded.\n\r");
   }
   // just a quick routine to exercise the RSA signing abilities and SHA-1 hashing
   mpnzero(&hash_mpn);
