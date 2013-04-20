@@ -71,7 +71,7 @@ Set Real-Time Clock
 
 Known Bugs
 
-1. Input is not validated, pressing <enter> at the ```#>``` prompt will reset time to 1970
+1. Input is not validated, pressing ```<enter>``` at the ```#>``` prompt will reset time to 1970
 2. Device is not Y2038 compliant
 
 ```
