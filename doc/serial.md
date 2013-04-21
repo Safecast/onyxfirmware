@@ -58,7 +58,28 @@ The Hall Effect sensor is located on the end opposite the geiger tube.
 |------|------------------|
 |0     |Magnet detected   |
 |1024  |No Magnet detected|
- 
+
+### GETCPM ###
+
+Get counts per minute.
+
+### GETCPM30 ###
+
+Get counts per minute using fixed 30s window.
+
+### GETCPMDEADTIME ###
+
+Deadtime compensated CPM
+
+### CPMVALID ###
+
+Check if the CPM reading is valid, it usually takes some time for the readings to stablize.
+
+|Value |Description       |
+|------|------------------|
+|0     |Not Ready         |
+|1     |Valid Measurement |
+
 ### WRITEDAC ###
 ### READADC ###
 ### SETDEVICETAG ###
