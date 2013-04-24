@@ -10,6 +10,13 @@ Connecting with C-Kermit [Linux]
     set terminal lf-display crlf
     set carrier-watch off
 
+Connection with screen [Linux, Mac, any Unix]
+--------------------------------------------
+
+    screen /dev/ttyUSB0 115200
+
+Use Ctrl-A, Ctrl-\ then "quit" to exit screen.
+
 Commands
 --------
 ### HELP ###
@@ -17,10 +24,19 @@ Commands
 Display help
 
 ### LOGXFER ###
+
+Tranfer the logs in JSON format. LOGXFER pauses logging, and then resumes after transfer.
+
 ### READ CSV LOG ###
 ### LOGSIG ###
 ### LOGPAUSE ###
+
+Suspends logging on the device.
+
 ### LOGRESUME ###
+
+Resumes logging.
+
 ### LOGCLEAR ###
 
 Clear stored logs
@@ -67,7 +83,7 @@ The Hall Effect sensor is located on the end opposite the geiger tube.
 ### DISPLAYPARAMS ###
 ### SETRTC ###
 
-Set Real-Time Clock
+Set Real-Time Clock. Input should be a Unix timestamp.
 
 Known Bugs
 
@@ -82,6 +98,9 @@ Current unixtime is 1366438999
 
 ### SETALARM ###
 ### DISPLAYTEST ###
+
+Runs a display test at the current contrast level: displays vertical then horizontal lines.
+
 ### BATINFODISP ###
 ### TESTHP ###
 ### LOGSTRESS ###
@@ -172,5 +191,9 @@ UTCOFFSETMINS=-240
 ### CAPTOUCHTEST ###
 ### CAPTOUCHDUMP ###
 ### HELLO ###
+
+Try it yourself!
+
 ### LIST GAMES ###
 
+Try it yourself too...
