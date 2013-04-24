@@ -90,6 +90,19 @@ release:	safecast.elf
 	# Convert elf to flat binary for programming.
 	arm-none-eabi-objcopy -v -Obinary safecast.elf $(RELEASE_NAME).bin
 
+upload_mac: release
+	@echo
+	@echo "Checking for valid firmware uploader..."
+	[ -e ../firmware_loader/fwload ] || exit
+	@echo
+	@echo
+	@echo "Starting device firmware upload..."
+	sudo kextunload -b com.FTDI.driver.FTDIUSBSerialDriver
+	../firmware_loader/fwload -f $(RELEASE_NAME).bin
+	sudo kextload -b com.FTDI.driver.FTDIUSBSerialDriver
+	@echo
+	@echo "Done... seems it worked fine :)"
+	
 upload:	release
 	@echo
 	@echo "Checking for valid firmware uploader..."
