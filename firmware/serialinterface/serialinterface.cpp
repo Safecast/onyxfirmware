@@ -45,7 +45,7 @@ void serial_process_command(char *line) {
 
 #define MAX_COMMAND_LEN 16
 /* Make sure to increment when adding new commands */
-#define MAX_COMMANDS 32
+#define MAX_COMMANDS 40
 
 int command_list_size;
 char command_list [MAX_COMMANDS][MAX_COMMAND_LEN];
