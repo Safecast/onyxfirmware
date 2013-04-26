@@ -142,7 +142,7 @@ void abort() {
     _enable_error_usart();
 
     /* Print abort message. */
-    usart_putstr(ERROR_USART, "ERROR: PROGRAM ABORTED VIA abort()\n\r");
+    usart_putstr(ERROR_USART, "ERROR: PROGRAM ABORTED VIA abort()\r\n");
 
     /* Shutdown and error fade */
     __error();
