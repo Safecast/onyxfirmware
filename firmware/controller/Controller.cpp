@@ -154,6 +154,21 @@ void Controller::save_warncpm() {
   m_gui->jump_to_screen(0);
 }
 
+void Controller::save_loginterval() {
+    int l1 = m_gui->get_item_state_uint8("LOGINTER1");
+    int l2 = m_gui->get_item_state_uint8("LOGINTER2");
+    int l3 = m_gui->get_item_state_uint8("LOGINTER3");
+    int32_t log_interval_mins = (l1*100) + (l2*10) + l3;
+    m_log_interval_seconds = log_interval_mins*60;
+    
+    char sloginterval[50];
+    sprintf(sloginterval,"%u",m_log_interval_seconds);
+    flashstorage_keyval_set("LOGINTERVAL",sloginterval);
+    uint32_t current_time = realtime_get_unixtime();
+    rtc_set_alarm(RTC,current_time+m_log_interval_seconds);
+
+}
+
 void Controller::save_time() {
   int h1 = m_gui->get_item_state_uint8("TIMEHOUR1");
   int h2 = m_gui->get_item_state_uint8("TIMEHOUR2");
@@ -350,17 +365,7 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_gui->jump_to_screen(0);
   } else
   if(strcmp(event,"Save:LogInter") == 0) {
-    uint8 l1 = m_gui->get_item_state_uint8("LOGINTER1");
-    uint8 l2 = m_gui->get_item_state_uint8("LOGINTER2");
-    uint8 l3 = m_gui->get_item_state_uint8("LOGINTER3");
-    uint32_t log_interval_mins = (l1*100) + (l2*10) + l3;
-    m_log_interval_seconds = log_interval_mins*60;
-    
-    char sloginterval[50];
-    sprintf(sloginterval,"%u",m_log_interval_seconds);
-    flashstorage_keyval_set("LOGINTERVAL",sloginterval);
-    uint32_t current_time = realtime_get_unixtime();
-    rtc_set_alarm(RTC,current_time+m_log_interval_seconds);
+    save_loginterval();
     m_gui->jump_to_screen(0);
   } else
   if(strcmp(event,"CALIBRATE") == 0) {
@@ -437,6 +442,26 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_gui->receive_update("BECQ3",&b3);
     m_gui->receive_update("BECQ4",&b4);
     m_gui->redraw();
+  } else
+  if(strcmp(event,"LOGINTERVAL") == 0) {
+    int32_t log_interval = 0;
+    const char *val = flashstorage_keyval_get("LOGINTERVAL");
+    if (val != NULL) {
+      sscanf(val,"%d",&log_interval);
+    }
+
+    log_interval = log_interval/60; // Turn it into minutes
+
+    uint8_t l1 = (log_interval%1000)/100;
+    uint8_t l2 = (log_interval%100) /10;
+    uint8_t l3 = (log_interval%10)  /1;
+
+    m_gui->receive_update("LOGINTER1",&l1);
+    m_gui->receive_update("LOGINTER2",&l2);
+    m_gui->receive_update("LOGINTER3",&l3);
+    m_gui->redraw();
+
+
   } else
   if(strcmp(event,"WARNSCREEN") == 0) {
     int32_t warn_level = 0;

@@ -320,14 +320,15 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 23 - Set Logging Interval
 {
-  6,
+  7,
   {
     { ITEM_TYPE_HEAD       , 0 ,  0 , "CPMDEADINT"    , 255 }, 
     { ITEM_TYPE_VARNUM     , 38, 50 , "LOGINTER1"     , 255 },
     { ITEM_TYPE_VARNUM     , 56, 50 , "LOGINTER2"     , 255 },
     { ITEM_TYPE_VARNUM     , 74, 50 , "LOGINTER3"     , 255 },
     { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:LogInter" , 2   },
-    { ITEM_TYPE_LABEL      , 90,  61, "mins"          , 41  }
+    { ITEM_TYPE_LABEL      , 90,  61, "mins"          , 41  },
+    { ITEM_TYPE_ACTION     ,  0,   0, "LOGINTERVAL" , 255 }
   }
   ,7
 },
