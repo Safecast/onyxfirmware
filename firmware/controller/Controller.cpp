@@ -18,8 +18,9 @@
 #include <limits.h>
 #include "serialinterface.h"
 #include "modem.h"
-//#define DISABLE_ACCEL
-//#define NEVERSLEEP
+#include <stdint.h>
+#include <inttypes.h>
+
 #define UNITS_CPS 1
 #define UNITS_CPM 2
 
@@ -50,16 +51,16 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
   m_warncpm = -1;
   const char *swarncpm = flashstorage_keyval_get("WARNCPM");
   if(swarncpm != 0) {
-    uint32_t c;
-    sscanf(swarncpm, "%d", &c);
+    int32_t c;
+    sscanf(swarncpm, "%"PRIu32"", &c);
     m_warncpm = c;
   }
   
   // Get logging interval from flash
   const char *sloginter = flashstorage_keyval_get("LOGINTERVAL");
   if(sloginter != 0) {
-    uint32_t c;
-    sscanf(sloginter, "%d", &c);
+    int32_t c;
+    sscanf(sloginter, "%"PRIu32"", &c);
     m_log_interval_seconds = c;
   }
   rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_interval_seconds);
@@ -148,7 +149,7 @@ void Controller::save_warncpm() {
   m_warncpm = warn_cpm;
 
   char swarncpm[50];
-  sprintf(swarncpm,"%d",warn_cpm);
+  sprintf(swarncpm,"%"PRIi32"",warn_cpm);
   flashstorage_keyval_set("WARNCPM",swarncpm);
 
   m_gui->jump_to_screen(0);
@@ -162,7 +163,7 @@ void Controller::save_loginterval() {
     m_log_interval_seconds = log_interval_mins*60;
     
     char sloginterval[50];
-    sprintf(sloginterval,"%u",m_log_interval_seconds);
+    sprintf(sloginterval,"%"PRIu32"",m_log_interval_seconds);
     flashstorage_keyval_set("LOGINTERVAL",sloginterval);
     uint32_t current_time = realtime_get_unixtime();
     rtc_set_alarm(RTC,current_time+m_log_interval_seconds);
@@ -230,7 +231,7 @@ bool is_leap(int month,int day,int year) {
   return false;
 }
 
-void Controller::receive_gui_event(char *event,char *value) {
+void Controller::receive_gui_event(const char *event,const char *value) {
 
   //TODO: Fix this total mess, refactor into switch, break conditions out into methods.
   if(strcmp(event,"Sleep") == 0) {
@@ -252,7 +253,7 @@ void Controller::receive_gui_event(char *event,char *value) {
     m_geiger.reset_total_count();
     m_total_timer_start = realtime_get_unixtime();
 
-    char *blank = "              ";
+    const char *blank = "              ";
     m_gui->receive_update("TTCOUNT",blank);
     m_gui->receive_update("TTTIME" ,blank);
     m_gui->redraw();
@@ -379,7 +380,7 @@ void Controller::receive_gui_event(char *event,char *value) {
     int hours = offset/60;
     int min   = offset-(hours*60);
 
-    uint8 h1,h2,m1,m2,s1,s2;
+    uint8_t h1,h2,m1,m2;
     h1 = hours/10;
     h2 = hours%10;
     m1 = min/10;
@@ -447,7 +448,7 @@ void Controller::receive_gui_event(char *event,char *value) {
     int32_t log_interval = 0;
     const char *val = flashstorage_keyval_get("LOGINTERVAL");
     if (val != NULL) {
-      sscanf(val,"%d",&log_interval);
+      sscanf(val,"%"PRIi32"",&log_interval);
     }
 
     log_interval = log_interval/60; // Turn it into minutes
@@ -467,7 +468,7 @@ void Controller::receive_gui_event(char *event,char *value) {
     int32_t warn_level = 0;
     const char *val = flashstorage_keyval_get("WARNCPM");
     if(val != NULL) {
-      sscanf(val,"%d",&warn_level);
+      sscanf(val,"%"PRIi32"",&warn_level);
     }
 
     uint8_t w1 = (warn_level%100000)/10000;
@@ -664,7 +665,7 @@ void Controller::update() {
     m_alarm_log = true;
     m_last_alarm_time = rtc_get_time(RTC);
     #ifndef DISABLE_ACCEL
-    int8 res = accel_read_state(&m_accel_x_stored,&m_accel_y_stored,&m_accel_z_stored);
+    accel_read_state(&m_accel_x_stored,&m_accel_y_stored,&m_accel_z_stored);
     #endif
 
     // set new alarm for log_interval_seconds from now.
@@ -676,7 +677,7 @@ void Controller::update() {
 
       log_data_t data;
       #ifndef DISABLE_ACCEL
-      int8 res = accel_read_state(&data.accel_x_end,&data.accel_y_end,&data.accel_z_end);
+      accel_read_state(&data.accel_x_end,&data.accel_y_end,&data.accel_z_end);
       #endif
 
       data.time  = rtc_get_time(RTC);
@@ -830,7 +831,7 @@ void Controller::update() {
   uint32_t totaltimer_time = ctime - m_total_timer_start;
 
   char temp[50];
-  sprintf(text_totaltimer_time ,"%us",totaltimer_time);
+  sprintf(text_totaltimer_time ,"%"PRIu32"s",totaltimer_time);
   sprintf(temp,"  %6.3f  " ,((float)m_geiger.get_total_count()/((float)totaltimer_time))*60);
   int len = strlen(temp);
   int pad = (16-len)/2;

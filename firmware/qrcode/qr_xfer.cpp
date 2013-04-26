@@ -63,11 +63,11 @@ void qr_draw(char *inputdata) {
 void qr_logxfer() {
   flashstorage_log_pause();
 
-  int id_pos =0;
+  unsigned int id_pos =0;
   char inputdata[1024];
   inputdata[0]=0;
   
-  int data_per_qr = 50;
+  size_t data_per_qr = 50;
   int first_keys = cap_lastkey();
 
   log_read_start();
@@ -96,7 +96,7 @@ void qr_logxfer() {
 		uint8_t image[2048]; // can be smaller
 
 		int width=2;
-    int len=data_per_qr;
+    size_t len=data_per_qr;
 
 
     if((strlen(inputdata+id_pos)+4) < data_per_qr) len = strlen(inputdata+id_pos)+4;

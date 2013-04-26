@@ -17,7 +17,7 @@ public:
   void save_loginterval();
   void save_time();
   void save_date();
-  void receive_gui_event(char *event,char *value);
+  void receive_gui_event(const char *event,const char *value);
   void update();
   void save_warncpm();
 

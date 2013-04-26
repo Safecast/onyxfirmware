@@ -226,7 +226,7 @@ void cmd_cpmdeadtime(char *line) {
 }
 
 void cmd_cpmvalid(char *line) {
-  char str[16];
+
   if (system_geiger->is_cpm_valid()) {
     serial_write_string("1");
   } else {

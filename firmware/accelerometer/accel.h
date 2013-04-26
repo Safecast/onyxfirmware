@@ -6,6 +6,7 @@
 uint8 accel_read_state(int16 *x, int16 *y, int16 *z);
 
 void accel_init();
+void accel_deinit();
 
 //extern struct device accel;
 

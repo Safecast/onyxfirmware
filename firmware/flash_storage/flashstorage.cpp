@@ -58,6 +58,7 @@ bool flashstorage_islocked() {
   return false;
 }
 
+
 bool flashstorage_erasepage(uint8_t *pageaddr) {
 
   if(flashstorage_islocked()) return false;
@@ -98,6 +99,26 @@ bool flashstorage_writepage(uint8_t *new_data,uint8_t *pageaddr) {
   }
 
   return true;
+}
+
+// Flash erase page with retry
+bool flashstorage_erasepage_rt(uint8_t *pageaddr) {
+  for(int n=0;n<20;n++) {
+  
+    bool ret = flashstorage_erasepage(pageaddr);
+    if(ret == true) return true;
+  }
+  return false;
+}
+
+// Flash write page with retry
+bool flashstorage_writepage_rt(uint8_t *new_data,uint8_t *pageaddr) {
+  for(int n=0;n<20;n++) {
+  
+    bool ret = flashstorage_writepage(new_data,pageaddr);
+    if(ret == true) return true;
+  }
+  return false;
 }
 
 
@@ -207,10 +228,10 @@ void flashstorage_keyval_set(const char *key,const char *value) {
 
   // write new page data
   flashstorage_unlock();
-  bool eraseret = flashstorage_erasepage(page_address);
+  flashstorage_erasepage_rt(page_address);
   flashstorage_lock();
   flashstorage_unlock();
-  flashstorage_writepage(pagedata,page_address);
+  flashstorage_writepage_rt(pagedata,page_address);
   flashstorage_lock();
 }
 
@@ -227,10 +248,10 @@ void flashstorage_log_clear() {
   
   // write new page data
   flashstorage_unlock();
-  bool eraseret = flashstorage_erasepage(page_address);
+  flashstorage_erasepage_rt(page_address);
   flashstorage_lock();
   flashstorage_unlock();
-  flashstorage_writepage(pagedata,page_address);
+  flashstorage_writepage_rt(pagedata,page_address);
   flashstorage_lock();
 }
 
@@ -298,10 +319,10 @@ int flashstorage_log_pushback(uint8_t *data,uint32_t size) {
     }
 
     flashstorage_unlock();
-    flashstorage_erasepage(page_address);
+    flashstorage_erasepage_rt(page_address);
     flashstorage_lock();
     flashstorage_unlock();
-    flashstorage_writepage(pagedata,page_address);
+    flashstorage_writepage_rt(pagedata,page_address);
     flashstorage_lock();
     page_address += pagesize;
   }
@@ -325,10 +346,10 @@ int flashstorage_log_pushback(uint8_t *data,uint32_t size) {
     }
     
     flashstorage_unlock();
-    flashstorage_erasepage(page_address);
+    flashstorage_erasepage_rt(page_address);
     flashstorage_lock();
     flashstorage_unlock();
-    flashstorage_writepage(pagedata,page_address);
+    flashstorage_writepage_rt(pagedata,page_address);
     flashstorage_lock();
     page_address += pagesize;
    

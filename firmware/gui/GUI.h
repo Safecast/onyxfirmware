@@ -51,8 +51,8 @@ public:
   void push_stack(int current_screen,int selected_item);
   void toggle_screen_lock();
   void set_language(uint8_t lang);
-  void show_dialog      (char *text1 ,char *text2 ,char *text3,char *text4,bool buzz,int img1=255,int img2=255,int img3=255,int img4=255);
-  void render_dialog      (char *text1 ,char *text2 ,char *text3,char *text4,int img1,int img2,int img3,int img4);
+  void show_dialog      (const char *text1 ,const char *text2 ,const char *text3,const char *text4,bool buzz,int img1=255,int img2=255,int img3=255,int img4=255);
+  void render_dialog    (const char *text1 ,const char *text2 ,const char *text3,const char *text4,int img1,int img2,int img3,int img4);
   Controller &receive_gui_events;
 
   uint8_t get_item_state_uint8(const char *tag);
@@ -104,8 +104,8 @@ private:
   bool m_repeated;
 };
 
-void tick_item(char *name,bool tick_val);
-bool is_ticked(char *name);
+void tick_item(const char *name,bool tick_val);
+bool is_ticked(const char *name);
 
 
 #endif

@@ -54,6 +54,8 @@ int power_get_wakeup_source() {
   if(!wokeup           ) return 0;
   if( wokeup && (!wkup)) return 1;
   if( wokeup &&   wkup ) return 2;
+
+  return -1;
 }
 
 int power_initialise(void) {
@@ -96,8 +98,6 @@ int power_initialise(void) {
 uint16 power_battery_level(void) {
   uint32 battVal;
   uint32 vrefVal;
-  uint32 ratio;
-  uint16 retcode = 0;
 
   uint32 cr2 = ADC1->regs->CR2;
   cr2 |= ADC_CR2_TSEREFE; // enable reference voltage only for this measurement
@@ -114,35 +114,22 @@ uint16 power_battery_level(void) {
   cr2 &= ~ADC_CR2_TSEREFE; // power down reference to save battery power
   ADC1->regs->CR2 = cr2; 
 
-  //float batvolts = ((((float)battVal)/(float)vrefVal)*1.2)+2.1;
   float batratio = (float)battVal/(float)vrefVal;
 
   float bat_min = 1.36; //3.3;
   float bat_max = 1.72; //4.2;
 
-  //char v[50];
-  //sprintf(v,"%f",batratio);
-  //display_draw_text(0,100,v,0);
-
-  int16 bat_percent = ((batratio-bat_min)/(bat_max-bat_min))*100;         //((batvolts-battery_min_voltage)/(battery_max_voltage-battery_min_voltage))*100;
+  int16 bat_percent = ((batratio-bat_min)/(bat_max-bat_min))*100;   
 
   // incase our min and max are set incorrectly.
   if(bat_percent < 0  ) bat_percent = 0;
   if(bat_percent > 100) bat_percent = 100;
   return bat_percent;
-  //return battVal;
-  // calibrate
-  // this is important because VDDA = VMCU which is proportional to battery voltage
+
+  // The above takes into account the fact that VDDA == VMCU which is proportional to battery voltage
   // VREF is independent of battery voltage, and is 1.2V +/- 3.4%
   // we want to indicate system should shut down at 3.1V; 4.2V is full
   // this is a ratio from 1750 (= 4.2V) to 1292 (=3.1V)
-  //ratio = battVal / vrefVal;
-  //return ratio;
-  //if( ratio < 1292 ) return 0;
-  //ratio = ratio - 1292; // should always be positive now due to test above
-
-  //retcode = ratio / (459 / BATT_RANGE);
-  //return retcode;
 }
 
 
@@ -195,8 +182,8 @@ uint32_t  _get_CONTROL()
     "mrs r0, control\r\n"
     "bx lr\r\n"
   );
+  return 0;
 }
-
 
 void power_standby(void) {
 

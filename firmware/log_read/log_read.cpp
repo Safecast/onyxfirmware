@@ -7,8 +7,9 @@
 #include <time.h>
 #include "realtime.h"
 #include "Geiger.h"
+#include <inttypes.h>
 
-int log_position = 0;
+uint32_t log_position = 0;
 extern Geiger *system_geiger;
 
 
@@ -55,7 +56,7 @@ int log_read_block(char *buf) {
       offset_string[5] = 0;
     }
 
-    sprintf(buf,"{\"log_size\":%u,\"onyx_version\":\"%s\",\"UTC_offset\":\"%s\",\"user_calibration\":%f,\"log_data\":[",logsize,OS100VERSION,offset_string,system_geiger->calibration_scaling);
+    sprintf(buf,"{\"log_size\":%"PRIu32",\"onyx_version\":\"%s\",\"UTC_offset\":\"%s\",\"user_calibration\":%f,\"log_data\":[",logsize,OS100VERSION,offset_string,system_geiger->calibration_scaling);
     buf += strlen(buf);
   }
 
@@ -72,7 +73,7 @@ int log_read_block(char *buf) {
     // time is iso8601, with no timezone.
     sprintf(buf,"{\"time\":\"%s\",",timestr);
     buf += strlen(buf);
-    sprintf(buf,"\"cpm\":%u,\"duration\":30,",flash_log[log_position].cpm);
+    sprintf(buf,"\"cpm\":%"PRIu32",\"duration\":30,",flash_log[log_position].cpm);
     buf += strlen(buf);
     sprintf(buf,"\"accel_x_start\":%d,\"accel_y_start\":%d,\"accel_z_start\":%d,",flash_log[log_position].accel_x_start,flash_log[log_position].accel_y_start,flash_log[log_position].accel_z_start);
     buf += strlen(buf);
@@ -135,7 +136,7 @@ int log_read_csv(char *buf) {
       offset_string[5] = 0;
     }
 
-    sprintf(buf,"# Onyx CSV log: firmware: %s, records: %u, UTC_offset: %s, user_calibration: %f\r\n# timestamp,cpm\r\n",OS100VERSION,logsize,offset_string,system_geiger->calibration_scaling);
+    sprintf(buf,"# Onyx CSV log: firmware: %s, records: %"PRIu32", UTC_offset: %s, user_calibration: %f\r\n# timestamp,cpm\r\n",OS100VERSION,logsize,offset_string,system_geiger->calibration_scaling);
     buf += strlen(buf);
   }
 
@@ -149,7 +150,7 @@ int log_read_csv(char *buf) {
     sprintf(timestr,"%u-%02u-%02uT%02u:%02u:%02uZ",time->tm_year+1900,time->tm_mon+1,time->tm_mday,time->tm_hour,time->tm_min,time->tm_sec);
 
     // time is iso8601, with no timezone.
-    sprintf(buf,"%s,%u\r\n",timestr,flash_log[log_position].cpm);
+    sprintf(buf,"%s,%"PRIu32"\r\n",timestr,flash_log[log_position].cpm);
     buf += strlen(buf);
   }
   buf[0]=0;

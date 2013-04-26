@@ -110,9 +110,9 @@ upload:	release
 	@echo
 	@echo
 	@echo "Starting device firmware upload..."
-	sudo modprobe -r ftdi_sio
-	sudo modprobe -r usbserial
-	../firmware_loader/fwload -f $(RELEASE_NAME).bin
+	sudo rmmod ftdi_sio
+	sudo rmmod usbserial
+	sudo ../firmware_loader/fwload -f $(RELEASE_NAME).bin
 	sudo modprobe usbserial
 	sudo modprobe ftdi_sio
 	@echo

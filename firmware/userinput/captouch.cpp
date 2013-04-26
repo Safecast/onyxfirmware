@@ -8,6 +8,9 @@
 #include "buzzer.h"
 #include "GUI.h"
 #include "serialinterface.h"
+#include <stdint.h>
+#include <inttypes.h>
+
 
 #define CAPTOUCH_ADDR 0x5A
 #define CAPTOUCH_I2C I2C1
@@ -15,7 +18,6 @@
 
 GUI *system_gui;
 static struct i2c_dev *i2c;
-static uint8 touchInit = 0;
 static uint16 touchList =  1 << 8 | 1 << 6 | 1 << 4 | 1 << 3 | 1 << 2 | 1 << 0;
   
 int last_key_state=0;
@@ -67,8 +69,8 @@ static uint8 mpr121Read(uint8 addr) {
 char c[100];
 char *cap_diagdata(int e) {
 
-  int elech;
-  int elecl;
+  int elech=0;
+  int elecl=0;
   if(e==0)  elecl = mpr121Read(ELE0_DATAL);
   if(e==0)  elech = mpr121Read(ELE0_DATAH);
   if(e==1)  elecl = mpr121Read(ELE1_DATAL);
@@ -95,7 +97,7 @@ char *cap_diagdata(int e) {
   elech = elech & 0x3;
   uint32_t elecv = ((uint32_t)elech << 8) | (uint32_t)elecl;
 
-  uint32_t elec_base;
+  uint32_t elec_base=0;
   if(e==0)  elec_base = ((uint32_t)((uint8_t)mpr121Read(ELE0_BASE)))  << 2;
   if(e==1)  elec_base = ((uint32_t)((uint8_t)mpr121Read(ELE1_BASE)))  << 2;
   if(e==2)  elec_base = ((int)mpr121Read(ELE2_BASE))  << 2;
@@ -108,13 +110,13 @@ char *cap_diagdata(int e) {
   if(e==9)  elec_base = ((int)mpr121Read(ELE9_BASE))  << 2;
   if(e==10) elec_base = ((int)mpr121Read(ELE10_BASE)) << 2;
 
-  int bs = mpr121Read(TCH_STATL);
-      bs = bs | ((0x1F & mpr121Read(TCH_STATH)) << 8);
+  uint32_t bs = mpr121Read(TCH_STATL);
+           bs = bs | ((0x1F & mpr121Read(TCH_STATH)) << 8);
 
-  int is_pressed=0;
+  uint32_t is_pressed=0;
   if(bs & (1 << e)) is_pressed=1; else is_pressed=0;
 
-  sprintf(c,"%d %d %d %d",elecv,elec_base,bs,is_pressed);
+  sprintf(c,"%"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32"",elecv,elec_base,bs,is_pressed);
 
   return c; 
 }
@@ -172,9 +174,6 @@ static void cap_change(void) {
 
   // clear unconnected electrodes
   key_state &= touchList;
-  //char s[50];
-  //sprintf(s,"cappress: %d\r\n",key_state);
-  //serial_write_string(s);
 
   // detect keys pressed
   int keys_pressed = key_state & (~last_key_state); //TODO: ! bitwise NOT
@@ -182,24 +181,7 @@ static void cap_change(void) {
   // detect keys released
   int keys_released  = (~key_state) & last_key_state; //TODO: ! bitwise NOT
 
-  //delay_us(100);
-  // second read
-  //int key_state2=0;
-  //key_state2  = mpr121Read(TCH_STATL);
-  //key_state2 |= mpr121Read(TCH_STATH) << 8;
-
-  // clear unconnected electrodes
-  //key_state2 &= touchList;
-
-  // detect keys pressed
-  //int keys_pressed2 = key_state & (~last_key_state); //TODO: ! bitwise NOT
-
-  // detect keys released
-  //int keys_released2  = (~key_state) & last_key_state; //TODO: ! bitwise NOT
-
    bool readok=true;
-  //bool readok=false;
-  //if((keys_pressed == keys_pressed2) && (keys_released == keys_released2)) readok=true;
 
   if((!captouch_disable_messages) && (readok == true)) {
     for (int key=0; key<16; key++) {
@@ -296,10 +278,6 @@ void cap_init(void) {
     mpr121Write(NCL_F, cap_ncl_f); // (0 to 255) number of samples required to determine non-noise
     mpr121Write(FDL_F, cap_fdl_f); // (0 to 255) rate of filter operation, larger = slower.
     
-    //mpr121Write(NHD_T, 0x01); // (1 to 63) maximum change allowed
-    //mpr121Write(NCL_T, 0xFF); // 
-    //mpr121Write(FDL_T, 0x02); // 
-
     // Section D
     // Set the Filter Configuration
     // Set ESI2
@@ -358,13 +336,9 @@ void cap_init(void) {
 
     // This can also be FLOATING, but PU is safer if components misplaced.
     gpio_set_mode(PIN_MAP[CAPTOUCH_GPIO].gpio_device,PIN_MAP[CAPTOUCH_GPIO].gpio_bit,GPIO_INPUT_PU);
-    //gpio_set_mode(PIN_MAP[CAPTOUCH_GPIO].gpio_device,PIN_MAP[CAPTOUCH_GPIO].gpio_bit,GPIO_INPUT_FLOATING);
-    
     exti_attach_interrupt((afio_exti_num)(PIN_MAP[CAPTOUCH_GPIO].gpio_bit), gpio_exti_port(PIN_MAP[CAPTOUCH_GPIO].gpio_device), cap_change, EXTI_FALLING);
 
     // Clears the first interrupt
- //   mpr121Read(TCH_STATL);
- //   mpr121Read(TCH_STATH);
     for(int n=0;n<16;n++) press_time[n]   = realtime_get_unixtime();
     for(int n=0;n<16;n++) release_time[n] = realtime_get_unixtime();
     press_time_any   = realtime_get_unixtime();

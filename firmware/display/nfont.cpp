@@ -183,11 +183,12 @@ void draw_tinycharacter(int x,int y,char c,uint16_t background) {
   for(size_t c_y=0;c_y<5;c_y++) {
     for(size_t c_x=0;c_x<5;c_x++) {
       int32_t px = get_tinypixel(c-32,c_x,c_y);
-      int32_t value;
+      int32_t value=9;
 
-      if((background != 0) && (background != 65535))
-      if(px == 65535) {
-        value = background;
+      if((background != 0) && (background != 65535)) {
+        if(px == 65535) {
+          value = background;
+        } 
       } else {
         int r = from565_r(px);
         int g = from565_g(px);
@@ -209,7 +210,7 @@ void draw_tinycharacter(int x,int y,char c,uint16_t background) {
 
 void draw_text(int x,int y,const char *text,uint16_t background) {
 
-  int length = strlen(text);
+  size_t length = strlen(text);
   if(length < 0    ) return;
   if(length > 10000) return;
 
@@ -223,7 +224,7 @@ void draw_text(int x,int y,const char *text,uint16_t background) {
 
 void draw_bigtext(int x,int y,const char *text,uint16_t background) {
 
-  int length = strlen(text);
+  uint32_t length = strlen(text);
   if(length < 0    ) return;
   if(length > 10000) return;
 
@@ -237,7 +238,7 @@ void draw_bigtext(int x,int y,const char *text,uint16_t background) {
 
 void draw_tinytext(int x,int y,const char *text,uint16_t background) {
 
-  int length = strlen(text);
+  uint32_t length = strlen(text);
   if(length < 0    ) return;
   if(length > 10000) return;
 

@@ -4,6 +4,8 @@
 #include "utils.h"
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
+#include <stdint.h>
 
 #define to565(r,g,b)                                            \
     ((((r) >> 3) << 11) | (((g) >> 2) << 5) | ((b) >> 3))
@@ -111,7 +113,7 @@ void display_draw_number(int x,int y,uint32_t number,int width,int16_t backgroun
 
 void display_draw_number_center(int x,int y,uint32_t number,int width,int16_t background) {
   char text[50];
-  sprintf(text,"%u",number);
+  sprintf(text,"%"PRIu32"",number);
   int len=strlen(text);
   int w = width*8;
   x+= (w-(len*8))/2;

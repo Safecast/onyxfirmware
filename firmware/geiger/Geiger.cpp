@@ -280,7 +280,7 @@ float Geiger::get_cpm30() {
   float sum = 0;
 
 
-  int windows_in_30s = WINDOWS_PER_MIN/2;
+  uint32_t windows_in_30s = WINDOWS_PER_MIN/2;
   int32_t c_position = last_windows_position-1;
   for(uint32_t n=0;n<windows_in_30s;n++) {
    
@@ -335,7 +335,7 @@ float *Geiger::get_cpm_last_windows() {
   }
 
   int32_t sum=0;
-  int averaging_period=30;
+  uint32_t averaging_period=30;
   for(uint32_t n=0;n<averaging_period;n++) {
     sum += cpm_last_windows_temp[n];
     cpm_last_windows[n]=0;

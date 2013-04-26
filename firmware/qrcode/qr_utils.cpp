@@ -1,6 +1,17 @@
 #ifndef QR_UTILS_H
 #define QR_UTILS_H
-#include "qr_encodeem.h"
+#include <stdint.h>
+
+// 文字数インジケータビット長(バージョングループ別, {S, M, L})
+static int nIndicatorLenNumeral[]  = {10, 12, 14};
+static int nIndicatorLenAlphabet[] = { 9, 11, 13};
+static int nIndicatorLen8Bit[]	   = { 8, 16, 16};
+static int nIndicatorLenKanji[]	   = { 8, 10, 12};
+
+#define QR_MODE_NUMERAL		0
+#define QR_MODE_ALPHABET	1
+#define QR_MODE_8BIT		2
+#define QR_MODE_KANJI		3
 
 /////////////////////////////////////////////////////////////////////////////
 // CQR_Encode::IsKanjiData

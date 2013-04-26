@@ -54,7 +54,7 @@ void display_draw_equtriangle_inv(uint8_t x,uint8_t y,uint8_t s,uint16_t color) 
 char     ticked_items[10][TEXT_LENGTH];
 uint32_t ticked_items_size=0;
 
-void tick_item(char *name,bool tick_val) {
+void tick_item(const char *name,bool tick_val) {
 
   if((ticked_items_size >= 10) && (tick_val == true)) return;
 
@@ -77,7 +77,7 @@ void tick_item(char *name,bool tick_val) {
   }
 }
 
-bool is_ticked(char *name) {
+bool is_ticked(const char *name) {
   for(uint32_t n=0;n<ticked_items_size;n++) {
     if(strcmp(name,ticked_items[n]) == 0) return true;
   }
@@ -283,20 +283,18 @@ float *source_graph_data;
 
 void render_item_graph(screen_item &item, bool selected) {
 
-  int32_t data_size=240;
-  int32_t data_offset=600-240;
-  int32_t data_increment=2;
-  int32_t x_spacing=1;
+  uint32_t data_size=240;
+  uint32_t data_offset=600-240;
+  uint32_t data_increment=2;
   float   max_height = 80;
 
-  int32_t m_x = item.val1;
-  int32_t m_y = item.val2;
+  uint32_t m_x = item.val1;
+  uint32_t m_y = item.val2;
   
-//  display_draw_rectangle(0,16,128,128,BACKGROUND_COLOR);
 
   // find min and max in data
-  int32_t nmax = source_graph_data[data_offset];
-  int32_t nmin = source_graph_data[data_offset];
+  uint32_t nmax = source_graph_data[data_offset];
+  uint32_t nmin = source_graph_data[data_offset];
   for(uint32_t n=data_offset;n<(data_offset+data_size);n++) {
     if(source_graph_data[n] > nmax) nmax = source_graph_data[n];
     if(source_graph_data[n] < nmin) nmin = source_graph_data[n];
@@ -337,7 +335,7 @@ void render_item_graph(screen_item &item, bool selected) {
   }
 
   // apply averaging, and offset to data.
-  for(int n=0;n<120;n++) {
+  for(uint32_t n=0;n<120;n++) {
     if(m_graph_count[n] != 0) m_graph_data[n] = m_y - m_graph_data[n]/m_graph_count[n];
                          else m_graph_data[n] = 0;
   }
@@ -787,7 +785,15 @@ void GUI::show_help_screen(uint8_t helpscreen) {
   m_displaying_help = true;
 }
 
-void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,char *dialog_text4,bool buzz,int img1,int img2,int img3,int img4) {
+void GUI::show_dialog(const char *dialog_text1,
+                      const char *dialog_text2,
+                      const char *dialog_text3,
+                      const char *dialog_text4,
+                      bool buzz,
+                      int img1,
+                      int img2,
+                      int img3,
+                      int img4) {
   display_draw_rectangle(0,0,128,128,BACKGROUND_COLOR);
   //strcpy(m_dialog_text1,dialog_text1);
   //strcpy(m_dialog_text2,dialog_text2);
@@ -852,7 +858,7 @@ void GUI::render() {
   m_redraw = false;
 
   render_lock(m_screen_lock);
-  for(uint32_t n=0;n<screens_layout[cscreen].item_count;n++) {
+  for(int32_t n=0;n<screens_layout[cscreen].item_count;n++) {
 
     if(first_render) {
       if(screens_layout[current_screen].items[n].type == ITEM_TYPE_ACTION) {
@@ -887,7 +893,7 @@ void GUI::render() {
 }
 
 void GUI::clear_screen(int32_t c_screen,int32_t c_selected) {
-  for(uint32_t n=0;n<screens_layout[c_screen].item_count;n++) {
+  for(int32_t n=0;n<screens_layout[c_screen].item_count;n++) {
 
     bool selected = false;
     if(n == c_selected) selected = true;
@@ -1000,14 +1006,6 @@ void GUI::process_key_up() {
 }
 
 void GUI::process_key(int key_id,int type) {
-
-  //char s[50];
-  //if(key_id == KEY_HELP  ) sprintf(s,"key: HELP   %d\r\n",type);
-  //if(key_id == KEY_UP    ) sprintf(s,"key: UP     %d\r\n",type);
-  //if(key_id == KEY_DOWN  ) sprintf(s,"key: DOWN   %d\r\n",type);
-  //if(key_id == KEY_SELECT) sprintf(s,"key: SELECT %d\r\n",type);
-  //if(key_id == KEY_HOME  ) sprintf(s,"key: HOME   %d\r\n",type);
-  //serial_write_string(s);
 
   if(m_screen_lock) return;
 
@@ -1178,7 +1176,14 @@ void GUI::set_language(uint8_t lang) {
   m_language = lang;
 }
 
-void GUI::render_dialog(char *text1,char *text2,char *text3,char *text4,int img1,int img2,int img3,int img4) {
+void GUI::render_dialog(const char *text1,
+                        const char *text2,
+                        const char *text3,
+                        const char *text4,
+                        int img1,
+                        int img2,
+                        int img3,
+                        int img4) {
 
   if(m_language == LANGUAGE_JAPANESE) {
     if(img1 == 255) { display_draw_text_center(20,text1,FOREGROUND_COLOR); } else

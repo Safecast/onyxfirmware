@@ -179,7 +179,6 @@ void modem_logxfer() {
 
   flashstorage_log_pause();
 
-  int id_pos =0;
   char inputdata[2048];
   inputdata[0]=0;
   
