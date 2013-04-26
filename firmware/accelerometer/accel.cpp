@@ -100,9 +100,8 @@ int accel_init(void) {
   return 0;
 }
 
-static int accel_deinit() {
+int accel_deinit() {
     // suspends accel
     accel_write(0x16, 0);
     return 0;
 }
-
