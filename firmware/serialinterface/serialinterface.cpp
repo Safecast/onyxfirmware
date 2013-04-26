@@ -3,6 +3,7 @@
 #include "flashstorage.h"
 #include "safecast_config.h"
 #include "usart.h"
+#include "Geiger.h"
 #include <stdio.h>
 #include <string.h>
 #include "log.h"
@@ -28,6 +29,7 @@ extern "C" {
 
 extern uint8_t _binary___binary_data_private_key_data_start;
 extern uint8_t _binary___binary_data_private_key_data_size;
+extern Geiger *system_geiger;
 
 #define TX1 BOARD_USART1_TX_PIN
 #define RX1 BOARD_USART1_RX_PIN
@@ -204,6 +206,32 @@ void cmd_magread(char *line) {
   char magsenses[50];
   sprintf(magsenses,"%u\r\n",magsense);
   serial_write_string(magsenses);
+}
+
+void cmd_cpm(char *line) {
+  char str[16];
+  sprintf(str,"%.3f",system_geiger->get_cpm());
+  serial_write_string(str);
+}
+
+void cmd_cpm30(char *line) {
+  char str[16];
+  sprintf(str,"%.3f",system_geiger->get_cpm30());
+  serial_write_string(str);
+}
+void cmd_cpmdeadtime(char *line) {
+  char str[16];
+  sprintf(str,"%.3f",system_geiger->get_cpm_deadtime_compensated());
+  serial_write_string(str);
+}
+
+void cmd_cpmvalid(char *line) {
+  char str[16];
+  if (system_geiger->is_cpm_valid()) {
+    serial_write_string("1");
+  } else {
+    serial_write_string("0");
+  }
 }
 
 void cmd_writedac(char *line) {
@@ -488,44 +516,49 @@ void cmd_batinfodisp(char *line) {
 
 void register_cmds() {
   // help
-  register_cmd("HELP"         ,cmd_help);
+  register_cmd("HELP"          ,cmd_help);
   // log
-  register_cmd("LOGXFER"      ,cmd_logxfer);
-  register_cmd("READ CSV LOG" ,cmd_logcsv);
-  register_cmd("LOGSIG"       ,cmd_logsig);
-  register_cmd("LOGPAUSE"     ,cmd_logpause);
-  register_cmd("LOGRESUME"    ,cmd_logresume);
-  register_cmd("LOGCLEAR"     ,cmd_logclear);
+  register_cmd("LOGXFER"       ,cmd_logxfer);
+  register_cmd("READ CSV LOG"  ,cmd_logcsv);
+  register_cmd("LOGSIG"        ,cmd_logsig);
+  register_cmd("LOGPAUSE"      ,cmd_logpause);
+  register_cmd("LOGRESUME"     ,cmd_logresume);
+  register_cmd("LOGCLEAR"      ,cmd_logclear);
   // get
-  register_cmd("VERSION"      ,cmd_version);		// GETVERSION
-  register_cmd("GUID"         ,cmd_guid);		// GETGUID
-  register_cmd("GETDEVICETAG" ,cmd_getdevicetag);
-  register_cmd("MAGREAD"      ,cmd_magread);		// GETMAG ? hall sensor?
+  register_cmd("VERSION"       ,cmd_version);		// GETVERSION
+  register_cmd("GUID"          ,cmd_guid);		// GETGUID
+  register_cmd("GETDEVICETAG"  ,cmd_getdevicetag);
+  register_cmd("MAGREAD"       ,cmd_magread);		// GETMAG ? hall sensor?
+  // cpm
+  register_cmd("GETCPM"        ,cmd_cpm);		// CPM
+  register_cmd("GETCPM30"      ,cmd_cpm30);		// CPM
+  register_cmd("GETCPMDEADTIME",cmd_cpmdeadtime);	// CPM
+  register_cmd("CPMVALID"      ,cmd_cpmvalid);		// CPM
   // ??
-  register_cmd("WRITEDAC"     ,cmd_writedac);
-  register_cmd("READADC"      ,cmd_readadc);
+  register_cmd("WRITEDAC"      ,cmd_writedac);
+  register_cmd("READADC"       ,cmd_readadc);
   // set
-  register_cmd("SETDEVICETAG" ,cmd_setdevicetag);
-  register_cmd("SETMICREVERSE",cmd_setmicreverse);
-  register_cmd("SETMICIPHONE" ,cmd_setmiciphone);
-  register_cmd("DISPLAYPARAMS",cmd_displayparams);	// SETDIAPLAYPARAMS
-  register_cmd("SETRTC"       ,cmd_setrtc);
-  register_cmd("SETALARM"     ,cmd_setalarm);
+  register_cmd("SETDEVICETAG"  ,cmd_setdevicetag);
+  register_cmd("SETMICREVERSE" ,cmd_setmicreverse);
+  register_cmd("SETMICIPHONE"  ,cmd_setmiciphone);
+  register_cmd("DISPLAYPARAMS" ,cmd_displayparams);	// SETDIAPLAYPARAMS
+  register_cmd("SETRTC"        ,cmd_setrtc);
+  register_cmd("SETALARM"      ,cmd_setalarm);
   // test/debug
-  register_cmd("DISPLAYTEST"  ,cmd_displaytest);	// TESTDISPLAY
-  register_cmd("BATINFODISP"  ,cmd_batinfodisp);	// TESTBATDISPLAY
-  register_cmd("TESTHP"       ,cmd_testhp);		// ??
-  register_cmd("LOGSTRESS"    ,cmd_logstress);		// TESTLOG
-  register_cmd("TESTSIGN"     ,cmd_testsign);
-  register_cmd("PUBKEY"       ,cmd_pubkey);
-  register_cmd("KEYVALID"     ,cmd_keyvalid);
-  register_cmd("KEYVALDUMP"   ,cmd_keyvaldump);
-  register_cmd("KEYVALSET"    ,cmd_keyvalset);
-  register_cmd("CAPTOUCHTEST" ,cmd_captouchparams);
-  register_cmd("CAPTOUCHDUMP" ,cmd_captouchdump);
+  register_cmd("DISPLAYTEST"   ,cmd_displaytest);	// TESTDISPLAY
+  register_cmd("BATINFODISP"   ,cmd_batinfodisp);	// TESTBATDISPLAY
+  register_cmd("TESTHP"        ,cmd_testhp);		// ??
+  register_cmd("LOGSTRESS"     ,cmd_logstress);		// TESTLOG
+  register_cmd("TESTSIGN"      ,cmd_testsign);
+  register_cmd("PUBKEY"        ,cmd_pubkey);
+  register_cmd("KEYVALID"      ,cmd_keyvalid);
+  register_cmd("KEYVALDUMP"    ,cmd_keyvaldump);
+  register_cmd("KEYVALSET"     ,cmd_keyvalset);
+  register_cmd("CAPTOUCHTEST"  ,cmd_captouchparams);
+  register_cmd("CAPTOUCHDUMP"  ,cmd_captouchdump);
   // misc
-  register_cmd("HELLO"        ,cmd_hello);
-  register_cmd("LIST GAMES"   ,cmd_games);
+  register_cmd("HELLO"         ,cmd_hello);
+  register_cmd("LIST GAMES"    ,cmd_games);
 }
 
 void cmd_main_menu(char *line) {

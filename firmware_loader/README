@@ -8,12 +8,14 @@ This program requires the FTDI drivers, these are shipped in binary form under a
 
 You need to unload the system FTDI serial drivers from the firmware loader to run, so a complete run might be as follows:
 
-git clone git@github.com:Safecast/bunniegeiger.git
-cd bunniegeiger/firmware_loader/
+git clone git@github.com:Safecast/onyxfirmware.git
+cd onyxfirmware/firmware_loader/
 sudo rmmod ftdi_sio
 sudo rmmod usbserial
 ./fwload -f safecast_r5.bin
 sudo modprobe usbserial
 sudo modprobe ftdi_sio
 
-There's a bash script called "test" this is hardcoded to program safecast.bin from ../frimware.
+There is also bash script called 'load' that can be used to program firmware.
+user@host:~/onyxfirmware/firmware_loader$ ./load ../firmware/firmware-12.12.bin
+
