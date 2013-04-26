@@ -14,6 +14,7 @@ public:
   void update_calibration();
   void save_calibration();
   void initialise_calibration();
+  void save_loginterval();
   void save_time();
   void save_date();
   void receive_gui_event(char *event,char *value);
