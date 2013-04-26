@@ -1,0 +1,29 @@
+#!/usr/bin/python
+
+import serial
+import time
+#LOGXFER
+ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=0)
+ser.flushInput()
+ser.write('LOGXFER\n')
+
+time.sleep(1)
+blocks = []
+
+while True:
+  data = ser.read(1)
+  if '\r' in data:
+    ser.read(1)
+    break
+
+while True:
+  data = ser.read(4)
+  if '\r' in data:
+    data = data.split('\r')[0]
+    blocks.append(data)
+    break
+  blocks.append(data)
+
+print ''.join(blocks).rstrip()
+
+#''.join([a[num] for num in xrange(len(a))])

@@ -1,0 +1,15 @@
+#!/bin/bash
+FIRMWARE=$1
+if [ ! -z $FIRMWARE ]; then
+  if [ -f $FIRMWARE ]; then
+    sudo rmmod ftdi_sio
+    sudo rmmod usbserial
+    sudo ./fwload -f $FIRMWARE
+    sudo modprobe usbserial
+    sudo modprobe ftdi_sio
+  else
+    echo "Can not locate firmware: $FIRMWARE"
+  fi
+else
+  echo "Usage: $0 ../firmware/firmware-12.11.bin"
+fi
