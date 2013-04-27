@@ -31,7 +31,7 @@ int log_read_block(char *buf) {
   uint32_t logsize = flashstorage_log_size()/sizeof(log_data_t);
 
   if(log_position==0) {
-    int64_t offset_mins = realtime_getutcoffset_mins();
+    int16_t offset_mins = realtime_getutcoffset_mins();
 
     bool offset_is_valid = realtime_getutcoffset_available();
 
