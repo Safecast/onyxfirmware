@@ -7,9 +7,14 @@
 #include <string.h>
 #include "serialinterface.h"
 #include <stdio.h>
+#include "Controller.h"
+#include "Geiger.h"
 
 extern uint32_t _binary___binary_data_flash_data_start;
 extern uint32_t _binary___binary_data_flash_data_size;
+
+extern Geiger *system_geiger;
+extern Controller *system_controller;
 
 uint8_t  *flash_data_area_aligned;
 uint32_t  flash_data_area_aligned_size;
@@ -383,4 +388,51 @@ void flashstorage_log_resume() {
 
 uint8_t *flashstorage_log_get() {
   return flash_data_area_aligned+flash_log_base;
+}
+
+void flashstorage_keyval_update() {
+  const char *spulsewidth = flashstorage_keyval_get("PULSEWIDTH");
+  if(spulsewidth != 0) {
+    unsigned int c;
+    sscanf(spulsewidth, "%u", &c);
+    system_geiger->set_pulsewidth(c);
+    system_geiger->pulse_timer_init();
+  }
+  else {
+    system_geiger->set_pulsewidth(6);
+  }
+
+  const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
+  if(sbright != 0) {
+    unsigned int c;
+    sscanf(sbright, "%u", &c);
+    display_set_brightness(c);
+  }
+
+  const char *sbeep = flashstorage_keyval_get("GEIGERBEEP");
+  if(sbeep != 0) {
+    if(!system_controller->m_sleeping) {
+      if(strcmp(sbeep,"true") == 0) {
+        system_geiger->set_beep(true);
+        tick_item("Geiger Beep",true);
+      }
+      else system_geiger->set_beep(false);
+    }
+  }
+
+  const char *scpmcps = flashstorage_keyval_get("CPMCPSAUTO");
+  if(scpmcps != 0) {
+    if(strcmp(scpmcps,"true") == 0) {
+      system_controller->m_cpm_cps_switch = true;
+      tick_item("CPM/CPS Auto",true);
+    }
+  }
+
+  const char *svrem = flashstorage_keyval_get("SVREM");
+  if(strcmp(svrem,"REM") == 0) {
+    tick_item("Roentgen",true);
+  }
+  else {
+    tick_item("Sievert",true);
+  }
 }
