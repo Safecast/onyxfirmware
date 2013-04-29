@@ -74,6 +74,8 @@ void Geiger::initialise() {
   m_pulsewidth = 5;
   calibration_scaling=1;
   m_cpm_valid = false;
+  total_count = 0;
+
 
   // load from flash
   const char *sfloat = flashstorage_keyval_get("CALIBRATIONSCALING");

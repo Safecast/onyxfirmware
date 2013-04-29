@@ -75,9 +75,9 @@ int log_read_block(char *buf) {
     buf += strlen(buf);
     sprintf(buf,"\"cpm\":%"PRIu32",\"duration\":30,",flash_log[log_position].cpm);
     buf += strlen(buf);
-    sprintf(buf,"\"counts\":%"PRIu32,flash_log[log_position].counts);
+    sprintf(buf,"\"counts\":%"PRIu32",",flash_log[log_position].counts);
     buf += strlen(buf);
-    sprintf(buf,"\"interval\":%"PRIu32,flash_log[log_position].interval);
+    sprintf(buf,"\"interval\":%"PRIu32",",flash_log[log_position].interval);
     buf += strlen(buf);
     sprintf(buf,"\"accel_x_start\":%d,\"accel_y_start\":%d,\"accel_z_start\":%d,",flash_log[log_position].accel_x_start,flash_log[log_position].accel_y_start,flash_log[log_position].accel_z_start);
     buf += strlen(buf);
