@@ -75,9 +75,15 @@ int log_read_block(char *buf) {
     buf += strlen(buf);
     sprintf(buf,"\"cpm\":%"PRIu32",\"duration\":30,",flash_log[log_position].cpm);
     buf += strlen(buf);
+    sprintf(buf,"\"counts\":%"PRIu32,flash_log[log_position].counts);
+    buf += strlen(buf);
+    sprintf(buf,"\"interval\":%"PRIu32,flash_log[log_position].interval);
+    buf += strlen(buf);
     sprintf(buf,"\"accel_x_start\":%d,\"accel_y_start\":%d,\"accel_z_start\":%d,",flash_log[log_position].accel_x_start,flash_log[log_position].accel_y_start,flash_log[log_position].accel_z_start);
     buf += strlen(buf);
-    sprintf(buf,"\"accel_x_end\":%d,\"accel_y_end\":%d,\"accel_z_end\":%d}",flash_log[log_position].accel_x_end,flash_log[log_position].accel_y_end,flash_log[log_position].accel_z_end);
+    sprintf(buf,"\"accel_x_end\":%d,\"accel_y_end\":%d,\"accel_z_end\":%d,",flash_log[log_position].accel_x_end,flash_log[log_position].accel_y_end,flash_log[log_position].accel_z_end);
+    buf += strlen(buf);
+    sprintf(buf,"\"magsensor_start\":%d,\"magsensor_end\":%d}",flash_log[log_position].magsensor_start,flash_log[log_position].magsensor_end);
     buf += strlen(buf);
 
     // add trailing comma on all but last log entry.
@@ -136,7 +142,7 @@ int log_read_csv(char *buf) {
       offset_string[5] = 0;
     }
 
-    sprintf(buf,"# Onyx CSV log: firmware: %s, records: %"PRIu32", UTC_offset: %s, user_calibration: %f\r\n# timestamp,cpm\r\n",OS100VERSION,logsize,offset_string,system_geiger->calibration_scaling);
+    sprintf(buf,"# Onyx CSV log: firmware: %s, records: %"PRIu32", UTC_offset: %s, user_calibration: %f\r\n# timestamp,cpm,counts,interval\r\n",OS100VERSION,logsize,offset_string,system_geiger->calibration_scaling);
     buf += strlen(buf);
   }
 
@@ -148,9 +154,7 @@ int log_read_csv(char *buf) {
     time = gmtime(&current_time_u32);
     char timestr[200];
     sprintf(timestr,"%u-%02u-%02uT%02u:%02u:%02uZ",time->tm_year+1900,time->tm_mon+1,time->tm_mday,time->tm_hour,time->tm_min,time->tm_sec);
-
-    // time is iso8601, with no timezone.
-    sprintf(buf,"%s,%"PRIu32"\r\n",timestr,flash_log[log_position].cpm);
+    sprintf(buf,"%s,%"PRIu32",%"PRIu32",%"PRIu32"\r\n",timestr,flash_log[log_position].cpm,flash_log[log_position].counts,flash_log[log_position].interval);
     buf += strlen(buf);
   }
   buf[0]=0;

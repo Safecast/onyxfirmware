@@ -20,6 +20,9 @@
 #include "modem.h"
 #include <stdint.h>
 #include <inttypes.h>
+#include "gpio.h"
+#include "safecast_config.h"
+
 
 #define UNITS_CPS 1
 #define UNITS_CPM 2
@@ -667,6 +670,8 @@ void Controller::update() {
     #ifndef DISABLE_ACCEL
     accel_read_state(&m_accel_x_stored,&m_accel_y_stored,&m_accel_z_stored);
     #endif
+    m_magsensor_stored = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
+    m_counts_stored = m_geiger.get_total_count();
 
     // set new alarm for log_interval_seconds from now.
     rtc_clear_alarmed();
@@ -682,9 +687,13 @@ void Controller::update() {
 
       data.time  = rtc_get_time(RTC);
       data.cpm   = m_geiger.get_cpm30();
+      data.counts = m_geiger.get_total_count() - m_counts_stored;
+      data.interval = data.time - m_interval_stored;
       data.accel_x_start = m_accel_x_stored;
       data.accel_y_start = m_accel_y_stored;
       data.accel_z_start = m_accel_z_stored;
+      data.magsensor_start = m_magsensor_stored;
+      data.magsensor_end = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
       data.log_type      = UINT_MAX;
 
       flashstorage_log_pushback((uint8_t *) &data,sizeof(log_data_t));
