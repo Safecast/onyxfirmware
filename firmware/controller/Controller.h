@@ -30,9 +30,12 @@ public:
   uint32_t m_log_interval_seconds;
   bool     m_alarm_log;
   uint32_t m_last_alarm_time;
+  uint32_t m_counts_stored;
+  uint32_t m_interval_stored;
   int16    m_accel_x_stored;
   int16    m_accel_y_stored;
   int16    m_accel_z_stored;
+  int16    m_magsensor_stored;
   int32_t  m_warncpm;
   bool     m_last_switch_state;
   bool     m_keytrigger;
