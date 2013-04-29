@@ -114,36 +114,7 @@ int main(void) {
     // Need to refactor out stored settings
     if(c.m_sleeping == false) {   
 
-
-      const char *spulsewidth = flashstorage_keyval_get("PULSEWIDTH");
-      if(spulsewidth != 0) {
-        unsigned int c;
-        sscanf(spulsewidth, "%u", &c);
-        g.set_pulsewidth(c);
-        g.pulse_timer_init();
-      } else {
-        g.set_pulsewidth(6);
-      }
-
-      const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
-      if(sbright != 0) {
-        unsigned int c;
-        sscanf(sbright, "%u", &c);
-        display_set_brightness(c);
-      }
-      
-      const char *sbeep = flashstorage_keyval_get("GEIGERBEEP");
-      if(sbeep != 0) {
-        if(!c.m_sleeping) {
-          if(strcmp(sbeep,"true") == 0) { g.set_beep(true); tick_item("Geiger Beep",true); }
-                                   else g.set_beep(false);
-        }
-      }
-
-      const char *scpmcps = flashstorage_keyval_get("CPMCPSAUTO");
-      if(scpmcps != 0) {
-        if(strcmp(scpmcps,"true") == 0) { c.m_cpm_cps_switch = true; tick_item("CPM/CPS Auto",true); }
-      }
+      flashstorage_keyval_update();
 
       const char *language = flashstorage_keyval_get("LANGUAGE");
       if(language != 0) {
@@ -153,10 +124,6 @@ int main(void) {
         m_gui.set_language(LANGUAGE_ENGLISH);
         tick_item("English",true); 
       }
-
-      const char *svrem = flashstorage_keyval_get("SVREM");
-      if(strcmp(svrem,"REM") == 0) { tick_item("Roentgen",true); }
-                              else { tick_item("Sievert",true);}
     }
 
 

@@ -397,6 +397,7 @@ void serial_setkeyval_run(char *line) {
   
   if(eqpos==-1) return;
   if(eqpos==0) {		// = on a line ends the command
+    flashstorage_keyval_update();
     command_stack_pop();
     return;
   }
