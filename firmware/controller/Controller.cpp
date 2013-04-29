@@ -20,6 +20,9 @@
 #include "modem.h"
 #include <stdint.h>
 #include <inttypes.h>
+#include "gpio.h"
+#include "safecast_config.h"
+
 
 #define UNITS_CPS 1
 #define UNITS_CPM 2
@@ -32,6 +35,8 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
   m_log_interval_seconds = 60*30;
   rtc_clear_alarmed();
   rtc_enable_alarm(RTC);
+  m_interval_stored = rtc_get_time(RTC);
+  m_counts_stored = 0;
   m_alarm_log = false;
   system_controller = this;
   m_last_switch_state = true;
@@ -667,6 +672,7 @@ void Controller::update() {
     #ifndef DISABLE_ACCEL
     accel_read_state(&m_accel_x_stored,&m_accel_y_stored,&m_accel_z_stored);
     #endif
+    m_magsensor_stored = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
 
     // set new alarm for log_interval_seconds from now.
     rtc_clear_alarmed();
@@ -676,15 +682,25 @@ void Controller::update() {
     if(m_geiger.is_cpm30_valid()) {
 
       log_data_t data;
+      uint32_t current_counts;
       #ifndef DISABLE_ACCEL
       accel_read_state(&data.accel_x_end,&data.accel_y_end,&data.accel_z_end);
       #endif
+      data.magsensor_end = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
 
       data.time  = rtc_get_time(RTC);
       data.cpm   = m_geiger.get_cpm30();
+
+      current_counts = m_geiger.get_total_count();
+      data.counts = current_counts - m_counts_stored;
+      data.interval = data.time - m_interval_stored;
+      m_counts_stored = current_counts;
+      m_interval_stored = data.time;
+
       data.accel_x_start = m_accel_x_stored;
       data.accel_y_start = m_accel_y_stored;
       data.accel_z_start = m_accel_z_stored;
+      data.magsensor_start = m_magsensor_stored;
       data.log_type      = UINT_MAX;
 
       flashstorage_log_pushback((uint8_t *) &data,sizeof(log_data_t));

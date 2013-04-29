@@ -45,7 +45,7 @@ void serial_process_command(char *line) {
 
 #define MAX_COMMAND_LEN 16
 /* Make sure to increment when adding new commands */
-#define MAX_COMMANDS 32
+#define MAX_COMMANDS 40
 
 int command_list_size;
 char command_list [MAX_COMMANDS][MAX_COMMAND_LEN];
@@ -396,7 +396,11 @@ void serial_setkeyval_run(char *line) {
   }
   
   if(eqpos==-1) return;
-
+  if(eqpos==0) {		// = on a line ends the command
+    flashstorage_keyval_update();
+    command_stack_pop();
+    return;
+  }
   for(int n=0;n<eqpos;n++) {
     key[n]=line[n];
     key[n+1]=0;
@@ -412,7 +416,7 @@ void serial_setkeyval_run(char *line) {
 }
 
 void cmd_keyvalset(char *line) {
-  serial_write_string("KEY=VAL\r\n");
+  serial_write_string("|| Enter KEY=VAL, end with a single = on a new line.\r\n");
   serial_write_string("#>");
 
   command_stack[command_stack_size] = serial_setkeyval_run;
