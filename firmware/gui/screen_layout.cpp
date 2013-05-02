@@ -229,7 +229,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"   , 255}, 
     { ITEM_TYPE_MENU       ,12, 1, "Brightness"   , 10 },
     { ITEM_TYPE_MENU_ACTION, 0, 2, "Geiger Beep"  , 11 },
-    { ITEM_TYPE_MENU       ,24, 3, "Geiger Pulse" , 255},
+//    { ITEM_TYPE_MENU       ,24, 3, "Geiger Pulse" , 255},
     { ITEM_TYPE_MENU       ,14, 4, "Language"     , 12 }
   }
   ,7
