@@ -75,8 +75,9 @@ export PATH=$PATH:$HOME/armcompiler/arm/bin
 
 ```
 cd $HOME/gitcode # or whereever you want to keep your code 
-git clone git@github.com:Safecast/bunniegeiger.git
-git checkout release7 # work on a release branch
+git clone git@github.com:Safecast/onyxfirmware.git
+git checkout devel # work on development branch
 cd firmware
 make
+make upload # you may need to type make in ../firmware_loader first.
 ```
