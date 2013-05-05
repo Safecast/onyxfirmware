@@ -194,12 +194,12 @@ static void cap_change(void) {
 }
 
 bool cap_ispressed(int key) {
-  int key_state=0;
-  key_state  = mpr121Read(TCH_STATL);
-  key_state |= mpr121Read(TCH_STATH) << 8;
+//  int key_state=0;
+//  key_state  = mpr121Read(TCH_STATL);
+//  key_state |= mpr121Read(TCH_STATH) << 8;
 
-  if (key_state & (1<<key)) { return true; }
-                       else { return false;}
+  if (last_key_state & (1<<key)) { return true; }
+                            else { return false;}
 }
 
 int cap_lastkey() {

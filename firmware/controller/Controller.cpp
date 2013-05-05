@@ -23,7 +23,6 @@
 #include "gpio.h"
 #include "safecast_config.h"
 
-
 #define UNITS_CPS 1
 #define UNITS_CPM 2
 
@@ -92,7 +91,7 @@ void Controller::update_calibration() {
   m_gui->receive_update("FIXEDSV",text_sieverts);
 }
  
-void Controller::save_calibration() {
+void Controller::event_save_calibration() {
   int c1 = m_gui->get_item_state_uint8("CAL1");
   int c2 = m_gui->get_item_state_uint8("CAL2");
   int c3 = m_gui->get_item_state_uint8("CAL3");
@@ -138,6 +137,7 @@ void Controller::initialise_calibration() {
 }
 
 void Controller::save_warncpm() {
+  m_warning_raised = false; 
   int w1 = m_gui->get_item_state_uint8("WARNCPM1");
   int w2 = m_gui->get_item_state_uint8("WARNCPM2");
   int w3 = m_gui->get_item_state_uint8("WARNCPM3");
@@ -161,17 +161,18 @@ void Controller::save_warncpm() {
 }
 
 void Controller::save_loginterval() {
-    int l1 = m_gui->get_item_state_uint8("LOGINTER1");
-    int l2 = m_gui->get_item_state_uint8("LOGINTER2");
-    int l3 = m_gui->get_item_state_uint8("LOGINTER3");
-    int32_t log_interval_mins = (l1*100) + (l2*10) + l3;
-    m_log_interval_seconds = log_interval_mins*60;
+  int l1 = m_gui->get_item_state_uint8("LOGINTER1");
+  int l2 = m_gui->get_item_state_uint8("LOGINTER2");
+  int l3 = m_gui->get_item_state_uint8("LOGINTER3");
+  int32_t log_interval_mins = (l1*100) + (l2*10) + l3;
+  m_log_interval_seconds = log_interval_mins*60;
     
-    char sloginterval[50];
-    sprintf(sloginterval,"%"PRIu32"",m_log_interval_seconds);
-    flashstorage_keyval_set("LOGINTERVAL",sloginterval);
-    uint32_t current_time = realtime_get_unixtime();
-    rtc_set_alarm(RTC,current_time+m_log_interval_seconds);
+  char sloginterval[50];
+  sprintf(sloginterval,"%"PRIu32"",m_log_interval_seconds);
+  flashstorage_keyval_set("LOGINTERVAL",sloginterval);
+  uint32_t current_time = realtime_get_unixtime();
+  rtc_set_alarm(RTC,current_time+m_log_interval_seconds);
+  m_gui->jump_to_screen(0);
 
 }
 
@@ -236,56 +237,51 @@ bool is_leap(int month,int day,int year) {
   return false;
 }
 
-void Controller::receive_gui_event(const char *event,const char *value) {
+void Controller::event_sleep(const char *event,const char *value) {
+  #ifndef NEVERSLEEP
+  if(m_sleeping == false) {
+    display_powerdown();
+    m_sleeping=true;
+    m_gui->set_key_trigger();
+    m_gui->set_sleeping(true);
+    display_powerdown();
+    power_standby();
+  }
+  #endif
+}
 
-  //TODO: Fix this total mess, refactor into switch, break conditions out into methods.
-  if(strcmp(event,"Sleep") == 0) {
-    #ifndef NEVERSLEEP
-    if(m_sleeping == false) {
-      display_powerdown();
-      m_sleeping=true;
-      m_gui->set_key_trigger();
-      m_gui->set_sleeping(true);
-      display_powerdown();
-      power_standby();
-    }
-    #endif
-  } else
-  if(strcmp(event,"KEYPRESS") == 0) {
-    m_powerup=true;
-  } else
-  if(strcmp(event,"TOTALTIMER") == 0) {
-    m_geiger.reset_total_count();
-    m_total_timer_start = realtime_get_unixtime();
+void Controller::event_totaltimer(const char *event,const char *value) {
+  m_geiger.reset_total_count();
+  m_total_timer_start = realtime_get_unixtime();
 
-    const char *blank = "              ";
-    m_gui->receive_update("TTCOUNT",blank);
-    m_gui->receive_update("TTTIME" ,blank);
-    m_gui->redraw();
-  } else
-  if(strcmp(event,"Save:PulseWidth") == 0) {
-    int p1 = m_gui->get_item_state_uint8("PULSEWIDTH1");
-    char sp[50];
-    sprintf(sp,"%d",p1);
-    flashstorage_keyval_set("PULSEWIDTH",sp);
-    m_geiger.set_pulsewidth(p1);
-    m_geiger.pulse_timer_init();
-    m_gui->jump_to_screen(0);
-  } else
-  if(strcmp(event,"Save:Calib") == 0) {
-    save_calibration();
-  } else
-  if(strcmp(event,"Save:Becq") == 0) {
-    int b1 = m_gui->get_item_state_uint8("BECQ1");
-    int b2 = m_gui->get_item_state_uint8("BECQ2");
-    int b3 = m_gui->get_item_state_uint8("BECQ3");
-    int b4 = m_gui->get_item_state_uint8("BECQ4");
+  const char *blank = "              ";
+  m_gui->receive_update("TTCOUNT",blank);
+  m_gui->receive_update("TTTIME" ,blank);
+  m_gui->redraw();
+}
+
+void Controller::event_save_pulsewidth(const char *event,const char *value) {
+  int p1 = m_gui->get_item_state_uint8("PULSEWIDTH1");
+  char sp[50];
+  sprintf(sp,"%d",p1);
+  flashstorage_keyval_set("PULSEWIDTH",sp);
+  m_geiger.set_pulsewidth(p1);
+  m_geiger.pulse_timer_init();
+  m_gui->jump_to_screen(0);
+}
+
+void Controller::event_save_becq(const char *event,const char *value) {
+  int b1 = m_gui->get_item_state_uint8("BECQ1");
+  int b2 = m_gui->get_item_state_uint8("BECQ2");
+  int b3 = m_gui->get_item_state_uint8("BECQ3");
+  int b4 = m_gui->get_item_state_uint8("BECQ4");
     
-    float beff = b1*1000 + b2*100 + b3*10 + b4;
-    m_geiger.set_becquerel_eff(beff);
-    m_gui->jump_to_screen(0);
-  } else
-  if(strcmp(event,"Save:UTCOff") == 0) {
+  float beff = b1*1000 + b2*100 + b3*10 + b4;
+  m_geiger.set_becquerel_eff(beff);
+  m_gui->jump_to_screen(0);
+}
+
+void Controller::event_save_utcoff(const char *event,const char *value) {
     int h1 = m_gui->get_item_state_uint8("OFFHOUR1");
     int h2 = m_gui->get_item_state_uint8("OFFHOUR2");
     int m1 = m_gui->get_item_state_uint8("OFFMIN1");
@@ -302,30 +298,23 @@ void Controller::receive_gui_event(const char *event,const char *value) {
     flashstorage_keyval_set("UTCOFFSETMINS",sutcoffset);
 
     m_gui->jump_to_screen(0);
-  } else
-  if(strcmp(event,"Save:Time") == 0) {
-    save_time();
-  } else
-  if(strcmp(event,"Save:Date") == 0) {
-    save_date();
-  } else 
-  if(strcmp(event,"Save:WarnCPM") == 0) {
-    m_warning_raised = false; 
-    save_warncpm();
-  } else
-  if(strcmp(event,"Japanese") == 0) {
+}
+
+void Controller::event_japanese(const char *event,const char *value) {
     m_gui->set_language(LANGUAGE_JAPANESE);
     flashstorage_keyval_set("LANGUAGE","Japanese");
     tick_item("English" ,false);
     tick_item("Japanese",true);
-  } else
-  if(strcmp(event,"English") == 0) {
+}
+
+void Controller::event_english(const char *event,const char *value) {
     m_gui->set_language(LANGUAGE_ENGLISH);
     flashstorage_keyval_set("LANGUAGE","English");
     tick_item("English" ,true);
     tick_item("Japanese",false);
-  } else
-  if(strcmp(event,"CPM/CPS Auto") == 0) {
+}
+
+void Controller::event_cpm_cps_auto(const char *event,const char *value) {
     if(m_cpm_cps_switch == false) {
       m_cpm_cps_switch = true;
       flashstorage_keyval_set("CPMCPSAUTO","true");
@@ -335,27 +324,32 @@ void Controller::receive_gui_event(const char *event,const char *value) {
       flashstorage_keyval_set("CPMCPSAUTO","false");
       tick_item("CPM/CPS Auto",false);
     }
-  } else
-  if(strcmp(event,"Geiger Beep") == 0) {
-     m_geiger.toggle_beep();
-     if(m_geiger.is_beeping()) { flashstorage_keyval_set("GEIGERBEEP","true");  tick_item("Geiger Beep",true);  }
-                          else { flashstorage_keyval_set("GEIGERBEEP","false"); tick_item("Geiger Beep",false); }
-  } else 
-  if(strcmp(event,"\x80Sv") == 0) {
-    flashstorage_keyval_set("SVREM","SV");
-    tick_item("\x80Sv" ,true);
-    tick_item("\x80R",false);
-  } else
-  if(strcmp(event,"\x80R") == 0) {
-    flashstorage_keyval_set("SVREM","REM");
-    tick_item("\x80Sv" ,false);
-    tick_item("\x80R",true);
-  } else
-  if(strcmp(event,"Clear Log") == 0) {
+}
+
+void Controller::event_geiger_beep(const char *event,const char *value) {   
+  m_geiger.toggle_beep();
+  if(m_geiger.is_beeping()) { flashstorage_keyval_set("GEIGERBEEP","true");  tick_item("Geiger Beep",true);  }
+                       else { flashstorage_keyval_set("GEIGERBEEP","false"); tick_item("Geiger Beep",false); }
+}
+
+void Controller::event_usv(const char *event,const char *value) {
+  flashstorage_keyval_set("SVREM","SV");
+  tick_item("\x80Sv" ,true);
+  tick_item("\x80R",false);
+}
+
+void Controller::event_rem(const char *event,const char *value) {
+  flashstorage_keyval_set("SVREM","REM");
+  tick_item("\x80Sv" ,false);
+  tick_item("\x80R",true);
+}
+
+void Controller::event_clear_log(const char *event,const char *value) {
     flashstorage_log_clear();
-    m_gui->show_dialog("Log Cleared",0,0,0,1,48,254,254,254);
-  } else 
-  if(strcmp(event,"Save:Brightness") == 0) {
+    m_gui->show_dialog("Log Cleared",0,0,0,0,48,254,254,254);
+}
+
+void Controller::event_save_brightness(const char *event,const char *value) {
     uint8 b = m_gui->get_item_state_uint8("BRIGHTNESS");
       
     int br;
@@ -369,16 +363,9 @@ void Controller::receive_gui_event(const char *event,const char *value) {
 
     m_dim_off=false;
     m_gui->jump_to_screen(0);
-  } else
-  if(strcmp(event,"Save:LogInter") == 0) {
-    save_loginterval();
-    m_gui->jump_to_screen(0);
-  } else
-  if(strcmp(event,"CALIBRATE") == 0) {
-    initialise_calibration();
-  } else
-  if(strcmp(event,"UTCSCREEN") == 0) {
+}
 
+void Controller::event_utcscreen(const char *event,const char *value) {
     int offset = realtime_getutcoffset_mins();
     if(offset < 0) offset = 0-offset;
 
@@ -403,8 +390,9 @@ void Controller::receive_gui_event(const char *event,const char *value) {
     if(offset <= 0) m_gui->receive_update("SIGN:-,+,",&zero);
                else m_gui->receive_update("SIGN:-,+,",&one);
     m_gui->redraw();
-  } else
-  if(strcmp(event,"TIMESCREEN") == 0) {
+}
+
+void Controller::event_timescreen(const char *event,const char *value) {
     uint8_t hours;
     uint8_t min;
     uint8_t sec;
@@ -429,9 +417,9 @@ void Controller::receive_gui_event(const char *event,const char *value) {
     m_gui->receive_update("TIMESEC1" ,&s1);
     m_gui->receive_update("TIMESEC2" ,&s2);
     m_gui->redraw();
-  } else
-  if(strcmp(event,"BECQSCREEN") == 0) {
-  
+}
+
+void Controller::event_becqscreen(const char *event,const char *value) {
     float becq_val = 0;
     const char *val = flashstorage_keyval_get("BECQEFF");
     if(val != NULL) {
@@ -448,8 +436,9 @@ void Controller::receive_gui_event(const char *event,const char *value) {
     m_gui->receive_update("BECQ3",&b3);
     m_gui->receive_update("BECQ4",&b4);
     m_gui->redraw();
-  } else
-  if(strcmp(event,"LOGINTERVAL") == 0) {
+}
+
+void Controller::event_loginterval(const char *event,const char *value) {
     int32_t log_interval = 0;
     const char *val = flashstorage_keyval_get("LOGINTERVAL");
     if (val != NULL) {
@@ -466,10 +455,9 @@ void Controller::receive_gui_event(const char *event,const char *value) {
     m_gui->receive_update("LOGINTER2",&l2);
     m_gui->receive_update("LOGINTER3",&l3);
     m_gui->redraw();
+}
 
-
-  } else
-  if(strcmp(event,"WARNSCREEN") == 0) {
+void Controller::event_warnscreen(const char *event,const char *value) {
     int32_t warn_level = 0;
     const char *val = flashstorage_keyval_get("WARNCPM");
     if(val != NULL) {
@@ -488,8 +476,9 @@ void Controller::receive_gui_event(const char *event,const char *value) {
     m_gui->receive_update("WARNCPM4",&w4);
     m_gui->receive_update("WARNCPM5",&w5);
     m_gui->redraw();
-  } else
-  if(strcmp(event,"DATESCREEN") == 0) {
+}
+
+void Controller::event_datescreen(const char *event,const char *value) {
     uint8_t hours;
     uint8_t min;
     uint8_t sec;
@@ -518,9 +507,9 @@ void Controller::receive_gui_event(const char *event,const char *value) {
     m_gui->receive_update("DATEYEAR1",&y1);
     m_gui->receive_update("DATEYEAR2",&y2);
     m_gui->redraw();
-  } else
-  if(strcmp(event,"BrightnessSCN") == 0) {
+}
 
+void Controller::event_brightnessscn(const char *event,const char *value) {
     const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
     unsigned int c=15;
     if(sbright != 0) {
@@ -534,8 +523,9 @@ void Controller::receive_gui_event(const char *event,const char *value) {
 
     m_gui->receive_update("BRIGHTNESS",&b);
     m_gui->redraw();
-  } else
-  if(strcmp(event,"LeftBrightness") == 0) {
+}
+
+void Controller::event_leftbrightness(const char *event,const char *value) {
     const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
     if(sbright != 0) {
       unsigned int c;
@@ -543,10 +533,9 @@ void Controller::receive_gui_event(const char *event,const char *value) {
       display_set_brightness(c);
     }
     m_dim_off=false;
+}
 
-  } else
-  if(strcmp(event,"varnumchange") == 0) {
-    if(strcmp("BRIGHTNESS",value) == 0) {
+void Controller::event_varnum_brightness(const char *event,const char *value) {
       int b = m_gui->get_item_state_uint8("BRIGHTNESS");
       m_dim_off=true;
 
@@ -554,12 +543,9 @@ void Controller::receive_gui_event(const char *event,const char *value) {
       if(b<= 5) br = (b*2) +1;
       if(b>  5) br = b+6; 
       display_set_brightness(br);
-    } else
+}
 
-    if(strcmpl("CAL",value,3)) {
-      update_calibration();
-    } else
-    if(strcmpl("DATE",value,4)) {
+void Controller::event_varnum_date(const char *event,const char *value) {
       int d1 = m_gui->get_item_state_uint8("DATEDAY1");
       int d2 = m_gui->get_item_state_uint8("DATEDAY2");
       int m1 = m_gui->get_item_state_uint8("DATEMON1");
@@ -594,8 +580,9 @@ void Controller::receive_gui_event(const char *event,const char *value) {
       m_gui->receive_update("DATEMON2",&m2);
       m_gui->receive_update("DATEDAY1",&d1);
       m_gui->receive_update("DATEDAY2",&d2);
-    } else
-    if(strcmpl("TIME",value,4)) {
+}
+
+void Controller::event_varnum_time(const char *event,const char *value) {
       uint8 h1 = m_gui->get_item_state_uint8("TIMEHOUR1");
       uint8 h2 = m_gui->get_item_state_uint8("TIMEHOUR2");
       uint8 m1 = m_gui->get_item_state_uint8("TIMEMIN1");
@@ -616,28 +603,18 @@ void Controller::receive_gui_event(const char *event,const char *value) {
       m_gui->receive_update("TIMEMIN2",&m2);
       m_gui->receive_update("TIMESEC1",&s1);
       m_gui->receive_update("TIMESEC2",&s2);
-    } 
-  } else
-  if(strcmp(event,"QR Transfer") == 0) {
-    qr_logxfer();
-  } else
-  if(strcmp(event,"Audio Xfer Mod") == 0) {
+}
+
+void Controller::event_audioxfer(const char *event,const char *value) {
     display_clear(0);
     modem_full_range = false;
     display_draw_text(0,16," Audio Transfer ",65535);
     display_draw_text(4,32,"  in progress  " ,65535);
     modem_logxfer();
     m_gui->jump_to_screen(0);
-  } else
-  if(strcmp(event,"Audio Xfer Full") == 0) {
-    display_clear(0);
-    modem_full_range = true;
-    display_draw_text(0,16," Audio Transfer ",65535);
-    display_draw_text(4,32,"  in progress  " ,65535);
-    modem_logxfer();
-    m_gui->jump_to_screen(0);
-  } else
-  if(strcmp(event,"QR Tweet") == 0) {
+}
+
+void Controller::event_qrtweet(const char *event,const char *value) {
     char str[1024];
 
     if(m_geiger.is_cpm_valid()) {
@@ -648,11 +625,51 @@ void Controller::receive_gui_event(const char *event,const char *value) {
       sprintf(str,"http://twitter.com/home?status=CPM:%u%%23bad",(int)m_geiger.get_cpm());
     }
     qr_draw(str);
+}
+
+void Controller::receive_gui_event(const char *event,const char *value) {
+
+  //TODO: Fix this total mess, refactor into switch, break conditions out into methods.
+  if(strcmp(event,"Sleep"          ) == 0) event_sleep(event,value);           else
+  if(strcmp(event,"KEYPRESS"       ) == 0) m_powerup=true;                     else
+  if(strcmp(event,"TOTALTIMER"     ) == 0) event_totaltimer(event,value);      else
+  if(strcmp(event,"Save:PulseWidth") == 0) event_save_pulsewidth(event,value); else 
+  if(strcmp(event,"Save:Calib"     ) == 0) event_save_calibration();           else
+  if(strcmp(event,"Save:Becq"      ) == 0) event_save_becq(event,value);       else
+  if(strcmp(event,"Save:UTCOff"    ) == 0) event_save_utcoff(event,value);     else
+  if(strcmp(event,"Save:Time"      ) == 0) save_time();                        else
+  if(strcmp(event,"Save:Date"      ) == 0) save_date();                        else 
+  if(strcmp(event,"Save:WarnCPM"   ) == 0) save_warncpm();                     else
+  if(strcmp(event,"Japanese"       ) == 0) event_japanese(event,value);        else
+  if(strcmp(event,"English"        ) == 0) event_english(event,value);         else
+  if(strcmp(event,"CPM/CPS Auto"   ) == 0) event_cpm_cps_auto(event,value);    else
+  if(strcmp(event,"Geiger Beep"    ) == 0) event_geiger_beep(event,value);     else
+  if(strcmp(event,"\x80Sv"         ) == 0) event_usv(event,value);             else
+  if(strcmp(event,"\x80R"          ) == 0) event_rem(event,value);             else
+  if(strcmp(event,"Clear Log"      ) == 0) event_clear_log(event,value);       else
+  if(strcmp(event,"Save:Brightness") == 0) event_save_brightness(event,value); else
+  if(strcmp(event,"Save:LogInter"  ) == 0) save_loginterval();                 else
+  if(strcmp(event,"CALIBRATE"      ) == 0) initialise_calibration();           else
+  if(strcmp(event,"UTCSCREEN"      ) == 0) event_utcscreen(event,value);       else
+  if(strcmp(event,"TIMESCREEN"     ) == 0) event_timescreen(event,value);      else
+  if(strcmp(event,"BECQSCREEN"     ) == 0) event_becqscreen(event,value);      else
+  if(strcmp(event,"LOGINTERVAL"    ) == 0) event_loginterval(event,value);     else 
+  if(strcmp(event,"WARNSCREEN"     ) == 0) event_warnscreen(event,value);      else
+  if(strcmp(event,"DATESCREEN"     ) == 0) event_datescreen(event,value);      else
+  if(strcmp(event,"BrightnessSCN"  ) == 0) event_brightnessscn(event,value);   else
+  if(strcmp(event,"LeftBrightness" ) == 0) event_leftbrightness(event,value);  else
+  if(strcmp(event,"QR Transfer"    ) == 0) qr_logxfer();                       else
+  if(strcmp(event,"Audio Xfer"     ) == 0) event_audioxfer(event,value);       else
+  if(strcmp(event,"QR Tweet"       ) == 0) event_qrtweet(event,value);         else
+  if(strcmp(event,"varnumchange"   ) == 0) {
+    if(strcmp ("BRIGHTNESS",value) == 0) event_varnum_brightness(event,value); else
+    if(strcmpl("CAL"       ,value,3)   ) update_calibration();                 else
+    if(strcmpl("DATE"      ,value,4)   ) event_varnum_date(event,value);       else
+    if(strcmpl("TIME"      ,value,4)   ) event_varnum_time(event,value);       
   }
 }
 
-void Controller::update() {
-
+void Controller::check_warning_level() {
   if((m_warncpm > 0) && (m_geiger.get_cpm() >= m_warncpm) && (m_warning_raised == false) && m_geiger.is_cpm_valid()) {
     if(m_sleeping) display_powerup();
     char text_cpm[20];
@@ -664,8 +681,9 @@ void Controller::update() {
     if(m_sleeping) display_powerdown();
     #endif
   }
-  m_keytrigger=false;
+}
 
+void Controller::do_logging() {
   if(rtc_alarmed()) {
     m_alarm_log = true;
     m_last_alarm_time = rtc_get_time(RTC);
@@ -719,8 +737,9 @@ void Controller::update() {
       }
     }
   }
+}
 
-
+void Controller::check_sleep_switch() {
   #ifndef NEVERSLEEP
   bool sstate = switch_state();
   if(sstate != m_last_switch_state) {
@@ -766,7 +785,9 @@ void Controller::update() {
     }
     return;
   }
+}
 
+void Controller::do_dimming() {
   // only dim if not in brightness changing mode
   if(!m_dim_off) {
     // Check for no key presses then dim screen
@@ -788,7 +809,9 @@ void Controller::update() {
       }
     }
   }
+}
 
+void Controller::send_cpm_values() {
   //TODO: I should change this so it only sends the messages the GUI currently needs.
   char text_cpmdint[50];
   char text_cpmd[50];
@@ -833,14 +856,17 @@ void Controller::update() {
   if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
     sprintf(text_cpmd,"TOO HIGH");
   }
-  
+  m_gui->receive_update("CPMDEADINT",text_cpmdint);
+  m_gui->receive_update("CPMDEAD",text_cpmd);
+}
+
+void Controller::send_graph_data() {
   float *graph_data;
   graph_data = m_geiger.get_cpm_last_windows();
+  m_gui->receive_update("RECENTDATA",graph_data);
+}
 
-  //uint8_t hours,min,sec,day,month;
-  //uint16_t year;
-  //realtime_getdate(hours,min,sec,day,month,year);
-
+void Controller::send_total_timer() {
   char text_totaltimer_count[50];
   char text_totaltimer_time [50];
   uint32_t ctime = realtime_get_unixtime();
@@ -857,18 +883,13 @@ void Controller::update() {
     text_totaltimer_count[n+1] = 0;
   }
 
-  //if(m_geiger.is_cpm_valid()) m_gui->receive_update("CPMVALID","true");
-  //                       else m_gui->receive_update("CPMVALID","false");
-  m_gui->receive_update("CPMDEADINT",text_cpmdint);
-  m_gui->receive_update("CPMDEAD",text_cpmd);
-  m_gui->receive_update("RECENTDATA",graph_data);
   m_gui->receive_update("DELAYA",NULL);
   m_gui->receive_update("DELAYB",NULL);
-//  m_gui->receive_update("TIME",text_time);
-//  m_gui->receive_update("DATE",text_date);
   m_gui->receive_update("TTCOUNT",text_totaltimer_count);
   m_gui->receive_update("TTTIME" ,text_totaltimer_time);
+}
 
+void Controller::send_svrem() {
   const char *svrem = flashstorage_keyval_get("SVREM");
 
   if((svrem != 0) && (strcmp(svrem,"REM") == 0)) {
@@ -898,7 +919,9 @@ void Controller::update() {
     m_gui->receive_update("SVREM", text_sieverts);
     m_gui->receive_update("SVREMLABEL"," \x80Sv/h");
   }
-  
+}
+
+void Controller::send_becq() {
   char text_becq_tmp[50];
   char text_becq[50];
   float becq = m_geiger.get_becquerel();
@@ -915,4 +938,22 @@ void Controller::update() {
   } else {
     m_gui->receive_update("BECQINFO","Becquerel unset"); // kanji image is: 46
   }
+}
+
+void Controller::update() {
+
+  check_warning_level();
+  m_keytrigger=false;
+
+  do_logging();
+
+  check_sleep_switch();
+
+  do_dimming();
+
+  send_cpm_values();
+  send_graph_data(); 
+  send_total_timer();
+  send_svrem();
+  send_becq();
 }
