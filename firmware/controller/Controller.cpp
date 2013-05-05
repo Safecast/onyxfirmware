@@ -23,7 +23,6 @@
 #include "gpio.h"
 #include "safecast_config.h"
 
-
 #define UNITS_CPS 1
 #define UNITS_CPM 2
 
