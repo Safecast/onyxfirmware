@@ -139,31 +139,34 @@ int main(void) {
       if(!c.m_sleeping) serial_eventloop();
 
       if(!c.m_sleeping) {
-				// It might be a good idea to move the following code to Controller.
-				// Hack to check that captouch is ok, and reset it if not.
-				bool c = cap_check();
-				if(c == false) {
-					display_draw_text(0,90,"CAPFAIL",0);
-					cap_init(); 
-				}
+        // This was causing the serial interface to fail, so have removed it.
+        // It might be a good idea to move the following code to Controller.
+        // Hack to check that captouch is ok, and reset it if not.
+        //bool c = cap_check();
+        //if(c == false) {
+        //  display_draw_text(0,90,"CAPFAIL",0);
+        //  cap_init(); 
+        //}
 
-				// Screen lock code
-				uint32_t release1_time = cap_last_press(KEY_BACK);
-				uint32_t   press1_time = cap_last_release(KEY_BACK);
-				uint32_t release2_time = cap_last_press(KEY_SELECT);
-				uint32_t   press2_time = cap_last_release(KEY_SELECT);
-				uint32_t current_time = realtime_get_unixtime();
-				if((release1_time != 0) &&
-					 (release2_time != 0) &&
-					 ((current_time-press1_time) > 3) &&
-					 ((current_time-press2_time) > 3) &&
-					 cap_ispressed(KEY_BACK  ) &&
-					 cap_ispressed(KEY_SELECT)) {
-					system_gui->toggle_screen_lock();
-					cap_clear_press();
-				}
+        // Screen lock code
+        uint32_t release1_time = cap_last_press(KEY_BACK);
+        uint32_t   press1_time = cap_last_release(KEY_BACK);
+        uint32_t release2_time = cap_last_press(KEY_SELECT);
+        uint32_t   press2_time = cap_last_release(KEY_SELECT);
+        uint32_t current_time = realtime_get_unixtime();
 
-				power_wfi();
+        int cap1 = cap_ispressed(KEY_BACK);
+        int cap2 = cap_ispressed(KEY_SELECT);
+        if((release1_time != 0) &&
+           (release2_time != 0) &&
+           ((current_time-press1_time) > 3) &&
+           ((current_time-press2_time) > 3) &&
+           cap1 && cap2) {
+           system_gui->toggle_screen_lock();
+           cap_clear_press();
+        }
+
+        power_wfi();
       }
     }
 
