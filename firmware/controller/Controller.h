@@ -42,6 +42,7 @@ public:
   void event_datescreen(const char *event,const char *value);
   void event_brightnessscn(const char *event,const char *value);
   void event_leftbrightness(const char *event,const char *value);
+  void event_neverdim(const char *event,const char *value);
   void event_varnum_brightness(const char *event,const char *value);
   void event_varnum_time(const char *event,const char *value);
   void event_varnum_date(const char *event,const char *value);
@@ -77,6 +78,7 @@ public:
   bool     m_warning_raised;
   uint32   m_total_timer_start;
   bool     m_dim_off;
+  bool     m_never_dim;
 
   float    m_cpm_cps_threshold;
   float    m_cps_cpm_threshold;
