@@ -64,10 +64,12 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
   // Get never dim from flash
   m_warncpm = -1;
   const char *sneverdim = flashstorage_keyval_get("NEVERDIM");
-  if(swarncpm != 0) {
+  if(sneverdim != 0) {
     if(strcmp(sneverdim,"true") == 0) m_never_dim=true;
                                  else m_never_dim=false;
   } else m_never_dim=false;
+   
+  if(m_never_dim) tick_item("Never Dim" ,true);
   
   // Get logging interval from flash
   const char *sloginter = flashstorage_keyval_get("LOGINTERVAL");
@@ -315,7 +317,7 @@ void Controller::event_neverdim(const char *event,const char *value) {
       tick_item("Never Dim" ,true);
       m_never_dim=true;
     } else {
-      flashstorage_keyval_set("NEVERDIM","true");
+      flashstorage_keyval_set("NEVERDIM","false");
       tick_item("Never Dim" ,false);
       m_never_dim=false;
     }
