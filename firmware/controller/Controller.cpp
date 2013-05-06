@@ -39,6 +39,7 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
   m_alarm_log = false;
   system_controller = this;
   m_last_switch_state = true;
+  m_never_dim = false;
 
   bool sstate = switch_state();
   m_last_switch_state = sstate;
@@ -59,6 +60,16 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
     sscanf(swarncpm, "%"PRIu32"", &c);
     m_warncpm = c;
   }
+  
+  // Get never dim from flash
+  m_warncpm = -1;
+  const char *sneverdim = flashstorage_keyval_get("NEVERDIM");
+  if(sneverdim != 0) {
+    if(strcmp(sneverdim,"true") == 0) m_never_dim=true;
+                                 else m_never_dim=false;
+  } else m_never_dim=false;
+   
+  if(m_never_dim) tick_item("Never Dim" ,true);
   
   // Get logging interval from flash
   const char *sloginter = flashstorage_keyval_get("LOGINTERVAL");
@@ -298,6 +309,18 @@ void Controller::event_save_utcoff(const char *event,const char *value) {
     flashstorage_keyval_set("UTCOFFSETMINS",sutcoffset);
 
     m_gui->jump_to_screen(0);
+}
+
+void Controller::event_neverdim(const char *event,const char *value) {
+    if(m_never_dim == false) {
+      flashstorage_keyval_set("NEVERDIM","true");
+      tick_item("Never Dim" ,true);
+      m_never_dim=true;
+    } else {
+      flashstorage_keyval_set("NEVERDIM","false");
+      tick_item("Never Dim" ,false);
+      m_never_dim=false;
+    }
 }
 
 void Controller::event_japanese(const char *event,const char *value) {
@@ -641,6 +664,7 @@ void Controller::receive_gui_event(const char *event,const char *value) {
   if(strcmp(event,"Save:Date"      ) == 0) save_date();                        else 
   if(strcmp(event,"Save:WarnCPM"   ) == 0) save_warncpm();                     else
   if(strcmp(event,"Japanese"       ) == 0) event_japanese(event,value);        else
+  if(strcmp(event,"Never Dim"      ) == 0) event_neverdim(event,value);        else
   if(strcmp(event,"English"        ) == 0) event_english(event,value);         else
   if(strcmp(event,"CPM/CPS Auto"   ) == 0) event_cpm_cps_auto(event,value);    else
   if(strcmp(event,"Geiger Beep"    ) == 0) event_geiger_beep(event,value);     else
@@ -788,6 +812,9 @@ void Controller::check_sleep_switch() {
 }
 
 void Controller::do_dimming() {
+
+  if(m_never_dim) return;
+
   // only dim if not in brightness changing mode
   if(!m_dim_off) {
     // Check for no key presses then dim screen
