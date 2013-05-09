@@ -77,6 +77,8 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
     int32_t c;
     sscanf(sloginter, "%"PRIu32"", &c);
     m_log_interval_seconds = c;
+  } else {
+    m_log_interval_seconds = 30*60;
   }
   rtc_set_alarm(RTC,rtc_get_time(RTC)+m_log_interval_seconds);
 }
@@ -466,6 +468,8 @@ void Controller::event_loginterval(const char *event,const char *value) {
     const char *val = flashstorage_keyval_get("LOGINTERVAL");
     if (val != NULL) {
       sscanf(val,"%"PRIi32"",&log_interval);
+    } else {
+      log_interval = 30*60;
     }
 
     log_interval = log_interval/60; // Turn it into minutes
@@ -716,6 +720,7 @@ void Controller::do_logging() {
     #endif
     m_magsensor_stored = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
 
+
     // set new alarm for log_interval_seconds from now.
     rtc_clear_alarmed();
   }
@@ -728,21 +733,21 @@ void Controller::do_logging() {
       #ifndef DISABLE_ACCEL
       accel_read_state(&data.accel_x_end,&data.accel_y_end,&data.accel_z_end);
       #endif
-      data.magsensor_end = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
+      //data.magsensor_end = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
 
       data.time  = rtc_get_time(RTC);
       data.cpm   = m_geiger.get_cpm30();
 
-      current_counts = m_geiger.get_total_count();
-      data.counts = current_counts - m_counts_stored;
-      data.interval = data.time - m_interval_stored;
-      m_counts_stored = current_counts;
-      m_interval_stored = data.time;
+ //     current_counts = m_geiger.get_total_count();
+ //     data.counts = current_counts - m_counts_stored;
+ //     data.interval = data.time - m_interval_stored;
+ //     m_counts_stored = current_counts;
+ //     m_interval_stored = data.time;
 
       data.accel_x_start = m_accel_x_stored;
       data.accel_y_start = m_accel_y_stored;
       data.accel_z_start = m_accel_z_stored;
-      data.magsensor_start = m_magsensor_stored;
+      //data.magsensor_start = m_magsensor_stored;
       data.log_type      = UINT_MAX;
 
       flashstorage_log_pushback((uint8_t *) &data,sizeof(log_data_t));
@@ -772,14 +777,13 @@ void Controller::check_sleep_switch() {
     if(sstate == false) {
       if(m_alarm_log && (!m_sleeping)) { m_sleeping=true; display_powerdown(); } else {
         if(!m_sleeping) {
-          display_powerdown();
+          //display_powerdown();
           power_standby();
         }
       }
     }
     
     if(sstate == true) {
-      // how did this happen?!?
       m_powerup = true;
     }
   }
@@ -792,7 +796,6 @@ void Controller::check_sleep_switch() {
     m_sleeping=false;
     m_powerup =false;
 
-    buzzer_nonblocking_buzz(0.05);
     const char *devicetag = flashstorage_keyval_get("DEVICETAG");
     char revtext[10];
     sprintf(revtext,"VERSION: %s ",OS100VERSION);
@@ -975,6 +978,8 @@ void Controller::update() {
   do_logging();
 
   check_sleep_switch();
+
+  if(m_sleeping) return;
 
   do_dimming();
 

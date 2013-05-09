@@ -8,8 +8,6 @@
 #include "power.h"
 #include "safecast_config.h"
 
-//#define DISABLE_ACCEL
-//#define NEVERSLEEP
 #include "UserInput.h"
 #include "Geiger.h"
 #include "GUI.h"
@@ -83,7 +81,6 @@ int main(void) {
     }
     #endif
     #ifdef NEVERSLEEP
-      buzzer_nonblocking_buzz(0.05);
       display_initialise();
     #endif
 
