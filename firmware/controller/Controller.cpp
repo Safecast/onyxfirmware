@@ -718,7 +718,7 @@ void Controller::do_logging() {
     #ifndef DISABLE_ACCEL
     accel_read_state(&m_accel_x_stored,&m_accel_y_stored,&m_accel_z_stored);
     #endif
-    m_magsensor_stored = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
+    //m_magsensor_stored = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
 
 
     // set new alarm for log_interval_seconds from now.
