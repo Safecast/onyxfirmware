@@ -38,8 +38,6 @@ premain() {
 
 int main(void) {
 
-
-
     Geiger g;
     power_initialise();
     if(power_battery_level() < 1) {
@@ -61,8 +59,8 @@ int main(void) {
     accel_init();
     #endif
 
-    Controller c(g);
     switch_initialise();
+    Controller c(g);
 
     // if we woke up on an alarm, we're going to be sending the system back.
     #ifndef NEVERSLEEP
@@ -70,6 +68,7 @@ int main(void) {
       rtc_set_alarmed(); // if we woke up from the RTC, force the the alarm trigger.
       c.m_sleeping = true;
     } else {
+      c.m_sleeping = false;
       buzzer_nonblocking_buzz(0.05);
       display_initialise();
       const char *devicetag = flashstorage_keyval_get("DEVICETAG");
@@ -109,18 +108,15 @@ int main(void) {
 
 
     // Need to refactor out stored settings
-    if(c.m_sleeping == false) {   
+    flashstorage_keyval_update();
 
-      flashstorage_keyval_update();
-
-      const char *language = flashstorage_keyval_get("LANGUAGE");
-      if(language != 0) {
-        if(strcmp(language,"English" ) == 0) { m_gui.set_language(LANGUAGE_ENGLISH);  tick_item("English"  ,true); } else
-        if(strcmp(language,"Japanese") == 0) { m_gui.set_language(LANGUAGE_JAPANESE); tick_item("Japanese" ,true); }
-      } else {
-        m_gui.set_language(LANGUAGE_ENGLISH);
-        tick_item("English",true); 
-      }
+    const char *language = flashstorage_keyval_get("LANGUAGE");
+    if(language != 0) {
+      if(strcmp(language,"English" ) == 0) { m_gui.set_language(LANGUAGE_ENGLISH);  tick_item("English"  ,true); } else
+      if(strcmp(language,"Japanese") == 0) { m_gui.set_language(LANGUAGE_JAPANESE); tick_item("Japanese" ,true); }
+    } else {
+      m_gui.set_language(LANGUAGE_ENGLISH);
+      tick_item("English",true); 
     }
 
 

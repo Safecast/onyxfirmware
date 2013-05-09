@@ -975,6 +975,7 @@ void Controller::update() {
   check_warning_level();
   m_keytrigger=false;
 
+//  buzzer_nonblocking_buzz(5);
   do_logging();
 
   check_sleep_switch();
