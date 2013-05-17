@@ -45,6 +45,7 @@ int main(void) {
     }
 
     serial_initialise();
+    serial_write_string("Serial initialised\r\n");
     flashstorage_initialise();
     buzzer_initialise();
     realtime_initialise();
@@ -128,10 +129,11 @@ int main(void) {
       }
 
       c.update();
-      if(!c.m_sleeping) m_gui.render();
-      if(!c.m_sleeping) serial_eventloop();
 
       if(!c.m_sleeping) {
+        m_gui.render();
+        serial_eventloop();
+
         // This was causing the serial interface to fail, so have removed it.
         // It might be a good idea to move the following code to Controller.
         // Hack to check that captouch is ok, and reset it if not.
@@ -146,7 +148,7 @@ int main(void) {
         uint32_t   press1_time = cap_last_release(KEY_BACK);
         uint32_t release2_time = cap_last_press(KEY_SELECT);
         uint32_t   press2_time = cap_last_release(KEY_SELECT);
-        uint32_t current_time = realtime_get_unixtime();
+        uint32_t current_time  = realtime_get_unixtime();
 
         int cap1 = cap_ispressed(KEY_BACK);
         int cap2 = cap_ispressed(KEY_SELECT);

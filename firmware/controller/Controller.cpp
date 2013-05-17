@@ -6,7 +6,6 @@
 #include "realtime.h"
 #include "flashstorage.h"
 #include "rtc.h"
-#include "serialinterface.h"
 #include "power.h"
 #include <stdio.h>
 #include "accel.h"
@@ -16,7 +15,6 @@
 #include "buzzer.h"
 #include <string.h>
 #include <limits.h>
-#include "serialinterface.h"
 #include "modem.h"
 #include <stdint.h>
 #include <inttypes.h>
@@ -29,6 +27,7 @@
 Controller *system_controller;
 
 Controller::Controller(Geiger &g) : m_geiger(g) {
+
   m_sleeping=false;
   m_powerup=false;
   m_log_interval_seconds = 60*30;
@@ -53,7 +52,7 @@ Controller::Controller(Geiger &g) : m_geiger(g) {
   m_cps_cpm_threshold = 1000.0;
 
   // Get warning cpm from flash
-  m_warncpm = -1;
+  m_warncpm = 0;
   const char *swarncpm = flashstorage_keyval_get("WARNCPM");
   if(swarncpm != 0) {
     int32_t c;
@@ -110,7 +109,7 @@ void Controller::event_save_calibration() {
   int c3 = m_gui->get_item_state_uint8("CAL3");
   int c4 = m_gui->get_item_state_uint8("CAL4");
   float calibration_scaling = ((float)c1) + (((float)c2)/10) + (((float)c3)/100) + (((float)c4)/1000);
-  float base_sieverts = m_geiger.get_microsieverts_nocal();
+  float base_sieverts = system_geiger->get_microsieverts_nocal();
 
   char text_sieverts[50];
   float_to_char(base_sieverts*calibration_scaling,text_sieverts,5);
@@ -121,7 +120,7 @@ void Controller::event_save_calibration() {
   text_sieverts[9] = 0;
 
   m_gui->receive_update("Sieverts",text_sieverts);
-  m_geiger.set_calibration(calibration_scaling);
+  system_geiger->set_calibration(calibration_scaling);
   m_dim_off=false;
   m_gui->jump_to_screen(0);
 }
@@ -129,9 +128,9 @@ void Controller::event_save_calibration() {
 void Controller::initialise_calibration() {
   m_dim_off=true;
   display_set_brightness(15);
-  m_calibration_base = m_geiger.get_microsieverts_nocal();
+  m_calibration_base = system_geiger->get_microsieverts_nocal();
   char text_sieverts[50];
-  float_to_char(m_calibration_base*m_geiger.get_calibration(),text_sieverts,5);
+  float_to_char(m_calibration_base*system_geiger->get_calibration(),text_sieverts,5);
   text_sieverts[5] = ' ';
   text_sieverts[6] = '\x80';
   text_sieverts[7] = 'S';
@@ -139,10 +138,10 @@ void Controller::initialise_calibration() {
   text_sieverts[9] = 0;
   m_gui->receive_update("FIXEDSV",text_sieverts);
   
-  uint8_t c1=m_geiger.get_calibration();
-  uint8_t c2=((uint32_t)(m_geiger.get_calibration()*10))%10;
-  uint8_t c3=((uint32_t)(m_geiger.get_calibration()*100))%10;
-  uint8_t c4=((uint32_t)(m_geiger.get_calibration()*1000))%10;
+  uint8_t c1=system_geiger->get_calibration();
+  uint8_t c2=((uint32_t)(system_geiger->get_calibration()*10))%10;
+  uint8_t c3=((uint32_t)(system_geiger->get_calibration()*100))%10;
+  uint8_t c4=((uint32_t)(system_geiger->get_calibration()*1000))%10;
   m_gui->receive_update("CAL1",&c1);
   m_gui->receive_update("CAL2",&c2);
   m_gui->receive_update("CAL3",&c3);
@@ -264,7 +263,7 @@ void Controller::event_sleep(const char *event,const char *value) {
 }
 
 void Controller::event_totaltimer(const char *event,const char *value) {
-  m_geiger.reset_total_count();
+  system_geiger->reset_total_count();
   m_total_timer_start = realtime_get_unixtime();
 
   const char *blank = "              ";
@@ -278,8 +277,8 @@ void Controller::event_save_pulsewidth(const char *event,const char *value) {
   char sp[50];
   sprintf(sp,"%d",p1);
   flashstorage_keyval_set("PULSEWIDTH",sp);
-  m_geiger.set_pulsewidth(p1);
-  m_geiger.pulse_timer_init();
+  system_geiger->set_pulsewidth(p1);
+  system_geiger->pulse_timer_init();
   m_gui->jump_to_screen(0);
 }
 
@@ -290,7 +289,7 @@ void Controller::event_save_becq(const char *event,const char *value) {
   int b4 = m_gui->get_item_state_uint8("BECQ4");
     
   float beff = b1*1000 + b2*100 + b3*10 + b4;
-  m_geiger.set_becquerel_eff(beff);
+  system_geiger->set_becquerel_eff(beff);
   m_gui->jump_to_screen(0);
 }
 
@@ -352,8 +351,8 @@ void Controller::event_cpm_cps_auto(const char *event,const char *value) {
 }
 
 void Controller::event_geiger_beep(const char *event,const char *value) {   
-  m_geiger.toggle_beep();
-  if(m_geiger.is_beeping()) { flashstorage_keyval_set("GEIGERBEEP","true");  tick_item("Geiger Beep",true);  }
+  system_geiger->toggle_beep();
+  if(system_geiger->is_beeping()) { flashstorage_keyval_set("GEIGERBEEP","true");  tick_item("Geiger Beep",true);  }
                        else { flashstorage_keyval_set("GEIGERBEEP","false"); tick_item("Geiger Beep",false); }
 }
 
@@ -644,17 +643,18 @@ void Controller::event_audioxfer(const char *event,const char *value) {
 void Controller::event_qrtweet(const char *event,const char *value) {
     char str[1024];
 
-    if(m_geiger.is_cpm_valid()) {
+    if(system_geiger->is_cpm_valid()) {
                  //12345678901234567890123456789012345    1   2 34567890
-      sprintf(str,"http://twitter.com/home?status=CPM:%u%%23scast",(int)m_geiger.get_cpm());
+      sprintf(str,"http://twitter.com/home?status=CPM:%u%%23scast",(int)system_geiger->get_cpm());
     } else {
                  //12345678901234567890123456789012345    1   2 34567890
-      sprintf(str,"http://twitter.com/home?status=CPM:%u%%23bad",(int)m_geiger.get_cpm());
+      sprintf(str,"http://twitter.com/home?status=CPM:%u%%23bad",(int)system_geiger->get_cpm());
     }
     qr_draw(str);
 }
 
 void Controller::receive_gui_event(const char *event,const char *value) {
+  if(m_sleeping) return;
 
   //TODO: Fix this total mess, refactor into switch, break conditions out into methods.
   if(strcmp(event,"Sleep"          ) == 0) event_sleep(event,value);           else
@@ -698,10 +698,10 @@ void Controller::receive_gui_event(const char *event,const char *value) {
 }
 
 void Controller::check_warning_level() {
-  if((m_warncpm > 0) && (m_geiger.get_cpm() >= m_warncpm) && (m_warning_raised == false) && m_geiger.is_cpm_valid()) {
+  if((m_warncpm > 0) && (system_geiger->get_cpm() >= m_warncpm) && (m_warning_raised == false) && system_geiger->is_cpm_valid()) {
     if(m_sleeping) display_powerup();
     char text_cpm[20];
-    sprintf(text_cpm,"%8.3f",m_geiger.get_cpm_deadtime_compensated());
+    sprintf(text_cpm,"%8.3f",system_geiger->get_cpm_deadtime_compensated());
     m_gui->show_dialog("WARNING LEVEL","EXCEEDED",text_cpm,"CPM",true,42,254,255,255);
     m_warning_raised = true;
 
@@ -726,7 +726,7 @@ void Controller::do_logging() {
   }
 
   if(m_alarm_log == true) {
-    if(m_geiger.is_cpm30_valid()) {
+    if(system_geiger->is_cpm30_valid()) {
 
       log_data_t data;
       uint32_t current_counts;
@@ -736,9 +736,9 @@ void Controller::do_logging() {
       //data.magsensor_end = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
 
       data.time  = rtc_get_time(RTC);
-      data.cpm   = m_geiger.get_cpm30();
+      data.cpm   = system_geiger->get_cpm30();
 
- //     current_counts = m_geiger.get_total_count();
+ //     current_counts = system_geiger->get_total_count();
  //     data.counts = current_counts - m_counts_stored;
  //     data.interval = data.time - m_interval_stored;
  //     m_counts_stored = current_counts;
@@ -769,6 +769,7 @@ void Controller::do_logging() {
 }
 
 void Controller::check_sleep_switch() {
+
   #ifndef NEVERSLEEP
   bool sstate = switch_state();
   if(sstate != m_last_switch_state) {
@@ -776,10 +777,8 @@ void Controller::check_sleep_switch() {
 
     if(sstate == false) {
       if(m_alarm_log && (!m_sleeping)) { m_sleeping=true; display_powerdown(); } else {
-        if(!m_sleeping) {
-          //display_powerdown();
-          power_standby();
-        }
+        m_sleeping=true;
+        power_standby();
       }
     }
     
@@ -790,6 +789,7 @@ void Controller::check_sleep_switch() {
   #endif
 
   if(m_powerup == true) {
+    buzzer_nonblocking_buzz(0.5);
     display_powerup();
     m_gui->set_sleeping(false);
     m_gui->redraw();
@@ -803,7 +803,6 @@ void Controller::check_sleep_switch() {
     delay_us(3000000);
     display_clear(0);
   }
-
 
   if(m_sleeping) {
     // go back to sleep.
@@ -846,21 +845,20 @@ void Controller::send_cpm_values() {
   char text_cpmdint[50];
   char text_cpmd[50];
 
-  text_cpmdint[0] = 0;
-  int_to_char(m_geiger.get_cpm_deadtime_compensated()+0.5,text_cpmdint,7);
-  if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
+  float cpm_deadtime_compensated = system_geiger->get_cpm_deadtime_compensated();
+  int_to_char(cpm_deadtime_compensated+0.5,text_cpmdint,7);
+  if(cpm_deadtime_compensated > MAX_CPM) {
     sprintf(text_cpmdint,"TOO HIGH"); // kanji image is 45
   }
-  //float_to_char(m_geiger.get_cpm_deadtime_compensated(),text_cpmd,7);
 
   if(!m_cpm_cps_switch) {       // no auto switch, just display CPM
     char text_cpmd_tmp[30];
-    sprintf(text_cpmd_tmp,"%8.3f",m_geiger.get_cpm_deadtime_compensated());
+    sprintf(text_cpmd_tmp,"%8.3f",system_geiger->get_cpm_deadtime_compensated());
     sprintf(text_cpmd    ,"%8.8s",text_cpmd_tmp);
     m_gui->receive_update("CPMSLABEL","CPM");
   } else {
 
-    float cpm = m_geiger.get_cpm_deadtime_compensated();
+    float cpm = system_geiger->get_cpm_deadtime_compensated();
 
     if(cpm > m_cpm_cps_threshold) {
       m_current_units = UNITS_CPS;
@@ -872,18 +870,18 @@ void Controller::send_cpm_values() {
 
     if(m_current_units == UNITS_CPM) {
       char text_cpmd_tmp[30];
-      sprintf(text_cpmd_tmp,"%8.0f",m_geiger.get_cpm_deadtime_compensated());
+      sprintf(text_cpmd_tmp,"%8.0f",system_geiger->get_cpm_deadtime_compensated());
       sprintf(text_cpmd    ,"%8.8s",text_cpmd_tmp);
       m_gui->receive_update("CPMSLABEL","CPM");
     } else {
       char text_cpmd_tmp[30];
-      sprintf(text_cpmd_tmp,"%8.0f",m_geiger.get_cpm_deadtime_compensated()/60);
+      sprintf(text_cpmd_tmp,"%8.0f",system_geiger->get_cpm_deadtime_compensated()/60);
       sprintf(text_cpmd    ,"%8.8s",text_cpmd_tmp);
       m_gui->receive_update("CPMSLABEL","CPS");
     }
   }
 
-  if(m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) {
+  if(system_geiger->get_cpm_deadtime_compensated() > MAX_CPM) {
     sprintf(text_cpmd,"TOO HIGH");
   }
   m_gui->receive_update("CPMDEADINT",text_cpmdint);
@@ -892,7 +890,7 @@ void Controller::send_cpm_values() {
 
 void Controller::send_graph_data() {
   float *graph_data;
-  graph_data = m_geiger.get_cpm_last_windows();
+  graph_data = system_geiger->get_cpm_last_windows();
   m_gui->receive_update("RECENTDATA",graph_data);
 }
 
@@ -904,7 +902,7 @@ void Controller::send_total_timer() {
 
   char temp[50];
   sprintf(text_totaltimer_time ,"%"PRIu32"s",totaltimer_time);
-  sprintf(temp,"  %6.3f  " ,((float)m_geiger.get_total_count()/((float)totaltimer_time))*60);
+  sprintf(temp,"  %6.3f  " ,((float)system_geiger->get_total_count()/((float)totaltimer_time))*60);
   int len = strlen(temp);
   int pad = (16-len)/2;
   for(int n=0;n<16;n++) {
@@ -926,9 +924,9 @@ void Controller::send_svrem() {
     char text_rem[50];
     char text_rem_tmp[50];
     text_rem[0]=0;
-    sprintf(text_rem_tmp,"%8.3f",m_geiger.get_microrems());
+    sprintf(text_rem_tmp,"%8.3f",system_geiger->get_microrems());
     sprintf(text_rem    ,"%8.8s",text_rem_tmp);
-    if((m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) || (m_geiger.get_microrems() > 99999999)) {
+    if((system_geiger->get_cpm_deadtime_compensated() > MAX_CPM) || (system_geiger->get_microrems() > 99999999)) {
       sprintf(text_rem,"TOO HIGH");
     }
 
@@ -939,9 +937,9 @@ void Controller::send_svrem() {
     char text_sieverts[50];
     char text_sieverts_tmp[50];
     text_sieverts[0]=0;
-    sprintf(text_sieverts_tmp,"%8.3f",m_geiger.get_microsieverts());
+    sprintf(text_sieverts_tmp,"%8.3f",system_geiger->get_microsieverts());
     sprintf(text_sieverts,"%8.8s",text_sieverts_tmp);
-    if((m_geiger.get_cpm_deadtime_compensated() > MAX_CPM) || (m_geiger.get_microsieverts() > 99999999)) {
+    if((system_geiger->get_cpm_deadtime_compensated() > MAX_CPM) || (system_geiger->get_microsieverts() > 99999999)) {
       sprintf(text_sieverts,"TOO HIGH");
     }
 
@@ -954,13 +952,13 @@ void Controller::send_svrem() {
 void Controller::send_becq() {
   char text_becq_tmp[50];
   char text_becq[50];
-  float becq = m_geiger.get_becquerel();
+  float becq = system_geiger->get_becquerel();
   if(becq >= 0) {
-    //float_to_char(m_geiger.get_becquerel(),text_becq,7);
-    sprintf(text_becq_tmp,"%8.3f",m_geiger.get_becquerel());
+    //float_to_char(system_geiger->get_becquerel(),text_becq,7);
+    sprintf(text_becq_tmp,"%8.3f",system_geiger->get_becquerel());
     sprintf(text_becq,"%8.8s",text_becq_tmp);
 
-    if(m_geiger.get_becquerel() > 99999999) {
+    if(system_geiger->get_becquerel() > 99999999) {
       sprintf(text_becq,"TOO HIGH");
     }
 
@@ -971,11 +969,9 @@ void Controller::send_becq() {
 }
 
 void Controller::update() {
-
   check_warning_level();
   m_keytrigger=false;
 
-//  buzzer_nonblocking_buzz(5);
   do_logging();
 
   check_sleep_switch();

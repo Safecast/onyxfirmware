@@ -13,7 +13,6 @@
 #include <string.h>
 #include "buzzer.h"
 #include "captouch.h"
-#include "serialinterface.h"
 
 bool first_render=true;
 
@@ -914,13 +913,6 @@ void GUI::redraw() {
 }
 
 void GUI::receive_key(int key_id,int type) {
-  //char s[50];
-  //if(key_id == KEY_HELP  ) sprintf(s,"rkey: HELP   %d\r\n",type);
-  //if(key_id == KEY_UP    ) sprintf(s,"rkey: UP     %d\r\n",type);
-  //if(key_id == KEY_DOWN  ) sprintf(s,"rkey: DOWN   %d\r\n",type);
-  //if(key_id == KEY_SELECT) sprintf(s,"rkey: SELECT %d\r\n",type);
-  //if(key_id == KEY_HOME  ) sprintf(s,"rkey: HOME   %d\r\n",type);
-  //serial_write_string(s);
     
   // don't activate HELP key when in a help screen
   if((m_displaying_help == true) && (key_id == KEY_HELP)) return;
@@ -932,9 +924,6 @@ void GUI::receive_key(int key_id,int type) {
     return;
   }
   
-//  char s[25];
-//  sprintf(s,"keys cache: %d %d\r\n",new_keys_start,new_keys_end);
-//  serial_write_string(s);
 
   new_keys_key [new_keys_end] = key_id;
   new_keys_type[new_keys_end] = type;

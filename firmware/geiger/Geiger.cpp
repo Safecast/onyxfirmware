@@ -12,6 +12,7 @@
 #include "flashstorage.h"
 #include <stdio.h>
 #include "buzzer.h"
+#include "serialinterface.h"
 
 #define GEIGER_PULSE_GPIO 42 // PB3
 #define GEIGER_ON_GPIO    4  // PB5
@@ -205,6 +206,12 @@ uint32_t max(uint32_t a,uint32_t b) {
 }
 
 float Geiger::get_cpm() {
+  
+  // If there are no samples, return 0
+  if(m_samples_collected == 0) {
+    m_cpm_valid = false;
+    return 0;
+  }
 
   // Check we didn't just remove outselves from a source, which
   // makes the windows look crazy.
@@ -240,18 +247,22 @@ float Geiger::get_cpm() {
   }
 
   // Invalidate if the cpm30 differs from the cpm5 reading by more than 100 times the cpm5 reading.
-  float cpm30 = get_cpm30();
-  float cpm5  = last5sum*12;
-  float delta30 = cpm5 - cpm30;
-  if(delta30 < 0) delta30 = 0-delta30;
-  if((delta30 > (cpm5*100)) && (cpm5 > 500)) {
-    m_cpm_valid = false;
-    m_samples_collected=5;
+  if(is_cpm30_valid()) {
+    float cpm30 = get_cpm30();
+    float cpm5  = last5sum*12;
+    float delta30 = cpm5 - cpm30;
+    if(delta30 < 0) delta30 = 0-delta30;
+    if((delta30 > (cpm5*100)) && (cpm5 > 500)) {
+      m_cpm_valid = false;
+      m_samples_collected=5;
+    }
   }
+
 
   float sum = 0;
 
   c_position = last_windows_position-1;
+  if(c_position < 0) c_position = WINDOWS_STORED-1;
 
   int32_t samples_used=0;
   for(uint32_t n=0;(n<max_averaging_period) && (n<m_samples_collected);n++) {
@@ -281,11 +292,11 @@ float Geiger::get_cpm30() {
 
   float sum = 0;
 
-
   uint32_t windows_in_30s = WINDOWS_PER_MIN/2;
   int32_t c_position = last_windows_position-1;
+  if(c_position < 0) c_position = WINDOWS_PER_MIN-1;
   for(uint32_t n=0;n<windows_in_30s;n++) {
-   
+    
     sum += last_windows[c_position];
  
     c_position--;
