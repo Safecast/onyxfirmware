@@ -45,7 +45,6 @@ int main(void) {
     }
 
     serial_initialise();
-    serial_write_string("Serial initialised\r\n");
     flashstorage_initialise();
     buzzer_initialise();
     realtime_initialise();
