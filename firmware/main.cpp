@@ -61,7 +61,7 @@ int main(void) {
     #endif
 
     switch_initialise();
-    Controller c(g);
+    Controller c;
 
     // if we woke up on an alarm, we're going to be sending the system back.
     #ifndef NEVERSLEEP

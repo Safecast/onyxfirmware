@@ -26,7 +26,7 @@
 
 Controller *system_controller;
 
-Controller::Controller(Geiger &g) : m_geiger(g) {
+Controller::Controller() {
 
   m_sleeping=false;
   m_powerup=false;

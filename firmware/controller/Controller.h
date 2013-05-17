@@ -9,7 +9,7 @@ class Controller {
 
 public:
 
-  Controller(Geiger &g);
+  Controller();
   void set_gui(GUI &g);
   void update_calibration();
   void initialise_calibration();
@@ -59,7 +59,6 @@ public:
   void send_becq();
 
   GUI     *m_gui;
-  Geiger  &m_geiger;
   bool     m_sleeping;             ///< this indicates display sleep
   bool     m_powerup;
   float    m_calibration_base;
