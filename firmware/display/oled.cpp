@@ -22,7 +22,7 @@
 #define NOTE(x) Serial1.print(__FILE__); Serial1.print(":"); Serial1.print(__LINE__); Serial1.print(" "); Serial1.println(x);
 #define RGB16(r, b, g) ((((r)<<11L)&0x1fL) | (((g)<<5L)&0x3fL) | (((b)<<0L)&0x1fL))
 
-void write_c(unsigned char out_command) {	
+void write_c(unsigned char out_command) {
     gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
                    PIN_MAP[LCD_DC_GPIO].gpio_bit,
                    0);
