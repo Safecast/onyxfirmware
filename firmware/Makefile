@@ -102,7 +102,7 @@ upload_mac: release
 	sudo kextload -b com.FTDI.driver.FTDIUSBSerialDriver
 	@echo
 	@echo "Done... seems it worked fine :)"
-	
+
 upload:	release
 	@echo
 	@echo "Checking for valid firmware uploader..."
