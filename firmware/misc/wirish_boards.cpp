@@ -103,7 +103,7 @@ static void setupFlash(void) {
  * comment above.
  */
 static void setupClocks() {
-    rcc_clk_init(RCC_CLKSRC_PLL, RCC_PLLSRC_HSI_DIV_2, RCC_PLLMUL_9); 
+    rcc_clk_init(RCC_CLKSRC_PLL, RCC_PLLSRC_HSI_DIV_2, RCC_PLLMUL_9);
     rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
     rcc_set_prescaler(RCC_PRESCALER_APB1, RCC_APB1_HCLK_DIV_1);
     rcc_set_prescaler(RCC_PRESCALER_APB2, RCC_APB2_HCLK_DIV_1);

@@ -25,7 +25,7 @@ extern uint8_t _binary___binary_data_bignumbers_data_size;
 #define from565_b(x) (((x) & 0x1f) * 255 / 31)
 
 uint16_t get_bigpixel(char c,int c_x,int c_y) {
-  
+
   int ypos = (c/(128/16)) * 32;
   int xpos = (c%(128/16)) * 16;
 //  ypos+=1;
@@ -36,10 +36,10 @@ uint16_t get_bigpixel(char c,int c_x,int c_y) {
   int bit_in_byte   = 7-(bitposition%8);
 
   uint8_t byte = ((uint8_t *) &_binary___binary_data_bignumbers_data_start)[byte_position];
-  
+
   uint8_t value=0;
   if((byte & (1 << bit_in_byte)) > 0) value += 2;
-  
+
   bit_in_byte--;
   if((byte & (1 << bit_in_byte)) > 0) value += 1;
 
@@ -52,7 +52,7 @@ uint16_t get_bigpixel(char c,int c_x,int c_y) {
 }
 
 uint16_t get_pixel(char c,int c_x,int c_y) {
-  
+
   int ypos = (c/(128/8)) * 16;
   int xpos = (c%(128/8)) * 8;
   ypos+=1;
@@ -63,10 +63,10 @@ uint16_t get_pixel(char c,int c_x,int c_y) {
   int bit_in_byte   = 7-(bitposition%8);
 
   uint8_t byte = ((uint8_t *) &_binary___binary_data_font_data_start)[byte_position];
-  
+
   uint8_t value=0;
   if((byte & (1 << bit_in_byte)) > 0) value += 2;
-  
+
   bit_in_byte--;
   if((byte & (1 << bit_in_byte)) > 0) value += 1;
 
@@ -79,7 +79,7 @@ uint16_t get_pixel(char c,int c_x,int c_y) {
 }
 
 uint16_t get_tinypixel(char c,int c_x,int c_y) {
-  
+
   int ypos = (c/(120/5)) * 5;
   int xpos = (c%(120/5)) * 5;
 
@@ -88,10 +88,10 @@ uint16_t get_tinypixel(char c,int c_x,int c_y) {
   int byte_position = bitposition/8;
   int bit_in_byte   = 7-(bitposition%8);//was8-
   uint8_t byte = ((uint8_t *) &_binary___binary_data_tinyfont_data_start)[byte_position];
-  
+
   uint8_t value=0;
   if((byte & (1 << bit_in_byte)) > 0) value = 1;
-  
+
   if(value == 0) {value = 0;   }
   if(value == 1) {value = 255; }
 
@@ -107,7 +107,7 @@ void draw_character(uint32_t x,uint32_t y,char c,uint16_t background) {
     for(size_t c_x=0;c_x<8;c_x++) {
       int32_t px = get_pixel(c-32,c_x,c_y);
       int32_t value;
- 
+
       if((background != 0) || (background != 65535)) {
 				if(px == 65535) {
 					value = background;
@@ -122,9 +122,9 @@ void draw_character(uint32_t x,uint32_t y,char c,uint16_t background) {
 				}
         if(value < 0) value=0;
       }
-      
-      if(background == 65535) value = background ^ get_pixel(c-32,c_x,c_y); 
-      if(background ==     0) value = get_pixel(c-32,c_x,c_y); 
+
+      if(background == 65535) value = background ^ get_pixel(c-32,c_x,c_y);
+      if(background ==     0) value = get_pixel(c-32,c_x,c_y);
 
       character_data[(c_y*8)+c_x] = value;
     }
@@ -161,11 +161,11 @@ void draw_bigcharacter(int x,int y,char c,uint16_t background) {
         int b = from565_b(px);
         value = to565(r/background,g/background,b/background);
       }
-      
+
       if(value < 0) value=0;
 
-      if(background == 65535) value = background ^ get_bigpixel(c,c_x,c_y); 
-      if(background ==     0) value = get_bigpixel(c,c_x,c_y); 
+      if(background == 65535) value = background ^ get_bigpixel(c,c_x,c_y);
+      if(background ==     0) value = get_bigpixel(c,c_x,c_y);
 
       character_data[(c_y*16)+c_x] = value;
     }
@@ -188,18 +188,18 @@ void draw_tinycharacter(int x,int y,char c,uint16_t background) {
       if((background != 0) && (background != 65535)) {
         if(px == 65535) {
           value = background;
-        } 
+        }
       } else {
         int r = from565_r(px);
         int g = from565_g(px);
         int b = from565_b(px);
         value = to565(r/background,g/background,b/background);
       }
-      
+
       if(value < 0) value=0;
 
-      if(background == 65535) value = background ^ get_tinypixel(c-32,c_x,c_y); 
-      if(background ==     0) value = get_tinypixel(c-32,c_x,c_y); 
+      if(background == 65535) value = background ^ get_tinypixel(c-32,c_x,c_y);
+      if(background ==     0) value = get_tinypixel(c-32,c_x,c_y);
 
       character_data[(c_y*5)+c_x] = value;
     }

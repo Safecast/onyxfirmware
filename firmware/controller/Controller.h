@@ -26,7 +26,7 @@ public:
   void event_japanese(const char *event,const char *value);
   void event_english(const char *event,const char *value);
   void event_cpm_cps_auto(const char *event,const char *value);
-  void event_geiger_beep(const char *event,const char *value);  
+  void event_geiger_beep(const char *event,const char *value);
   void event_usv(const char *event,const char *value);
   void event_rem(const char *event,const char *value);
   void event_clear_log(const char *event,const char *value);

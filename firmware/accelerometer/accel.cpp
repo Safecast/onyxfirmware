@@ -92,11 +92,11 @@ uint8 accel_read_state(int16 *x, int16 *y, int16 *z) {
       *z = (values[5]<<2) | (values[4]);
 
   accel_sleep();
- 
+
   return 0;
 }
 
-int accel_init(void) { 
+int accel_init(void) {
   return 0;
 }
 

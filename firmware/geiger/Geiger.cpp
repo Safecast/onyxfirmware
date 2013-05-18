@@ -56,7 +56,7 @@ void static geiger_rising(void) {
   total_count++;
 
   gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,1);
-  
+
   if(mic_output) {
    // dac_init(DAC,DAC_CH2);
     dac_write_channel(DAC,2,20);
@@ -102,7 +102,7 @@ void Geiger::initialise() {
     last_windows[n] = 0;
   }
   last_windows_position=0;
-  
+
   for(uint32_t n=0;n<WINDOWS_STORED;n++) {
     cpm_last_windows[n] = 0;
   }
@@ -122,7 +122,7 @@ void Geiger::initialise() {
   if(bit) geiger_rising();
   exti_attach_interrupt((afio_exti_num)PIN_MAP[GEIGER_PULSE_GPIO].gpio_bit,
   gpio_exti_port(PIN_MAP[GEIGER_PULSE_GPIO].gpio_device),geiger_rising,EXTI_RISING);
-  
+
   // flashing/buzz timer.
   gpio_set_mode(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,GPIO_OUTPUT_PP);
 
@@ -167,7 +167,7 @@ void Geiger::pulse_timer_init() {
   timer_pause(TIMER3);
   // was 10000
   timer_set_prescaler(TIMER3,0);
-  
+
   uint32_t r=0;
   if(m_pulsewidth == 0) { r = MAX_RELOAD/2048; } else
   if(m_pulsewidth == 1) { r = MAX_RELOAD/1024; } else
@@ -206,7 +206,7 @@ uint32_t max(uint32_t a,uint32_t b) {
 }
 
 float Geiger::get_cpm() {
-  
+
   // If there are no samples, return 0
   if(m_samples_collected == 0) {
     m_cpm_valid = false;
@@ -225,14 +225,14 @@ float Geiger::get_cpm() {
 
     c_position--;
   }
-  
+
   // cpm for 5 seconds prior to above
   int32_t old5sum=0;
   c_position = last_windows_position-1-10;
   for(uint32_t n=0;n<10;n++) {
     if(c_position < 0) c_position = WINDOWS_STORED+c_position;
     old5sum += last_windows[c_position];
- 
+
     c_position--;
   }
 
@@ -266,9 +266,9 @@ float Geiger::get_cpm() {
 
   int32_t samples_used=0;
   for(uint32_t n=0;(n<max_averaging_period) && (n<m_samples_collected);n++) {
-   
+
     sum += last_windows[c_position];
- 
+
     c_position--;
     if(c_position < 0) c_position = WINDOWS_STORED-1;
     samples_used++;
@@ -282,8 +282,8 @@ float Geiger::get_cpm() {
     return cpm;
   }
   m_cpm_valid = false;
- 
-  // returns an estimation before enough data has been collected. 
+
+  // returns an estimation before enough data has been collected.
   return (sum/((float)m_samples_collected))*((float)WINDOWS_PER_MIN);
 }
 
@@ -296,21 +296,21 @@ float Geiger::get_cpm30() {
   int32_t c_position = last_windows_position-1;
   if(c_position < 0) c_position = WINDOWS_PER_MIN-1;
   for(uint32_t n=0;n<windows_in_30s;n++) {
-    
+
     sum += last_windows[c_position];
- 
+
     c_position--;
     if(c_position < 0) c_position = WINDOWS_PER_MIN-1;
   }
   if(m_samples_collected > windows_in_30s) return (sum/((float)windows_in_30s))*((float)WINDOWS_PER_MIN);
- 
-  // returns an estimation before enough data has been collected. 
+
+  // returns an estimation before enough data has been collected.
   return (sum/((float)m_samples_collected))*((float)WINDOWS_PER_MIN);
 }
 
 float Geiger::get_cpm_deadtime_compensated() {
   float cpm = get_cpm();
- 
+
   // CPM correction from Medcom
   return cpm/(1-((cpm*1.8833e-6)));
 
@@ -383,7 +383,7 @@ void Geiger::set_calibration(float c) {
   char sfloat[50];
   sprintf(sfloat,"%f",c);
   flashstorage_keyval_set("CALIBRATIONSCALING",sfloat);
-  
+
   calibration_scaling = c;
 }
 
@@ -413,13 +413,13 @@ float Geiger::get_becquerel() {
 
   return get_cpm_deadtime_compensated()*m_becquerel_eff;
 }
-  
+
 void  Geiger::set_becquerel_eff(float c) {
   // save to flash
   char sfloat[50];
   sprintf(sfloat,"%f",c);
   flashstorage_keyval_set("BECQEFF",sfloat);
-  
+
   m_becquerel_eff = c;
 }
 

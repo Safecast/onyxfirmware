@@ -49,8 +49,8 @@ void buzzer_initialise() {
 
 void buzzer_blocking_buzz(float time) {
   // buzz
-  uint32_t frequency = 4000; 
-  uint32_t t = (time*1000000)/frequency; 
+  uint32_t frequency = 4000;
+  uint32_t t = (time*1000000)/frequency;
   for(uint32_t n=0;n<t;n++) {
     gpio_toggle_bit(PIN_MAP[BUZZER_PWM].gpio_device, PIN_MAP[BUZZER_PWM].gpio_bit);
     delay_us(frequency);

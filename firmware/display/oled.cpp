@@ -203,7 +203,7 @@ static void Set_VCOMH(unsigned char d) {
 
 //=========================================================
 // Clear OLED GDRAM
-//========================================================= 
+//=========================================================
 void CLS(uint16 color) {
   Home();
   write_c(0x5C);    // Enable MCU to Read from RAM
@@ -380,7 +380,7 @@ void oled_init(void) {
                                     //     65,536 Colors Mode (0x74)
                                     //     * 262,144 Colors Mode (0xB4)
     Set_GPIO(0x00);                 // Disable GPIO Pins Input
-    
+
     Set_Function_Selection(0x01);   // Disable Internal VDD Regulator
                                     // Select 8-bit Parallel Interface
     Set_VSL(0x01);                  // Enable External VSL
@@ -404,7 +404,7 @@ void oled_init(void) {
     Set_Display_Mode(0x02);         // Normal Display Mode (0x00/0x01/0x02/0x03)
 
     CLS(0);                          // Clear Screen
- 
+
     delay_us(1000);
 
     Set_Display_On();
@@ -479,7 +479,7 @@ void oled_reinit(uint8_t clock,uint8_t multiplex,uint8_t functionselect,uint8_t 
                                     //     65,536 Colors Mode (0x74)
                                     //     * 262,144 Colors Mode (0xB4)
     Set_GPIO(0x00);                 // Disable GPIO Pins Input
-    
+
     Set_Function_Selection(functionselect);   // Disable Internal VDD Regulator
                                     // Select 8-bit Parallel Interface
     Set_VSL(vsl);                  // Enable External VSL
@@ -487,12 +487,12 @@ void oled_reinit(uint8_t clock,uint8_t multiplex,uint8_t functionselect,uint8_t 
     Set_Phase_Length(0x32);         // Set Phase 1 as 5 Clocks & Phase 2 as 3 Clocks
     Set_Display_Enhancement(0xA4);  // Enhance Display Performance
     Set_Precharge_Voltage(prechargevolt);    // Set Pre-Charge Voltage Level as 0.50*VCC, 1c in 4D
-    Set_Precharge_Period(prechargeperiod);     // Set Second Pre-Charge Period as 1 Clock,  
+    Set_Precharge_Period(prechargeperiod);     // Set Second Pre-Charge Period as 1 Clock,
     Set_VCOMH(vcomh);                // Set Common Pins Deselect Voltage Level as 0.82*VCC. 1F in 4D
     Set_Display_Mode(0x02);         // Normal Display Mode (0x00/0x01/0x02/0x03)
 
     CLS(0);                          // Clear Screen
- 
+
     delay_us(1000);
 
     Set_Display_On();

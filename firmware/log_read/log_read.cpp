@@ -22,9 +22,9 @@ void log_read_start() {
 // return 0 on failure.
 // return size of data written, data contains no linefeeds, and single trailing \n
 int log_read_block(char *buf) {
- 
+
   buf[0]=0;
- 
+
   char *buf_start = buf;
 
   log_data_t *flash_log = (log_data_t *) flashstorage_log_get();
@@ -62,7 +62,7 @@ int log_read_block(char *buf) {
 
   if(log_position<logsize) {
     int64_t current_time = flash_log[log_position].time;
-    
+
 
     struct tm *time;
     time_t current_time_u32 = current_time;

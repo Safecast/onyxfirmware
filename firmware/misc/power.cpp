@@ -31,7 +31,7 @@
 #define PWRSTATE_OFF   4   // power is simply off, or cold reset
 #define PWRSTATE_ERROR 5   // an error conditions state
 
-// maximum range for battery, where the value is "full" and 
+// maximum range for battery, where the value is "full" and
 // 0 means the system should shut down
 #define BATT_RANGE 16
 
@@ -72,7 +72,7 @@ int power_initialise(void) {
   // initially, don't measure battery voltage
   gpio_set_mode (PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,GPIO_OUTPUT_PP);
   gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
-    
+
 
   // initially, turn off the hall effect sensor
   gpio_set_mode (PIN_MAP[MAGPOWER_GPIO].gpio_device,PIN_MAP[MAGPOWER_GPIO].gpio_bit,GPIO_OUTPUT_PP);
@@ -82,7 +82,7 @@ int power_initialise(void) {
   // until we hook it up to a proper DAC output
   gpio_set_mode (PIN_MAP[LIMIT_VREF_DAC].gpio_device,PIN_MAP[LIMIT_VREF_DAC].gpio_bit,GPIO_OUTPUT_PP);
   gpio_write_bit(PIN_MAP[LIMIT_VREF_DAC].gpio_device,PIN_MAP[LIMIT_VREF_DAC].gpio_bit,0);
-    
+
   // initially, charge timer is enabled (active low)
   gpio_set_mode (PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_device,PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_bit,GPIO_OUTPUT_PP);
   gpio_write_bit(PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_device,PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_bit,0);
@@ -112,14 +112,14 @@ uint16 power_battery_level(void) {
   vrefVal = (uint32) adc_read(ADC1, 17);
 
   cr2 &= ~ADC_CR2_TSEREFE; // power down reference to save battery power
-  ADC1->regs->CR2 = cr2; 
+  ADC1->regs->CR2 = cr2;
 
   float batratio = (float)battVal/(float)vrefVal;
 
   float bat_min = 1.36; //3.3;
   float bat_max = 1.72; //4.2;
 
-  int16 bat_percent = ((batratio-bat_min)/(bat_max-bat_min))*100;   
+  int16 bat_percent = ((batratio-bat_min)/(bat_max-bat_min))*100;
 
   // incase our min and max are set incorrectly.
   if(bat_percent < 0  ) bat_percent = 0;
@@ -141,7 +141,7 @@ int power_is_battery_low(void) {
   // this is to reduce power consumption
   gpio_init_all();
   afio_init();
-            
+
   // init ADC
   rcc_set_prescaler(RCC_PRESCALER_ADC, RCC_ADCPRE_PCLK_DIV_6);
   adc_init(ADC1);
@@ -161,7 +161,7 @@ int power_is_battery_low(void) {
   gpio_set_mode(PIN_MAP[BATT_MEASURE_ADC].gpio_device,PIN_MAP[BATT_MEASURE_ADC].gpio_bit,GPIO_INPUT_ANALOG);
   gpio_set_mode(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,GPIO_OUTPUT_PP);
   gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
- 
+
   // normally 0, 5 for testing
   if( power_battery_level() <= 1 ) return 1;
                               else return 0;
@@ -194,7 +194,7 @@ void power_standby(void) {
 
   //RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
     // RCC->AHBENR |= RCC_AHBPeriph;
-  
+
   uint32_t val = RCC_APB1Periph_PWR | RCC_APB1Periph_BKP;
   volatile uint32_t *rcc_ahbenr = (uint32_t *) 0x40021000;
   *rcc_ahbenr |= val;

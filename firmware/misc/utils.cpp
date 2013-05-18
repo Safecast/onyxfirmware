@@ -2,7 +2,7 @@
 #include <stdint.h>
 
 uint32_t str_to_uint(const char *text) {
-  
+
   uint8_t digits[10];
 
   uint32_t size=0;
@@ -38,8 +38,8 @@ void float_to_char(float number,char *text,int32_t width) {
   }
   text[position]='.';
   position++;
-  
-  current=100; 
+
+  current=100;
   number=original_number;
   uint32_t fractional_part = (number*(float)1000)- ((float)(((uint32_t)number)*1000)) ;
   for(;position<12;position++) {
@@ -58,7 +58,7 @@ void float_to_char(float number,char *text,int32_t width) {
   }
 
   if(text[last_leading_zero+1] == '.') {text[last_leading_zero]='0'; last_leading_zero--;}
-  
+
   if(last_leading_zero != -1) {
     int m=0;
     for(int32_t n=last_leading_zero+1;n<=position;n++) {

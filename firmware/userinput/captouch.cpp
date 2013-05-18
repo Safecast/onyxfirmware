@@ -19,7 +19,7 @@
 GUI *system_gui;
 static struct i2c_dev *i2c;
 static uint16 touchList =  1 << 8 | 1 << 6 | 1 << 4 | 1 << 3 | 1 << 2 | 1 << 0;
-  
+
 int last_key_state=0;
 bool captouch_disable_messages=false;
 
@@ -118,7 +118,7 @@ char *cap_diagdata(int e) {
 
   sprintf(c,"%"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32"",elecv,elec_base,bs,is_pressed);
 
-  return c; 
+  return c;
 }
 
 bool cap_check() {
@@ -270,14 +270,14 @@ void cap_init(void) {
     // Section A and B - R (rise) F (fall) T (touch)
     mpr121Write(MHD_R, cap_mhd_r); // (1 to 63)
     mpr121Write(NHD_R, cap_nhd_r); // (1 to 63)
-    mpr121Write(NCL_R, cap_ncl_r); // (0 to 255) 
+    mpr121Write(NCL_R, cap_ncl_r); // (0 to 255)
     mpr121Write(FDL_R, cap_fdl_r); // (0 to 255)
 
     mpr121Write(MHD_F, cap_mhd_f); // (1 to 63) largest value to pass through filer
     mpr121Write(NHD_F, cap_nhd_f); // (1 to 63) maximum change allowed
     mpr121Write(NCL_F, cap_ncl_f); // (0 to 255) number of samples required to determine non-noise
     mpr121Write(FDL_F, cap_fdl_f); // (0 to 255) rate of filter operation, larger = slower.
-    
+
     // Section D
     // Set the Filter Configuration
     // Set ESI2

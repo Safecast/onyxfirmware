@@ -14,7 +14,7 @@ void realtime_set_unixtime(uint32_t time_in) {
 }
 
 void realtime_setdate(uint8_t hours,uint8_t min,uint8_t sec,uint8_t day,uint8_t month,uint16_t year) {
-  
+
   struct tm time_tm;
   time_tm.tm_hour = hours;
   time_tm.tm_min  = min;
@@ -56,7 +56,7 @@ void realtime_getdate_local(uint8_t &hours,uint8_t &min,uint8_t &sec,uint8_t &da
 
   struct tm *time;
   time = gmtime(&current_time);
- 
+
   sec   = time->tm_sec;
   min   = time->tm_min;
   hours = time->tm_hour;
@@ -82,7 +82,7 @@ void realtime_getdate(uint8_t &hours,uint8_t &min,uint8_t &sec,uint8_t &day,uint
 
   struct tm *time;
   time = gmtime(&current_time);
- 
+
   sec   = time->tm_sec;
   min   = time->tm_min;
   hours = time->tm_hour;

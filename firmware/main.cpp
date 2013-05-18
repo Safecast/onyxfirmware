@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "rtc.h"
-  
+
 extern uint8_t _binary___binary_data_private_key_data_start;
 extern uint8_t _binary___binary_data_private_key_data_size;
 
@@ -95,7 +95,7 @@ int main(void) {
     c.set_gui(m_gui);
     UserInput  u(m_gui);
     u.initialise();
-  
+
     int utcoffsetmins_n = 0;
     const char *utcoffsetmins = flashstorage_keyval_get("UTCOFFSETMINS");
     if(utcoffsetmins != 0) {
@@ -116,7 +116,7 @@ int main(void) {
       if(strcmp(language,"Japanese") == 0) { m_gui.set_language(LANGUAGE_JAPANESE); tick_item("Japanese" ,true); }
     } else {
       m_gui.set_language(LANGUAGE_ENGLISH);
-      tick_item("English",true); 
+      tick_item("English",true);
     }
 
 
@@ -139,7 +139,7 @@ int main(void) {
         //bool c = cap_check();
         //if(c == false) {
         //  display_draw_text(0,90,"CAPFAIL",0);
-        //  cap_init(); 
+        //  cap_init();
         //}
 
         // Screen lock code

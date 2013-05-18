@@ -120,7 +120,7 @@ void serial_displayparams_run(char *line) {
 
   char outline[1024];
   sprintf(outline,"Received values: %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32", calling reinit\r\n",clock,multiplex,functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh); //"
-  serial_write_string(outline); 
+  serial_write_string(outline);
 
   oled_reinit(clock,multiplex,functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh);
   command_stack_pop();
@@ -199,7 +199,7 @@ void cmd_magread(char *line) {
 
   // wait...
   delay_us(1000);
-  
+
   // Read magsense
   int magsense = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
 
@@ -240,7 +240,7 @@ void cmd_writedac(char *line) {
   int8_t idelta=1;
   uint8_t i=0;
   for(int n=0;n<1000000;n++) {
-    
+
     if(i == 254) idelta = -1;
     if(i == 0  ) idelta =  1;
 
@@ -306,7 +306,7 @@ void cmd_setmiciphone(char *line) {
 void cmd_testsign(char *line) {
   signing_test();
 }
-    
+
 void cmd_pubkey(char *line) {
   signing_printPubKey();
   serial_write_string("\r\n");
@@ -394,7 +394,7 @@ void serial_setkeyval_run(char *line) {
       eqpos = n;
     }
   }
-  
+
   if(eqpos==-1) return;
   if(eqpos==0) {		// = on a line ends the command
     flashstorage_keyval_update();
@@ -411,7 +411,7 @@ void serial_setkeyval_run(char *line) {
     val[n-eqpos]=line[n];
     val[n-eqpos+1]=0;
   }
-  
+
   flashstorage_keyval_set(key,val);
 }
 
@@ -428,7 +428,7 @@ void serial_setrtc_run(char *line) {
 
   uint32_t unixtime = 0;
   sscanf(line,"%"PRIu32"\r\n",&unixtime);
- 
+
   realtime_set_unixtime(unixtime);
   command_stack_pop();
 }
@@ -459,13 +459,13 @@ void cmd_captouchparams_run(char *line) {
              ,&mhd_r,&nhd_r,&ncl_r,&fdl_r
              ,&mhd_f,&nhd_f,&ncl_f,&fdl_f
              ,&dbr,&touchthres,&relthres);
-  
+
   char outline[1024];
   sprintf(outline,"Read values: %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32"\n"
              ,mhd_r,nhd_r,ncl_r,fdl_r
              ,mhd_f,nhd_f,ncl_f,fdl_f
              ,dbr,touchthres,relthres);
-  serial_write_string(outline); 
+  serial_write_string(outline);
 
   cap_set_mhd_r(mhd_r);
   cap_set_nhd_r(nhd_r);
@@ -572,7 +572,7 @@ void cmd_main_menu(char *line) {
       (*command_funcs[n])(line);
     }
   }
- 
+
   if (command_stack_size == 1)
     serial_write_string("\r\n>");
 }
@@ -581,7 +581,7 @@ void serial_initialise() {
   const stm32_pin_info *txi = &PIN_MAP[TX1];
   const stm32_pin_info *rxi = &PIN_MAP[RX1];
 
-  gpio_set_mode(txi->gpio_device, txi->gpio_bit, GPIO_AF_OUTPUT_OD); 
+  gpio_set_mode(txi->gpio_device, txi->gpio_bit, GPIO_AF_OUTPUT_OD);
   gpio_set_mode(rxi->gpio_device, rxi->gpio_bit, GPIO_INPUT_FLOATING);
 
   if (txi->timer_device != NULL) {
@@ -594,7 +594,7 @@ void serial_initialise() {
   command_stack_size = 1;
 
   usart_init(USART1);
-  usart_set_baud_rate(USART1, STM32_PCLK2, ERROR_USART_BAUD); 
+  usart_set_baud_rate(USART1, STM32_PCLK2, ERROR_USART_BAUD);
   usart_enable(USART1);
 }
 
@@ -691,7 +691,7 @@ void serial_eventloop() {
   if(read_size > 1024) return; // something went wrong
 
   for(uint32_t n=0;n<read_size;n++) {
-    
+
     // echo
     usart_putc(USART1, buf[n]);
 
