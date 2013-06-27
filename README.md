@@ -15,10 +15,6 @@ A simple tool for updating to the latest firmware release and uploading logs for
 
 http://41j.com/OnyxLoader.zip
 
-Some users may have issues with previous FTDI drivers ( **Arduino** **users** **this** **means** **you** ), a version which unloads existing FTDI drivers is available here:
-
-http://41j.com/OnyxLoaderA.zip
-
 Source code for these firmware loaders is available here: http://github.com/new299/onyxloader
 
 Windows
