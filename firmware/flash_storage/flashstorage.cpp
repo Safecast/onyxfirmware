@@ -251,13 +251,16 @@ void flashstorage_log_clear() {
 
   uint8_t *page_address = flash_data_area_aligned+flash_log_base;
 
-  // write new page data
-  flashstorage_unlock();
-  flashstorage_erasepage_rt(page_address);
-  flashstorage_lock();
-  flashstorage_unlock();
-  flashstorage_writepage_rt(pagedata,page_address);
-  flashstorage_lock();
+  for(;page_address < (flash_data_area_aligned+flash_data_area_aligned_size);) {
+    // write new page data
+    flashstorage_unlock();
+    flashstorage_erasepage_rt(page_address);
+    flashstorage_lock();
+    flashstorage_unlock();
+    flashstorage_writepage_rt(pagedata,page_address);
+    flashstorage_lock();
+    page_address += pagesize;
+  }
 }
 
 void flashstorage_log_size_set(uint32_t new_size) {
