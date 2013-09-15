@@ -23,11 +23,11 @@ void buzzer_handler(void) {
 
 void buzzer_nonblocking_buzz(float time) {
 
-  buzz_time = 4000*time*2;
+  buzz_time = 4100*time*2;
 
   // Configure timer2 to fire every N microseconds
   timer_pause(TIMER2);
-  timer_set_prescaler(TIMER2,2);
+  timer_set_prescaler(TIMER2,1);
   timer_set_reload(TIMER2,(125*CYCLES_PER_MICROSECOND)/2);
 
   // setup interrupt on channel 2
@@ -49,11 +49,11 @@ void buzzer_initialise() {
 
 void buzzer_blocking_buzz(float time) {
   // buzz
-  uint32_t frequency = 4000;
-  uint32_t t = (time*1000000)/frequency;
+  uint32_t frequency = 4100;
+  uint32_t t = 4100*time;//((time*1000000)/frequency)*2;
   for(uint32_t n=0;n<t;n++) {
     gpio_toggle_bit(PIN_MAP[BUZZER_PWM].gpio_device, PIN_MAP[BUZZER_PWM].gpio_bit);
-    delay_us(frequency);
+    delay_us(frequency/2);
   }
   gpio_write_bit(PIN_MAP[BUZZER_PWM].gpio_device,PIN_MAP[BUZZER_PWM].gpio_bit,0);
 }

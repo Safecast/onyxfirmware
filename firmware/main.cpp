@@ -69,7 +69,7 @@ int main(void) {
       c.m_sleeping = true;
     } else {
       c.m_sleeping = false;
-      buzzer_nonblocking_buzz(0.05);
+      buzzer_nonblocking_buzz(0.1);
       display_initialise();
       const char *devicetag = flashstorage_keyval_get("DEVICETAG");
       char revtext[10];
