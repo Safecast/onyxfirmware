@@ -31,7 +31,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 2 - Advanced menu
 {
-  6,
+  5,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"     ,255 },
     { ITEM_TYPE_MENU       , 4, 1, "Graphs"         ,1   },
@@ -39,7 +39,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU       ,21, 3, "Becquerel"      ,31  },
 //    { ITEM_TYPE_MENU_ACTION, 0, 4, "QR Transfer"    ,7   },
     { ITEM_TYPE_MENU_ACTION, 0, 4, "QR Tweet"       ,32  },
-    { ITEM_TYPE_MENU_ACTION, 0, 5, "Audio Xfer"     ,255 }
+//    { ITEM_TYPE_MENU_ACTION, 0, 5, "Audio Xfer"     ,255 }
 //    { ITEM_TYPE_MENU_ACTION, 0, 7, "Audio Xfer Full",255 }
   }
   ,7
