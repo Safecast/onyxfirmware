@@ -84,6 +84,11 @@ extern const uint8 boardUsedPins[];
 #define LED_PWR_ENA_GPIO        16 // PC1 // handled in OLED platform_init
 #define WAKEUP_GPIO              2 // PA0
 
+#define LCD_DC_GPIO  31
+#define LCD_CS_GPIO  33
+#define LCD_PWR_GPIO 16
+#define LCD_RES_GPIO 17
+
 
 /* Number of USARTs/UARTs whose pins are broken out to headers */
 #define BOARD_NR_USARTS         2
@@ -96,6 +101,8 @@ extern const uint8 boardUsedPins[];
 
 /* Number of SPI ports */
 #define BOARD_NR_SPI            0
+
+#define LCD_SPI      SPI2
 
 /* Default SPI pin numbers (not considering AFIO remap) */
 #define BOARD_SPI1_NSS_PIN      10
