@@ -12,17 +12,6 @@
 
 #include <stdio.h>
 
-#define MANUAL_WAKEUP_GPIO 18 // PC3
-#define CHG_STAT2_GPIO     44 // PC11
-#define CHG_STAT1_GPIO     26 // PC10
-#define MAGPOWER_GPIO      41 // PA15
-#define MEASURE_FET_GPIO   45 // PC12
-#define BATT_MEASURE_ADC   28 // PB1
-#define MAGSENSE_GPIO      29 // PB10
-#define LIMIT_VREF_DAC     10 // PA4 -- should be DAC eventually, but GPIO initially to tied own
-#define CHG_TIMEREN_N_GPIO 37 // PC8
-#define LED_PWR_ENA_GPIO   16 // PC1 // handled in OLED platform_init
-#define WAKEUP_GPIO        2
 
 #define PWRSTATE_DOWN  0   // everything off, no logging; entered when battery is low
 #define PWRSTATE_LOG   1   // system is on, listening to geiger and recording; but no UI
@@ -41,15 +30,31 @@
 static uint8 powerState = PWRSTATE_BOOT;
 static uint8 lastPowerState = PWRSTATE_OFF;
 
-// return true if the current boot was a wakeup from the WKUP pin.
+/**
+ *  return true if the current boot was a wakeup from the WKUP pin.
+ *
+ *  The WKUP Pin behaves as follows:
+ * - If the "Wake up" switch is in up position (standby) & connected to GND:
+ *    - If Geiger_Pulse is low, then WKUP is low
+ *    - If Geiger_Pulse is high, then WKUP is high
+ * - If the "Wake up switch" is in the low position (on) & connected to VMCU
+ *     - WKUP is always high
+ */
 int power_get_wakeup_source() {
 
-  gpio_set_mode (GPIOA,0, GPIO_INPUT_PD);
-  int wkup = gpio_read_bit(GPIOA,0);
+//  gpio_set_mode (GPIOA,0, GPIO_INPUT_PD);
+  gpio_set_mode (PIN_MAP[WAKEUP_GPIO].gpio_device,PIN_MAP[WAKEUP_GPIO].gpio_bit,GPIO_INPUT_PD);
 
-  volatile uint32_t *pwr_csr = (uint32_t *) 0x40007004;
+//  int wkup = gpio_read_bit(GPIOA,0);
+  int wkup = gpio_read_bit(PIN_MAP[WAKEUP_GPIO].gpio_device, PIN_MAP[WAKEUP_GPIO].gpio_bit);
+
+  // TODO: stop using hardcoded values and use global
+  // definitions. Debug this...
+  //
+  //volatile uint32_t *pwr_csr = (uint32_t *) 0x40007004;
   bool wokeup = false;
-  if(*pwr_csr & 1) wokeup = true;
+  if (PWR_BASE->CSR & PWR_CSR_SBF) wokeup = true;
+//  if(*pwr_csr & 1) wokeup = true;
 
   if(!wokeup           ) return 0;
   if( wokeup && (!wkup)) return 1;

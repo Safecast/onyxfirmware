@@ -42,8 +42,53 @@ extern const uint8 boardUsedPins[];
 #define CYCLES_PER_MICROSECOND  36
 #define SYSTICK_RELOAD_VAL      35999 /* takes a cycle to reload */
 
-#define BOARD_BUTTON_PIN        38
-#define BOARD_LED_PIN           25  // I think this is right?
+/**
+ *  Use of timers in our firmware:
+ *
+ *  TIMER3: geiger output pulse
+ *  TIMER4: Geiger
+ *  TIMER2: Buzzer
+ *
+ */
+
+
+
+
+////////////////////
+// How our peripherals are connected to the MCU: this is the index
+// of the pin definition in  PIN_MAP (defined in safecast_config.cpp)
+//
+// We need to use those macros rather than direct indexes everywhere in
+// the code.
+
+////////////////////
+
+#define BOARD_LED_PIN           25  // PD2
+#define MIC_IPHONE              35  // PC6
+#define MIC_REVERSE             36  // PC7
+#define HP_COMBINED             12  // PA6
+#define GEIGER_PULSE_GPIO       42 // PB3
+#define GEIGER_ON_GPIO           4  // PB5
+
+#define BUZZER_PWM              24 // PB9
+
+#define MANUAL_WAKEUP_GPIO      18 // PC3
+#define CHG_STAT2_GPIO          44 // PC11
+#define CHG_STAT1_GPIO          26 // PC10
+#define MAGPOWER_GPIO           41 // PA15
+#define MEASURE_FET_GPIO        45 // PC12
+#define BATT_MEASURE_ADC        28 // PB1
+#define MAGSENSE_GPIO           29 // PB10
+#define LIMIT_VREF_DAC          10 // PA4 -- should be DAC eventually, but GPIO initially to tied own
+#define CHG_TIMEREN_N_GPIO      37 // PC8
+#define LED_PWR_ENA_GPIO        16 // PC1 // handled in OLED platform_init
+#define WAKEUP_GPIO              2 // PA0
+
+#define LCD_DC_GPIO  31
+#define LCD_CS_GPIO  33
+#define LCD_PWR_GPIO 16
+#define LCD_RES_GPIO 17
+
 
 /* Number of USARTs/UARTs whose pins are broken out to headers */
 #define BOARD_NR_USARTS         2
@@ -56,6 +101,8 @@ extern const uint8 boardUsedPins[];
 
 /* Number of SPI ports */
 #define BOARD_NR_SPI            0
+
+#define LCD_SPI      SPI2
 
 /* Default SPI pin numbers (not considering AFIO remap) */
 #define BOARD_SPI1_NSS_PIN      10

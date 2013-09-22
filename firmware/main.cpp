@@ -36,6 +36,9 @@ premain() {
   delay_us(100000);
 }
 
+/**
+ * This is where the application starts.
+ */
 int main(void) {
 
     Geiger g;
@@ -95,7 +98,7 @@ int main(void) {
 
     if(!c.m_sleeping) {
       bool full = flashstorage_log_isfull();
-      if((full == true) && (c.m_sleeping == false)) {
+      if(full == true) {
         m_gui.show_dialog("Flash Log","is full",0,0,0);
       }
     }
@@ -127,7 +130,19 @@ int main(void) {
 
     m_gui.jump_to_screen(1);
     m_gui.push_stack(0,1);
+
+    /**
+     * Start of main event loop here, we will not leave this
+     * loop until battery runs our or user changes the standby switch
+     * position.
+     *
+     * c is our controller
+     * g is th Geiger object
+     * m_gui is the GUI
+     *
+     */
     for(;;) {
+
       if(power_battery_level() < 1) {
         power_standby();
       }
@@ -168,6 +183,10 @@ int main(void) {
         power_wfi();
       }
     }
+
+    /**
+     *   End of main event loop
+     */
 
     // should never get here
     for(int n=0;n<60;n++) {

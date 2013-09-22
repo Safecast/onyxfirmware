@@ -78,16 +78,6 @@ void init(void) {
     setupTimers();
 }
 
-/* You could farm this out to the files in boards/ if e.g. it takes
- * too long to test on Maple Native (all those FSMC pins...). */
-bool boardUsesPin(uint8 pin) {
-    for (int i = 0; i < BOARD_NR_USED_PINS; i++) {
-        if (pin == boardUsedPins[i]) {
-            return true;
-        }
-    }
-    return false;
-}
 
 static void setupFlash(void) {
     flash_enable_prefetch();
