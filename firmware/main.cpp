@@ -39,28 +39,38 @@ premain() {
 int main(void) {
 
     Geiger g;
-    power_initialise();
-    if(power_battery_level() < 1) {
-      power_standby();
-    }
-
     serial_initialise();
     flashstorage_initialise();
     buzzer_initialise();
     realtime_initialise();
     g.initialise();
+    switch_initialise();
+    accel_init();
+
+    power_initialise();
+    Controller c;
+    GUI m_gui(c);
+    c.set_gui(m_gui);
+    UserInput  u(m_gui);
+    u.initialise();
+
+    if(power_battery_level() < 1) {
+      display_initialise();
+      cap_clear_press();
+      m_gui.show_dialog("Battery is low","Please charge",0,0,0);
+      
+      delay_us(10000);
+      for(;cap_last_release_any()==0;);
+
+      display_powerdown();
+ 
+      power_standby();
+    }
 
     uint8_t *private_key = ((uint8_t *) &_binary___binary_data_private_key_data_start);
     if(private_key[0] != 0) delay_us(1000);
 
     delay_us(10000);  // can be removed?
-
-    #ifndef DISABLE_ACCEL
-    accel_init();
-    #endif
-
-    switch_initialise();
-    Controller c;
 
     // if we woke up on an alarm, we're going to be sending the system back.
     #ifndef NEVERSLEEP
@@ -83,8 +93,6 @@ int main(void) {
       display_initialise();
     #endif
 
-
-    GUI m_gui(c);
     if(!c.m_sleeping) {
       bool full = flashstorage_log_isfull();
       if((full == true) && (c.m_sleeping == false)) {
@@ -92,9 +100,6 @@ int main(void) {
       }
     }
 
-    c.set_gui(m_gui);
-    UserInput  u(m_gui);
-    u.initialise();
 
     int utcoffsetmins_n = 0;
     const char *utcoffsetmins = flashstorage_keyval_get("UTCOFFSETMINS");
