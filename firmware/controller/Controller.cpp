@@ -729,7 +729,6 @@ void Controller::do_logging() {
     if(system_geiger->is_cpm30_valid()) {
 
       log_data_t data;
-      uint32_t current_counts;
       #ifndef DISABLE_ACCEL
       accel_read_state(&data.accel_x_end,&data.accel_y_end,&data.accel_z_end);
       #endif
@@ -737,12 +736,6 @@ void Controller::do_logging() {
 
       data.time  = rtc_get_time(RTC);
       data.cpm   = system_geiger->get_cpm30();
-
- //     current_counts = system_geiger->get_total_count();
- //     data.counts = current_counts - m_counts_stored;
- //     data.interval = data.time - m_interval_stored;
- //     m_counts_stored = current_counts;
- //     m_interval_stored = data.time;
 
       data.accel_x_start = m_accel_x_stored;
       data.accel_y_start = m_accel_y_stored;
