@@ -11,12 +11,6 @@
 #include <stdint.h>
 
 
-#define LCD_SPI      SPI2
-#define LCD_DC_GPIO  31
-#define LCD_CS_GPIO  33
-#define LCD_PWR_GPIO 16
-#define LCD_RES_GPIO 17
-
 #define BPP 2 /* 2 bytes per pixel */
 
 #define NOTE(x) Serial1.print(__FILE__); Serial1.print(":"); Serial1.print(__LINE__); Serial1.print(" "); Serial1.println(x);
@@ -206,7 +200,7 @@ static void Set_VCOMH(unsigned char d) {
 //=========================================================
 void CLS(uint16 color) {
   Home();
-  write_c(0x5C);    // Enable MCU to Read from RAM
+  write_c(SSD1351_CMD_WRITERAM);    // Enable MCU to Write to RAM
 
   uint8_t c[256];
   for(uint32_t i=0;i<256;i++) c[i] = color;
@@ -515,7 +509,7 @@ void oled_draw_rect(uint8 x, uint8 y, uint8 w, uint8 h, uint8 *data)
 {
     Set_Column_Address(x, x+w-1);
     Set_Row_Address(y, y+h-1);
-    write_c(0x5c);
+    write_c(SSD1351_CMD_WRITERAM);
     write_d_stream(data, w*h*BPP);
 }
 

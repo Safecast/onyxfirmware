@@ -5,7 +5,6 @@
 #include "safecast_config.h"
 #include "buzzer.h"
 
-#define BUZZER_PWM   24 // PB9
 #define BUZZ_RATE    250  // in microseconds; set to 4kHz = 250us
 #define MAX_RELOAD ((1 << 16) - 1)
 
