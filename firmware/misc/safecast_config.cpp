@@ -113,9 +113,5 @@ extern const uint8 boardADCPins[] __FLASH__ = {
     0, 1, 2, 3, 10, 11, 12, 15, 16, 17, 18, 19, 20, 27, 28
 };
 
-extern const uint8 boardUsedPins[] __FLASH__ = {
-    BOARD_LED_PIN, BOARD_BUTTON_PIN, BOARD_JTMS_SWDIO_PIN,
-    BOARD_JTCK_SWCLK_PIN, BOARD_JTDI_PIN, BOARD_JTDO_PIN, BOARD_NJTRST_PIN
-};
 
 #endif

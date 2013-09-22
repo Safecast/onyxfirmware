@@ -13,7 +13,6 @@
 #include <string.h>
 #include "buzzer.h"
 #include "captouch.h"
-#include "serialinterface.h"
 
 bool first_render=true;
 
@@ -26,7 +25,7 @@ void display_draw_equtriangle(uint8_t x,uint8_t y,uint8_t s,uint16_t color) {
   uint8_t start = x;
   uint8_t end   = x;
   for(uint8_t n=0;n<s;n++) {
- 
+
     for(uint8_t i=start;i<=end;i++) {
       display_draw_point(i,y,color);
     }
@@ -41,7 +40,7 @@ void display_draw_equtriangle_inv(uint8_t x,uint8_t y,uint8_t s,uint16_t color) 
   uint8_t start = x;
   uint8_t end   = x;
   for(uint8_t n=0;n<s;n++) {
- 
+
     for(uint8_t i=start;i<=end;i++) {
       display_draw_point(i,y,color);
     }
@@ -54,7 +53,7 @@ void display_draw_equtriangle_inv(uint8_t x,uint8_t y,uint8_t s,uint16_t color) 
 char     ticked_items[10][TEXT_LENGTH];
 uint32_t ticked_items_size=0;
 
-void tick_item(char *name,bool tick_val) {
+void tick_item(const char *name,bool tick_val) {
 
   if((ticked_items_size >= 10) && (tick_val == true)) return;
 
@@ -77,7 +76,7 @@ void tick_item(char *name,bool tick_val) {
   }
 }
 
-bool is_ticked(char *name) {
+bool is_ticked(const char *name) {
   for(uint32_t n=0;n<ticked_items_size;n++) {
     if(strcmp(name,ticked_items[n]) == 0) return true;
   }
@@ -86,10 +85,10 @@ bool is_ticked(char *name) {
 
 
 void render_item_menu(screen_item &item, bool selected) {
-  
+
   uint16_t highlight = FOREGROUND_COLOR;
   if(selected) highlight = BACKGROUND_COLOR;
-  
+
   // render tick
   bool ticked = is_ticked(item.text);
   if(ticked) {
@@ -157,14 +156,14 @@ void set_item_state_varnum(char *name,uint8_t value) {
   if(itemcount != 0) {
     if(value > itemcount) return;
   }
-  
+
   for(uint32_t n=0;n<varnum_size;n++) {
     if(strcmp(varnum_names[n],name) == 0) {
       varnum_values[n] = value;
       return;
     }
   }
-  
+
   if(varnum_size >= VARNUM_MAXSIZE) return;
   strcpy(varnum_names[varnum_size],name);
   varnum_values[varnum_size] = value;
@@ -181,7 +180,7 @@ void render_item_varnum(screen_item &item, bool selected) {
   for(int n=0;n<len;n++) {
     if(item.text[n] == ':') colon_pos=n;
   }
-  
+
   bool nonnumeric = false;
   char selitem[10][10];
   if(colon_pos != -1) {
@@ -191,7 +190,7 @@ void render_item_varnum(screen_item &item, bool selected) {
     int  current_pos=0;
     int  cselitem=0;
     for(int n=colon_pos+1;n<len;n++) {
- 
+
       if(item.text[n] != ',') {
         current[current_pos  ] = item.text[n];
         current[current_pos+1] = 0;
@@ -217,7 +216,7 @@ void render_item_varnum(screen_item &item, bool selected) {
     display_draw_text(x-4,y+9,selitem[val],FOREGROUND_COLOR);
   }
 }
-      
+
 uint8_t get_item_state_varnum(screen_item &item) {
   return get_item_state_varnum(item.text);
 }
@@ -241,7 +240,7 @@ void clear_item_varnum(screen_item &item, bool selected) {
 
   if(start_y <   0) start_y = 0;
   if(  end_y > 127)   end_y = 127;
-  
+
   display_draw_rectangle(start_x,start_y,end_x,end_y,BACKGROUND_COLOR);
 }
 
@@ -283,25 +282,23 @@ float *source_graph_data;
 
 void render_item_graph(screen_item &item, bool selected) {
 
-  int32_t data_size=240;
-  int32_t data_offset=600-240;
-  int32_t data_increment=2;
-  int32_t x_spacing=1;
+  uint32_t data_size=240;
+  uint32_t data_offset=600-240;
+  uint32_t data_increment=2;
   float   max_height = 80;
 
-  int32_t m_x = item.val1;
-  int32_t m_y = item.val2;
-  
-//  display_draw_rectangle(0,16,128,128,BACKGROUND_COLOR);
+  uint32_t m_x = item.val1;
+  uint32_t m_y = item.val2;
+
 
   // find min and max in data
-  int32_t nmax = source_graph_data[data_offset];
-  int32_t nmin = source_graph_data[data_offset];
+  uint32_t nmax = source_graph_data[data_offset];
+  uint32_t nmin = source_graph_data[data_offset];
   for(uint32_t n=data_offset;n<(data_offset+data_size);n++) {
     if(source_graph_data[n] > nmax) nmax = source_graph_data[n];
     if(source_graph_data[n] < nmin) nmin = source_graph_data[n];
   }
-  
+
   // axis
   display_draw_line(m_x,m_y           ,m_x+(data_size/data_increment),m_y           ,FOREGROUND_COLOR);
   display_draw_line(m_x,m_y-max_height,m_x+(data_size/data_increment),m_y-max_height,FOREGROUND_COLOR);
@@ -337,7 +334,7 @@ void render_item_graph(screen_item &item, bool selected) {
   }
 
   // apply averaging, and offset to data.
-  for(int n=0;n<120;n++) {
+  for(uint32_t n=0;n<120;n++) {
     if(m_graph_count[n] != 0) m_graph_data[n] = m_y - m_graph_data[n]/m_graph_count[n];
                          else m_graph_data[n] = 0;
   }
@@ -360,10 +357,10 @@ void render_item_graph(screen_item &item, bool selected) {
   for(uint32_t n=0;n<120;n++) {
     m_old_graph_data[n] = m_graph_data[n];
   }
-  
+
   display_draw_tinynumber(m_x+5,m_y-max_height-10,nmax,4,FOREGROUND_COLOR);
   display_draw_tinynumber(m_x+5,m_y-10           ,nmin,4,FOREGROUND_COLOR);
-  
+
 }
 
 void clear_item_menu(screen_item &item, bool selected) {
@@ -371,7 +368,7 @@ void clear_item_menu(screen_item &item, bool selected) {
 
   if(text_len == 0) return;
 
-  
+
   uint8_t x_max=127;
   uint8_t y_max=(item.val2+1)*16;
   if(y_max > 127) y_max=127;
@@ -382,7 +379,7 @@ void clear_item_label(screen_item &item, bool selected) {
   int32_t text_len = strlen(item.text);
 
   if(text_len == 0) return;
-   
+
   int x_max = 0;
   if(item.val1 == 255) { x_max = 127;} else
                        { x_max = item.val1+(text_len*8)-1;}
@@ -398,7 +395,7 @@ void clear_item_smalllabel(screen_item &item, bool selected) {
   int32_t text_len = strlen(item.text);
 
   if(text_len == 0) return;
-   
+
   int x_max = 0;
   if(item.val1 == 255) { x_max = 127;} else
                        { x_max = item.val1+(text_len*8)-1;}
@@ -419,7 +416,7 @@ void clear_item_head(screen_item &item, bool selected) {
   int y_max=16;
   display_draw_rectangle(item.val1,item.val2,x_max,y_max,BACKGROUND_COLOR);
 }
-    
+
 void clear_item_bigvarlabel(screen_item &item, bool selected) {
   int32_t text_len = strlen(item.text);
 
@@ -463,16 +460,16 @@ void render_item(screen_item &item,bool selected) {
   } else
   if(item.type == ITEM_TYPE_GRAPH) {
     render_item_graph(item,selected);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_HEAD) {
     render_item_head(item,selected);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_MENU_ACTION) {
     render_item_menu(item,selected);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_VARNUM) {
     render_item_varnum(item,selected);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_DELAY) {
     render_item_delay(item,selected);
   }
@@ -493,7 +490,7 @@ void clear_item(screen_item &item,bool selected) {
   } else
   if(item.type == ITEM_TYPE_GRAPH) {
     clear_item_graph(item,selected);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_HEAD) {
     clear_item_head(item,selected);
   } else
@@ -517,7 +514,7 @@ void update_item_graph(screen_item &item,const void *value) {
 
 
 uint8 lock_mask [11][8] = {
-  
+
   {0,1,1,1,1,1,1,0},
   {1,1,0,0,0,0,1,1},
   {1,0,0,0,0,0,0,1},
@@ -535,7 +532,7 @@ uint8 lock_mask [11][8] = {
 
 bool lock_state=false;
 void render_lock(bool on) {
-  
+
   if((on == lock_state) && (on != true)) return;
   lock_state = on;
 
@@ -546,7 +543,7 @@ void render_lock(bool on) {
 
       if(render_value > 0)  render_value = 0xFFFF;
                        else render_value = 0;
- 
+
       if(on == false) render_value = 0;
 
       image_data[(y*8)+x] = render_value;
@@ -707,16 +704,16 @@ void update_item(screen_item &item,const void *value) {
       display_draw_text(item.val1,item.val2,(char *)value,FOREGROUND_COLOR);
     }
 
-  } else 
+  } else
   if(item.type == ITEM_TYPE_GRAPH) {
     update_item_graph(item,value);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_HEAD) {
     update_item_head(item,value);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_VARNUM) {
     update_item_varnum(item,value);
-  } else 
+  } else
   if(item.type == ITEM_TYPE_DELAY) {
     update_item_delay(item,value);
   } else
@@ -724,11 +721,11 @@ void update_item(screen_item &item,const void *value) {
     display_draw_bigtext(item.val1,item.val2,(char *)value,FOREGROUND_COLOR);
   }
 }
-  
+
 void GUI::clear_stack() {
   selected_stack_size=0;
 }
-  
+
 void GUI::pop_stack(int &current_screen,int &selected_item) {
 
   if(selected_stack_size == 0) return;
@@ -741,7 +738,7 @@ void GUI::pop_stack(int &current_screen,int &selected_item) {
 
 void GUI::push_stack(int current_screen,int selected_item) {
 
-  if(selected_stack_size >= MAX_SCREEN_STACK) return;  
+  if(selected_stack_size >= MAX_SCREEN_STACK) return;
 
   selected_screen_stack[selected_stack_size] = current_screen;
   selected_item_stack  [selected_stack_size] = selected_item;
@@ -787,7 +784,15 @@ void GUI::show_help_screen(uint8_t helpscreen) {
   m_displaying_help = true;
 }
 
-void GUI::show_dialog(char *dialog_text1,char *dialog_text2,char *dialog_text3,char *dialog_text4,bool buzz,int img1,int img2,int img3,int img4) {
+void GUI::show_dialog(const char *dialog_text1,
+                      const char *dialog_text2,
+                      const char *dialog_text3,
+                      const char *dialog_text4,
+                      bool buzz,
+                      int img1,
+                      int img2,
+                      int img3,
+                      int img4) {
   display_draw_rectangle(0,0,128,128,BACKGROUND_COLOR);
   //strcpy(m_dialog_text1,dialog_text1);
   //strcpy(m_dialog_text2,dialog_text2);
@@ -804,7 +809,7 @@ void GUI::render() {
 
   if(m_sleeping) {
 //     process_keys();
-    return;  
+    return;
   }
 
   if(m_displaying_dialog) {
@@ -819,7 +824,7 @@ void GUI::render() {
     clear_pending_keys();
     redraw();
   }
-  
+
   if(m_repeating) {
     // This would be better incremented in a timer, but I don't want to use another timer.
     if(m_repeat_time == m_repeat_delay) {
@@ -852,7 +857,7 @@ void GUI::render() {
   m_redraw = false;
 
   render_lock(m_screen_lock);
-  for(uint32_t n=0;n<screens_layout[cscreen].item_count;n++) {
+  for(int32_t n=0;n<screens_layout[cscreen].item_count;n++) {
 
     if(first_render) {
       if(screens_layout[current_screen].items[n].type == ITEM_TYPE_ACTION) {
@@ -868,11 +873,11 @@ void GUI::render() {
 
     if(first_render || select_render || do_redraw) {
       //bool do_render = true;
- 
+
       // don't render labels, just because they are near other things...
       //if(!first_render && select_render && (screens_layout[cscreen].items[n].type == ITEM_TYPE_LABEL)) {
       //  do_render = false;
-      //} 
+      //}
 
       //if(do_render)
       bool selected = false;
@@ -887,7 +892,7 @@ void GUI::render() {
 }
 
 void GUI::clear_screen(int32_t c_screen,int32_t c_selected) {
-  for(uint32_t n=0;n<screens_layout[c_screen].item_count;n++) {
+  for(int32_t n=0;n<screens_layout[c_screen].item_count;n++) {
 
     bool selected = false;
     if(n == c_selected) selected = true;
@@ -908,14 +913,7 @@ void GUI::redraw() {
 }
 
 void GUI::receive_key(int key_id,int type) {
-  //char s[50];
-  //if(key_id == KEY_HELP  ) sprintf(s,"rkey: HELP   %d\r\n",type);
-  //if(key_id == KEY_UP    ) sprintf(s,"rkey: UP     %d\r\n",type);
-  //if(key_id == KEY_DOWN  ) sprintf(s,"rkey: DOWN   %d\r\n",type);
-  //if(key_id == KEY_SELECT) sprintf(s,"rkey: SELECT %d\r\n",type);
-  //if(key_id == KEY_HOME  ) sprintf(s,"rkey: HOME   %d\r\n",type);
-  //serial_write_string(s);
-    
+
   // don't activate HELP key when in a help screen
   if((m_displaying_help == true) && (key_id == KEY_HELP)) return;
 
@@ -925,10 +923,7 @@ void GUI::receive_key(int key_id,int type) {
     m_displaying_dialog_complete=true;
     return;
   }
-  
-//  char s[25];
-//  sprintf(s,"keys cache: %d %d\r\n",new_keys_start,new_keys_end);
-//  serial_write_string(s);
+
 
   new_keys_key [new_keys_end] = key_id;
   new_keys_type[new_keys_end] = type;
@@ -936,7 +931,7 @@ void GUI::receive_key(int key_id,int type) {
 
   if(new_keys_end >= NEW_KEYS_MAX_SIZE) new_keys_end=0;
 }
-    
+
 
 void GUI::clear_pending_keys() {
   new_keys_end   = 0;
@@ -1001,14 +996,6 @@ void GUI::process_key_up() {
 
 void GUI::process_key(int key_id,int type) {
 
-  //char s[50];
-  //if(key_id == KEY_HELP  ) sprintf(s,"key: HELP   %d\r\n",type);
-  //if(key_id == KEY_UP    ) sprintf(s,"key: UP     %d\r\n",type);
-  //if(key_id == KEY_DOWN  ) sprintf(s,"key: DOWN   %d\r\n",type);
-  //if(key_id == KEY_SELECT) sprintf(s,"key: SELECT %d\r\n",type);
-  //if(key_id == KEY_HOME  ) sprintf(s,"key: HOME   %d\r\n",type);
-  //serial_write_string(s);
-
   if(m_screen_lock) return;
 
   if(m_trigger_any_key) {
@@ -1062,7 +1049,7 @@ void GUI::process_key(int key_id,int type) {
 
     if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_MENU) {
       if(screens_layout[current_screen].items[selected_item].val1 != INVALID_SCREEN) {
-        
+
         if(clear_next_render == false) {
           clear_next_render = true;
           first_render=true;
@@ -1075,11 +1062,11 @@ void GUI::process_key(int key_id,int type) {
         last_selected_item = 1;
         selected_item = 1;
       }
-    } else 
+    } else
     if(screens_layout[current_screen].items[selected_item].type == ITEM_TYPE_MENU_ACTION) {
       receive_gui_events.receive_gui_event(screens_layout[current_screen].items[selected_item].text,"select");
     }
-    
+
   }
 
   if((key_id == KEY_BACK) && (type == KEY_RELEASED)) {
@@ -1100,7 +1087,7 @@ void GUI::process_key(int key_id,int type) {
 
     if((current_screen != 0) && (!clear_next_render)) {
 			if(selected_stack_size !=0) {
-				clear_next_render = true; 
+				clear_next_render = true;
 				first_render=true;
 				clear_screen_screen   = current_screen;
 				clear_screen_selected = selected_item;
@@ -1126,7 +1113,7 @@ void GUI::process_key(int key_id,int type) {
       selected_item  = 1;
     }
   }
-  
+
 }
 
 void GUI::jump_to_screen(const char screen) {
@@ -1137,13 +1124,13 @@ void GUI::jump_to_screen(const char screen) {
   leave_screen_actions(current_screen);
 
   clear_stack();
-  current_screen = screen; 
+  current_screen = screen;
   last_selected_item = 1;
   selected_item  = 1;
 }
 
 void GUI::receive_update(const char *tag,const void *value) {
-  
+
   if(m_pause_display_updates) return;
 
   for(uint32_t n=0;n<screens_layout[current_screen].item_count;n++) {
@@ -1178,7 +1165,14 @@ void GUI::set_language(uint8_t lang) {
   m_language = lang;
 }
 
-void GUI::render_dialog(char *text1,char *text2,char *text3,char *text4,int img1,int img2,int img3,int img4) {
+void GUI::render_dialog(const char *text1,
+                        const char *text2,
+                        const char *text3,
+                        const char *text4,
+                        int img1,
+                        int img2,
+                        int img3,
+                        int img4) {
 
   if(m_language == LANGUAGE_JAPANESE) {
     if(img1 == 255) { display_draw_text_center(20,text1,FOREGROUND_COLOR); } else

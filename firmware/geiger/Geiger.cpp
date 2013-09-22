@@ -12,9 +12,8 @@
 #include "flashstorage.h"
 #include <stdio.h>
 #include "buzzer.h"
+#include "serialinterface.h"
 
-#define GEIGER_PULSE_GPIO 42 // PB3
-#define GEIGER_ON_GPIO    4  // PB5
 #define MAX_RELOAD ((1 << 16) - 1)
 
 Geiger *system_geiger;
@@ -27,12 +26,26 @@ bool enable_beep=false;
 uint32_t total_count;
 bool mic_output=true;
 
+/**
+ * Interrupt handler for TIMER4.
+ * TODO: used to update the window in case we don't receive
+ * a pulse coming from the Geiger counter.
+ */
 void static geiger_min_log(void) {
   system_geiger->update_last_windows();
 }
 
+/**
+ * Interrupt handler for end of pulse. Triggered when Timer3
+ * overflows
+ *
+ * - Set pulse output to 0 (if enabled)
+ * - Switch off LED
+ * - Pause Timer3
+ *
+ */
 void pulse_output_end(void) {
-  gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,0);
+  gpio_write_bit(PIN_MAP[BOARD_LED_PIN].gpio_device,PIN_MAP[BOARD_LED_PIN].gpio_bit,0);
   if(mic_output) {
     dac_write_channel(DAC,2,0);
     //gpio_set_mode (PIN_MAP[13].gpio_device,PIN_MAP[13].gpio_bit,GPIO_INPUT_PD);
@@ -42,6 +55,16 @@ void pulse_output_end(void) {
   timer_pause(TIMER3);
 }
 
+
+/**
+ * Interrupt handler for rising pulse coming from the Geiger sensor
+ * controller board.
+ *
+ * - Increment pulse count
+ * - Set pulse output to '1' (if enabled)
+ * - Set LED on
+ * - Restart TIMER3 which is the pulse output/LED timer
+ */
 void static geiger_rising(void) {
 
   // for now, set to defaults but may want to lower clock rate so we're not burning battery
@@ -54,8 +77,9 @@ void static geiger_rising(void) {
   current_count++;
   total_count++;
 
-  gpio_write_bit(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,1);
-  
+  gpio_write_bit(PIN_MAP[BOARD_LED_PIN].gpio_device,PIN_MAP[BOARD_LED_PIN].gpio_bit,1);
+
+  // Reflect the pulse on the Mic output if requested
   if(mic_output) {
    // dac_init(DAC,DAC_CH2);
     dac_write_channel(DAC,2,20);
@@ -66,16 +90,31 @@ void static geiger_rising(void) {
   if(enable_beep) buzzer_nonblocking_buzz(0.1);
 }
 
+/**
+ * The Geiger counter object.
+ * The tube is connected (through the IMI 'iRover' controller board) to
+ * the GPIOs defined on top of Geiger.cpp:
+ *   - GEIGER_PULSE_GPIO
+ *   - GEIGER_ON_GPIO
+ */
 Geiger::Geiger() {
 }
 
+
+/**
+ * Initializes the geiger counter object, including
+ * the timer and interrupt.
+ */
 void Geiger::initialise() {
 
-  m_pulsewidth = 5;
+  m_pulsewidth = 5;       // Width of the output pulse (on MIC output)
   calibration_scaling=1;
   m_cpm_valid = false;
+  total_count = 0;
 
-  // load from flash
+
+  // Load settings from flash. Those values
+  // are used by the methods that return calibrated values.
   const char *sfloat = flashstorage_keyval_get("CALIBRATIONSCALING");
   if(sfloat != 0) {
     float c;
@@ -99,7 +138,7 @@ void Geiger::initialise() {
     last_windows[n] = 0;
   }
   last_windows_position=0;
-  
+
   for(uint32_t n=0;n<WINDOWS_STORED;n++) {
     cpm_last_windows[n] = 0;
   }
@@ -109,19 +148,23 @@ void Geiger::initialise() {
 //  geiger_count = 0;
   AFIO_BASE->MAPR |= 0x02000000; // turn off JTAG pin sharing
 
+
+  // Turn on power on the radiation sensor:
   gpio_set_mode(PIN_MAP[GEIGER_ON_GPIO].gpio_device,PIN_MAP[GEIGER_ON_GPIO].gpio_bit,GPIO_OUTPUT_PP);
   gpio_write_bit(PIN_MAP[GEIGER_ON_GPIO].gpio_device,PIN_MAP[GEIGER_ON_GPIO].gpio_bit,1);
   delay_us(1000); // 1 ms for the geiger to settle
 
+  // Set up interrupts on the Geiger counter pulse input:
   gpio_set_mode(PIN_MAP[GEIGER_PULSE_GPIO].gpio_device,PIN_MAP[GEIGER_PULSE_GPIO].gpio_bit,GPIO_INPUT_PD);
 
   int bit = gpio_read_bit(PIN_MAP[GEIGER_PULSE_GPIO].gpio_device,PIN_MAP[GEIGER_PULSE_GPIO].gpio_bit);
-  if(bit) geiger_rising();
+  if(bit) geiger_rising(); // in case there was a pulse right at this moment...
+  // we attach the interrupt to "geiger_rising":
   exti_attach_interrupt((afio_exti_num)PIN_MAP[GEIGER_PULSE_GPIO].gpio_bit,
-  gpio_exti_port(PIN_MAP[GEIGER_PULSE_GPIO].gpio_device),geiger_rising,EXTI_RISING);
-  
+                        gpio_exti_port(PIN_MAP[GEIGER_PULSE_GPIO].gpio_device),geiger_rising,EXTI_RISING);
+
   // flashing/buzz timer.
-  gpio_set_mode(PIN_MAP[25].gpio_device,PIN_MAP[25].gpio_bit,GPIO_OUTPUT_PP);
+  gpio_set_mode(PIN_MAP[BOARD_LED_PIN].gpio_device,PIN_MAP[BOARD_LED_PIN].gpio_bit,GPIO_OUTPUT_PP);
 
   //gpio_set_mode(PIN_MAP[10].gpio_device,PIN_MAP[10].gpio_bit,GPIO_OUTPUT_PP);
 
@@ -130,15 +173,15 @@ void Geiger::initialise() {
   //gpio_write_bit(PIN_MAP[13].gpio_device,PIN_MAP[13].gpio_bit,0);
   dac_init(DAC,DAC_CH2);
 
-  gpio_set_mode (PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit,GPIO_OUTPUT_PP); // PC6 , MIC_IPHONE
-  gpio_write_bit(PIN_MAP[35].gpio_device,PIN_MAP[35].gpio_bit,1);
+  gpio_set_mode (PIN_MAP[MIC_IPHONE].gpio_device,PIN_MAP[MIC_IPHONE].gpio_bit,GPIO_OUTPUT_PP);
+  gpio_write_bit(PIN_MAP[MIC_IPHONE].gpio_device,PIN_MAP[MIC_IPHONE].gpio_bit,1);
 
-  gpio_set_mode (PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,GPIO_OUTPUT_PP); // PC7 , MIC_REVERSE
-  gpio_write_bit(PIN_MAP[36].gpio_device,PIN_MAP[36].gpio_bit,0);
+  gpio_set_mode (PIN_MAP[MIC_REVERSE].gpio_device,PIN_MAP[MIC_REVERSE].gpio_bit,GPIO_OUTPUT_PP);
+  gpio_write_bit(PIN_MAP[MIC_REVERSE].gpio_device,PIN_MAP[MIC_REVERSE].gpio_bit,0);
 
   // headphone output
-  gpio_set_mode (PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,GPIO_OUTPUT_PP); // PA6 , HP_COMBINED
-  gpio_write_bit(PIN_MAP[12].gpio_device,PIN_MAP[12].gpio_bit,0);
+  gpio_set_mode (PIN_MAP[HP_COMBINED].gpio_device,PIN_MAP[HP_COMBINED].gpio_bit,GPIO_OUTPUT_PP);
+  gpio_write_bit(PIN_MAP[HP_COMBINED].gpio_device,PIN_MAP[HP_COMBINED].gpio_bit,0);
 
   pulse_timer_init();
 
@@ -160,11 +203,17 @@ void Geiger::initialise() {
   m_samples_collected=0;
 }
 
+/**
+ * Initialize the pulse timer (Timer3). Timer3 is started at each
+ * incoming pulse on the Geiger counter, and is used to get a fixed width
+ * output pulse on the Mic output. Also drives the Pulse LED.
+ *
+ */
 void Geiger::pulse_timer_init() {
   timer_pause(TIMER3);
   // was 10000
   timer_set_prescaler(TIMER3,0);
-  
+
   uint32_t r=0;
   if(m_pulsewidth == 0) { r = MAX_RELOAD/2048; } else
   if(m_pulsewidth == 1) { r = MAX_RELOAD/1024; } else
@@ -194,6 +243,9 @@ void Geiger::update_last_windows() {
   m_samples_collected++;
 }
 
+/**
+ * Utility functions: min and max
+ */
 uint32_t min(uint32_t a,uint32_t b) {
   if(a > b) return b; else return a;
 }
@@ -202,9 +254,25 @@ uint32_t max(uint32_t a,uint32_t b) {
   if(a > b) return a; else return b;
 }
 
+/**
+ * Get the current CPM reading. CPM is kept over a TODO 2 minute
+ * window, and this method checks that there was no strong variation
+ * on radiations, which could indicate that we got close to a source, or
+ * get away from a source. If that's the case, then this method invalidates
+ * the measurement window.
+ *
+ * TODO: maybe should provide some user feedback on window invalidation?
+ *
+ */
 float Geiger::get_cpm() {
 
-  // Check we didn't just remove outselves from a source, which
+  // If there are no samples, return 0
+  if(m_samples_collected == 0) {
+    m_cpm_valid = false;
+    return 0;
+  }
+
+  // Check we didn't just remove ourselves from a source, which
   // makes the windows look crazy.
 
   // cpm for last 5 seconds
@@ -216,14 +284,14 @@ float Geiger::get_cpm() {
 
     c_position--;
   }
-  
+
   // cpm for 5 seconds prior to above
   int32_t old5sum=0;
   c_position = last_windows_position-1-10;
   for(uint32_t n=0;n<10;n++) {
     if(c_position < 0) c_position = WINDOWS_STORED+c_position;
     old5sum += last_windows[c_position];
- 
+
     c_position--;
   }
 
@@ -238,24 +306,28 @@ float Geiger::get_cpm() {
   }
 
   // Invalidate if the cpm30 differs from the cpm5 reading by more than 100 times the cpm5 reading.
-  float cpm30 = get_cpm30();
-  float cpm5  = last5sum*12;
-  float delta30 = cpm5 - cpm30;
-  if(delta30 < 0) delta30 = 0-delta30;
-  if((delta30 > (cpm5*100)) && (cpm5 > 500)) {
-    m_cpm_valid = false;
-    m_samples_collected=5;
+  if(is_cpm30_valid()) {
+    float cpm30 = get_cpm30();
+    float cpm5  = last5sum*12;
+    float delta30 = cpm5 - cpm30;
+    if(delta30 < 0) delta30 = 0-delta30;
+    if((delta30 > (cpm5*100)) && (cpm5 > 500)) {
+      m_cpm_valid = false;
+      m_samples_collected=5;
+    }
   }
+
 
   float sum = 0;
 
   c_position = last_windows_position-1;
+  if(c_position < 0) c_position = WINDOWS_STORED-1;
 
   int32_t samples_used=0;
   for(uint32_t n=0;(n<max_averaging_period) && (n<m_samples_collected);n++) {
-   
+
     sum += last_windows[c_position];
- 
+
     c_position--;
     if(c_position < 0) c_position = WINDOWS_STORED-1;
     samples_used++;
@@ -269,35 +341,39 @@ float Geiger::get_cpm() {
     return cpm;
   }
   m_cpm_valid = false;
- 
-  // returns an estimation before enough data has been collected. 
+
+  // returns an estimation before enough data has been collected.
   return (sum/((float)m_samples_collected))*((float)WINDOWS_PER_MIN);
 }
 
 
+
+/**
+ * Returns CPM over the last 30 seconds
+ */
 float Geiger::get_cpm30() {
 
   float sum = 0;
 
-
-  int windows_in_30s = WINDOWS_PER_MIN/2;
+  uint32_t windows_in_30s = WINDOWS_PER_MIN/2;
   int32_t c_position = last_windows_position-1;
+  if(c_position < 0) c_position = WINDOWS_PER_MIN-1;
   for(uint32_t n=0;n<windows_in_30s;n++) {
-   
+
     sum += last_windows[c_position];
- 
+
     c_position--;
     if(c_position < 0) c_position = WINDOWS_PER_MIN-1;
   }
   if(m_samples_collected > windows_in_30s) return (sum/((float)windows_in_30s))*((float)WINDOWS_PER_MIN);
- 
-  // returns an estimation before enough data has been collected. 
+
+  // returns an estimation before enough data has been collected.
   return (sum/((float)m_samples_collected))*((float)WINDOWS_PER_MIN);
 }
 
 float Geiger::get_cpm_deadtime_compensated() {
   float cpm = get_cpm();
- 
+
   // CPM correction from Medcom
   return cpm/(1-((cpm*1.8833e-6)));
 
@@ -305,10 +381,16 @@ float Geiger::get_cpm_deadtime_compensated() {
 //  return (cpm/((60*1000000)-deadtime_us))*(60*1000000);
 }
 
+/**
+ * Gets measurement converted using stored calibration values
+ */
 float Geiger::get_microrems() {
  return get_microsieverts()*100;
 }
 
+/**
+ * Gets measurement converted using stored calibration values
+ */
 float Geiger::get_microsieverts() {
   float conversionCoefficient = 0.00294;
   float microsieverts =  (get_cpm_deadtime_compensated() * conversionCoefficient) * calibration_scaling;
@@ -317,6 +399,9 @@ float Geiger::get_microsieverts() {
   return microsieverts;
 }
 
+/**
+ * Gets measurement without the calibration value (raw measurement)
+ */
 float Geiger::get_microsieverts_nocal() {
   float conversionCoefficient = 0.00294;
   float microsieverts =  (get_cpm_deadtime_compensated() * conversionCoefficient);
@@ -335,7 +420,7 @@ float *Geiger::get_cpm_last_windows() {
   }
 
   int32_t sum=0;
-  int averaging_period=30;
+  uint32_t averaging_period=30;
   for(uint32_t n=0;n<averaging_period;n++) {
     sum += cpm_last_windows_temp[n];
     cpm_last_windows[n]=0;
@@ -354,6 +439,10 @@ bool Geiger::is_cpm_valid() {
   return m_cpm_valid;
 }
 
+/**
+ * Will turn true once enough samples collected to make
+ * the 30 seconds window significant
+ */
 bool Geiger::is_cpm30_valid() {
 
   if(m_samples_collected > ((WINDOWS_PER_MIN/2)+1)) return true;
@@ -370,7 +459,7 @@ void Geiger::set_calibration(float c) {
   char sfloat[50];
   sprintf(sfloat,"%f",c);
   flashstorage_keyval_set("CALIBRATIONSCALING",sfloat);
-  
+
   calibration_scaling = c;
 }
 
@@ -400,13 +489,13 @@ float Geiger::get_becquerel() {
 
   return get_cpm_deadtime_compensated()*m_becquerel_eff;
 }
-  
+
 void  Geiger::set_becquerel_eff(float c) {
   // save to flash
   char sfloat[50];
   sprintf(sfloat,"%f",c);
   flashstorage_keyval_set("BECQEFF",sfloat);
-  
+
   m_becquerel_eff = c;
 }
 

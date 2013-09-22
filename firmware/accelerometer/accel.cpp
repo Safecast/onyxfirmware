@@ -92,27 +92,16 @@ uint8 accel_read_state(int16 *x, int16 *y, int16 *z) {
       *z = (values[5]<<2) | (values[4]);
 
   accel_sleep();
- 
+
   return 0;
 }
 
-int accel_init(void) { 
+int accel_init(void) {
   return 0;
 }
 
-static int accel_suspend() {
-    /* Set the "mode" to "Standby" */
-//#if WAKEUP_PATCHED
-//#warning Need hardware patch to get this working
-//    Serial1.println( "Sleeping MMA7455\n" );
-    accel_write(0x16, 0);
-//#endif
-    return 0;
-}
-
-
-static int accel_deinit() {
+int accel_deinit() {
+    // suspends accel
     accel_write(0x16, 0);
     return 0;
 }
-

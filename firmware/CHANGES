@@ -1,3 +1,7 @@
+Changes for release 14
+
+* Cleared all warnings
+
 Changes for release 10 (20th October 2012)
 
 * static QR code of current level
@@ -42,28 +46,28 @@ Changes for release 9 (14th October 2012)
 
 Changes for release 8 (8th October 2012)
 
-* dialog display, for log clearing report etc.                                                                                          
-* When the log is full flash up a "log full" dialog on occurrence and on boot - implemented, requires testing.                          
-* pressing for lock should not trigger a key press, trigger key presses on key release only.                                            
-* enhanced lock functionality - press two keys to lock, "back and select".                                                              
-* Brightness changing starts from current brightness level.                                                                             
-* Ability to set log interval (default to 30mins)                                                                                       
-* Splash screen with Safecast and Medcom logos                                                                                          
-* Bug: Save icons for some items have weird names like "SaveBecq" or "SaveWarn" they should all just save "Save"                        
-* log reading/writing broken                                                                                                            
-* Backing out from changing brightness would leave the brightness set at the level currently being selected. Fixed so it reverts to the 
-+old level.                                                                                                                             
-* make program target to flash the firmware                                                                                             
-* Modify linker to leave space at the beginning of the code region of private key                                                       
-* help screen framework                                                                                                                 
-* device tag, settable over serial                                                                                                      
-* splash screen shows firmware release and devicetag                                                                                    
-* remove sieverts estimated - pieter                                                                                                    
-* jam detection 7.7KHz signal - the logic I've added here is that when the CPM goes above 350000 the system prints "TOO HIGH" for all   
-+values. This may not be ideal, but possibly better than nothing. Next time I'm playing with a disassembled device I will test/rework   
-+this.                                                                                                                                  
-* 3 d.p. on all displayed values                                                                                                        
-* Bug: Warning level exceed message is blocking, this means that when the warning is shown, data logging will not take place. Rework    
+* dialog display, for log clearing report etc.
+* When the log is full flash up a "log full" dialog on occurrence and on boot - implemented, requires testing.
+* pressing for lock should not trigger a key press, trigger key presses on key release only.
+* enhanced lock functionality - press two keys to lock, "back and select".
+* Brightness changing starts from current brightness level.
+* Ability to set log interval (default to 30mins)
+* Splash screen with Safecast and Medcom logos
+* Bug: Save icons for some items have weird names like "SaveBecq" or "SaveWarn" they should all just save "Save"
+* log reading/writing broken
+* Backing out from changing brightness would leave the brightness set at the level currently being selected. Fixed so it reverts to the
++old level.
+* make program target to flash the firmware
+* Modify linker to leave space at the beginning of the code region of private key
+* help screen framework
+* device tag, settable over serial
+* splash screen shows firmware release and devicetag
+* remove sieverts estimated - pieter
+* jam detection 7.7KHz signal - the logic I've added here is that when the CPM goes above 350000 the system prints "TOO HIGH" for all
++values. This may not be ideal, but possibly better than nothing. Next time I'm playing with a disassembled device I will test/rework
++this.
+* 3 d.p. on all displayed values
+* Bug: Warning level exceed message is blocking, this means that when the warning is shown, data logging will not take place. Rework
 +this.
 
 Changes for release 7 (4th October 2012)

@@ -40,15 +40,15 @@ public:
       m_graph_data[n] = data[n];
     }
     m_size = size;
-    
-  } 
 
-  void set_enable_render(bool v) { 
+  }
+
+  void set_enable_render(bool v) {
     if((m_enable_render == false) && (v == true)) {
       m_size = 0;
       m_first_render=true;
     }
-    m_enable_render = v; 
+    m_enable_render = v;
   }
 
   int m_x;

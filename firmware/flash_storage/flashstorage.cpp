@@ -7,9 +7,14 @@
 #include <string.h>
 #include "serialinterface.h"
 #include <stdio.h>
+#include "Controller.h"
+#include "Geiger.h"
 
 extern uint32_t _binary___binary_data_flash_data_start;
 extern uint32_t _binary___binary_data_flash_data_size;
+
+extern Geiger *system_geiger;
+extern Controller *system_controller;
 
 uint8_t  *flash_data_area_aligned;
 uint32_t  flash_data_area_aligned_size;
@@ -25,7 +30,7 @@ bool flashstorage_writewait() {
   // wait to write
   for(uint32_t n=0;FLASH_BASE->SR & (1<<0);n++) {
     if(n >= 40000000) return false;
-  } 
+  }
 
   return true;
 }
@@ -58,13 +63,14 @@ bool flashstorage_islocked() {
   return false;
 }
 
+
 bool flashstorage_erasepage(uint8_t *pageaddr) {
 
   if(flashstorage_islocked()) return false;
 
   FLASH_BASE->CR |= 1<<1;
   FLASH_BASE->AR = (uint32_t) pageaddr;
- 
+
   if(flashstorage_writewait() == false) return false;
 
   FLASH_BASE->CR |= 1<<1;
@@ -81,7 +87,7 @@ bool flashstorage_erasepage(uint8_t *pageaddr) {
   }
 
   return true;
-} 
+}
 
 bool flashstorage_writepage(uint8_t *new_data,uint8_t *pageaddr) {
 
@@ -98,6 +104,26 @@ bool flashstorage_writepage(uint8_t *new_data,uint8_t *pageaddr) {
   }
 
   return true;
+}
+
+// Flash erase page with retry
+bool flashstorage_erasepage_rt(uint8_t *pageaddr) {
+  for(int n=0;n<20;n++) {
+
+    bool ret = flashstorage_erasepage(pageaddr);
+    if(ret == true) return true;
+  }
+  return false;
+}
+
+// Flash write page with retry
+bool flashstorage_writepage_rt(uint8_t *new_data,uint8_t *pageaddr) {
+  for(int n=0;n<20;n++) {
+
+    bool ret = flashstorage_writepage(new_data,pageaddr);
+    if(ret == true) return true;
+  }
+  return false;
 }
 
 
@@ -207,10 +233,10 @@ void flashstorage_keyval_set(const char *key,const char *value) {
 
   // write new page data
   flashstorage_unlock();
-  bool eraseret = flashstorage_erasepage(page_address);
+  flashstorage_erasepage_rt(page_address);
   flashstorage_lock();
   flashstorage_unlock();
-  flashstorage_writepage(pagedata,page_address);
+  flashstorage_writepage_rt(pagedata,page_address);
   flashstorage_lock();
 }
 
@@ -224,14 +250,17 @@ void flashstorage_log_clear() {
   }
 
   uint8_t *page_address = flash_data_area_aligned+flash_log_base;
-  
-  // write new page data
-  flashstorage_unlock();
-  bool eraseret = flashstorage_erasepage(page_address);
-  flashstorage_lock();
-  flashstorage_unlock();
-  flashstorage_writepage(pagedata,page_address);
-  flashstorage_lock();
+
+  for(;page_address < (flash_data_area_aligned+flash_data_area_aligned_size);) {
+    // write new page data
+    flashstorage_unlock();
+    flashstorage_erasepage_rt(page_address);
+    flashstorage_lock();
+    flashstorage_unlock();
+    flashstorage_writepage_rt(pagedata,page_address);
+    flashstorage_lock();
+    page_address += pagesize;
+  }
 }
 
 void flashstorage_log_size_set(uint32_t new_size) {
@@ -244,7 +273,7 @@ uint32_t flashstorage_log_size() {
 
   uint32_t zerocount=0;
   for(uint32_t n=0;n<(flash_data_area_aligned_size-pagesize);n++) {
-  
+
     if(*(logbase+n) == 0) zerocount++;
                      else zerocount=0;
 
@@ -298,14 +327,14 @@ int flashstorage_log_pushback(uint8_t *data,uint32_t size) {
     }
 
     flashstorage_unlock();
-    flashstorage_erasepage(page_address);
+    flashstorage_erasepage_rt(page_address);
     flashstorage_lock();
     flashstorage_unlock();
-    flashstorage_writepage(pagedata,page_address);
+    flashstorage_writepage_rt(pagedata,page_address);
     flashstorage_lock();
     page_address += pagesize;
   }
-  
+
   // Sanity checks
   if(page_address < flash_data_area_aligned) return 5;
   if(page_address > (flash_data_area_aligned+flash_data_area_aligned_size)) return 6;
@@ -317,23 +346,23 @@ int flashstorage_log_pushback(uint8_t *data,uint32_t size) {
     for(pagepos=0;pagepos<pagesize;pagepos++) {
       if(write_size != 0) {
         pagedata[pagepos] = *data_position;
-        data_position++; 
+        data_position++;
         write_size--;
       } else {
         pagedata[pagepos]=0;
       }
     }
-    
+
     flashstorage_unlock();
-    flashstorage_erasepage(page_address);
+    flashstorage_erasepage_rt(page_address);
     flashstorage_lock();
     flashstorage_unlock();
-    flashstorage_writepage(pagedata,page_address);
+    flashstorage_writepage_rt(pagedata,page_address);
     flashstorage_lock();
     page_address += pagesize;
-   
+
     if(write_size == 0) break;
- 
+
     // Sanity checks
     if(page_address < flash_data_area_aligned) return 7;
     if(page_address > (flash_data_area_aligned+flash_data_size)) return 8;
@@ -362,4 +391,51 @@ void flashstorage_log_resume() {
 
 uint8_t *flashstorage_log_get() {
   return flash_data_area_aligned+flash_log_base;
+}
+
+void flashstorage_keyval_update() {
+  const char *spulsewidth = flashstorage_keyval_get("PULSEWIDTH");
+  if(spulsewidth != 0) {
+    unsigned int c;
+    sscanf(spulsewidth, "%u", &c);
+    system_geiger->set_pulsewidth(c);
+    system_geiger->pulse_timer_init();
+  }
+  else {
+    system_geiger->set_pulsewidth(6);
+  }
+
+  const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
+  if(sbright != 0) {
+    unsigned int c;
+    sscanf(sbright, "%u", &c);
+    display_set_brightness(c);
+  }
+
+  const char *sbeep = flashstorage_keyval_get("GEIGERBEEP");
+  if(sbeep != 0) {
+    if(!system_controller->m_sleeping) {
+      if(strcmp(sbeep,"true") == 0) {
+        system_geiger->set_beep(true);
+        tick_item("Geiger Beep",true);
+      }
+      else system_geiger->set_beep(false);
+    }
+  }
+
+  const char *scpmcps = flashstorage_keyval_get("CPMCPSAUTO");
+  if(scpmcps != 0) {
+    if(strcmp(scpmcps,"true") == 0) {
+      system_controller->m_cpm_cps_switch = true;
+      tick_item("CPM/CPS Auto",true);
+    }
+  }
+
+  const char *svrem = flashstorage_keyval_get("SVREM");
+  if(strcmp(svrem,"REM") == 0) {
+    tick_item("Roentgen",true);
+  }
+  else {
+    tick_item("Sievert",true);
+  }
 }

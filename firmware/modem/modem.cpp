@@ -68,7 +68,7 @@ void write_to_buffer(int half,int b) {
 void byte_transmission_complete() {
 
   dma_irq_cause event = dma_get_irq_cause(DMA2, DMA_CH4);
-  
+
   if(transmit_data_position > transmit_data_size) {
     transmission_complete=true;
     dma_disable(DMA2, DMA_CH4);
@@ -163,8 +163,8 @@ void modem_send(uint8_t *data,int size) {
   transmission_complete  = false;
   transmit_data_size     = size;
 
-  modem_send_init(); 
-  
+  modem_send_init();
+
   for(int a=0;;a++) {
     if(transmission_complete) {
       return;
@@ -179,10 +179,9 @@ void modem_logxfer() {
 
   flashstorage_log_pause();
 
-  int id_pos =0;
   char inputdata[2048];
   inputdata[0]=0;
-  
+
   log_read_start();
   bool last_switch_state = switch_state();
   for(int z=0;;z++) {

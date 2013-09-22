@@ -7,8 +7,8 @@ CFLAGS := -Os -gdwarf-2 -mcpu=cortex-m3 -mthumb -march=armv7-m \
 	-I. -I./libmaple -I./display -I./userinput -I./buzzer -I./accelerometer -I./geiger -I./led -I./gui -I./realtime \
 	-I./controller -I./flash_storage -I./serialinterface -I./misc -I./qrcode -I./signing -I./signing/beecrypt -I./log_read -I./modem
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -Wall -lnostdlib
-ASFLAGS := -mcpu=cortex-m3 -march=armv7-m -mthumb -x assembler-with-cpp 
-LDFLAGS := -mcpu=cortex-m3 -mthumb -Xlinker --gc-sections --print-gc-sections --march=armv7-m -Wall 
+ASFLAGS := -mcpu=cortex-m3 -march=armv7-m -mthumb -x assembler-with-cpp
+LDFLAGS := -mcpu=cortex-m3 -mthumb -Xlinker --gc-sections --print-gc-sections --march=armv7-m -Wall
 
 CC = arm-none-eabi-gcc
 CXX = arm-none-eabi-g++
@@ -19,7 +19,7 @@ LIBMAPLEOBJS = libmaple/spi.o libmaple/rcc.o libmaple/timer.o libmaple/adc.o lib
 
 OUROBJS = ./display/display.o ./display/spi_aux.o ./display/oled.o ./userinput/captouch.o ./accelerometer/accel.o ./misc/power.o ./misc/wirish_boards.o ./misc/safecast_config.o ./main.o ./realtime/realtime.o ./realtime/rtc.o ./gui/GUI.o ./display/nfont.o ./gui/screen_layout.o ./buzzer/buzzer.o ./geiger/Geiger.o ./misc/utils.o ./flash_storage/flashstorage.o ./serialinterface/serialinterface.o ./controller/Controller.o ./userinput/switch.o ./qrcode/qr_encodeem.o ./qrcode/qr_utils.o ./qrcode/qr_xfer.o ./signing/hal.o ./log_read/log_read.o ./modem/modem.o
 
-BINARYOBJS = ./binary_data/tinyfont_data.o ./binary_data/font_data.o ./binary_data/bignumbers_data.o ./binary_data/flash_data.o ./binary_data/fixed_images.o ./binary_data/splashscreen.o ./binary_data/private_key_data.o ./binary_data/help_screens_en.o ./binary_data/help_screens_jp.o 
+BINARYOBJS = ./binary_data/tinyfont_data.o ./binary_data/font_data.o ./binary_data/bignumbers_data.o ./binary_data/flash_data.o ./binary_data/fixed_images.o ./binary_data/splashscreen.o ./binary_data/private_key_data.o ./binary_data/help_screens_en.o ./binary_data/help_screens_jp.o
 
 PICTUREOBJS = ./binary_data/{fixed_images,bignumbers_data,font_data,tinyfont_data,help_screens_en,help_screens_jp,splashscreen,splashscreen888}
 
@@ -82,7 +82,7 @@ safecast.elf:	main.cpp $(LIBMAPLEOBJS) $(OUROBJS) libcs3 pictures $(CRYPTOFILES)
 	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm --rename-section .data=.private_key_data,alloc,load,readonly,data,contents ./binary_data/private_key_data ./binary_data/private_key_data.o
 
 	# Final linker step
-	$(CXX) -T./linker_files/safecast_flash.ld -L./linker_files $(LDFLAGS) $(OUROBJS) $(LIBMAPLEOBJS) $(BINARYOBJS) $(CRYPTOFILES) ./libcs3_stm32_src/*.o -o safecast.elf -Wl,-Map,safecast.map 
+	$(CXX) -T./linker_files/safecast_flash.ld -L./linker_files $(LDFLAGS) $(OUROBJS) $(LIBMAPLEOBJS) $(BINARYOBJS) $(CRYPTOFILES) ./libcs3_stm32_src/*.o -o safecast.elf -Wl,-Map,safecast.map
 	# clean up to remove unused functions and reduce code size
 	arm-none-eabi-strip safecast.elf
 
@@ -102,7 +102,7 @@ upload_mac: release
 	sudo kextload -b com.FTDI.driver.FTDIUSBSerialDriver
 	@echo
 	@echo "Done... seems it worked fine :)"
-	
+
 upload:	release
 	@echo
 	@echo "Checking for valid firmware uploader..."
@@ -110,9 +110,9 @@ upload:	release
 	@echo
 	@echo
 	@echo "Starting device firmware upload..."
-	sudo modprobe -r ftdi_sio
-	sudo modprobe -r usbserial
-	../firmware_loader/fwload -f $(RELEASE_NAME).bin
+	sudo rmmod ftdi_sio
+	sudo rmmod usbserial
+	sudo ../firmware_loader/fwload -f $(RELEASE_NAME).bin
 	sudo modprobe usbserial
 	sudo modprobe ftdi_sio
 	@echo
