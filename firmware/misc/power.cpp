@@ -62,8 +62,8 @@ int power_initialise(void) {
   gpio_set_mode (PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit,GPIO_OUTPUT_PP);
   gpio_write_bit(PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit,0);
 
-  gpio_set_mode (PIN_MAP[CHG_STAT2_GPIO]    .gpio_device,PIN_MAP[CHG_STAT2_GPIO]    .gpio_bit,GPIO_INPUT_PD);
-  gpio_set_mode (PIN_MAP[CHG_STAT1_GPIO]    .gpio_device,PIN_MAP[CHG_STAT1_GPIO]    .gpio_bit,GPIO_INPUT_PD);
+  gpio_set_mode (PIN_MAP[CHG_STAT2_GPIO]    .gpio_device,PIN_MAP[CHG_STAT2_GPIO]    .gpio_bit,GPIO_INPUT_FLOATING);
+  gpio_set_mode (PIN_MAP[CHG_STAT1_GPIO]    .gpio_device,PIN_MAP[CHG_STAT1_GPIO]    .gpio_bit,GPIO_INPUT_FLOATING);
   gpio_set_mode (PIN_MAP[WAKEUP_GPIO]       .gpio_device,PIN_MAP[WAKEUP_GPIO]       .gpio_bit,GPIO_INPUT_PD);
   gpio_set_mode (PIN_MAP[BATT_MEASURE_ADC]  .gpio_device,PIN_MAP[BATT_MEASURE_ADC]  .gpio_bit,GPIO_INPUT_ANALOG);
   gpio_set_mode (PIN_MAP[MAGSENSE_GPIO]     .gpio_device,PIN_MAP[MAGSENSE_GPIO]     .gpio_bit,GPIO_INPUT_PD);
@@ -265,4 +265,12 @@ int power_set_state(int state) {
     lastPowerState = powerState;
     powerState = state;
     return lastPowerState;
+}
+
+int power_charging() {
+  int stat2 = gpio_read_bit(PIN_MAP[CHG_STAT2_GPIO].gpio_device,PIN_MAP[CHG_STAT2_GPIO].gpio_bit);
+  int stat1 = gpio_read_bit(PIN_MAP[CHG_STAT1_GPIO].gpio_device,PIN_MAP[CHG_STAT1_GPIO].gpio_bit);
+
+  if((stat1 == 0) && (stat2 != 0)) return true;
+                              else return false;
 }

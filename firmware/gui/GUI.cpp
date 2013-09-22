@@ -574,10 +574,31 @@ uint8 battery_mask [16][24] = {
 
 };
 
+uint8 battery_mask_chg [16][24] = {
+
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0},
+  {3,3,3,3,3,3,3,3,3,3,3,3,9,9,3,3,3,3,3,3,0,0,0,0},
+  {2,2,2,2,2,2,2,2,2,2,2,9,9,2,2,2,2,2,2,2,2,2,2,0},
+  {2,2,2,2,2,2,2,2,2,2,9,9,2,2,2,2,2,2,2,2,2,2,2,0},
+  {1,1,1,1,1,1,1,1,1,9,9,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {1,1,1,1,1,1,1,1,9,9,9,9,9,9,1,1,1,1,1,1,1,1,1,0},
+  {1,1,1,1,1,1,1,1,9,9,9,9,9,9,1,1,1,1,1,1,1,1,1,0},
+  {1,1,1,1,1,1,1,1,1,1,1,9,9,1,1,1,1,1,1,1,1,1,1,0},
+  {2,2,2,2,2,2,2,2,2,2,9,9,2,2,2,2,2,2,2,2,2,2,2,0},
+  {2,2,2,2,2,2,2,2,2,9,9,2,2,2,2,2,2,2,2,2,2,2,2,0},
+  {3,3,3,3,3,3,3,3,9,9,3,3,3,3,3,3,3,3,3,3,0,0,0,0},
+  {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+
+};
+
 uint16 last_batlevel=0;
 
-void render_battery(int x,int y,int level) {
-
+void render_battery(int x,int y,int level,int charging) {
+ 
   uint16 image_data[384]; // 24*16
 
   // only move bat level, if there's a big difference to prevent flickering.
@@ -590,17 +611,22 @@ void render_battery(int x,int y,int level) {
 
   for(int x=0;x<24;x++) {
     for(int y=0;y<16;y++) {
-      int16 render_value = battery_mask[y][x];
+      int16 render_value;
+      if(!charging) render_value = battery_mask[y][x];
+               else render_value = battery_mask_chg[y][x];
 
-      if(x <= level) {
-        if(render_value > 0)  render_value = 0xF1FF - (2081*(render_value-1));
-                         else render_value = header_color;// HEADER_COLOR; // header background
-      }
+      if(render_value != 9) {
+        if(x <= level) {
+          if(render_value > 0)  render_value = 0xF1FF - (2081*(render_value-1));
+                           else render_value = header_color;// HEADER_COLOR; // header background
+        }
 
-      if(x > level) {
-        if(render_value > 0)  render_value = BACKGROUND_COLOR;  //6243 - (2081*(render_value-1));
-                         else render_value = header_color;//HEADER_COLOR; // header background
+        if(x > level) {
+          if(render_value > 0)  render_value = BACKGROUND_COLOR;  //6243 - (2081*(render_value-1));
+                           else render_value = header_color;//HEADER_COLOR; // header background
+        }
       }
+      if(render_value == 9) render_value = 0xF1F0 - (2001*(render_value-1));
       image_data[(y*24)+x] = render_value;
     }
   }
@@ -631,7 +657,8 @@ void update_item_head(screen_item &item,const void *value) {
   draw_text(0,0,v,header_color);//HEADER_COLOR);
 
   // a hack!
-  render_battery(0,128-24,power_battery_level());
+  render_battery(0,128-24,power_battery_level(),power_charging());
+    
 
   uint8_t hours,min,sec,day,month;
   uint16_t year;
