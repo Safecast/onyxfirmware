@@ -29,7 +29,7 @@ void print_mp(size_t size, const mpw* data)
   while (size--)
     {
       if( (i % 16 == 0) && (i != 0))
-	serial_write_string("\r\n");
+        serial_write_string("\r\n");
       sprintf(stemp, "%08x", *(data++));
       serial_write_string(stemp);
       i++;
@@ -147,11 +147,10 @@ void signing_printGUID() {
   
   mpnzero(&guid);
   mpnsetbin(&guid, bin_guid, 16);
-  serial_write_string( "uu_guid " );
-  print_mp(guid.size, guid.data);
-  serial_write_string( "\r\n" );
+  print_mp_nocrlf(guid.size, guid.data);
   mpnfree(&guid);
 }
+
 // to do:
 // function to do hash and private key signing using internal keys
 
