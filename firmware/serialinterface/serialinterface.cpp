@@ -483,16 +483,15 @@ void cmd_keyvaldump(char *line) {
   char key[50];
   char val[50];
 
-  serial_write_string("{ \"keys\" {\r\n");
+  serial_write_string("{ \"keys\" {\n");
   char str[110];
   for(int n=0;;n++) {
     flashstorage_keyval_by_idx(n,key,val);
-    if(key[0] == 0) return;
-    sprintf(str,"  \"%s\": \"%s\"\r\n",key,val);
+    if(key[0] == 0) break;
+    sprintf(str,"  \"%s\": \"%s\"\n",key,val);
     serial_write_string(str);
   }
-  serial_write_string("  }\r\r}\r\n");
-
+  serial_write_string("  }\n\n}\n");
 }
 
 /**
