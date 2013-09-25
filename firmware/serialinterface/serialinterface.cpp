@@ -56,7 +56,7 @@ command_process_t command_funcs[MAX_COMMANDS];
 
 /**
  * Called during serial port initialization, registers a table
- * of pointers to the various serial commands, thas is used by
+ * of pointers to the various serial commands, that is used by
  * serial_process_command afterwards.
  */
 void register_cmd(const char *cmd,command_process_t func) {
@@ -85,7 +85,6 @@ void command_stack_pop() {
  * Very simplistic output of a json structure as:
  *   { "key": "val" }
  */
-
 void json_keyval(const char *cmd, const char *val) {
   serial_write_string("{ \"");
   serial_write_string(cmd);
@@ -836,7 +835,7 @@ void serial_writeprivatekey() {
 /**
  * Called by serial_eventloop, this calls the relevant commands.
  *
- * This call the next command in the stack. By default, the command
+ * This calls the next command in the stack. By default, the command
  * is cmd_main_menu.
  *
  * New in 12.17 onwards: we accept json-formatted commands as well. Those
@@ -853,7 +852,7 @@ void serial_writeprivatekey() {
  *      "devicetag": string (device tag)
  *      }
  *
- *  Get/set settings keys:
+ *  Get/set settings keys (Work in progress not implemented yet):
  * "setkey" { "name": string, "value": value }
  * "getkey": "name"
  *
@@ -874,6 +873,9 @@ void serial_process_command(char *line) {
   } else {
     // Dispatch:
     int err = true;
+    /////
+    // get
+    /////
     JSONNODE *cmd = json_get_nocase(n,"get");
     if (cmd != 0 && json_type(cmd) == JSON_STRING) {
       json_char *val = json_as_string(cmd);
@@ -895,6 +897,9 @@ void serial_process_command(char *line) {
       }
       json_free(val);
     }
+    /////
+    // set
+    /////
     cmd = json_get_nocase(n,"set");
     if (cmd !=0 && json_type(cmd) == JSON_NODE) {
       // Find what set operation we wanted:
