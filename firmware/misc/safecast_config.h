@@ -45,10 +45,14 @@ extern const uint8 boardUsedPins[];
 /**
  *  Use of timers in our firmware:
  *
- *  TIMER3: geiger output pulse
- *  TIMER4: Geiger
+ *  TIMER1: Unused ?
  *  TIMER2: Buzzer
- *
+ *  TIMER3: Geiger output pulse (mic port)
+ *  TIMER4: Geiger wait for pulse timeout
+ *  TIMER5: Unused ?
+ *  TIMER6: Unused ?
+ *  TIMER7: Modem
+ *  TIMER8: Unused ?
  */
 
 
