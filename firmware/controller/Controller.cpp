@@ -1009,8 +1009,8 @@ void Controller::send_logstatus() {
   if (percent > 100) percent = 100; // We should never have this, but in case
                                     // the flashstorage functions return wrong values,
                                     // we'll be safe.
-  char text[16];
-  char text2[16];
+  char text[20];
+  char text2[20];
   sprintf(text,"%"PRIu32"%% full", percent);
   m_gui->receive_update("LOGPERCENT", text);
 
@@ -1037,6 +1037,11 @@ void Controller::send_logstatus() {
   }
   m_gui->receive_update("LOGREMAIN", text);
   m_gui->receive_update("LOGREMAIN2", text2);
+
+  // Last, display at the bottom of the screen the log status in
+  // terms of current/total
+  sprintf(text,"%"PRIu32"/%"PRIu32" recs",current,total);
+  m_gui->receive_update("LOGREMAIN3", text);
 
 }
 

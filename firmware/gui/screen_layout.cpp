@@ -368,13 +368,14 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 25 - Log status
 {
-  5,
+  6,
   {
     { ITEM_TYPE_HEAD       ,  0 ,  0 , "CPMDEADINT"    , 255 },
     { ITEM_TYPE_LABEL      ,  0 , 20 , "Log storage"   , 255 },
     { ITEM_TYPE_VARLABEL   ,255 , 36, "LOGPERCENT"     , 255 },
     { ITEM_TYPE_VARLABEL   ,  0 , 52, "LOGREMAIN"      , 255 },
     { ITEM_TYPE_VARLABEL   ,255 , 68, "LOGREMAIN2"     , 255 },
+    { ITEM_TYPE_VARLABEL   ,  0 ,100, "LOGREMAIN3"     , 255 },
   }
   ,7
 },
