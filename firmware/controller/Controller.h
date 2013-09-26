@@ -57,6 +57,7 @@ public:
   void send_total_timer();
   void send_svrem();
   void send_becq();
+  void send_logstatus();
 
   GUI     *m_gui;
   bool     m_sleeping;             ///< this indicates display sleep
