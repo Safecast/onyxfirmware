@@ -24,6 +24,9 @@
 #include <string.h>
 #include "rtc.h"
 
+/**
+ * This is defined at linking time
+ */
 extern uint8_t _binary___binary_data_private_key_data_start;
 extern uint8_t _binary___binary_data_private_key_data_size;
 

@@ -5,7 +5,8 @@ CFLAGS := -Os -gdwarf-2 -mcpu=cortex-m3 -mthumb -march=armv7-m \
 	-lnostdlib -ffunction-sections -fdata-sections -Wl,--gc-sections \
 	-DBOARD_safecast -DMCU_STM32F101RE -DSTM32_HIGH_DENSITY -DVECT_TAB_BASE -D'OS100VERSION="$(OS100VERSION)"' \
 	-I. -I./libmaple -I./display -I./userinput -I./buzzer -I./accelerometer -I./geiger -I./led -I./gui -I./realtime \
-	-I./controller -I./flash_storage -I./serialinterface -I./misc -I./qrcode -I./signing -I./signing/beecrypt -I./log_read -I./modem
+	-I./controller -I./flash_storage -I./serialinterface -I./misc -I./qrcode -I./signing -I./signing/beecrypt -I./log_read -I./modem \
+	-I ./libjson
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -Wall -lnostdlib
 ASFLAGS := -mcpu=cortex-m3 -march=armv7-m -mthumb -x assembler-with-cpp
 LDFLAGS := -mcpu=cortex-m3 -mthumb -Xlinker --gc-sections --print-gc-sections --march=armv7-m -Wall
@@ -23,17 +24,10 @@ BINARYOBJS = ./binary_data/tinyfont_data.o ./binary_data/font_data.o ./binary_da
 
 PICTUREOBJS = ./binary_data/{fixed_images,bignumbers_data,font_data,tinyfont_data,help_screens_en,help_screens_jp,splashscreen,splashscreen888}
 
-AESFILES = ./signing/aes.o
-MPARITH = ./signing/mp.o ./signing/mpbarrett.o
-RSAFILES = ./signing/rsa.o ./signing/rsakp.o ./signing/mpnumber.o ./signing/mpprime.o ./signing/fips186.o ./signing/entropy.o
-SHA1FILES = ./signing/sha1.o
-CRYPTOFILES = $(AESFILES) $(SHA1FILES) $(RSAFILES) $(MPARITH)
-
-AESFILES = ./signing/aes.o
-MPARITH = ./signing/mp.o ./signing/mpbarrett.o
-RSAFILES = ./signing/rsa.o ./signing/rsakp.o ./signing/mpnumber.o ./signing/mpprime.o ./signing/fips186.o ./signing/entropy.o
-SHA1FILES = ./signing/sha1.o
-CRYPTOFILES = $(AESFILES) $(SHA1FILES) $(RSAFILES) $(MPARITH)
+JSONOBJS = ./libjson/Objects_static/internalJSONNode.o ./libjson/Objects_static/JSONAllocator.o ./libjson/Objects_static/JSONChildren.o \
+           ./libjson/Objects_static/JSONDebug.o ./libjson/Objects_static/JSONIterators.o ./libjson/Objects_static/JSONMemory.o ./libjson/Objects_static/JSONNode.o \
+           ./libjson/Objects_static/JSONNode_Mutex.o ./libjson/Objects_static/JSONPreparse.o ./libjson/Objects_static/JSONStream.o ./libjson/Objects_static/JSONValidator.o \
+           ./libjson/Objects_static/JSONWorker.o ./libjson/Objects_static/JSONWriter.o ./libjson/Objects_static/libjson.o 
 
 AESFILES = ./signing/aes.o
 MPARITH = ./signing/mp.o ./signing/mpbarrett.o
@@ -49,6 +43,9 @@ all:	release
 libcs3:
 	cd ./libcs3_stm32_src; make high-density; cd ..
 
+json:
+	cd ./libjson; make all; cd ..
+
 to565:
 	g++ ./misc/to565.c -o ./misc/to565
 
@@ -62,7 +59,7 @@ pictures: to565
 	convert ./binary_data/help_screens_en.png -depth 2 gray:./binary_data/help_screens_en
 	convert ./binary_data/help_screens_jp.png -depth 2 gray:./binary_data/help_screens_jp
 
-safecast.elf:	main.cpp $(LIBMAPLEOBJS) $(OUROBJS) libcs3 pictures $(CRYPTOFILES)
+safecast.elf:	main.cpp $(LIBMAPLEOBJS) $(OUROBJS)	libcs3 json pictures $(CRYPTOFILES)
 	$(LD_DEFAULT) -o ./binary_data/font_data.o ./binary_data/font_data
 	$(LD_DEFAULT) -o ./binary_data/bignumbers_data.o ./binary_data/bignumbers_data
 	$(LD_DEFAULT) -o ./binary_data/tinyfont_data.o ./binary_data/tinyfont_data
@@ -82,7 +79,7 @@ safecast.elf:	main.cpp $(LIBMAPLEOBJS) $(OUROBJS) libcs3 pictures $(CRYPTOFILES)
 	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm --rename-section .data=.private_key_data,alloc,load,readonly,data,contents ./binary_data/private_key_data ./binary_data/private_key_data.o
 
 	# Final linker step
-	$(CXX) -T./linker_files/safecast_flash.ld -L./linker_files $(LDFLAGS) $(OUROBJS) $(LIBMAPLEOBJS) $(BINARYOBJS) $(CRYPTOFILES) ./libcs3_stm32_src/*.o -o safecast.elf -Wl,-Map,safecast.map
+	$(CXX) -T./linker_files/safecast_flash.ld -L./linker_files $(LDFLAGS) $(OUROBJS) $(LIBMAPLEOBJS) $(BINARYOBJS) $(CRYPTOFILES) ./libcs3_stm32_src/*.o $(JSONOBJS) -o safecast.elf -Wl,-Map,safecast.map
 	# clean up to remove unused functions and reduce code size
 	arm-none-eabi-strip safecast.elf
 
@@ -123,6 +120,7 @@ monitor:
 
 clean:
 	rm -f safecast.elf safecast.map $(LIBMAPLEOBJS) $(OUROBJS) $(BINARYOBJS) $(PICTUREOBJS) $(CRYPTOFILES)
+	cd ./libjson; make clean; cd ..
 	rm -f libcs3_stm32_src/*.o libcs3_stm32_src/*.a
 	rm -f misc/to565
 

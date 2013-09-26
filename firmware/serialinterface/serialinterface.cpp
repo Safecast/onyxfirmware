@@ -1,12 +1,12 @@
 #include "libmaple.h"
 #include "gpio.h"
-#include "flashstorage.h"
 #include "safecast_config.h"
 #include "usart.h"
 #include "Geiger.h"
 #include <stdio.h>
 #include <string.h>
 #include "log.h"
+#include "flashstorage.h"
 #include "oled.h"
 #include "display.h"
 #include <limits.h>
@@ -18,6 +18,7 @@
 #include <inttypes.h>
 #include "captouch.h"
 #include "power.h"
+#include "libjson.h"
 
 extern "C" {
   void signing_test();
@@ -27,8 +28,13 @@ extern "C" {
   void signing_hashLog();
 }
 
+/**
+ * This is defined at linking time
+ */
 extern uint8_t _binary___binary_data_private_key_data_start;
 extern uint8_t _binary___binary_data_private_key_data_size;
+
+
 extern Geiger *system_geiger;
 
 #define TX1 BOARD_USART1_TX_PIN
@@ -39,9 +45,6 @@ typedef void (*command_process_t)(char *);
 command_process_t command_stack[10];
 int  command_stack_size = 0;
 
-void serial_process_command(char *line) {
-  (*command_stack[command_stack_size-1])(line);
-}
 
 #define MAX_COMMAND_LEN 16
 /* Make sure to increment when adding new commands */
@@ -51,6 +54,11 @@ int command_list_size;
 char command_list [MAX_COMMANDS][MAX_COMMAND_LEN];
 command_process_t command_funcs[MAX_COMMANDS];
 
+/**
+ * Called during serial port initialization, registers a table
+ * of pointers to the various serial commands, that is used by
+ * serial_process_command afterwards.
+ */
 void register_cmd(const char *cmd,command_process_t func) {
 
   if(command_list_size > MAX_COMMANDS) return;
@@ -72,14 +80,45 @@ void command_stack_pop() {
   serial_write_string("\r\n>");
 }
 
-void cmd_hello(char *line) {
- serial_write_string("GREETINGS PROFESSOR FALKEN.\r\n");
+
+/**
+ * Very simplistic output of a json structure as:
+ *   { "key": "val" }
+ */
+void json_keyval(const char *cmd, const char *val) {
+  serial_write_string("{ \"");
+  serial_write_string(cmd);
+  serial_write_string("\": \"");
+  serial_write_string(val);
+  serial_write_string("\"}");
 }
 
+/**
+ * hello: a simple "ping" command to check that the
+ *        device is responsive
+ */
+void cmd_hello(char *line) {
+  JSONNODE *n = json_new(JSON_NODE);
+  json_push_back(n, json_new_a("hello", "Greetings professor Falken"));
+  json_char *jc = json_write_formatted(n);
+  serial_write_string(jc);
+  json_free(jc);
+  json_delete(n);
+}
+
+/**
+ * Easter egg...
+ */
 void cmd_games(char *line) {
   serial_write_string("I'M KIND OF BORED OF GAMES, TURNS OUT THE ONLY WAY TO WIN IS NOT TO PLAY...\r\n");
 }
 
+/**
+ * Dumps the data log as a json structure. Pauses
+ * logging at the beginning and restarts afterwards.
+ *
+ * Note: this does not use libjson.
+ */
 void cmd_logxfer(char *line) {
 
   flashstorage_log_pause();
@@ -96,6 +135,10 @@ void cmd_logxfer(char *line) {
   flashstorage_log_resume();
 }
 
+/**
+ * Dumps the data log as a comma-separated stream. Pauses
+ * logging at the beginning and restarts afterwards.
+ */
 void cmd_logcsv(char *line) {
 
   flashstorage_log_pause();
@@ -112,6 +155,14 @@ void cmd_logcsv(char *line) {
   flashstorage_log_resume();
 }
 
+/**
+ * Debugging command: changes the OLED display drive parameters.
+ *  Use with caution, you can probably damage the screen if you use wrong
+ *  parameters.
+ *
+ *  This is part 2 of the command that is run when the result of cmd_displayparams is
+ *  received
+ */
 void serial_displayparams_run(char *line) {
 
   uint32_t clock, multiplex, functionselect,vsl,phaselen,prechargevolt,prechargeperiod,vcomh;
@@ -126,6 +177,13 @@ void serial_displayparams_run(char *line) {
   command_stack_pop();
 }
 
+/**
+ * Debugging command: changes the OLED display drive parameters.
+ *  Use with caution, you can probably damage the screen if you use wrong
+ *  parameters.
+ *
+ *  This is part 1 of the command gets user input
+ */
 void cmd_displayparams(char *line) {
 
   serial_write_string("DISPLAY REINIT MODE\r\n");
@@ -137,6 +195,9 @@ void cmd_displayparams(char *line) {
   command_stack_size++;
 }
 
+/**
+ * Outputs a list of supported commands
+ */
 void cmd_help(char *line) {
 
   serial_write_string("Available commands:\r\n\t");
@@ -150,27 +211,46 @@ void cmd_help(char *line) {
 
 }
 
+/**
+ * Launches a test of the OLED screen
+ */
 void cmd_displaytest(char *line) {
   display_test();
 }
 
+/**
+ * Outputs firmware version
+ */
 void cmd_version(char *line) {
-  serial_write_string("Version: ");
-  serial_write_string(OS100VERSION);
-  serial_write_string("\r\n");
+
+  JSONNODE *n = json_new(JSON_NODE);
+  json_push_back(n, json_new_a("version", OS100VERSION));
+  json_char *jc = json_write_formatted(n);
+  serial_write_string(jc);
+  json_free(jc);
+  json_delete(n);
 }
 
+/**
+ * Outputs device tag
+ */
 void cmd_getdevicetag(char *line) {
   const char *devicetag = flashstorage_keyval_get("DEVICETAG");
+  JSONNODE *n = json_new(JSON_NODE);
   if(devicetag != 0) {
-    char stemp[100];
-    sprintf(stemp,"Devicetag: %s\r\n",devicetag);
-    serial_write_string(stemp);
+    json_push_back(n, json_new_a("devicetag", devicetag));
   } else {
-    serial_write_string("No device tag set");
+    json_push_back(n, json_new_a("devicetag", "No device tag set"));
   }
+  json_char *jc = json_write_formatted(n);
+  serial_write_string(jc);
+  json_free(jc);
+  json_delete(n);
 }
 
+/**
+ * Sets the device tag (part 2 of command)
+ */
 void serial_setdevicetag_run(char *line) {
 
   char devicetag[100];
@@ -181,6 +261,9 @@ void serial_setdevicetag_run(char *line) {
   command_stack_pop();
 }
 
+/**
+ * Sets the device tag (part 1 of command)
+ */
 void cmd_setdevicetag(char *line) {
 
   serial_write_string("SETDEVICETAG:\r\n");
@@ -208,10 +291,23 @@ void cmd_magread(char *line) {
   serial_write_string(magsenses);
 }
 
+/**
+ * Gets the current CPM reading as
+ * { "cpm": { "value": val, "valid": boolean }Ê}
+ */
 void cmd_cpm(char *line) {
-  char str[16];
-  sprintf(str,"%.3f",system_geiger->get_cpm());
-  serial_write_string(str);
+
+  JSONNODE *n = json_new(JSON_NODE);
+  JSONNODE *reading = json_new(JSON_NODE);
+  json_set_name(reading, "cpm");
+  json_push_back(reading, json_new_f("value", system_geiger->get_cpm()));
+  json_push_back(reading, json_new_b("valid", system_geiger->is_cpm_valid()));
+  json_push_back(n, reading);
+  json_char *jc = json_write_formatted(n);
+  serial_write_string(jc);
+  json_free(jc);
+  json_delete(n);
+
 }
 
 void cmd_cpm30(char *line) {
@@ -223,15 +319,6 @@ void cmd_cpmdeadtime(char *line) {
   char str[16];
   sprintf(str,"%.3f",system_geiger->get_cpm_deadtime_compensated());
   serial_write_string(str);
-}
-
-void cmd_cpmvalid(char *line) {
-
-  if (system_geiger->is_cpm_valid()) {
-    serial_write_string("1");
-  } else {
-    serial_write_string("0");
-  }
 }
 
 void cmd_writedac(char *line) {
@@ -312,9 +399,14 @@ void cmd_pubkey(char *line) {
   serial_write_string("\r\n");
 }
 
+/**
+ * Prints the Unique ID of the device. Does not use libjson
+ * for output formatting for the sake of convenience.
+ */
 void cmd_guid(char *line) {
+  serial_write_string("{ \"guid\": \"");
   signing_printGUID();
-  serial_write_string("\r\n");
+  serial_write_string("\"}\r\n");
 }
 
 void cmd_keyvalid(char *line) {
@@ -329,14 +421,24 @@ void cmd_logsig(char *line) {
   serial_write_string("\r\n");
 }
 
+
+/**
+ * Stops logging in flash
+ */
 void cmd_logpause(char *line) {
   flashstorage_log_pause();
 }
 
+/**
+ * Resumes logging in flash
+ */
 void cmd_logresume(char *line) {
   flashstorage_log_resume();
 }
 
+/**
+ * Clears the flash log.
+ */
 void cmd_logclear(char *line) {
   serial_write_string("Clearing flash log\r\n");
   flashstorage_log_clear();
@@ -365,23 +467,35 @@ void cmd_logstress(char *line) {
   serial_write_string("Complete\r\n");
 }
 
+
+/**
+ * Debug command: dumps all settings (key/value).
+ * Output in this format:
+ * { "keys" {
+ *    "key1": "value1",
+ *    "key2": "value2",
+ *    ...
+ *    }
+ *  }
+ */
 void cmd_keyvaldump(char *line) {
+  char key[50];
+  char val[50];
 
-  char key[100];
-  char val[100];
-
-  char str[200];
-  sprintf(str,"key=val\r\n");
-  serial_write_string(str);
+  serial_write_string("{ \"keys\" {\n");
+  char str[110];
   for(int n=0;;n++) {
     flashstorage_keyval_by_idx(n,key,val);
-    if(key[0] == 0) return;
-    sprintf(str,"%s=%s\r\n",key,val);
+    if(key[0] == 0) break;
+    sprintf(str,"  \"%s\": \"%s\"\n",key,val);
     serial_write_string(str);
   }
-
+  serial_write_string("  }\n\n}\n");
 }
 
+/**
+ * Debug: sets a setting (key/value) / part 2
+ */
 void serial_setkeyval_run(char *line) {
 
   char key[200];
@@ -415,6 +529,9 @@ void serial_setkeyval_run(char *line) {
   flashstorage_keyval_set(key,val);
 }
 
+/**
+ * Debug: sets a setting (key/value) / part 1
+ */
 void cmd_keyvalset(char *line) {
   serial_write_string("|| Enter KEY=VAL, end with a single = on a new line.\r\n");
   serial_write_string("#>");
@@ -424,6 +541,9 @@ void cmd_keyvalset(char *line) {
 }
 
 
+/**
+ * Sets the real time clock (unix time). Part 2
+ */
 void serial_setrtc_run(char *line) {
 
   uint32_t unixtime = 0;
@@ -433,6 +553,21 @@ void serial_setrtc_run(char *line) {
   command_stack_pop();
 }
 
+/**
+ * Gets current time on the device
+ */
+void cmd_getrtc() {
+  JSONNODE *n = json_new(JSON_NODE);
+  json_push_back(n, json_new_i("rtc", realtime_get_unixtime()));
+  json_char *jc = json_write_formatted(n);
+  serial_write_string(jc);
+  json_free(jc);
+  json_delete(n);
+}
+
+/**
+ * Sets the real time clock (unix time). Part 1
+ */
 void cmd_setrtc(char *line) {
   char info[100];
   sprintf(info,"Current unixtime is %"PRIu32"\r\n",realtime_get_unixtime());
@@ -507,6 +642,10 @@ void cmd_captouchdump(char *line) {
   }
 }
 
+/**
+ * Displays battery level on OLED for 100 seconds,
+ * updates once per second
+ */
 void cmd_batinfodisp(char *line) {
   for(int n=0;n<100;n++) {
     int bat = power_battery_level();
@@ -518,6 +657,9 @@ void cmd_batinfodisp(char *line) {
   }
 }
 
+/**
+ * Initializes the list of firmware commands in a pointer table
+ */
 void register_cmds() {
   // help
   register_cmd("HELP"          ,cmd_help);
@@ -537,7 +679,6 @@ void register_cmds() {
   register_cmd("GETCPM"        ,cmd_cpm);		// CPM
   register_cmd("GETCPM30"      ,cmd_cpm30);		// CPM
   register_cmd("GETCPMDEADTIME",cmd_cpmdeadtime);	// CPM
-  register_cmd("CPMVALID"      ,cmd_cpmvalid);		// CPM
   // ??
   register_cmd("WRITEDAC"      ,cmd_writedac);
   register_cmd("READADC"       ,cmd_readadc);
@@ -565,6 +706,10 @@ void register_cmds() {
   register_cmd("LIST GAMES"    ,cmd_games);
 }
 
+/**
+ * This function is called by default with the latest received
+ * command line as argument.
+ */
 void cmd_main_menu(char *line) {
 
   for(int n=0;n<command_list_size;n++) {
@@ -577,6 +722,9 @@ void cmd_main_menu(char *line) {
     serial_write_string("\r\n>");
 }
 
+/**
+ * Initialize the serial port interface on the Onyx.
+ */
 void serial_initialise() {
   const stm32_pin_info *txi = &PIN_MAP[TX1];
   const stm32_pin_info *rxi = &PIN_MAP[RX1];
@@ -598,6 +746,11 @@ void serial_initialise() {
   usart_enable(USART1);
 }
 
+
+/**
+ * This command is not compiled in, so that the private key
+ * cannot be retrieved on a standard running device
+ */
 
 /*
 void serial_readprivatekey() {
@@ -679,9 +832,113 @@ void serial_writeprivatekey() {
 */
 
 
+/**
+ * Called by serial_eventloop, this calls the relevant commands.
+ *
+ * This calls the next command in the stack. By default, the command
+ * is cmd_main_menu.
+ *
+ * New in 12.17 onwards: we accept json-formatted commands as well. Those
+ * commands are parsed & dispatched below.
+ *
+ * Important remark: the CLI does not support multiple commands in one
+ * line. For instance { "get": "guid", "get": "rtc" } will not work.
+ *
+ * JSON commands are as follow:
+ *
+ * Settings not linked to setting keys
+ * "set" {
+ *      "rtc": integer (Unix timestamp)
+ *      "devicetag": string (device tag)
+ *      }
+ *
+ *  Get/set settings keys (Work in progress not implemented yet):
+ * "setkey" { "name": string, "value": value }
+ * "getkey": "name"
+ *
+ *  Getting values not linked to setting keys
+ * "get":
+ *    - "guid"
+ *    - "rtc"
+ *    - "devicetag"
+ *    - "settings"
+ *
+ */
+void serial_process_command(char *line) {
+
+  JSONNODE *n = json_parse(line);
+  if (n == NULL) {
+    // Old style commands
+    (*command_stack[command_stack_size-1])(line);
+  } else {
+    // Dispatch:
+    int err = true;
+    /////
+    // get
+    /////
+    JSONNODE *cmd = json_get_nocase(n,"get");
+    if (cmd != 0 && json_type(cmd) == JSON_STRING) {
+      json_char *val = json_as_string(cmd);
+      if (strcmp(val, "guid") == 0) {
+        err = false;
+        cmd_guid(0);
+      } else
+      if (strcmp(val,"rtc") == 0) {
+        err = false;
+        cmd_getrtc();
+      } else
+      if (strcmp(val,"devicetag") == 0) {
+        err = false;
+        cmd_getdevicetag(0);
+      } else
+      if (strcmp(val, "settings") == 0) {
+        err = false;
+        cmd_keyvaldump(0);
+      }
+      json_free(val);
+    }
+    /////
+    // set
+    /////
+    cmd = json_get_nocase(n,"set");
+    if (cmd !=0 && json_type(cmd) == JSON_NODE) {
+      // Find what set operation we wanted:
+      JSONNODE *op = json_get_nocase(cmd, "devicetag");
+      if (op != 0 && json_type(op) == JSON_STRING) {
+        err = false;
+        json_char *tag = json_as_string(op);
+        flashstorage_keyval_set("DEVICETAG",tag);
+        json_keyval("ok", "devicetag");
+      }
+      op = json_get_nocase(cmd, "rtc");
+      if (op != 0 && json_type(op) == JSON_NUMBER) {
+        err = false;
+        uint32_t  time = json_as_int(op);
+        if (time != 0) {
+          realtime_set_unixtime(time);
+          json_keyval("ok", "rtc");
+        }
+      }
+    }
+    if (err) {
+      json_keyval("error", "unknown command");
+    }
+  }
+  json_delete(n);
+}
+
+
+
 char currentline[1024];
 uint32_t currentline_position=0;
 
+/**
+ * Receive and process what we received on the serial port. This
+ * is called from the main event loop in main.cpp
+ *
+ * TODO: this should really be interrupt driven IMHO (E. Lafargue)
+ *
+ */
 void serial_eventloop() {
   char buf[1024];
 
@@ -692,7 +949,7 @@ void serial_eventloop() {
 
   for(uint32_t n=0;n<read_size;n++) {
 
-    // echo
+    // We echo characters
     usart_putc(USART1, buf[n]);
 
     if((buf[n] == 13) || (buf[n] == 10)) {

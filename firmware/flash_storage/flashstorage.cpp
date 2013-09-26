@@ -10,21 +10,50 @@
 #include "Controller.h"
 #include "Geiger.h"
 
+/**
+ * The two variables below are defined at link time, and are
+ * pointers to the flash address to the"flash_data" structure that
+ * comes from "binary_data/flash_data". flash_data is a 100k blob.
+ */
 extern uint32_t _binary___binary_data_flash_data_start;
 extern uint32_t _binary___binary_data_flash_data_size;
+
+/**
+ * We have no insurance that the flash_data area starts at a page
+ * boundary. The two variables below are initialized when we call
+ * flash_initialize, and align the flash area to a page size - we can
+ * have some unusable space between the start of the flash_data area and
+ * the next page boundary.
+ */
+uint8_t  *flash_data_area_aligned;
+uint32_t  flash_data_area_aligned_size;
 
 extern Geiger *system_geiger;
 extern Controller *system_controller;
 
-uint8_t  *flash_data_area_aligned;
-uint32_t  flash_data_area_aligned_size;
 
 bool log_pause = false;
 
-#define flash_log_base  10240
-#define keyval_size     50
-#define keyval_size_all 100
+/**
+ * The flash storage area serves two purposes:
+ *  - Store device settings
+ *  - Store logs
+ */
+#define flash_log_base  10240 // Space reserved for storing settings
+                              // the log area starts above this index
+
+// Settings are stored as key/value, each with max 50 bytes
+#define keyval_size     50   // Max size of a settings key name
+#define keyval_size_all 100  // Max size of a settings key name + key value
+
+// The size of a page of flash
+// TODO: this should come from another place, not be hardcoded here, right ?
 #define pagesize        2048
+
+
+/*************************
+ *   Utility functions for reading/writing in data_area
+ **************************/
 
 bool flashstorage_writewait() {
   // wait to write
@@ -126,10 +155,24 @@ bool flashstorage_writepage_rt(uint8_t *new_data,uint8_t *pageaddr) {
   return false;
 }
 
+/*************************
+ *  END Utility functions for reading/writing in data_area
+ **************************/
 
+
+
+/**
+ * Initialize the flash storage area for use by firmware, by setting
+ * up the base address of the flash data area. That area has to start
+ * at a page boundary.
+ *
+ * Has to be called by firmware at startup (see main.cpp)
+ */
 void flashstorage_initialise() {
   uint32_t flash_addr = (uint32_t) &_binary___binary_data_flash_data_start;
 
+  // Check how much unusable space we have between start of flash_data
+  // and the next page boundary:
   uint32_t unusable = 0;
   if((flash_addr%pagesize) != 0) {
     unusable = pagesize-(flash_addr%pagesize);

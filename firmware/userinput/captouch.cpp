@@ -155,6 +155,9 @@ void cap_clear_press() {
   release_time_any=0;
 }
 
+/**
+ * Interrupt handler for capacitive keyboard events
+ */
 static void cap_change(void) {
 
   // first read
