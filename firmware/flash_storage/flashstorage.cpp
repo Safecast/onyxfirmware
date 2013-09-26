@@ -495,6 +495,12 @@ void flashstorage_log_resume() {
   log_pause = false;
 }
 
+/**
+ * Check if log is paused
+ */
+bool flashstorage_logpaused() {
+  return log_pause;
+}
 
 uint8_t *flashstorage_log_get() {
   return flash_data_area_aligned+flash_log_base;

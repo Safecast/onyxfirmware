@@ -1010,13 +1010,16 @@ void Controller::send_logstatus() {
                                     // the flashstorage functions return wrong values,
                                     // we'll be safe.
   char text[16];
+  char text2[16];
   sprintf(text,"%"PRIu32"%% full", percent);
   m_gui->receive_update("LOGPERCENT", text);
 
   // Now compute how much time we have left in the log area at
-  // the current log interval:
-
-  if (m_log_interval_seconds) {
+  // current log interval:
+  if (flashstorage_logpaused() ) {
+    sprintf(text, "Logging paused  ");
+    sprintf(text2, "         ");
+  } else if (m_log_interval_seconds) {
     uint32_t time_left_h = (total-current) * m_log_interval_seconds / 3600;
     if (time_left_h > 99999) time_left_h = 99999; // Just to keep string under 16 characters
     // Make the user's life easier: above 48 hours, display in days/hours
@@ -1027,12 +1030,13 @@ void Controller::send_logstatus() {
       uint32_t hours = time_left_h % 24;
       sprintf(text,"%"PRIu32" days %"PRIu32" hrs", days, hours);
     }
-    m_gui->receive_update("LOGREMAIN2", "remaining");
+    sprintf(text2, "remaining");
   } else {
     sprintf(text,"Logging disabled");
-    m_gui->receive_update("LOGREMAIN2", "         ");
+    sprintf(text2, "         ");
   }
   m_gui->receive_update("LOGREMAIN", text);
+  m_gui->receive_update("LOGREMAIN2", text2);
 
 }
 
