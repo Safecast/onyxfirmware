@@ -73,6 +73,13 @@ void rtc_set_alarmed() {
   rtc_alarm_on = 1;
 }
 
+/**
+ * Checks whether the RTC alarm was triggered. This alarm is
+ * triggered at each logging interval, so this is used to determine
+ * whether we should be adding a log entry in our flash storage.
+ *
+ * TODO: change this to boolean
+ */
 int rtc_alarmed() {
 
   // woke from standby on alarm?

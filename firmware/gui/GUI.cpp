@@ -20,6 +20,13 @@ uint16 header_color=HEADER_COLOR_CPMINVALID;
 
 uint8_t m_language;
 
+/****************
+ *   Utility functions for drawing on the screen
+ */
+
+/**
+ * Used to draw arrow above digits for settings menus
+ */
 void display_draw_equtriangle(uint8_t x,uint8_t y,uint8_t s,uint16_t color) {
 
   uint8_t start = x;
@@ -35,6 +42,9 @@ void display_draw_equtriangle(uint8_t x,uint8_t y,uint8_t s,uint16_t color) {
   }
 }
 
+/**
+ * Used to draw arrow below digits for settings menus
+ */
 void display_draw_equtriangle_inv(uint8_t x,uint8_t y,uint8_t s,uint16_t color) {
 
   uint8_t start = x;
@@ -129,12 +139,20 @@ void render_item_menu(screen_item &item, bool selected) {
 
 }
 
-#define VARNUM_MAXSIZE 50
+/**
+ * We maintain a global array of variable items (VARNUM) that are
+ * displayed in settings menus mainly. a VARNUM is a single digit
+ * or single character, hence the uint8_t
+ */
 
-char    varnum_names[VARNUM_MAXSIZE][10];
-uint8_t varnum_values[VARNUM_MAXSIZE];
+#define VARNUM_MAXSIZE 50  // Number of variables we can track
+char    varnum_names[VARNUM_MAXSIZE][10];  // Name of the variables
+uint8_t varnum_values[VARNUM_MAXSIZE]; // Value of the variables
 uint8_t varnum_size = 0;
 
+/**
+ * Get the current value of a variable (a single digit or character)
+ */
 uint8_t get_item_state_varnum(const char *name) {
 
   for(uint32_t n=0;n<varnum_size;n++) {
@@ -145,6 +163,12 @@ uint8_t get_item_state_varnum(const char *name) {
   return 0;
 }
 
+/**
+ * Update state of a variable number in the varnum_values table
+ *
+ * @param name of the varnum
+ * @param value
+ */
 void set_item_state_varnum(char *name,uint8_t value) {
 
   int itemcount=0;
@@ -170,19 +194,33 @@ void set_item_state_varnum(char *name,uint8_t value) {
   varnum_size++;
 }
 
+/**
+ * Rendering of a variable number/char (single digit with
+ * up/down arrows above/below it).
+ *
+ * @param item should be an ITEM_TYPE_VARNUM
+ * @param selected if cursor should be on that particular digit
+ */
 void render_item_varnum(screen_item &item, bool selected) {
 
+  // Position on screen where to draw the digit
   uint8_t x = item.val1;
   uint8_t y = item.val2;
 
   int len = strlen(item.text);
   int colon_pos=-1;
+  // Text can be with this format:
+  // "NAME:char1,char2,char..." to let user select
+  // non-numeric values, we detect this below:
   for(int n=0;n<len;n++) {
     if(item.text[n] == ':') colon_pos=n;
   }
 
   bool nonnumeric = false;
   char selitem[10][10];
+  // We have a non-numeric variable, initialize the
+  // possible values (comma-separated string following ":"
+  // in the item.text. For instance: "SIGN:-,+,"
   if(colon_pos != -1) {
     nonnumeric=true;
 
@@ -204,6 +242,7 @@ void render_item_varnum(screen_item &item, bool selected) {
     }
   }
 
+  // Retrieve the current value of this VARNUM
   uint8_t val = get_item_state_varnum(item.text);
 
   uint16_t color;
@@ -244,7 +283,11 @@ void clear_item_varnum(screen_item &item, bool selected) {
   display_draw_rectangle(start_x,start_y,end_x,end_y,BACKGROUND_COLOR);
 }
 
-
+/**
+ * Render a static text label.
+ *
+ * @param item should be an ITEM_TYPE_LABEL
+ */
 void render_item_label(screen_item &item, bool selected) {
 
   if(m_language == LANGUAGE_ENGLISH) {
@@ -553,6 +596,10 @@ void render_lock(bool on) {
   display_draw_image(128-8,128-11,8,11,image_data);
 }
 
+
+/**
+ * A battery icon for the status bar
+ */
 uint8 battery_mask [16][24] = {
 
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -574,6 +621,9 @@ uint8 battery_mask [16][24] = {
 
 };
 
+/**
+ * A battery icon with a "Charging" sign for the status bar
+ */
 uint8 battery_mask_chg [16][24] = {
 
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -597,6 +647,14 @@ uint8 battery_mask_chg [16][24] = {
 
 uint16 last_batlevel=0;
 
+/**
+ * Draw a battery sign on the screen
+ *
+ * @param x        X location on screen
+ * @param y        Y location on screen
+ * @param level    level of charge in percent
+ * @param charging display charging symbol or not
+ */
 void render_battery(int x,int y,int level,int charging) {
  
   uint16 image_data[384]; // 24*16
@@ -634,6 +692,13 @@ void render_battery(int x,int y,int level,int charging) {
   display_draw_image(104,0,24,16,image_data);
 }
 
+/**
+ * Draw the GUI screen header
+ *
+ * @param item  unused
+ * @param value text to draw at start of header (CPM usually)
+ *
+ */
 void update_item_head(screen_item &item,const void *value) {
 
   uint16_t new_header_color;
@@ -692,6 +757,9 @@ void update_item_head(screen_item &item,const void *value) {
 //  display_draw_tinytext(0,128-5,OS100VERSION,FOREGROUND_COLOR);
 }
 
+/**
+ * Update the value of a VARNUM in the varnum_values table
+ */
 void update_item_varnum(screen_item &item,const void *value) {
   set_item_state_varnum(item.text,((uint8_t *) value)[0]);
 }
@@ -722,6 +790,12 @@ int get_item_state_delay_destination(screen_item &item) {
   return 0;
 }
 
+/**
+ * Update a part of the screen
+ *
+ * @param item  type of item to draw
+ * @param value value of the item to draw
+ */
 void update_item(screen_item &item,const void *value) {
   if(item.type == ITEM_TYPE_VARLABEL) {
     if(item.val1 == 255) {
@@ -772,6 +846,10 @@ void GUI::push_stack(int current_screen,int selected_item) {
   selected_stack_size++;
 }
 
+/**
+ * The GUI object. Interacts with the Controller object, manipulated from
+ * the main firmware event loop in main.cpp
+ */
 GUI::GUI(Controller &r) : receive_gui_events(r) {
 
   m_repeated =false;
@@ -832,6 +910,9 @@ void GUI::show_dialog(const char *dialog_text1,
   render_dialog(dialog_text1,dialog_text2,dialog_text3,dialog_text4,img1,img2,img3,img4);
 }
 
+/**
+ * The main render loop of the GUI
+ */
 void GUI::render() {
 
   if(m_sleeping) {
@@ -1156,6 +1237,15 @@ void GUI::jump_to_screen(const char screen) {
   selected_item  = 1;
 }
 
+/**
+ * Received GUI update events sent by the Controller. Check if the
+ * currently displayed screen template contains the tag, and update
+ * if on screen if it does. If the current screen does not display the
+ * tag, then do nothing
+ *
+ * @param tag   name of the variable to update
+ * @param value value of the variable to update
+ */
 void GUI::receive_update(const char *tag,const void *value) {
 
   if(m_pause_display_updates) return;
@@ -1226,6 +1316,7 @@ void GUI::render_dialog(const char *text1,
     display_draw_text_center(20,text1,FOREGROUND_COLOR);
     display_draw_text_center(36,text2,FOREGROUND_COLOR);
     display_draw_text_center(52,text3,FOREGROUND_COLOR);
+
     display_draw_text_center(68,text4,FOREGROUND_COLOR);
     display_draw_text_center(94,"PRESS ANY KEY",FOREGROUND_COLOR);
   }

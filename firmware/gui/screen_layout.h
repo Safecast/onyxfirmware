@@ -5,7 +5,11 @@
 #include <stdint.h>
 
 #define TEXT_LENGTH 25
-#define SCREEN_COUNT 25
+#define SCREEN_COUNT 26
+
+
+// The constants below are the type of items that can be drawn
+// on the screen.
 
 #define ITEM_TYPE_MENU          0  // A normal menu item
 #define ITEM_TYPE_LABEL         1  // A static label, can not be changed
@@ -24,6 +28,36 @@
 
 #define INVALID_SCREEN 255
 
+/**
+ * the GUI displays "Screens". These screens are drawn based on a screen
+ * layout templated, defined in the "screen" struct below, that contains
+ * screen items, defined in the screen_item struct below.
+ */
+
+/**
+ * An item to be displayed on a screen template. An item contains a
+ * type, as defined in ITEM_TYPE_* and several variables, which are used
+ * or not depending on item type:
+ *
+ * ITEM_TYPE_HEAD : val1, val2, and kanji_image are unused.
+ *                  text: name of the variable to display in header
+ * ITEM_TYPE_MENU : val1: Screen index of the menu (starts at 1)
+ *                  val2: Line on screen where menu should be drawn
+ *                  text: English text of menu entry
+ *                  kanji_image: index of Kanji of menu entry
+ * ITEM_TYPE_LABEL : val1: x position. If 255, draw label centered on screen
+ *                   val2: y position
+ *                   text, kanji_image: label text
+ *
+ * ITEM_TYPE_VARNUM: val1, val2: x,y position on screen
+ *                   text: name of the variable on the screen (one
+ *                         name per digit) If the variable is not numeric,
+ *                         you can use the following syntax:
+ *                         "NAME:char1,char2,char3...". See UTC offset menu
+ *                         for instance: "SIGN:-,+,"
+ *                   kanji_image:not used ?
+ *
+ */
 struct screen_item {
   uint8_t type;
   uint8_t val1;
@@ -32,6 +66,13 @@ struct screen_item {
   uint8_t kanji_image;
 };
 
+/**
+ * Screen layout template. All templates are defined in screen_layout.cpp and
+ * stored as flash variables since they are constant, this way they do not take
+ * space in our RAM.
+ *
+ * A screen contains up to 10 items and a reference to a help screen (optional)
+ */
 struct screen {
   uint8_t       item_count;
   screen_item   items[10];
