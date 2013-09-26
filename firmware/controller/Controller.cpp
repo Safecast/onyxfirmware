@@ -26,6 +26,11 @@
 
 Controller *system_controller;
 
+/**
+ * Initialize the system controller. In particular:
+ *   - Load settings
+ *   - Setup the log interval alarm.
+ */
 Controller::Controller() {
 
   m_sleeping=false;
@@ -249,6 +254,10 @@ bool is_leap(int month,int day,int year) {
   return false;
 }
 
+/**
+ * Put the device in sleep mode (will wakeup with
+ * standby switch toggle, or RTC alarm for logging)
+ */
 void Controller::event_sleep(const char *event,const char *value) {
   #ifndef NEVERSLEEP
   if(m_sleeping == false) {
@@ -368,6 +377,9 @@ void Controller::event_rem(const char *event,const char *value) {
   tick_item("\x80R",true);
 }
 
+/**
+ * Clears the event log. TODO: ask for confirmation
+ */
 void Controller::event_clear_log(const char *event,const char *value) {
     flashstorage_log_clear();
     m_gui->show_dialog("Log Cleared",0,0,0,0,48,254,254,254);
@@ -653,6 +665,11 @@ void Controller::event_qrtweet(const char *event,const char *value) {
     qr_draw(str);
 }
 
+/**
+ * Called by the GUI when a key event is received, triggers an action in the
+ * controller.
+ *
+ */
 void Controller::receive_gui_event(const char *event,const char *value) {
   if(m_sleeping) return;
 
@@ -712,7 +729,9 @@ void Controller::check_warning_level() {
 }
 
 /**
- * Append a new entry to the log
+ * Append a new entry to the log if necessary. Checks the
+ * state of m_alarm_log to determine if we should append a log
+ * entry.
  */
 void Controller::do_logging() {
   if(rtc_alarmed()) {
@@ -764,6 +783,10 @@ void Controller::do_logging() {
   }
 }
 
+/**
+ * Checks position of "Sleep" (standby) switch at the back of the device and
+ * take action if switch position changed.
+ */
 void Controller::check_sleep_switch() {
 
   #ifndef NEVERSLEEP
@@ -809,6 +832,10 @@ void Controller::check_sleep_switch() {
   }
 }
 
+/**
+ * Dim the screen if necessary. Called by the Controller. Will dim in
+ * several steps (one dim level at each call)
+ */
 void Controller::do_dimming() {
 
   if(m_never_dim) return;
@@ -836,6 +863,9 @@ void Controller::do_dimming() {
   }
 }
 
+/**
+ * Send current CPM value to the GUI for display.
+ */
 void Controller::send_cpm_values() {
   //TODO: I should change this so it only sends the messages the GUI currently needs.
   char text_cpmdint[50];
@@ -890,6 +920,9 @@ void Controller::send_graph_data() {
   m_gui->receive_update("RECENTDATA",graph_data);
 }
 
+/**
+ * Total counts
+ */
 void Controller::send_total_timer() {
   char text_totaltimer_count[50];
   char text_totaltimer_time [50];
@@ -964,6 +997,50 @@ void Controller::send_becq() {
   }
 }
 
+/**
+ * Send current log area status: time remaining at current log
+ * interval, and percentage full.
+ */
+void Controller::send_logstatus() {
+  uint32_t total = flashstorage_log_maxrecords();
+  uint32_t current = flashstorage_log_currentrecords();
+
+  uint32_t percent = current*100/total;
+  if (percent > 100) percent = 100; // We should never have this, but in case
+                                    // the flashstorage functions return wrong values,
+                                    // we'll be safe.
+  char text[16];
+  sprintf(text,"%"PRIu32"%% full", percent);
+  m_gui->receive_update("LOGPERCENT", text);
+
+  // Now compute how much time we have left in the log area at
+  // the current log interval:
+
+  if (m_log_interval_seconds) {
+    uint32_t time_left_h = (total-current) * m_log_interval_seconds / 3600;
+    if (time_left_h > 99999) time_left_h = 99999; // Just to keep string under 16 characters
+    // Make the user's life easier: above 48 hours, display in days/hours
+    if (time_left_h < 49) {
+      sprintf(text, "%"PRIu32" hours", time_left_h);
+    } else {
+      uint32_t days  = time_left_h / 24;
+      uint32_t hours = time_left_h % 24;
+      sprintf(text,"%"PRIu32" days %"PRIu32" hrs", days, hours);
+    }
+    m_gui->receive_update("LOGREMAIN2", "remaining");
+  } else {
+    sprintf(text,"Logging disabled");
+    m_gui->receive_update("LOGREMAIN2", "         ");
+  }
+  m_gui->receive_update("LOGREMAIN", text);
+
+}
+
+/**
+ * The main update method of the controller, called from
+ * main.cpp. This sends all the current variables to the GUI, so that
+ * they can be updated on the screen if necessary.
+ */
 void Controller::update() {
   check_warning_level();
   m_keytrigger=false;
@@ -981,4 +1058,5 @@ void Controller::update() {
   send_total_timer();
   send_svrem();
   send_becq();
+  send_logstatus();
 }

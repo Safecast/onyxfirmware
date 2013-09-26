@@ -25,8 +25,9 @@ extern uint32_t _binary___binary_data_flash_data_size;
  * have some unusable space between the start of the flash_data area and
  * the next page boundary.
  */
-uint8_t  *flash_data_area_aligned;
-uint32_t  flash_data_area_aligned_size;
+uint8_t  *flash_data_area_aligned;        // Starting address of the log area,
+                                          // aligned to page boundary
+uint32_t  flash_data_area_aligned_size;   // Size of the usable log area
 
 extern Geiger *system_geiger;
 extern Controller *system_controller;
@@ -365,7 +366,7 @@ uint32_t flashstorage_log_size() {
 }
 
 /**
- * Returns true of the log area is full
+ * Returns true if the log area is full
  */
 bool flashstorage_log_isfull() {
   if(flashstorage_log_size() == (flash_data_area_aligned_size-flash_log_base)) return true;
@@ -376,14 +377,17 @@ bool flashstorage_log_isfull() {
  * Get the maximum number of records that can be stored in the flash
  */
 uint32_t flashstorage_log_maxrecords() {
-  return 0;
+  // Careful to remove the space reserved for settings (flash_log_base)
+  uint32_t records = (flash_data_area_aligned_size-flash_log_base) / sizeof(log_data_t);
+  return records;
 }
 
 /**
  * Get the current number of records stored in flash
  */
 uint32_t flashstorage_log_currentrecords() {
-  return 0;
+  uint32_t records = flashstorage_log_size() / sizeof(log_data_t);
+  return records;
 }
 
 /**

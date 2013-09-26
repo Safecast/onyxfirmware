@@ -1,6 +1,25 @@
 #include "screen_layout.h"
 #include "safecast_wirish_types.h"
-// types are: ITEM_TYPE_MENU, ITEM_TYPE_LABEL, ITEM_TYPE_SELECTNUM, ITEM_TYPE_SELECTION, ITEM_TYPE_VARLABEL, ITEM_TYPE_GRAPH
+
+
+// All ITEM_TYPES are defined in screen_layout.h
+
+
+// Note: all entries in screen_layout are stored in flash to avoid
+// wasting precious RAM with static data.
+
+/**
+ *  All entries in screens_layout follow this pattern (see screen_layout.h)
+ *
+ * {
+ *   item_count,
+ *   {
+ *     { item_type, val1, val2, text, kanji_image },
+ *     ...
+ *   },
+ *   help_menu
+ * }
+ */
 
 __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
@@ -31,7 +50,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 2 - Advanced menu
 {
-  5,
+  6,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"     ,255 },
     { ITEM_TYPE_MENU       , 4, 1, "Graphs"         ,1   },
@@ -39,8 +58,9 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU       ,21, 3, "Becquerel"      ,31  },
 //    { ITEM_TYPE_MENU_ACTION, 0, 4, "QR Transfer"    ,7   },
     { ITEM_TYPE_MENU_ACTION, 0, 4, "QR Tweet"       ,32  },
-//    { ITEM_TYPE_MENU_ACTION, 0, 5, "Audio Xfer"     ,255 }
-//    { ITEM_TYPE_MENU_ACTION, 0, 7, "Audio Xfer Full",255 }
+//    { ITEM_TYPE_MENU_ACTION, 0, 5, "Audio Xfer"     ,255 },
+//    { ITEM_TYPE_MENU_ACTION, 0, 7, "Audio Xfer Full",255 },
+    { ITEM_TYPE_MENU      , 25, 5, "Log status",255 },
   }
   ,7
 },
@@ -341,6 +361,20 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD       , 0 ,  0 , "CPMDEADINT"      , 255 },
     { ITEM_TYPE_VARNUM     , 38, 50 , "PULSEWIDTH1"     , 255 },
     { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:PulseWidth" ,2    },
+  }
+  ,7
+},
+
+
+//Screen 25 - Log status
+{
+  5,
+  {
+    { ITEM_TYPE_HEAD       ,  0 ,  0 , "CPMDEADINT"    , 255 },
+    { ITEM_TYPE_LABEL      ,  0 , 20 , "Log storage"   , 255 },
+    { ITEM_TYPE_VARLABEL   ,255 , 36, "LOGPERCENT"     , 255 },
+    { ITEM_TYPE_VARLABEL   ,  0 , 52, "LOGREMAIN"      , 255 },
+    { ITEM_TYPE_VARLABEL   ,255 , 68, "LOGREMAIN2"     , 255 },
   }
   ,7
 },
