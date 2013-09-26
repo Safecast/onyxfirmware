@@ -156,6 +156,32 @@ void cmd_logcsv(char *line) {
 }
 
 /**
+ * Displays status of log area: records used, total records
+ * and logging interval (in seconds)
+ */
+void cmd_logstatus(char *line) {
+  JSONNODE *n = json_new(JSON_NODE);
+  JSONNODE *n2 = json_new(JSON_NODE);
+  json_set_name(n2, "logstatus");
+  json_push_back(n2, json_new_i("used", flashstorage_log_currentrecords()));
+  json_push_back(n2, json_new_i("total", flashstorage_log_maxrecords()));
+  const char *sloginter = flashstorage_keyval_get("LOGINTERVAL");
+  uint32_t c = 0;
+  if(sloginter != 0) {
+    sscanf(sloginter, "%"PRIu32"", &c);
+  } else {
+    c = 30 * 60;
+  }
+  json_push_back(n2, json_new_i("interval", c));
+  json_push_back(n, n2);
+  json_char *jc = json_write_formatted(n);
+  serial_write_string(jc);
+  json_free(jc);
+  json_delete(n);
+}
+
+
+/**
  * Debugging command: changes the OLED display drive parameters.
  *  Use with caution, you can probably damage the screen if you use wrong
  *  parameters.
@@ -482,12 +508,13 @@ void cmd_keyvaldump(char *line) {
   char key[50];
   char val[50];
 
-  serial_write_string("{ \"keys\" {\n");
+  serial_write_string("{ \"keys\": {\n");
   char str[110];
   for(int n=0;;n++) {
     flashstorage_keyval_by_idx(n,key,val);
     if(key[0] == 0) break;
-    sprintf(str,"  \"%s\": \"%s\"\n",key,val);
+    if (n>0) serial_write_string(",\n");
+    sprintf(str,"  \"%s\": \"%s\"",key,val);
     serial_write_string(str);
   }
   serial_write_string("  }\n\n}\n");
@@ -894,6 +921,14 @@ void serial_process_command(char *line) {
       if (strcmp(val, "settings") == 0) {
         err = false;
         cmd_keyvaldump(0);
+      } else
+      if (strcmp(val, "version") == 0) {
+        err = false;
+        cmd_version(0);
+      } else
+      if (strcmp(val,"logstatus") == 0) {
+         err = false;
+         cmd_logstatus(0);
       }
       json_free(val);
     }
