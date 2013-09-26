@@ -711,6 +711,9 @@ void Controller::check_warning_level() {
   }
 }
 
+/**
+ * Append a new entry to the log
+ */
 void Controller::do_logging() {
   if(rtc_alarmed()) {
     m_alarm_log = true;

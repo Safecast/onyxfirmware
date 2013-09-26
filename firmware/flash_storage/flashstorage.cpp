@@ -19,7 +19,7 @@ extern uint32_t _binary___binary_data_flash_data_start;
 extern uint32_t _binary___binary_data_flash_data_size;
 
 /**
- * We have no insurance that the flash_data area starts at a page
+ * We have no assurance that the flash_data area starts at a page
  * boundary. The two variables below are initialized when we call
  * flash_initialize, and align the flash area to a page size - we can
  * have some unusable space between the start of the flash_data area and
@@ -183,11 +183,17 @@ void flashstorage_initialise() {
   flash_data_area_aligned_size = (uint32_t) (&_binary___binary_data_flash_data_size) - unusable;
 }
 
+/**
+ * Internal function, returns the flash address of a settings
+ * key.
+ * returns 0 if the key is not found.
+ */
 char *flashstorage_keyval_get_address(const char *key) {
 
   for(uint32_t n=0;n<flash_log_base;n+=(keyval_size*2)) {
 
     if(flash_data_area_aligned[n] == 0) {
+      // We are at the end of the settings keys and found nothing.
       return 0;
     }
 
@@ -197,9 +203,16 @@ char *flashstorage_keyval_get_address(const char *key) {
     }
   }
 
-  return 0;
+  return 0; // Did not find that settings key
 }
 
+/**
+ * Find the first free address in flash area for storing
+ * settings keys.
+ *
+ * Returns 0 if no space, otherwise returns the first free
+ * address.
+ */
 char *flashstorage_keyval_get_unalloced() {
   for(uint32_t n=0;n<flash_log_base;n+=(keyval_size*2)) {
 
@@ -224,6 +237,12 @@ void flashstorage_keyval_by_idx(int idx,char *key,char *val) {
   strcpy(val,(char *) flash_data_area_aligned+n+keyval_size);
 }
 
+/**
+ * Get the value of a settings key
+ *
+ * returns a char* pointing to the value, or 0
+ * if no key/value found
+ */
 const char *flashstorage_keyval_get(const char *key) {
 
   char *v = flashstorage_keyval_get_address(key);
@@ -246,6 +265,9 @@ void flashstorage_readpage(uint8_t *page_address,uint8_t *pagedata) {
   }
 }
 
+/**
+ * Set a settings key value.
+ */
 void flashstorage_keyval_set(const char *key,const char *value) {
 
   uint8_t pagedata[pagesize];
@@ -255,14 +277,16 @@ void flashstorage_keyval_set(const char *key,const char *value) {
   strcpy((char *) new_keyval_data+keyval_size,(char *)value);
 
   // just in case!
-  new_keyval_data[49] = 0;
-  new_keyval_data[99] = 0;
+  new_keyval_data[keyval_size-1] = 0;
+  new_keyval_data[keyval_size_all-1] = 0;
 
   // read original page data
   char *kvaddr     = flashstorage_keyval_get_address(key);
 
+  // If we did not find this key, get a free address to store it
   if(kvaddr == 0) kvaddr = flashstorage_keyval_get_unalloced();
 
+  // If there are no free addresses, quit.
   if(kvaddr == 0) return;
 
   uint8_t *page_address    = flashstorage_get_pageaddr((uint8_t *) kvaddr);
@@ -283,7 +307,11 @@ void flashstorage_keyval_set(const char *key,const char *value) {
   flashstorage_lock();
 }
 
-// zero out flash logging area (only the first page as this resets the size)
+
+/**
+ * Clear the flash log area. In practice, this zeroes out the flash logging area,
+ * but only the first page as this resets the size.
+ */
 void flashstorage_log_clear() {
 
   uint8_t pagedata[pagesize];
@@ -306,9 +334,15 @@ void flashstorage_log_clear() {
   }
 }
 
+/**
+ * Somehow this is empty ??
+ */
 void flashstorage_log_size_set(uint32_t new_size) {
 }
 
+/**
+ * Returns the size (in bytes) of the current log
+ */
 uint32_t flashstorage_log_size() {
 
   // scan the log, find the first unused log entry.
@@ -330,11 +364,31 @@ uint32_t flashstorage_log_size() {
   return flash_data_area_aligned_size-flash_log_base;
 }
 
+/**
+ * Returns true of the log area is full
+ */
 bool flashstorage_log_isfull() {
   if(flashstorage_log_size() == (flash_data_area_aligned_size-flash_log_base)) return true;
   return false;
 }
 
+/**
+ * Get the maximum number of records that can be stored in the flash
+ */
+uint32_t flashstorage_log_maxrecords() {
+  return 0;
+}
+
+/**
+ * Get the current number of records stored in flash
+ */
+uint32_t flashstorage_log_currentrecords() {
+  return 0;
+}
+
+/**
+ * Stores a new log entry. Usually called from controller/controller.cpp
+ */
 int flashstorage_log_pushback(uint8_t *data,uint32_t size) {
 
   // if datalogging is paused (usually for data transfer) just return.
@@ -423,10 +477,16 @@ void flashstorage_log_userchange() {
   flashstorage_log_pushback(data,sizeof(log_data_t));
 }
 
+/**
+ * Pauses logging
+ */
 void flashstorage_log_pause() {
   log_pause = true;
 }
 
+/**
+ * Resumes logging
+ */
 void flashstorage_log_resume() {
   log_pause = false;
 }
@@ -436,6 +496,11 @@ uint8_t *flashstorage_log_get() {
   return flash_data_area_aligned+flash_log_base;
 }
 
+
+/**
+ * Loads all stored settings into the running firmware.
+ *
+ */
 void flashstorage_keyval_update() {
   const char *spulsewidth = flashstorage_keyval_get("PULSEWIDTH");
   if(spulsewidth != 0) {
