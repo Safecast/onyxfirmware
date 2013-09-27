@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+
 #define WINDOWS_PER_SECOND 2
 #define WINDOWS_PER_MIN    120
 #define WINDOWS_STORED     600
