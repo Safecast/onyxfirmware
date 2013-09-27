@@ -28,8 +28,10 @@ bool mic_output=true;
 
 /**
  * Interrupt handler for TIMER4.
- * TODO: used to update the window in case we don't receive
- * a pulse coming from the Geiger counter.
+ *
+ * At every interrupt by TIMER4 (2Hz currently), update
+ * the number of counts during that period.
+ *
  */
 void static geiger_min_log(void) {
   system_geiger->update_last_windows();
@@ -186,7 +188,8 @@ void Geiger::initialise() {
   pulse_timer_init();
 
 
-  // initialise timer
+  // Initialise timer at 2Hz (500k microseconds = 0.5 s)
+
   timer_pause(TIMER4);
   //TODO: fix this so it uses both prescaler and reload...
   timer_set_prescaler(TIMER4,((500000*CYCLES_PER_MICROSECOND)/MAX_RELOAD));
@@ -235,6 +238,11 @@ void Geiger::pulse_timer_init() {
 }
 
 
+/**
+ * Update the number of count received during the last window
+ * (0.5 seconds currently) and stores this in the circular
+ * buffer (last_windows).
+ */
 void Geiger::update_last_windows() {
   last_windows[last_windows_position] = current_count;
   current_count=0;
@@ -260,6 +268,11 @@ uint32_t max(uint32_t a,uint32_t b) {
  * on radiations, which could indicate that we got close to a source, or
  * get away from a source. If that's the case, then this method invalidates
  * the measurement window.
+ *
+ *  IMPORTANT NOTE: get_cpm should not be used to display/output actual
+ *  count per minute values, since it does not account for the tube's
+ *  resolving time (aka dead time). If you want to get the real CPM value,
+ *  get this from get_cpm_deadtime_compensated below.
  *
  * TODO: maybe should provide some user feedback on window invalidation?
  *
@@ -295,7 +308,7 @@ float Geiger::get_cpm() {
     c_position--;
   }
 
-  // Invalidate if the last 2 5second windows differ by more than 100times.
+  // Invalidate if the last two 5 second windows differ by more than 100 times.
   uint32_t delta = old5sum-last5sum;
   if(delta < 0) delta = 0-delta;
   uint32_t mincpm = min(old5sum,last5sum);
@@ -317,7 +330,6 @@ float Geiger::get_cpm() {
     }
   }
 
-
   float sum = 0;
 
   c_position = last_windows_position-1;
@@ -337,7 +349,8 @@ float Geiger::get_cpm() {
   if(m_samples_collected > samples_used) {
     m_cpm_valid = true;
     float cpm = (sum/((float)samples_used))*((float)WINDOWS_PER_MIN);
-    if(cpm > MAX_CPM) m_cpm_valid=false;
+    if(cpm > MAX_CPM) m_cpm_valid=false; // Let's hope you never end up here
+                                         // while holding the device in your hand...
     return cpm;
   }
   m_cpm_valid = false;
@@ -371,14 +384,28 @@ float Geiger::get_cpm30() {
   return (sum/((float)m_samples_collected))*((float)WINDOWS_PER_MIN);
 }
 
+/**
+ * Returns the CPM count, compensated for the tube's 'Dead time'.
+ *
+ * Explanation: After each detection, a Geiger tube needs a bit of time to
+ * recover/recharge before being able to detect activity again. If a way,
+ * after each count it is 'blind' for a short amount of time.
+ *
+ * In order to get the real CPM value, we therefore need to account for this
+ * dead time, to measure only the actual 'live time' during which the tube is
+ * able to detect radiation.
+ *
+ * This dead time is specific to the tube and provided by the manufacturer.
+ *
+ * IMPORTANT NOTE: if you need to output/display the CPM count, this is the method
+ * to use, not the get_cpm above.
+ */
 float Geiger::get_cpm_deadtime_compensated() {
   float cpm = get_cpm();
 
   // CPM correction from Medcom
   return cpm/(1-((cpm*1.8833e-6)));
 
-//  float deadtime_us = cpm*40;
-//  return (cpm/((60*1000000)-deadtime_us))*(60*1000000);
 }
 
 /**

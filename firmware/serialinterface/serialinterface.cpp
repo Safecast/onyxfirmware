@@ -293,15 +293,26 @@ void cmd_magread(char *line) {
 
 /**
  * Gets the current CPM reading as
- * { "cpm": { "value": val, "valid": boolean }Ê}
+ * { "cpm": {
+ *     "value": val,      // Actual value
+ *     "valid": boolean,  // Valid flag
+ *     "raw": val,        // Uncompensated value
+ *     "cpm30": val       // 30 second window
+ *      }
+ *  }
+ *
+ *  See Geiger.cpp for a more in-depth explanation of
+ *  raw and compensated CPM values.
  */
 void cmd_cpm(char *line) {
 
   JSONNODE *n = json_new(JSON_NODE);
   JSONNODE *reading = json_new(JSON_NODE);
   json_set_name(reading, "cpm");
-  json_push_back(reading, json_new_f("value", system_geiger->get_cpm()));
+  json_push_back(reading, json_new_f("value", system_geiger->get_cpm_deadtime_compensated()));
   json_push_back(reading, json_new_b("valid", system_geiger->is_cpm_valid()));
+  json_push_back(reading, json_new_f("raw", system_geiger->get_cpm()));
+  json_push_back(reading, json_new_f("cpm30", system_geiger->get_cpm30()));
   json_push_back(n, reading);
   json_char *jc = json_write_formatted(n);
   serial_write_string(jc);
@@ -310,16 +321,25 @@ void cmd_cpm(char *line) {
 
 }
 
+/**
 void cmd_cpm30(char *line) {
   char str[16];
   sprintf(str,"%.3f",system_geiger->get_cpm30());
   serial_write_string(str);
 }
+*/
+
+/**
+ * Get the CPM reading, with tube dead time compensation. This is
+ * the 'real' CPM count.
+ */
+/*
 void cmd_cpmdeadtime(char *line) {
   char str[16];
   sprintf(str,"%.3f",system_geiger->get_cpm_deadtime_compensated());
   serial_write_string(str);
 }
+*/
 
 void cmd_writedac(char *line) {
   dac_init(DAC,DAC_CH2);
@@ -677,8 +697,8 @@ void register_cmds() {
   register_cmd("MAGREAD"       ,cmd_magread);		// GETMAG ? hall sensor?
   // cpm
   register_cmd("GETCPM"        ,cmd_cpm);		// CPM
-  register_cmd("GETCPM30"      ,cmd_cpm30);		// CPM
-  register_cmd("GETCPMDEADTIME",cmd_cpmdeadtime);	// CPM
+//  register_cmd("GETCPM30"      ,cmd_cpm30);		// CPM
+//  register_cmd("GETCPMDEADTIME",cmd_cpmdeadtime);	// CPM
   // ??
   register_cmd("WRITEDAC"      ,cmd_writedac);
   register_cmd("READADC"       ,cmd_readadc);
