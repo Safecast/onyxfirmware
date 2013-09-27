@@ -321,26 +321,6 @@ void cmd_cpm(char *line) {
 
 }
 
-/**
-void cmd_cpm30(char *line) {
-  char str[16];
-  sprintf(str,"%.3f",system_geiger->get_cpm30());
-  serial_write_string(str);
-}
-*/
-
-/**
- * Get the CPM reading, with tube dead time compensation. This is
- * the 'real' CPM count.
- */
-/*
-void cmd_cpmdeadtime(char *line) {
-  char str[16];
-  sprintf(str,"%.3f",system_geiger->get_cpm_deadtime_compensated());
-  serial_write_string(str);
-}
-*/
-
 void cmd_writedac(char *line) {
   dac_init(DAC,DAC_CH2);
 
@@ -697,8 +677,6 @@ void register_cmds() {
   register_cmd("MAGREAD"       ,cmd_magread);		// GETMAG ? hall sensor?
   // cpm
   register_cmd("GETCPM"        ,cmd_cpm);		// CPM
-//  register_cmd("GETCPM30"      ,cmd_cpm30);		// CPM
-//  register_cmd("GETCPMDEADTIME",cmd_cpmdeadtime);	// CPM
   // ??
   register_cmd("WRITEDAC"      ,cmd_writedac);
   register_cmd("READADC"       ,cmd_readadc);
@@ -882,6 +860,7 @@ void serial_writeprivatekey() {
  *    - "rtc"
  *    - "devicetag"
  *    - "settings"
+ *    - "cpm"
  *
  */
 void serial_process_command(char *line) {
@@ -899,6 +878,10 @@ void serial_process_command(char *line) {
     JSONNODE *cmd = json_get_nocase(n,"get");
     if (cmd != 0 && json_type(cmd) == JSON_STRING) {
       json_char *val = json_as_string(cmd);
+      if (strcmp(val, "cpm") == 0) {
+        err = false;
+        cmd_cpm(0);
+      } else
       if (strcmp(val, "guid") == 0) {
         err = false;
         cmd_guid(0);
