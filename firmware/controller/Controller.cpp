@@ -657,10 +657,10 @@ void Controller::event_qrtweet(const char *event,const char *value) {
 
     if(system_geiger->is_cpm_valid()) {
                  //12345678901234567890123456789012345    1   2 34567890
-      sprintf(str,"http://twitter.com/home?status=CPM:%u%%23scast",(int)system_geiger->get_cpm());
+      sprintf(str,"http://twitter.com/home?status=CPM:%u%%23scast",(int)system_geiger->get_cpm_deadtime_compensated());
     } else {
                  //12345678901234567890123456789012345    1   2 34567890
-      sprintf(str,"http://twitter.com/home?status=CPM:%u%%23bad",(int)system_geiger->get_cpm());
+      sprintf(str,"http://twitter.com/home?status=CPM:%u%%23bad",(int)system_geiger->get_cpm_deadtime_compensated());
     }
     qr_draw(str);
 }
@@ -715,7 +715,8 @@ void Controller::receive_gui_event(const char *event,const char *value) {
 }
 
 void Controller::check_warning_level() {
-  if((m_warncpm > 0) && (system_geiger->get_cpm() >= m_warncpm) && (m_warning_raised == false) && system_geiger->is_cpm_valid()) {
+
+  if((m_warncpm > 0) && (system_geiger->get_cpm_deadtime_compensated() >= m_warncpm) && (m_warning_raised == false) && system_geiger->is_cpm_valid()) {
     if(m_sleeping) display_powerup();
     char text_cpm[20];
     sprintf(text_cpm,"%8.3f",system_geiger->get_cpm_deadtime_compensated());
