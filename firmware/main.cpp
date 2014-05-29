@@ -26,6 +26,9 @@
 
 /**
  * This is defined at linking time
+ * added this for a test commit/push ljh
+ 
+ 
  */
 extern uint8_t _binary___binary_data_private_key_data_start;
 extern uint8_t _binary___binary_data_private_key_data_size;
