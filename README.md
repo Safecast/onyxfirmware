@@ -1,4 +1,4 @@
-safecastgeiger test
+safecastgeiger
 ==============
 
 A firmware project for the Safecast geiger counter (see http://www.bunniestudios.com/blog/?p=2218) based on ARM Cortex-M3 MCU (STM32F101RET6, http://www.st.com/web/catalog/mmc/FM141/SC1169/SS1031/LN1567/PF206930).
