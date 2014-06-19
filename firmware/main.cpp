@@ -22,6 +22,7 @@
 #include "buzzer.h"
 #include <stdio.h>
 #include <string.h>
+#include "nvic.h"
 #include "rtc.h"
 
 /**
@@ -45,6 +46,35 @@ premain() {
 int main(void) {
 
     Geiger g;
+    power_initialise();
+
+    if ( power_battery_level() < 2 ) {
+
+	g.initialise(); // this will set up our timer so we wake up on sleep
+	slowClocks();
+	do {
+		// we should sleep here.  wake up periodically and check our battery level.
+        // request wait for interrupt (in-line assembly)
+	  volatile uint32_t *pwr_cr  = (uint32_t *) 0x40007000; //ok
+	  volatile uint32_t *pwr_csr = (uint32_t *) 0x40007004; //ok
+	  volatile uint32_t *scb_scr = (uint32_t *) 0xE000ED10; //ok
+
+	  *scb_scr |= (uint16_t) 0x14; // SCB_SCR_SLEEPDEEP; // set deepsleep
+														 // sets SAVEONPEND
+	  delay_us(100);
+	  asm volatile (
+			"SEV\r\n"
+			"WFE\n\t"
+			"SEV\r\n"
+	  );
+	  } while ( power_battery_level() < 5 );
+    // issue reset
+    nvic_sys_reset();
+    }
+
+
+
+
     serial_initialise();
     flashstorage_initialise();
     buzzer_initialise();
@@ -53,12 +83,16 @@ int main(void) {
     switch_initialise();
     accel_init();
 
-    power_initialise();
     Controller c;
     GUI m_gui(c);
     c.set_gui(m_gui);
     UserInput  u(m_gui);
     u.initialise();
+
+    /*
+    	// Note: we should never drop into this mode anymore after 12.18
+    	// because of the emergency battery charging routing above
+    	// so this code is disabled for now.
 
     if(power_battery_level() < 1) {
       display_initialise();
@@ -72,6 +106,7 @@ int main(void) {
  
       power_standby();
     }
+    */
 
     uint8_t *private_key = ((uint8_t *) &_binary___binary_data_private_key_data_start);
     if(private_key[0] != 0) delay_us(1000);
