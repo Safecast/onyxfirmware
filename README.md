@@ -1,9 +1,10 @@
 safecastgeiger
 ==============
 
-A firmware project for the safecast geiger counter http://www.bunniestudios.com/blog/?p=2218
+A firmware project for the Safecast geiger counter (see http://www.bunniestudios.com/blog/?p=2218) based on ARM Cortex-M3 MCU (STM32F101RET6, http://www.st.com/web/catalog/mmc/FM141/SC1169/SS1031/LN1567/PF206930).
 
 Please see the LICENSE file for licensing information. 
+
 
 User firmware loaders and log uploading
 =======================================
@@ -17,6 +18,7 @@ http://41j.com/OnyxLoader.zip
 
 Source code for these firmware loaders is available here: http://github.com/new299/onyxloader
 
+
 Windows
 -------
 
@@ -26,6 +28,13 @@ You may also need to install the VisualStudio runtime from here: http://www.micr
 You can then run the windows tool which is available here:
 
 http://41j.com/OnyxLoader.exe
+
+
+Linux
+-------
+
+See the source in firmware_loader (also compiled when you execute `make upload monitor` inside firmware directory).
+
 
 Building
 ========

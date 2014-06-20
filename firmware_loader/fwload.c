@@ -88,9 +88,12 @@ int getandcheckCBUS( FT_HANDLE ftHandle0 ) {
   }
 
   // check that CBUS3 is power enable
-  if( Data.Cbus3 != 0x01 ) {
+  if( Data.Cbus3 != 0x0A ) {  // was 01
     printf( "Cbus3 is %d, should be %d, updating!\n", Data.Cbus3, 0x1);
-    Data.Cbus2 = 0x0B;
+    //Data.Cbus2 = 0x0B;  // wierd, should be writing to cbus3, has no effect because current verion is alwasy default (0x01)
+
+    Data.Cbus3 = 0x0A;
+
     need_write = 1;
   }
 
@@ -101,7 +104,10 @@ int getandcheckCBUS( FT_HANDLE ftHandle0 ) {
     need_write = 1;
   }
 
-  if( need_write ) {
+
+
+
+if( need_write ) {
     printf( "Updating EEPROM to correct setting for safecast.\n" );
     ftStatus = FT_EE_Program(ftHandle0, &Data);
     if(ftStatus != FT_OK) {
@@ -113,6 +119,21 @@ int getandcheckCBUS( FT_HANDLE ftHandle0 ) {
   } else {
     printf( "EEPROM values are up to date, not modifying them\n" );
   }
+
+   printf( "Updating CBUS3 for charging.\n" );  
+
+
+  ftStatus = FT_SetBitMode(ftHandle0, 0x80, 0x20); // CBUS bitbang mode
+  if(ftStatus != FT_OK) {
+    printf("Failed to set CBUS\n");
+  }else {
+   
+      printf("Set CBUS3 to LOW\n" );
+  }
+
+
+
+
   return 0;
 
 }
@@ -197,7 +218,7 @@ void safecast_resetboard(int mode) {
   FT_STATUS	ftStatus;
 
   if( mode == 1 ) {
-    mask = CBUS_BOOT_MASK;
+    mask = CBUS_BOOT_MASK;  // 0x4
   } else {
     mask = 0;
   }
@@ -233,6 +254,10 @@ void safecast_resetboard(int mode) {
   if( mode ) 
     printf( ".should now be in system mode.\n" );
   else
+
+
+
+
     printf( ".should now be running as normal.\n" );
   
 }
@@ -369,6 +394,7 @@ int main(int argc, char **argv)
   }
 
   // Connect to bootloader
+ 
   printf( "Connect to bootloader.\n" );
   if( stm32_init( NULL, baud ) != STM32_OK )
   {

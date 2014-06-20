@@ -99,14 +99,13 @@ static void setupClocks() {
     rcc_set_prescaler(RCC_PRESCALER_APB2, RCC_APB2_HCLK_DIV_1);
 }
 
-// this set-up is used to slow the system down so it can charge < 3.2 volts.
-void slowClocks() {
+// this set-up is used to slow the system down so it can charge < 3.2 volts.  
+void slowClocks() {  
     rcc_clk_init(RCC_CLKSRC_PLL, RCC_PLLSRC_HSI_DIV_2, RCC_PLLMUL_2);
     rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_4);
     rcc_set_prescaler(RCC_PRESCALER_APB1, RCC_APB1_HCLK_DIV_4);
     rcc_set_prescaler(RCC_PRESCALER_APB2, RCC_APB2_HCLK_DIV_4);
 }
-
 
 static void setupNVIC() {
 #ifdef VECT_TAB_FLASH

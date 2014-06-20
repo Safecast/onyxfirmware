@@ -60,7 +60,7 @@ int main(void) {
 	  volatile uint32_t *scb_scr = (uint32_t *) 0xE000ED10; //ok
 
 	  *scb_scr |= (uint16_t) 0x14; // SCB_SCR_SLEEPDEEP; // set deepsleep
-														 // sets SAVEONPEND
+							 // sets SAVEONPEND
 	  delay_us(100);
 	  asm volatile (
 			"SEV\r\n"
@@ -72,9 +72,6 @@ int main(void) {
     nvic_sys_reset();
     }
 
-
-
-
     serial_initialise();
     flashstorage_initialise();
     buzzer_initialise();
@@ -82,7 +79,6 @@ int main(void) {
     g.initialise();
     switch_initialise();
     accel_init();
-
     Controller c;
     GUI m_gui(c);
     c.set_gui(m_gui);
