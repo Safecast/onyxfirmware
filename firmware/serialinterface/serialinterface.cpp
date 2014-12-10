@@ -497,7 +497,7 @@ void cmd_logstress(char *line) {
 /**
  * Debug command: dumps all settings (key/value).
  * Output in this format:
- * { "keys" {
+ * { "keys" : {
  *    "key1": "value1",
  *    "key2": "value2",
  *    ...
@@ -517,7 +517,7 @@ void cmd_keyvaldump(char *line) {
     sprintf(str,"  \"%s\": \"%s\"",key,val);
     serial_write_string(str);
   }
-  serial_write_string("  }\n\n}\n");
+  serial_write_string("  }\n}\n");
 }
 
 /**

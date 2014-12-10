@@ -7,18 +7,22 @@
 #include <time.h>
 #include "realtime.h"
 #include "Geiger.h"
+#include "GUI.h"
 #include <inttypes.h>
 
 uint32_t log_position = 0;
 extern Geiger *system_geiger;
-
+extern GUI *system_gui;
 
 extern "C" {
 
 void log_read_start() {
   log_position=0;
+  system_gui->show_dialog("Log Transfer", "* starting *",0,0,0);
 }
 
+// Read exactly one log record in the flash. If this is the first record,
+// also add the JSON header
 // return 0 on failure.
 // return size of data written, data contains no linefeeds, and single trailing \n
 int log_read_block(char *buf) {
@@ -92,6 +96,15 @@ int log_read_block(char *buf) {
       buf[1] = 0;
       buf+=1;
     }
+
+    // Update log transfer dialog to provide a bit of user feedback,
+    // every 10 records
+    if (!(log_position %10)) {
+		char percent[16];
+		sprintf(percent, "%"PRIu32"/%"PRIu32"", log_position, logsize);
+		system_gui->show_dialog("Log Transfer", percent,"Please wait...",0,0,0);
+    }
+
   }
   buf[0]=0;
 
@@ -102,6 +115,7 @@ int log_read_block(char *buf) {
     buf[2] = '\n';
     buf[3] = 0;
     buf+=3;
+    system_gui->show_dialog("Log Transfer", "* Done *",0,0,0);
   }
   return strlen(buf_start);
 }

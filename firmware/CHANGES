@@ -1,10 +1,15 @@
-
-Changes for 12.18  Lee Henderson (Medcom)  5.28.14
-
-* Prevent OLED from initilizing below 3.2V.  If battery voltage is below 3.2V, clocks are slowed down until battery voltage is greater than 3.2V.  At this point a master reset is generated and the unit will restart.
-
-
-
+ Changes for 12.19 Edouard Lafargue
+ 
+   Display a dialog on screen during log transfer.
+ 
+ Changes for 12.18  Lee Henderson (Medcom)  5.28.14
+ 
+ * Prevent OLED from initilizing below 3.2V.  If battery voltage is below 3.2V, clocks are slowed down until battery voltage is greater than 3.2V.  At this point a master reset is generated and the unit will restart.
+ 
+ Changes for release 17
+ 
+ * Implement JSON-based serial interface with more advanced commands.
+ 
 Changes for release 14
 
 * Cleared all warnings
