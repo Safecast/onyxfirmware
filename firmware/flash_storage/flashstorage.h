@@ -15,12 +15,13 @@ void flashstorage_keyval_update();
 void     flashstorage_log_clear();
 int      flashstorage_log_pushback(uint8_t *data,uint32_t size);
 uint32_t flashstorage_log_size();
-uint8_t *flashstorage_log_get();
+uint8_t *flashstorage_log_baseaddress();
 bool     flashstorage_log_isfull();
 void     flashstorage_log_pause();
 void     flashstorage_log_resume();
 bool     flashstorage_logpaused();
 void     flashstorage_log_userchange();
+void	 flashstorage_dump_hex();
 
 uint32_t flashstorage_log_maxrecords();
 uint32_t flashstorage_log_currentrecords();
