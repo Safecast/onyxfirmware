@@ -300,6 +300,23 @@ void cmd_setdevicetag(char *line) {
   command_stack_size++;
 }
 
+/**
+ * Output morse code (part 2)
+ */
+void morse_code_run(char *line) {
+	if (line[0] == '_')
+		command_stack_pop();
+}
+
+/**
+ * Output morse code (part 1)
+ */
+void cmd_morse_code(char *line) {
+	serial_write_string("Morse code (capital, '_' to exit):\r\n#>");
+	command_stack[command_stack_size++] = morse_code_run;
+}
+
+
 void cmd_magread(char *line) {
   gpio_set_mode (PIN_MAP[41].gpio_device,PIN_MAP[41].gpio_bit, GPIO_OUTPUT_PP); // MAGPOWER
   gpio_set_mode (PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit, GPIO_INPUT_PU);  // MAGSENSE
@@ -734,7 +751,8 @@ void register_cmds() {
   register_cmd("KEYVALSET"     ,cmd_keyvalset);
   register_cmd("CAPTOUCHTEST"  ,cmd_captouchparams);
   register_cmd("CAPTOUCHDUMP"  ,cmd_captouchdump);
-  register_cmd("DUMPFLASH"	   , cmd_dumpflash);
+  register_cmd("DUMPFLASH"	   ,cmd_dumpflash);
+  register_cmd("MORSE"		   ,cmd_morse_code);
   // misc
   register_cmd("HELLO"         ,cmd_hello);
   register_cmd("LIST GAMES"    ,cmd_games);
@@ -965,6 +983,13 @@ void serial_process_command(char *line) {
           realtime_set_unixtime(time);
           json_keyval("ok", "rtc");
         }
+      }
+      op = json_get_nocase(cmd, "debug");
+      if (op != 0 && json_type(op) == JSON_NUMBER) {
+    	  err = false;
+    	  json_char *mode = json_as_string(op);
+    	  flashstorage_keyval_set("DEBUG", mode);
+    	  json_keyval("ok","debug");
       }
     }
     if (err) {

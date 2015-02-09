@@ -40,8 +40,6 @@ Controller::Controller() {
 	m_log_interval_seconds = 0;
 	rtc_clear_alarmed();
 	rtc_enable_alarm(RTC);
-	m_interval_stored = rtc_get_time(RTC);
-	m_counts_stored = 0;
 	m_alarm_log = false;
 	system_controller = this;
 	m_last_switch_state = true;
@@ -89,7 +87,9 @@ Controller::Controller() {
 		m_log_interval_seconds = c;
 	}
 
-	rtc_set_alarm(RTC, rtc_get_time(RTC) + m_log_interval_seconds);
+	if (m_log_interval_seconds > 0) {
+		rtc_set_alarm(RTC, rtc_get_time(RTC) + m_log_interval_seconds);
+	}
 }
 
 void Controller::set_gui(GUI &g) {
@@ -494,12 +494,11 @@ void Controller::event_becqscreen(const char *event, const char *value) {
 }
 
 void Controller::event_loginterval(const char *event, const char *value) {
-	int32_t log_interval = 0;
+	int32_t log_interval = 0; // We do not log by default
+
 	const char *val = flashstorage_keyval_get("LOGINTERVAL");
 	if (val != NULL) {
 		sscanf(val, "%"PRIi32"", &log_interval);
-	} else {
-		log_interval = 30 * 60;
 	}
 
 	log_interval = log_interval / 60; // Turn it into minutes
@@ -855,6 +854,7 @@ void Controller::check_warning_level() {
  */
 void Controller::do_logging() {
 	if (rtc_alarmed()) {
+		buzzer_morse("R");  // for 'R'TC larm
 		m_alarm_log = true;
 		m_last_alarm_time = rtc_get_time(RTC);
 #ifndef DISABLE_ACCEL
@@ -862,13 +862,13 @@ void Controller::do_logging() {
 				&m_accel_z_stored);
 #endif
 		//m_magsensor_stored = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
-
 		// set new alarm for log_interval_seconds from now.
 		rtc_clear_alarmed();
 	}
 
 	if (m_alarm_log == true) {
 		if (system_geiger->is_cpm30_valid()) {
+			buzzer_morse("L");  // for 'L'og
 
 			log_data_t data;
 #ifndef DISABLE_ACCEL
@@ -907,13 +907,10 @@ void Controller::do_logging() {
 			rtc_set_alarm(RTC, m_last_alarm_time + m_log_interval_seconds);
 			rtc_enable_alarm(RTC);
 			if (m_sleeping) {
-				buzzer_blocking_buzz(0.1);
-				delay_us(100000);
-				buzzer_blocking_buzz(0.1);
-				delay_us(100000);
+				buzzer_morse("S");  // for 'S'tandby
 				power_standby();
 			} else {
-				buzzer_blocking_buzz(0.1);
+				buzzer_morse("A"); // for 'A'wake
 			}
 		}
 	}

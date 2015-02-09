@@ -176,10 +176,7 @@ bool flashstorage_erasepage_rt(uint8_t *pageaddr) {
 			return true;
 		// DEBUG: there no good reason why we should
 		// have to retry
-		for (int t = 0; t < 10; t++) {
-			buzzer_nonblocking_buzz(0.1);
-			delay_us(500000);
-		}
+		buzzer_morse("F ERASE E");
 	}
 	return false;
 }
@@ -193,10 +190,7 @@ bool flashstorage_writepage_rt(uint8_t *new_data, uint8_t *pageaddr) {
 			return true;
 		// DEBUG: there no good reason why we should
 		// have to retry
-		for (int t = 0; t < 20; t++) {
-			buzzer_nonblocking_buzz(0.1);
-			delay_us(500000);
-		}
+		buzzer_morse("F WRITE E");
 	}
 	return false;
 }

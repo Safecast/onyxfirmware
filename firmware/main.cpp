@@ -108,22 +108,21 @@ int main(void) {
 	// most peripherals to save as much power as possible.
 	if (power_get_wakeup_source() == WAKEUP_RTC) {
 		rtc_set_alarmed(); // if we woke up from the RTC, force the the alarm trigger.
-		buzzer_nonblocking_buzz(0.1);
-		delay_us(100000);
-		buzzer_nonblocking_buzz(0.1);
+		                   // because it was cleared when we initialized the controller.
+		buzzer_morse("W"); // 'W'akeup
 		c.m_sleeping = true;
 	} else {
 		// Switch on our display, and
 		// display our welcome screen
 		c.m_sleeping = false;
 
-		buzzer_nonblocking_buzz(0.1);
 		display_initialise();
 		const char *devicetag = flashstorage_keyval_get("DEVICETAG");
 		char revtext[10];
 		sprintf(revtext, "VERSION: %s ", OS100VERSION);
 		display_splashscreen(devicetag, revtext);
-		delay_us(3000000);
+		buzzer_morse("IMI"); // Hello :)
+		delay_us(2000000);
 		display_clear(0);
 		bool full = flashstorage_log_isfull();
 		if (full == true) {
@@ -131,6 +130,7 @@ int main(void) {
 		}
 	}
 
+	// TODO: move into flash storage keyval loading
 	int utcoffsetmins_n = 0;
 	const char *utcoffsetmins = flashstorage_keyval_get("UTCOFFSETMINS");
 	if (utcoffsetmins != 0) {
@@ -144,24 +144,21 @@ int main(void) {
 	// TODO Need to refactor out stored settings
 	flashstorage_keyval_update();
 
-	// Only load language settings if we have a GUI (not in logging mode)
-	if (!c.m_sleeping) {
-		const char *language = flashstorage_keyval_get("LANGUAGE");
-		if (language != 0) {
-			if (strcmp(language, "English") == 0) {
-				m_gui.set_language(LANGUAGE_ENGLISH);
-				tick_item("English", true);
-			} else if (strcmp(language, "Japanese") == 0) {
-				m_gui.set_language(LANGUAGE_JAPANESE);
-				tick_item("Japanese", true);
-			}
-		} else {
+	const char *language = flashstorage_keyval_get("LANGUAGE");
+	if (language != 0) {
+		if (strcmp(language, "English") == 0) {
 			m_gui.set_language(LANGUAGE_ENGLISH);
 			tick_item("English", true);
+		} else if (strcmp(language, "Japanese") == 0) {
+			m_gui.set_language(LANGUAGE_JAPANESE);
+			tick_item("Japanese", true);
 		}
-		m_gui.jump_to_screen(1);
-		m_gui.push_stack(0, 1);
+	} else {
+		m_gui.set_language(LANGUAGE_ENGLISH);
+		tick_item("English", true);
 	}
+	m_gui.jump_to_screen(1);
+	m_gui.push_stack(0, 1);
 
 	/**
 	 * Start of main event loop here, we will not leave this
@@ -173,12 +170,14 @@ int main(void) {
 	 * m_gui is the GUI
 	 *
 	 */
+	buzzer_morse("M"); // Main Loop
 	for (;;) {
 
 		// If our battery is too low, then we force
 		// standby and power off as many peripherals as we can
 		// to limit further discharge.
 		if (power_battery_level() < 25) {
+			buzzer_morse("B");
 			rtc_clear_alarmed();
 			rtc_disable_alarm(RTC);
 			// turn iRover off
