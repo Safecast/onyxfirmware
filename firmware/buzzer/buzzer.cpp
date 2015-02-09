@@ -1,5 +1,6 @@
 #include "delay.h"
 #include <stdint.h>
+#include "string.h"
 
 #include "wirish_boards.h"
 #include "safecast_config.h"
@@ -46,13 +47,52 @@ void buzzer_initialise() {
   gpio_write_bit(PIN_MAP[BUZZER_PWM].gpio_device,PIN_MAP[BUZZER_PWM].gpio_bit,0);
 }
 
-void buzzer_blocking_buzz(float time) {
+/**
+ * Buzz for 'time' microseconds. Blocking.
+ *  Generates a square wave on the buzzer
+ */
+void buzzer_blocking_buzz(uint32_t time) {
   // buzz
-  uint32_t frequency = 4100;
-  uint32_t t = 4100*time;//((time*1000000)/frequency)*2;
+  uint32_t frequency = 440; // 440 Hz
+  uint32_t t = time*frequency*2/1e6; // Number of pulses to generate
   for(uint32_t n=0;n<t;n++) {
     gpio_toggle_bit(PIN_MAP[BUZZER_PWM].gpio_device, PIN_MAP[BUZZER_PWM].gpio_bit);
-    delay_us(frequency/2);
+    delay_us(1e6/(frequency*2));
   }
   gpio_write_bit(PIN_MAP[BUZZER_PWM].gpio_device,PIN_MAP[BUZZER_PWM].gpio_bit,0);
+}
+
+/**
+ * Output a string in morse code
+ */
+void buzzer_morse(char const* c) {
+	const char
+	  *ascii = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,?'!/()&:;=+-_\"$@ ",
+	  *itu[] = {
+	     "13","3111","3131","311","1","1131","331","1111","11","1333","313","1311","33","31","333","1331","3313","131","111","3","113","1113","133","3113","3133","3311","33333","13333","11333","11133","11113","11111","31111","33111","33311","33331","131313","331133","113311","133331","313133","31131","31331","313313","13111","333111","313131","31113","13131","311113","113313","131131","1113113","133131", "*"
+	  };
+	  uint32_t unit = 80000; // 80ms
+
+	// Loop over the string
+	while (*c) {
+		// Get the index of the character
+		char* idx  = strchr(ascii,*c++);
+		if (idx == 0)
+			return;
+		// Get the corresponding code:
+		const char*  morse = itu[idx-ascii];
+		while (*morse) {
+			if (*morse == '*') {
+				// Word separation (7 units)
+				delay_us(3*unit);
+			} else if (*morse == '1') {
+				buzzer_blocking_buzz(unit);
+			} else {
+				buzzer_blocking_buzz(unit*3);
+			}
+			*morse++;
+			delay_us(unit);
+		}
+		delay_us(unit*3);
+	}
 }
