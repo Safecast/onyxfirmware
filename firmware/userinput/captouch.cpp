@@ -350,11 +350,15 @@ void cap_init(void) {
     return;
 }
 
+/**
+ * Put the capacitive keyboard on standby
+ */
 void cap_deinit(void) {
   exti_detach_interrupt((afio_exti_num)(PIN_MAP[CAPTOUCH_GPIO].gpio_bit));
 
   // Disable MPR121 scanning, in case the chip is on
   mpr121Write(ELE_CFG, 0x00);
+  mpr121Write(SFT_RST, 0x63); // send softreset to put IC in low power state.
 
   return;
 }

@@ -51,6 +51,7 @@ static void setupNVIC(void);
 static void setupADC(void);
 static void setupTimers(void);
 
+// TODO: not used anywhere in the project. Remove ?
 // short_init is used by safecast to do a quick power-on
 // it's special cased to shorten the "ON" duty-cycle
 void short_init(void) {

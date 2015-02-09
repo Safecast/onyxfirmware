@@ -505,6 +505,17 @@ void oled_deinit(void) {
     delay_us(250000); // give it 250ms to discharge, hard wait; prevent issues with switch bounce
 }
 
+/**
+ * Optimized function to clear the screen faster than drawing one-line
+ * rectangles line after line...
+ */
+void oled_clear_screen() {
+	Set_Column_Address(0,255);
+	Set_Row_Address(0,255);
+    write_c(SSD1351_CMD_WRITERAM);
+    // write_d_stream(data, w*h*BPP);
+}
+
 void oled_draw_rect(uint8 x, uint8 y, uint8 w, uint8 h, uint8 *data)
 {
     Set_Column_Address(x, x+w-1);

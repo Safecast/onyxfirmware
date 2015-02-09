@@ -9,7 +9,8 @@
 #define PWRSTATE_ERROR 5   // an error conditions state
 #include <stdint.h>
 
-int power_initialise(void);
+int power_initialise_minimum(void);
+int power_initialise_full(void);
 int power_deinit(void);
 void power_wfi(void);
 int power_switch_state(void);

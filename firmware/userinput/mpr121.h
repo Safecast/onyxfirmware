@@ -33,7 +33,7 @@
 #define ATO_CFGU  0x7D // Up-side limit register
 #define ATO_CFGL  0x7E // Low-side limit register
 #define ATO_CFGT  0x7F // Target level reigster
-
+#define SFT_RST   0X80 // Soft Reset register
 //GPIO Reigsters
 #define GPIO_CTRL0 0x73
 #define GPIO_CTRL1 0x74
