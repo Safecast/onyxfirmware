@@ -9,6 +9,7 @@
 #include "flashstorage.h"
 #include "oled.h"
 #include "display.h"
+#include "buzzer.h"
 #include <limits.h>
 #include "dac.h"
 #include "log_read.h"
@@ -327,6 +328,9 @@ void cmd_magread(char *line) {
  *      }
  *  }
  *
+ * TODO: also output uSv/h value that reflects the settings
+ *       of the device.
+ *
  *  See Geiger.cpp for a more in-depth explanation of
  *  raw and compensated CPM values.
  */
@@ -471,6 +475,10 @@ void cmd_logclear(char *line) {
   serial_write_string("Cleared\r\n");
 }
 
+void cmd_dumpflash(char *line) {
+	flashstorage_dump_hex();
+}
+
 void cmd_logstress(char *line) {
   serial_write_string("Log stress testing - 5000 writes\r\n");
 
@@ -487,7 +495,7 @@ void cmd_logstress(char *line) {
   for(int n=0;n<5000;n++) {
     data.cpm = n;
     int r = flashstorage_log_pushback((uint8_t *) &data,sizeof(log_data_t));
-    sprintf(err,"return code: %d\r\n",r);
+    sprintf(err,"Entry: %i return code: %d\r\n",n, r);
     serial_write_string(err);
   }
   serial_write_string("Complete\r\n");
@@ -726,6 +734,7 @@ void register_cmds() {
   register_cmd("KEYVALSET"     ,cmd_keyvalset);
   register_cmd("CAPTOUCHTEST"  ,cmd_captouchparams);
   register_cmd("CAPTOUCHDUMP"  ,cmd_captouchdump);
+  register_cmd("DUMPFLASH"	   , cmd_dumpflash);
   // misc
   register_cmd("HELLO"         ,cmd_hello);
   register_cmd("LIST GAMES"    ,cmd_games);
@@ -974,30 +983,31 @@ uint32_t currentline_position=0;
  * Receive and process what we received on the serial port. This
  * is called from the main event loop in main.cpp
  *
- * TODO: this should really be interrupt driven IMHO (E. Lafargue)
- *
  */
 void serial_eventloop() {
-  char buf[1024];
+  char buf[64];
 
-  uint32_t read_size = usart_rx(USART1,(uint8 *) buf,1024);
-  if(read_size == 0) return;
-
-  if(read_size > 1024) return; // something went wrong
+  // The ring buffer for the UART is 64 bytes, so we will never
+  // get more than 63 bytes...
+  uint32_t read_size = usart_rx(USART1,(uint8 *) buf,63);
+  if (read_size == 0) return;
 
   for(uint32_t n=0;n<read_size;n++) {
-
     // We echo characters
     usart_putc(USART1, buf[n]);
-
     if((buf[n] == 13) || (buf[n] == 10)) {
       serial_write_string("\r\n");
       currentline[currentline_position]=0;
       serial_process_command(currentline);
       currentline_position=0;
+      usart_reset_rx(USART1);
     } else {
       currentline[currentline_position] = buf[n];
       currentline_position++;
+      if (currentline_position > 1024) {
+    	  serial_write_string("Input buffer overflow");
+    	  currentline_position = 0;
+      }
     }
   }
 }

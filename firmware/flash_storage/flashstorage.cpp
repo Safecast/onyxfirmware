@@ -6,6 +6,8 @@
 #include "log.h"
 #include <string.h>
 #include "serialinterface.h"
+#include "buzzer.h"
+#include "usart.h"
 #include <stdio.h>
 #include "Controller.h"
 #include "Geiger.h"
@@ -40,9 +42,9 @@ bool log_pause = false;
  *  - Store device settings
  *  - Store logs
  */
-#define settings_area_size  10240 	// Space reserved for storing settings. This is
-// 5 pages in the flash area, since pages are 2048 bytes long.
-// the log area starts above this index
+#define settings_area_size  2048 	// Space reserved for storing settings. This is
+									// 1 page in the flash area, since pages are 2048 bytes long.
+									// the log area starts above this index
 
 // Settings are stored as key/value, each with max 50 bytes
 #define keyval_size     50   // Max size of a settings key name
@@ -159,6 +161,8 @@ bool flashstorage_writepage(uint8_t *new_data, uint8_t *pageaddr) {
 
 /**
  * Erase a flash page, retrying up to 20 times
+ *
+ *  TODO: remove those stupid retries!
  */
 bool flashstorage_erasepage_rt(uint8_t *pageaddr) {
 
@@ -172,7 +176,10 @@ bool flashstorage_erasepage_rt(uint8_t *pageaddr) {
 			return true;
 		// DEBUG: there no good reason why we should
 		// have to retry
-		serial_write_string("Erase Error\r\n");
+		for (int t = 0; t < 10; t++) {
+			buzzer_nonblocking_buzz(0.1);
+			delay_us(500000);
+		}
 	}
 	return false;
 }
@@ -186,7 +193,10 @@ bool flashstorage_writepage_rt(uint8_t *new_data, uint8_t *pageaddr) {
 			return true;
 		// DEBUG: there no good reason why we should
 		// have to retry
-		serial_write_string("Write Error\r\n");
+		for (int t = 0; t < 20; t++) {
+			buzzer_nonblocking_buzz(0.1);
+			delay_us(500000);
+		}
 	}
 	return false;
 }
@@ -304,7 +314,7 @@ void flashstorage_initialise() {
 char *flashstorage_keyval_get_address(const char *key) {
 
 	for (uint32_t n = 0; n < settings_area_size; n += (keyval_size * 2)) {
-		if (flash_data_area_aligned[n] == 0) {
+		if (flash_data_area_aligned[n] == 0xff) {
 			// We are at the end of the settings keys and found nothing.
 			return 0;
 		}
@@ -325,7 +335,7 @@ char *flashstorage_keyval_get_address(const char *key) {
  */
 char *flashstorage_keyval_get_unalloced() {
 	for (uint32_t n = 0; n < settings_area_size; n += (keyval_size * 2)) {
-		if (flash_data_area_aligned[n] == 0) {
+		if (flash_data_area_aligned[n] == 0xff) {
 			return (char *) (flash_data_area_aligned) + n;
 		}
 	}
@@ -339,7 +349,7 @@ void flashstorage_keyval_by_idx(int idx, char *key, char *val) {
 
 	uint32_t n = (keyval_size * 2) * idx;
 
-	if (flash_data_area_aligned[n] == 0) {
+	if (flash_data_area_aligned[n] == 0xff) {
 		key[0] = 0;
 		val[0] = 0;
 		return;
@@ -380,14 +390,19 @@ void flashstorage_keyval_set(const char *key, const char *value) {
 	uint8_t pagedata[pagesize];
 	uint8_t new_keyval_data[keyval_size_all];
 
+	// Fill the new_keyval_data with 0xff so that we don't
+	// unnecessarily wear out the flash with random values
+	for (int i = 0; i < keyval_size_all; i++)
+		new_keyval_data[i] = 0xff;
+
 	strcpy((char *) new_keyval_data, (char *) key);
 	strcpy((char *) new_keyval_data + keyval_size, (char *) value);
 
-	// just in case!
+	// Just in case...
 	new_keyval_data[keyval_size - 1] = 0;
 	new_keyval_data[keyval_size_all - 1] = 0;
 
-	// read original page data
+	// Read original page data
 	char *kvaddr = flashstorage_keyval_get_address(key);
 
 	// If we did not find this key, get a free address to store it
@@ -407,6 +422,12 @@ void flashstorage_keyval_set(const char *key, const char *value) {
 		pagedata[n + data_offset] = new_keyval_data[n];
 	}
 
+	// There is a lingering issue with the firmware, where very heavy
+	// traffic on the serial port can lead to crashes. For this reason,
+	// we disable USART1 when we delete then write to flash, to avoid
+	// a potential crash after page deletion but before page write, which
+	// would corrupt the settings area completely.
+	usart_disable(USART1);
 	// write new page data
 	flashstorage_unlock();
 	flashstorage_erasepage_rt(page_address);
@@ -414,6 +435,7 @@ void flashstorage_keyval_set(const char *key, const char *value) {
 	flashstorage_unlock();
 	flashstorage_writepage_rt(pagedata, page_address);
 	flashstorage_lock();
+	usart_enable(USART1);
 }
 
 //////////////////
@@ -434,7 +456,7 @@ uint8_t *flashstorage_log_baseaddress() {
 void flashstorage_log_clear() {
 
 	uint8_t *page_address = flashstorage_log_baseaddress(); // Get base address of log area
-
+	usart_disable(USART1);
 	for (;
 			page_address
 					< (flash_data_area_aligned + flash_data_area_aligned_size);
@@ -445,6 +467,7 @@ void flashstorage_log_clear() {
 		flashstorage_lock();
 		page_address += pagesize;
 	}
+	usart_enable(USART1);
 }
 
 /**
@@ -557,6 +580,7 @@ int flashstorage_log_pushback(uint8_t *data, uint32_t size) {
 	// Sanity checks
 	if (page_address < flash_data_area_aligned)
 		return 5;
+
 	if (page_address > (flash_data_area_aligned + flash_data_area_aligned_size))
 		return 6;
 
