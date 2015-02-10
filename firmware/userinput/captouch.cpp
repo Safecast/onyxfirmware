@@ -20,6 +20,7 @@ GUI *system_gui;
 static struct i2c_dev *i2c;
 static uint16 touchList =  1 << 8 | 1 << 6 | 1 << 4 | 1 << 3 | 1 << 2 | 1 << 0;
 
+int cap_enabled = 0;
 int last_key_state=0;
 bool captouch_disable_messages=false;
 
@@ -347,6 +348,9 @@ void cap_init(void) {
     press_time_any   = realtime_get_unixtime();
     release_time_any = realtime_get_unixtime();
 
+    // Set the cap_enabled flag to remember the captouch is on
+    cap_enabled = 1;
+
     return;
 }
 
@@ -354,11 +358,14 @@ void cap_init(void) {
  * Put the capacitive keyboard on standby
  */
 void cap_deinit(void) {
-  exti_detach_interrupt((afio_exti_num)(PIN_MAP[CAPTOUCH_GPIO].gpio_bit));
+	if (!cap_enabled)
+		return;
 
-  // Disable MPR121 scanning, in case the chip is on
-  mpr121Write(ELE_CFG, 0x00);
-  mpr121Write(SFT_RST, 0x63); // send softreset to put IC in low power state.
+	exti_detach_interrupt((afio_exti_num)(PIN_MAP[CAPTOUCH_GPIO].gpio_bit));
 
-  return;
+	// Disable MPR121 scanning, in case the chip is on
+	mpr121Write(ELE_CFG, 0x00);
+	mpr121Write(SFT_RST, 0x63); // send softreset to put IC in low power state (stop mode).
+
+	return;
 }

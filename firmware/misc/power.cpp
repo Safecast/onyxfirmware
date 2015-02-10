@@ -9,7 +9,7 @@
 #include "adc.h"
 #include "bkp.h"
 #include "display.h"
-#include "buzzer.h"
+#include "captouch.h"
 
 #include <stdio.h>
 
@@ -228,6 +228,9 @@ void power_standby(void) {
 	// otherwise naively switching off its power will lead to stray
 	// current on the IO lines and 100/200 uA current waste.
 	display_powerdown();
+
+	// Put the captouch sensor in low power mode
+	cap_deinit();
 
 	// Disable all ADCs and timers:
 	adc_foreach(adc_disable);
