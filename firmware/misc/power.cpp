@@ -9,6 +9,7 @@
 #include "adc.h"
 #include "bkp.h"
 #include "display.h"
+#include "buzzer.h"
 
 #include <stdio.h>
 
@@ -32,17 +33,22 @@ static uint8 lastPowerState = PWRSTATE_OFF;
 
 /**
  *  return true if the current boot was a wakeup from the WKUP pin.
+ *  WKUP can wake the MCU from sleep on rising edge.
  *
- *  The WKUP Pin behaves as follows:
- * - If the "Wake up" switch is in up position (standby) & connected to GND:
+ *  The PA0-WKUP Pin behaves as follows:
+ * - If the "Wake up" switch is pulled to GND: WKUP moves with Geiger Pulse
  *    - If Geiger_Pulse is low, then WKUP is low
  *    - If Geiger_Pulse is high, then WKUP is high
- * - If the "Wake up switch" is in the low position (on) & connected to VMCU
+ * - If the "Wake up switch" is connected to VMCU
  *     - WKUP is always high
+ *
+ *     Return:
+ *     0 : did not wake up from Standby
+ *     1 : woke up from standby and WKUP is low
+ *     2:  woke up from standby and WKUP is high
  */
 int power_get_wakeup_source() {
 
-	//
 	gpio_set_mode (PIN_MAP[WAKEUP_GPIO].gpio_device,PIN_MAP[WAKEUP_GPIO].gpio_bit,GPIO_INPUT_PD);
 	int wkup = gpio_read_bit(PIN_MAP[WAKEUP_GPIO].gpio_device, PIN_MAP[WAKEUP_GPIO].gpio_bit);
 
@@ -50,9 +56,9 @@ int power_get_wakeup_source() {
 	bool wokeup = false;
 	if (PWR_BASE->CSR & PWR_CSR_SBF) wokeup = true;
 
-	if(!wokeup           ) return 0;
-	if( wokeup && (!wkup)) return 1;
-	if( wokeup &&   wkup ) return 2;
+	if(!wokeup           ) return WAKEUP_NONE;
+	if( wokeup && (!wkup)) return WAKEUP_RTC;
+	if( wokeup &&   wkup ) return WAKEUP_WKUP;
 
 	return -1;
 }
@@ -72,7 +78,6 @@ int power_initialise_minimum(void) {
 	  gpio_set_mode (PIN_MAP[BATT_MEASURE_ADC]  .gpio_device,PIN_MAP[BATT_MEASURE_ADC]  .gpio_bit,GPIO_INPUT_ANALOG);
 	  gpio_set_mode (PIN_MAP[MAGSENSE_GPIO]     .gpio_device,PIN_MAP[MAGSENSE_GPIO]     .gpio_bit,GPIO_INPUT_PD);
 
-	  // setup and initialize the outputs
 	  // initially, don't measure battery voltage
 	  gpio_set_mode (PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,GPIO_OUTPUT_PP);
 	  gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
@@ -91,8 +96,8 @@ int power_initialise_minimum(void) {
 	  gpio_write_bit(PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_device,PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_bit,0);
 
 	  // initially OLED is off
-	  gpio_set_mode (PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,GPIO_OUTPUT_PP);
-	  gpio_write_bit(PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,0);
+	  gpio_set_mode (PIN_MAP[LED_PWR_ENA].gpio_device,PIN_MAP[LED_PWR_ENA].gpio_bit,GPIO_OUTPUT_PP);
+	  gpio_write_bit(PIN_MAP[LED_PWR_ENA].gpio_device,PIN_MAP[LED_PWR_ENA].gpio_bit,0);
 
 	  return 0;
 
@@ -219,53 +224,54 @@ uint32_t  _get_CONTROL()
  */
 void power_standby(void) {
 
-  // ensure display is shutdown
-  gpio_write_bit(PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,0);
+	// Shutdown the display. It needs to be powered down properly,
+	// otherwise naively switching off its power will lead to stray
+	// current on the IO lines and 100/200 uA current waste.
+	display_powerdown();
 
-  adc_foreach(adc_disable);
-  timer_foreach(timer_disable);
+	// Disable all ADCs and timers:
+	adc_foreach(adc_disable);
+	timer_foreach(timer_disable);
 
-  //RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
-    // RCC->AHBENR |= RCC_AHBPeriph;
+	// No need to deconfigure the GPIOs because all pins are in
+	// high impedance mode in Standby mode. this switches the iRover off automatically
+	// as well as all other peripherals...
 
-  uint32_t val = RCC_APB1Periph_PWR | RCC_APB1Periph_BKP;
-  volatile uint32_t *rcc_ahbenr = (uint32_t *) 0x40021000;
-  *rcc_ahbenr |= val;
+	uint32_t val = RCC_APB1Periph_PWR | RCC_APB1Periph_BKP;
+	volatile uint32_t *rcc_ahbenr = (uint32_t *) 0x40021000;
+	*rcc_ahbenr |= val;
 
+	volatile uint32_t *cr_dbp_bb = (uint32_t *) ((0x42000000 + (0x7000) * 32) + (0x08 * 4));
+	*cr_dbp_bb = !0;
 
-  //PWR_BackupAccessCmd(ENABLE);
-  //*(__IO uint32_t *) CR_DBP_BB = (uint32_t)NewState;
-  volatile uint32_t *cr_dbp_bb = (uint32_t *) ((0x42000000 + (0x7000) * 32) + (0x08 * 4));
-  *cr_dbp_bb = !0;
+	delay_us(100);
 
-  delay_us(100);
+	_set_CONTROL();
 
-  _set_CONTROL();
+	// Configure CPU to enter standby mode upon WFI:
+	// As per manual:
+	//  Enter standby with WFI (Wait for Interrupt) or WFE (Wait for Event) while:
+	// – Set SLEEPDEEP in Cortex™-M3 System Control register
+	// – Set PDDS bit in Power Control register (PWR_CR)
+	// – Clear WUF bit in Power Control/Status register (PWR_CSR)
 
-  // Configure CPU to enter standby mode upon WFI:
-  // As per manual:
- //  Enter standby with WFI (Wait for Interrupt) or WFE (Wait for Event) while:
- // – Set SLEEPDEEP in Cortex™-M3 System Control register
- // – Set PDDS bit in Power Control register (PWR_CR)
- // – Clear WUF bit in Power Control/Status register (PWR_CSR)
+	volatile uint32_t *pwr_cr  = (uint32_t *) 0x40007000;
+	volatile uint32_t *pwr_csr = (uint32_t *) 0x40007004;
+	volatile uint32_t *scb_scr = (uint32_t *) 0xE000ED10;
 
-  volatile uint32_t *pwr_cr  = (uint32_t *) 0x40007000;
-  volatile uint32_t *pwr_csr = (uint32_t *) 0x40007004;
-  volatile uint32_t *scb_scr = (uint32_t *) 0xE000ED10;
+	*scb_scr |= (uint16_t) 1 << 2;  // SCB_SCR_SLEEPDEEP;   // set deepsleep
+	*pwr_cr  |= (uint16_t) 1 << 1;  // PWR_CR_PDDS          // set PDDS
+  	  	  	  	  	  	  	      	// PDDS at 1: Enter Standby mode when the CPU enters Deepsleep
+	*pwr_cr  |= (uint16_t) 1 << 2;  //PWR_CSR_WUF;         // clear WUF
+	*pwr_csr |= (uint16_t) 1 << 8;  // EWUP                // enable wakeup pin
 
-  *scb_scr |= (uint16_t) 1 << 2;  // SCB_SCR_SLEEPDEEP;   // set deepsleep
-  *pwr_cr  |= (uint16_t) 1 << 1;  // PWR_CR_PDDS          // set PDDS
-  	  	  	  	  	  	  	      // PDDS at 1: Enter Standby mode when the CPU enters Deepsleep
-  *pwr_cr  |= (uint16_t) 1 << 2;  //PWR_CSR_WUF;         // clear WUF
-  *pwr_csr |= (uint16_t) 1 << 8;  // EWUP                // enable wakeup pin
+	delay_us(100);
 
-  delay_us(100);
+	asm volatile (
+			"WFI\n\t"
+	);
 
-  asm volatile (
-    "WFI\n\t"
-  );
-
-  // We will never end up there after the WFI call above.
+	// We will never end up there after the WFI call above.
 
 }
 

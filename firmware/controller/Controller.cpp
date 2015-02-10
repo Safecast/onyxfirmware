@@ -854,7 +854,7 @@ void Controller::check_warning_level() {
  */
 void Controller::do_logging() {
 	if (rtc_alarmed()) {
-		buzzer_morse("R");  // for 'R'TC larm
+		buzzer_morse_debug("R");  // for 'R'TC larm
 		m_alarm_log = true;
 		m_last_alarm_time = rtc_get_time(RTC);
 #ifndef DISABLE_ACCEL
@@ -868,7 +868,7 @@ void Controller::do_logging() {
 
 	if (m_alarm_log == true) {
 		if (system_geiger->is_cpm30_valid()) {
-			buzzer_morse("L");  // for 'L'og
+			buzzer_morse_debug("L");  // for 'L'og
 
 			log_data_t data;
 #ifndef DISABLE_ACCEL
@@ -907,10 +907,10 @@ void Controller::do_logging() {
 			rtc_set_alarm(RTC, m_last_alarm_time + m_log_interval_seconds);
 			rtc_enable_alarm(RTC);
 			if (m_sleeping) {
-				buzzer_morse("S");  // for 'S'tandby
+				buzzer_morse_debug("S");  // for 'S'tandby
 				power_standby();
 			} else {
-				buzzer_morse("A"); // for 'A'wake
+				buzzer_morse_debug("A"); // for 'A'wake
 			}
 		}
 	}
@@ -926,7 +926,9 @@ void Controller::check_sleep_switch() {
 	if (sstate != m_last_switch_state) {
 		m_last_switch_state = sstate;
 
-		if (sstate == false) {
+		// If switch went from power to sleep,
+		// then go so sleep
+		if (sstate == SWITCH_SLEEP) {
 			if (m_alarm_log && (!m_sleeping)) {
 				m_sleeping = true;
 				display_powerdown();
@@ -934,15 +936,14 @@ void Controller::check_sleep_switch() {
 				m_sleeping = true;
 				power_standby();
 			}
-		}
-
-		if (sstate == true) {
+		} else if (sstate == SWITCH_POWERUP) {
 			m_powerup = true;
 		}
 	}
 
-	if (m_powerup == true) {
-		buzzer_nonblocking_buzz(0.5);
+	// Power up the display here only if we were already on but
+	// with display sleeping (in logging mode)
+	if (m_powerup == true && m_sleeping) {
 		display_powerup();
 		m_gui->set_sleeping(false);
 		m_gui->redraw();
@@ -956,15 +957,8 @@ void Controller::check_sleep_switch() {
 		delay_us(3000000);
 		display_clear(0);
 	}
-
-	if (m_sleeping) {
-		// go back to sleep.
-		if ((!rtc_alarmed()) && (!m_alarm_log)) {
-			power_standby();
-		}
-		return;
-	}
 }
+
 
 /**
  * Dim the screen if necessary. Called by the Controller. Will dim in

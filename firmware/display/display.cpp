@@ -24,11 +24,6 @@ extern uint8_t _binary___binary_data_help_screens_jp_size;
 
 uint8_t brightness;
 
-void display_initialise() {
-  oled_platform_init();
-  oled_init();
-}
-
 void display_clear(int16 color) {
   CLS(color);
 }

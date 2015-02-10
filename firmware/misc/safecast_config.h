@@ -86,13 +86,12 @@ extern const uint8 boardUsedPins[];
 #define LIMIT_VREF_DAC          10  // PA4 -- should be DAC eventually, but GPIO initially to tied own
 #define MODEM_OUT				13  // PA5
 #define CHG_TIMEREN_N_GPIO      37  // PC8
-#define LED_PWR_ENA_GPIO        16  // PC1 // handled in OLED platform_init
 #define WAKEUP_GPIO              2  // PA0
 
-#define LCD_DC_GPIO  31
-#define LCD_CS_GPIO  33
-#define LCD_PWR_GPIO 16
-#define LCD_RES_GPIO 17
+#define LCD_DC_GPIO  			31	// PB12
+#define LCD_CS_GPIO  			33	// PB14
+#define LED_PWR_ENA 			16	// PC1
+#define LCD_RES_GPIO 			17	// PC2
 
 
 /* Number of USARTs/UARTs whose pins are broken out to headers */

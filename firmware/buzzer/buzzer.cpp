@@ -5,6 +5,7 @@
 #include "wirish_boards.h"
 #include "safecast_config.h"
 #include "buzzer.h"
+#include "flashstorage.h"
 
 #define BUZZ_RATE    250  // in microseconds; set to 4kHz = 250us
 #define MAX_RELOAD ((1 << 16) - 1)
@@ -63,13 +64,33 @@ void buzzer_blocking_buzz(uint32_t time) {
 }
 
 /**
+ * Output a string in morse code only if we are in debug mode
+ */
+void buzzer_morse_debug(char const* c) {
+	  const char *dbg= flashstorage_keyval_get("DEBUG");
+	  if (dbg != NULL && dbg[0] == '1') {
+		  buzzer_morse(c);
+	  }
+}
+
+/**
  * Output a string in morse code
  */
 void buzzer_morse(char const* c) {
 	const char
 	  *ascii = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,?'!/()&:;=+-_\"$@ ",
-	  *itu[] = {
-	     "13","3111","3131","311","1","1131","331","1111","11","1333","313","1311","33","31","333","1331","3313","131","111","3","113","1113","133","3113","3133","3311","33333","13333","11333","11133","11113","11111","31111","33111","33311","33331","131313","331133","113311","133331","313133","31131","31331","313313","13111","333111","313131","31113","13131","311113","113313","131131","1113113","133131", "*"
+	  *code[] = {
+	     ".-","-...","-.-.","-..",".",
+	     "..-.","--.","....","..",".---","-.-",
+	     ".-..","--","-.","---",".--.","--.-",
+	     ".-.","...","-","..-","...-",".--","-..-",
+	     "-.--","--..","-----",".----","..---",
+	     "...--","....-",".....","-....",
+	     "--...","---..","----.",".-.-.-",
+	     "--..--","..--..",".----.","-.-.--",
+	     "-..-.","-.--.","-.--.-",".-...","---...",
+	     "-.-.-.","-...-",".-.-.","-....-","..--.-",
+	     ".-..-.","...-..-",".--.-.", "*"
 	  };
 	  uint32_t unit = 80000; // 80ms
 
@@ -80,12 +101,12 @@ void buzzer_morse(char const* c) {
 		if (idx == 0)
 			return;
 		// Get the corresponding code:
-		const char*  morse = itu[idx-ascii];
+		const char*  morse = code[idx-ascii];
 		while (*morse) {
 			if (*morse == '*') {
 				// Word separation (7 units)
 				delay_us(3*unit);
-			} else if (*morse == '1') {
+			} else if (*morse == '.') {
 				buzzer_blocking_buzz(unit);
 			} else {
 				buzzer_blocking_buzz(unit*3);

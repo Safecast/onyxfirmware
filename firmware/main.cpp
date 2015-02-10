@@ -79,8 +79,8 @@ int main(void) {
 		nvic_sys_reset();
 	}
 
-	serial_initialise();
 	flashstorage_initialise();
+	serial_initialise();
 	buzzer_initialise();
 	realtime_initialise();
 	g.initialise();
@@ -109,14 +109,14 @@ int main(void) {
 	if (power_get_wakeup_source() == WAKEUP_RTC) {
 		rtc_set_alarmed(); // if we woke up from the RTC, force the the alarm trigger.
 		                   // because it was cleared when we initialized the controller.
-		buzzer_morse("W"); // 'W'akeup
+		buzzer_morse_debug("W"); // 'W'akeup
 		c.m_sleeping = true;
 	} else {
 		// Switch on our display, and
 		// display our welcome screen
 		c.m_sleeping = false;
 
-		display_initialise();
+		display_powerup();
 		const char *devicetag = flashstorage_keyval_get("DEVICETAG");
 		char revtext[10];
 		sprintf(revtext, "VERSION: %s ", OS100VERSION);
@@ -170,14 +170,13 @@ int main(void) {
 	 * m_gui is the GUI
 	 *
 	 */
-	buzzer_morse("M"); // Main Loop
 	for (;;) {
 
 		// If our battery is too low, then we force
 		// standby and power off as many peripherals as we can
 		// to limit further discharge.
 		if (power_battery_level() < 25) {
-			buzzer_morse("B");
+			buzzer_morse_debug("B");
 			rtc_clear_alarmed();
 			rtc_disable_alarm(RTC);
 			// turn iRover off
