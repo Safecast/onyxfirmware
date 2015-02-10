@@ -68,7 +68,7 @@ void init(void) {
 // ok
     setupNVIC();
 // ok
-    systick_init(SYSTICK_RELOAD_VAL);
+//    systick_init(SYSTICK_RELOAD_VAL);
 // ok
     gpio_init_all();
 // ok

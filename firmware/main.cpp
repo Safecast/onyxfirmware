@@ -170,6 +170,7 @@ int main(void) {
 	 * m_gui is the GUI
 	 *
 	 */
+
 	for (;;) {
 
 		// If our battery is too low, then we force
