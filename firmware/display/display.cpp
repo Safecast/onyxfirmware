@@ -23,6 +23,7 @@ extern uint8_t _binary___binary_data_help_screens_jp_start;
 extern uint8_t _binary___binary_data_help_screens_jp_size;
 
 uint8_t brightness;
+uint8_t display_powered = 0;
 
 void display_clear(int16 color) {
   CLS(color);
@@ -143,7 +144,10 @@ void display_splashscreen(const char *line1,const char *line2) {
 
 void display_set_brightness(uint8 b) {
   brightness = b;
-  oled_brightness(b);
+  // flashstorage tries to set the brightness even when the
+  // screen is not on...
+  if (display_powered)
+	  oled_brightness(b);
 }
 
 uint8_t display_get_brightness() {
@@ -153,10 +157,15 @@ uint8_t display_get_brightness() {
 void display_powerup() {
   oled_platform_init();
   oled_init();
+  // display_powered is here because if we try to write
+  // to the display and the SPI bus is not initialized, everything
+  // crashes. Hence this flag for testing.
+  display_powered = 1;
 }
 
 void display_powerdown() {
-  oled_deinit();
+	if (display_powered)
+		oled_deinit();
 }
 
 void display_draw_fixedimage_xlimit(uint8_t x,uint8_t y,uint8_t image_number,uint16_t background,uint8 xlimit) {

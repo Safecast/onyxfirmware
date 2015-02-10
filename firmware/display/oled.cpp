@@ -411,18 +411,6 @@ void oled_init(void) {
  */
 void oled_deinit(void) {
 
-	// Check if display is on, if not, we return.
-	//
-	// Note: if we didn't do this, and we were trying to do SPI transfers
-	// with an unconfigured bus (because we never turned the display on before,
-	// we would crash the MCU at Set_Display_Off
-
-	int disp_on = gpio_read_bit(PIN_MAP[LED_PWR_ENA].gpio_device,
-			PIN_MAP[LED_PWR_ENA].gpio_bit);
-
-	if (!disp_on)
-		return;
-
     Set_Display_Off();
 
     // cuts power to the display
