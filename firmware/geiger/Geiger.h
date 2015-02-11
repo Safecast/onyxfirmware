@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 
+// We measure pulses from the tube at 2 Hertz
 #define WINDOWS_PER_SECOND 2
 #define WINDOWS_PER_MIN    120
 #define WINDOWS_STORED     600
@@ -19,6 +20,7 @@ public:
   float get_cpm();
   float get_cpm30();
   float get_cpm_deadtime_compensated();
+  float get_cpm30_deadtime_compensated();
   float get_microsieverts();
   float get_microsieverts_nocal();
   float get_microrems();

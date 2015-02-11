@@ -66,7 +66,7 @@ int log_read_block(char *buf) {
 		}
 
 		sprintf(buf,
-				"{\"log_size\":%"PRIu32",\"onyx_version\":\"%s\",\"UTC_offset\":\"%s\",\"user_calibration\":%f,\"log_data\":[",
+				"{\"log_size\":%"PRIu32",\"onyx_version\":\"%s\",\"UTC_offset\":\"%s\",\"user_calibration\":%f,\"usv_factor\":0.00294,\"log_data\":[",
 				logsize, OS100VERSION, offset_string,
 				system_geiger->calibration_scaling);
 		buf += strlen(buf);

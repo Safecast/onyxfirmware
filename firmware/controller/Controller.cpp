@@ -878,7 +878,7 @@ void Controller::do_logging() {
 			//data.magsensor_end = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
 
 			data.time = rtc_get_time(RTC);
-			data.cpm = system_geiger->get_cpm30();
+			data.cpm = system_geiger->get_cpm30_deadtime_compensated();
 
 			data.accel_x_start = m_accel_x_stored;
 			data.accel_y_start = m_accel_y_stored;
@@ -1002,22 +1002,19 @@ void Controller::send_cpm_values() {
 	char text_cpmdint[50];
 	char text_cpmd[50];
 
-	float cpm_deadtime_compensated =
-			system_geiger->get_cpm_deadtime_compensated();
-	int_to_char(cpm_deadtime_compensated + 0.5, text_cpmdint, 7);
-	if (cpm_deadtime_compensated > MAX_CPM) {
+	float cpm = system_geiger->get_cpm_deadtime_compensated();
+	int_to_char(cpm + 0.5, text_cpmdint, 7);
+
+	if (cpm > MAX_CPM) {
 		sprintf(text_cpmdint, "TOO HIGH"); // kanji image is 45
 	}
 
 	if (!m_cpm_cps_switch) {       // no auto switch, just display CPM
 		char text_cpmd_tmp[30];
-		sprintf(text_cpmd_tmp, "%8.3f",
-				system_geiger->get_cpm_deadtime_compensated());
+		sprintf(text_cpmd_tmp, "%8.3f", cpm);
 		sprintf(text_cpmd, "%8.8s", text_cpmd_tmp);
 		m_gui->receive_update("CPMSLABEL", "CPM");
 	} else {
-
-		float cpm = system_geiger->get_cpm_deadtime_compensated();
 
 		if (cpm > m_cpm_cps_threshold) {
 			m_current_units = UNITS_CPS;
@@ -1028,20 +1025,19 @@ void Controller::send_cpm_values() {
 
 		if (m_current_units == UNITS_CPM) {
 			char text_cpmd_tmp[30];
-			sprintf(text_cpmd_tmp, "%8.0f",
-					system_geiger->get_cpm_deadtime_compensated());
+			sprintf(text_cpmd_tmp, "%8.0f", cpm);
 			sprintf(text_cpmd, "%8.8s", text_cpmd_tmp);
 			m_gui->receive_update("CPMSLABEL", "CPM");
 		} else {
 			char text_cpmd_tmp[30];
 			sprintf(text_cpmd_tmp, "%8.0f",
-					system_geiger->get_cpm_deadtime_compensated() / 60);
+					cpm / 60);
 			sprintf(text_cpmd, "%8.8s", text_cpmd_tmp);
 			m_gui->receive_update("CPMSLABEL", "CPS");
 		}
 	}
 
-	if (system_geiger->get_cpm_deadtime_compensated() > MAX_CPM) {
+	if (cpm > MAX_CPM) {
 		sprintf(text_cpmd, "TOO HIGH");
 	}
 	m_gui->receive_update("CPMDEADINT", text_cpmdint);

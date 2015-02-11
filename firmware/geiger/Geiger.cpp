@@ -294,7 +294,7 @@ uint32_t max(uint32_t a, uint32_t b) {
 }
 
 /**
- * Get the current CPM reading. CPM is kept over a TODO 2 minute
+ * Get the current CPM reading. CPM is kept over a 300 seconds
  * window, and this method checks that there was no strong variation
  * on radiations, which could indicate that we got close to a source, or
  * get away from a source. If that's the case, then this method invalidates
@@ -305,7 +305,6 @@ uint32_t max(uint32_t a, uint32_t b) {
  *  resolving time (aka dead time). If you want to get the real CPM value,
  *  get this from get_cpm_deadtime_compensated below.
  *
- * TODO: maybe should provide some user feedback on window invalidation?
  *
  */
 float Geiger::get_cpm() {
@@ -400,7 +399,9 @@ float Geiger::get_cpm() {
 }
 
 /**
- * Returns CPM over the last 30 seconds
+ * Returns CPM over the last 30 seconds. Do not use directly,
+ * because it does not account for the tube dead time. This is used for
+ * internal computations only.
  */
 float Geiger::get_cpm30() {
 
@@ -448,6 +449,19 @@ float Geiger::get_cpm_deadtime_compensated() {
 	return cpm / (1 - ((cpm * 1.8833e-6)));
 
 }
+
+/**
+ * Returns CPM count over the last 30 seconds, 'dead time compensated'
+ * (see full explanation on get_cpm_deadtime_compensated for details)
+ */
+float Geiger::get_cpm30_deadtime_compensated() {
+	float cpm = get_cpm30();
+
+	// CPM correction from Medcom
+	return cpm / (1 - ((cpm * 1.8833e-6)));
+
+}
+
 
 /**
  * Gets measurement converted using stored calibration values

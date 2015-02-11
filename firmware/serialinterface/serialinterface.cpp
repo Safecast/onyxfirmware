@@ -340,8 +340,8 @@ void cmd_magread(char *line) {
  * { "cpm": {
  *     "value": val,      // Actual value
  *     "valid": boolean,  // Valid flag
- *     "raw": val,        // Uncompensated value
  *     "cpm30": val       // 30 second window
+ *     "usv": val         // reading in microsieverts
  *      }
  *  }
  *
@@ -358,8 +358,8 @@ void cmd_cpm(char *line) {
   json_set_name(reading, "cpm");
   json_push_back(reading, json_new_f("value", system_geiger->get_cpm_deadtime_compensated()));
   json_push_back(reading, json_new_b("valid", system_geiger->is_cpm_valid()));
-  json_push_back(reading, json_new_f("raw", system_geiger->get_cpm()));
-  json_push_back(reading, json_new_f("cpm30", system_geiger->get_cpm30()));
+  json_push_back(reading, json_new_f("cpm30", system_geiger->get_cpm30_deadtime_compensated()));
+  json_push_back(reading, json_new_f("usv", system_geiger->get_microsieverts()));
   json_push_back(n, reading);
   json_char *jc = json_write_formatted(n);
   serial_write_string(jc);
