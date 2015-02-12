@@ -74,7 +74,7 @@ void init(void) {
 // ok
     afio_init();
 // ok
-    setupADC();
+//    setupADC();
 // adcs increase mA!
     setupTimers();
 }

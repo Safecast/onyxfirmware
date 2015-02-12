@@ -34,8 +34,6 @@ extern uint8_t _binary___binary_data_private_key_data_size;
 // Force init to be called *first*, i.e. before static object allocation.
 // Otherwise, statically allocated objects that need libmaple may fail.
 __attribute__((constructor)) void premain() {
-	gpio_init_all();
-	// TODO: shouldn't we use a short_init instead ?
 	init();
 	delay_us(100000);
 }

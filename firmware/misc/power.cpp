@@ -76,6 +76,13 @@ int power_initialise_minimum(void) {
 	  gpio_set_mode (PIN_MAP[CHG_STAT1_GPIO]    .gpio_device,PIN_MAP[CHG_STAT1_GPIO]    .gpio_bit,GPIO_INPUT_FLOATING);
 	  gpio_set_mode (PIN_MAP[WAKEUP_GPIO]       .gpio_device,PIN_MAP[WAKEUP_GPIO]       .gpio_bit,GPIO_INPUT_PD);
 	  gpio_set_mode (PIN_MAP[BATT_MEASURE_ADC]  .gpio_device,PIN_MAP[BATT_MEASURE_ADC]  .gpio_bit,GPIO_INPUT_ANALOG);
+
+	  // Configure ADC1 (doing this does not use more power)
+	  rcc_set_prescaler(RCC_PRESCALER_ADC, RCC_ADCPRE_PCLK_DIV_6);
+	  adc_init(ADC1);
+	  adc_set_extsel(ADC1, ADC_SWSTART);
+	  adc_set_exttrig(ADC1, true);
+
 	  gpio_set_mode (PIN_MAP[MAGSENSE_GPIO]     .gpio_device,PIN_MAP[MAGSENSE_GPIO]     .gpio_bit,GPIO_INPUT_PD);
 
 	  // initially, don't measure battery voltage
@@ -95,7 +102,7 @@ int power_initialise_minimum(void) {
 	  gpio_set_mode (PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_device,PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_bit,GPIO_OUTPUT_PP);
 	  gpio_write_bit(PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_device,PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_bit,0);
 
-	  // initially OLED is off
+	  // initially OLED power supply is off
 	  gpio_set_mode (PIN_MAP[LED_PWR_ENA].gpio_device,PIN_MAP[LED_PWR_ENA].gpio_bit,GPIO_OUTPUT_PP);
 	  gpio_write_bit(PIN_MAP[LED_PWR_ENA].gpio_device,PIN_MAP[LED_PWR_ENA].gpio_bit,0);
 
@@ -117,6 +124,21 @@ int power_initialise_full(void) {
 }
 
 /**
+ * Enable/Disable ADC1 for battery level measurement (we keep it off
+ * to save battery power)
+ */
+void power_adc_enable(bool en) {
+	if (en) {
+		  adc_enable(ADC1);
+		  adc_calibrate(ADC1);
+		  adc_set_sample_rate(ADC1, ADC_SMPR_55_5);
+	} else {
+		adc_disable(ADC1);
+	}
+
+}
+
+/**
  *  returns a calibrated ADC code for the current battery voltage
  *  from 0 to 100, in percentage
  */
@@ -124,22 +146,24 @@ uint16 power_battery_level(void) {
   uint32 battVal;
   uint32 vrefVal;
 
+  // enable reference voltage only during measurement
   uint32 cr2 = ADC1->regs->CR2;
-  cr2 |= ADC_CR2_TSEREFE; // enable reference voltage only for this measurement
+  cr2 |= ADC_CR2_TSEREFE;
   ADC1->regs->CR2 = cr2;
 
+  // Enable ADC1 (both Vref and Batt measurement are connected to ADC1 in our config)
+  power_adc_enable(true);
+
   // Enable battery measurement circuit:
-  gpio_set_mode(PIN_MAP[BATT_MEASURE_ADC].gpio_device,PIN_MAP[BATT_MEASURE_ADC].gpio_bit,GPIO_INPUT_ANALOG);
-  gpio_set_mode(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,GPIO_OUTPUT_PP);
   gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,1);
   // Take battery measurement
   battVal = (uint32) adc_read(PIN_MAP[BATT_MEASURE_ADC].adc_device,PIN_MAP[BATT_MEASURE_ADC].adc_channel);
   // Disable battery measurement circuit:
   gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
 
-  // TODO: power saving: change BATT_MEASURE_ADC mode to save further power (disable ADC altogether?)
-
   vrefVal = (uint32) adc_read(ADC1, 17);
+
+  power_adc_enable(false);
 
   cr2 &= ~ADC_CR2_TSEREFE; // power down reference to save battery power
   ADC1->regs->CR2 = cr2;
@@ -151,7 +175,7 @@ uint16 power_battery_level(void) {
 
   int16 bat_percent = ((batratio-bat_min)/(bat_max-bat_min))*100;
 
-  // incase our min and max are set incorrectly.
+  // in case our min and max are set incorrectly.
   if(bat_percent < 0  ) bat_percent = 0;
   if(bat_percent > 100) bat_percent = 100;
   return bat_percent;
@@ -163,34 +187,19 @@ uint16 power_battery_level(void) {
 }
 
 
-// power_is_battery_low should measure ADC and determine if the battery voltage is
-// too low to continue operation. When that happens, we should immediately
-// power down to prevent over-discharge of the battery.
+/**
+ *
+ * power_is_battery_low should measure ADC and determine if the battery voltage is
+ *  too low to continue operation. When that happens, we should immediately
+ *  power down to prevent over-discharge of the battery.
+ *
+ *  returns 1 if battery is low, 0 otherwise.
+ */
 int power_is_battery_low(void) {
+
   // only once every LOG_BATT_FREQ events do we actually measure the battery
   // this is to reduce power consumption
-  gpio_init_all();
-  afio_init();
 
-  // init ADC
-  rcc_set_prescaler(RCC_PRESCALER_ADC, RCC_ADCPRE_PCLK_DIV_6);
-  adc_init(ADC1);
-
-  // this is from "adcDefaultConfig" inside boards.cpp
-  // lifted and modified here so *only* ADC1 is initialized
-  // the default routine "does them all"
-  adc_set_extsel(ADC1, ADC_SWSTART);
-  adc_set_exttrig(ADC1, true);
-
-  adc_enable(ADC1);
-  adc_calibrate(ADC1);
-  adc_set_sample_rate(ADC1, ADC_SMPR_55_5);
-
-  // again, a minimal set of operations done to save power; these are lifted from
-  // setup_gpio()
-  gpio_set_mode(PIN_MAP[BATT_MEASURE_ADC].gpio_device,PIN_MAP[BATT_MEASURE_ADC].gpio_bit,GPIO_INPUT_ANALOG);
-  gpio_set_mode(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,GPIO_OUTPUT_PP);
-  gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
 
   // normally 0, 5 for testing
   if( power_battery_level() <= 1 ) return 1;
