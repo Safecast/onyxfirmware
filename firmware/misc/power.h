@@ -12,7 +12,7 @@
 int power_initialise_minimum(void);
 int power_initialise_full(void);
 int power_deinit(void);
-void power_wfi(void);
+void power_sleep(void);
 int power_switch_state(void);
 
 int power_is_battery_low(void);

@@ -174,14 +174,12 @@ int main(void) {
 		// If our battery is too low, then we force
 		// standby and power off as many peripherals as we can
 		// to limit further discharge.
-		if (power_battery_level() < 25) {
+		if (power_battery_level() < 10) {
 			buzzer_morse_debug("B");
 			rtc_clear_alarmed();
 			rtc_disable_alarm(RTC);
 			// turn iRover off
 			g.powerdown();
-			// turn off cap touch
-			cap_deinit();
 			// turn off all interrupts and go into power_standby
 			power_deinit();
 			power_standby();
@@ -210,7 +208,7 @@ int main(void) {
 			}
 		}
 		// Now sleep until the next interrupt (user input, Geiger Pulse, etc).
-		power_wfi();
+		power_sleep();
 	}
 
 	/**

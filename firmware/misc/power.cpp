@@ -10,6 +10,7 @@
 #include "bkp.h"
 #include "display.h"
 #include "captouch.h"
+#include "accel.h"
 
 #include <stdio.h>
 
@@ -52,9 +53,10 @@ int power_get_wakeup_source() {
 	gpio_set_mode (PIN_MAP[WAKEUP_GPIO].gpio_device,PIN_MAP[WAKEUP_GPIO].gpio_bit,GPIO_INPUT_PD);
 	int wkup = gpio_read_bit(PIN_MAP[WAKEUP_GPIO].gpio_device, PIN_MAP[WAKEUP_GPIO].gpio_bit);
 
-	// Check SBF bit to know if the device just came back from Standby mode:
+	// Check WUF bit to know if the device just came back from Standby mode
+	// through WKUP pin or RTC alarm
 	bool wokeup = false;
-	if (PWR_BASE->CSR & PWR_CSR_SBF) wokeup = true;
+	if (PWR_BASE->CSR & BIT(PWR_CSR_WUF)) wokeup = true;
 
 	if(!wokeup           ) return WAKEUP_NONE;
 	if( wokeup && (!wkup)) return WAKEUP_RTC;
@@ -241,6 +243,11 @@ void power_standby(void) {
 	// Put the captouch sensor in low power mode
 	cap_deinit();
 
+	// Put the accelerometer to sleep
+	// Note: the accel should be sleeping all the time except when measuring,
+	//       this is a safeguard.
+	accel_deinit();
+
 	// Disable all ADCs and timers:
 	adc_foreach(adc_disable);
 	timer_foreach(timer_disable);
@@ -249,6 +256,11 @@ void power_standby(void) {
 	// high impedance mode in Standby mode. this switches the iRover off automatically
 	// as well as all other peripherals...
 
+	/**
+	 * Not quite sure what this is attempting to do ??? Since we are
+	 * in standby mode, this looks totally irrelevant to me
+	 */
+	/*
 	uint32_t val = RCC_APB1Periph_PWR | RCC_APB1Periph_BKP;
 	volatile uint32_t *rcc_ahbenr = (uint32_t *) 0x40021000;
 	*rcc_ahbenr |= val;
@@ -259,6 +271,8 @@ void power_standby(void) {
 	delay_us(100);
 
 	_set_CONTROL();
+    */
+
 
 	// Configure CPU to enter standby mode upon WFI:
 	// As per manual:
@@ -290,7 +304,8 @@ void power_standby(void) {
 /**
  *  Enters sleep mode by calling "Wait for Interrupt". then returns
  */
-void power_wfi(void) {
+void power_sleep(void) {
+
   // request wait for interrupt (in-line assembly)
   asm volatile (
     "WFI\n\t" // note for WFE, just replace this with WFE
@@ -301,7 +316,7 @@ void power_wfi(void) {
 
 int power_deinit(void) {
   // disable wake on interrupt
-  PWR_BASE->CSR &= ~PWR_CSR_EWUP;
+  PWR_BASE->CSR &= ~BIT(PWR_CSR_EWUP);
   // make sure hall effect sensor is off
   gpio_write_bit(PIN_MAP[MAGPOWER_GPIO].gpio_device,PIN_MAP[MAGPOWER_GPIO].gpio_bit,0);
   // DAC Hack

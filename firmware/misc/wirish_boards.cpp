@@ -63,17 +63,11 @@ void short_init(void) {
 
 void init(void) {
     setupFlash();
-// ok
     setupClocks();
-// ok
     setupNVIC();
-// ok
 //    systick_init(SYSTICK_RELOAD_VAL);
-// ok
     gpio_init_all();
-// ok
     afio_init();
-// ok
 //    setupADC();
 // adcs increase mA!
     setupTimers();
@@ -94,6 +88,9 @@ static void setupFlash(void) {
  * comment above.
  */
 static void setupClocks() {
+
+	// Configures the clock for 36MHz, internal oscillator, and
+	// PLL on
     rcc_clk_init(RCC_CLKSRC_PLL, RCC_PLLSRC_HSI_DIV_2, RCC_PLLMUL_9);
     rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
     rcc_set_prescaler(RCC_PRESCALER_APB1, RCC_APB1_HCLK_DIV_1);
@@ -131,7 +128,14 @@ static void setupADC() {
 static void timerDefaultConfig(timer_dev*);
 
 static void setupTimers() {
+
+	/*
     timer_foreach(timerDefaultConfig);
+    */
+	// We only use a couple of timers in the firmware, only enable those:
+	timerDefaultConfig(TIMER2);
+	timerDefaultConfig(TIMER3);
+	timerDefaultConfig(TIMER4);
 }
 
 static void adcDefaultConfig(const adc_dev *dev) {

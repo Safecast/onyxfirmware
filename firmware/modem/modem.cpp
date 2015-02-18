@@ -194,7 +194,6 @@ void modem_logxfer() {
     modem_send((uint8_t *) inputdata,size);
     bool sstate = switch_state();
     if(sstate != last_switch_state) {
-      display_powerdown();
       power_standby();
     }
   }
