@@ -135,11 +135,15 @@ void display_draw_image(int x,int y,int width,int height, uint16 *image_data) {
   oled_draw_rect(x,y,width,height,(uint8_t *) image_data);
 }
 
+/**
+ * Draws the boot screen: IMI logo, plus firmware version
+ * and device asset tag if defined.
+ */
 void display_splashscreen(const char *line1,const char *line2) {
   oled_draw_rect(0,0,128,127,((uint8_t *) &_binary___binary_data_splashscreen_start)+1);
 
-  if(line1 != 0) display_draw_tinytext_center(128-8 ,line1,0);
-  if(line2 != 0) display_draw_tinytext_center(128-14,line2,0);
+  if(line1 != 0) display_draw_tinytext_center(128-8 ,line1,65535);
+  if(line2 != 0) display_draw_tinytext_center(128-14,line2,65535);
 }
 
 void display_set_brightness(uint8 b) {

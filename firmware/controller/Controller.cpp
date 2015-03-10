@@ -836,7 +836,7 @@ void Controller::check_warning_level() {
 		if (m_sleeping)
 			display_powerup();
 		char text_cpm[20];
-		sprintf(text_cpm, "%8.3f",
+		sprintf(text_cpm, "%8.0f",
 				system_geiger->get_cpm_deadtime_compensated());
 		m_gui->show_dialog("WARNING LEVEL", "EXCEEDED", text_cpm, "CPM", true,
 				42, 254, 255, 255);
@@ -1011,7 +1011,7 @@ void Controller::send_cpm_values() {
 
 	if (!m_cpm_cps_switch) {       // no auto switch, just display CPM
 		char text_cpmd_tmp[30];
-		sprintf(text_cpmd_tmp, "%8.3f", cpm);
+		sprintf(text_cpmd_tmp, "%8.0f", cpm); // No need for decimals on CPM!
 		sprintf(text_cpmd, "%8.8s", text_cpmd_tmp);
 		m_gui->receive_update("CPMSLABEL", "CPM");
 	} else {
