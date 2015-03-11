@@ -25,12 +25,15 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 0 - main screen
 {
- 4,
+ 7,
  {
    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"      , 255},
    { ITEM_TYPE_MENU       , 1, 1, "Current Readings", 4  },
    { ITEM_TYPE_MENU       , 2, 2, "Advanced"        , 30 },
-   { ITEM_TYPE_MENU       , 3, 3, "Settings"        , 0  }
+   { ITEM_TYPE_MENU       , 3, 3, "Settings"        , 0  },
+   { ITEM_TYPE_SOFTKEY	  , 0, 0, "Soft1"			, 0	 },
+   { ITEM_TYPE_SOFTKEY	  , 1, 0, "Soft2"			, 0	 },
+   { ITEM_TYPE_SOFTKEY	  , 2, 0, "Soft3"			, 0	 },
  }
  ,7
 },

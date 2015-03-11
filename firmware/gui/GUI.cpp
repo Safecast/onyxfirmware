@@ -310,11 +310,49 @@ void render_item_label(screen_item &item, bool selected) {
   }
 }
 
+/**
+ * Render a small label. Use item.val1=255 to center the label
+ * item.val1: x
+ * item.val2: y
+ * item.text: label
+ */
 void render_item_smalllabel(screen_item &item, bool selected) {
   if(item.val1 == 255) {display_draw_tinytext_center          (item.val2,item.text,FOREGROUND_COLOR);}
                   else {display_draw_tinytext       (item.val1,item.val2,item.text,FOREGROUND_COLOR);}
 }
 
+/**
+ * Render a soft key.
+ * item.val1: 0 to 2 (soft key number)
+ * item.val2: unused
+ * item.text: label (5 char max)
+ */
+void render_softkey(screen_item &item, bool selected) {
+
+	// Truncate the label to 5 characters
+	uint8_t text_len = strlen(item.text);
+	if(text_len == 0) return;
+	if (text_len > 5) item.text[5] = 0;
+	if (item.val1 > 2) return;
+	uint8_t x1 = 0;
+	uint8_t x2 = 0;
+	if (item.val1 == 0) {
+		x2 = 41;
+	} else if (item.val1 == 1) {
+		x1 = 43;
+		x2 = 84;
+	} else {
+		x1 = 86;
+		x2 = 127;
+	}
+	display_draw_rectangle(x1, 114, x2, 127, header_color );
+    draw_text(x1+2, 110, item.text, header_color);
+
+}
+
+/**
+ * Draw the header background
+ */
 void render_item_head(screen_item &item, bool selected) {
   draw_text(0,0,"                ",header_color);
 }
@@ -498,8 +536,11 @@ void render_item(screen_item &item,bool selected) {
   if(item.type == ITEM_TYPE_LABEL) {
     render_item_label(item,selected);
   } else
+  if(item.type == ITEM_TYPE_SOFTKEY) {
+	    render_softkey(item,selected);
+  } else
   if(item.type == ITEM_TYPE_SMALLLABEL) {
-    render_item_smalllabel(item,selected);
+	render_item_smalllabel(item,selected);
   } else
   if(item.type == ITEM_TYPE_GRAPH) {
     render_item_graph(item,selected);
@@ -719,9 +760,8 @@ void update_item_head(screen_item &item,const void *value) {
   }
   if(len > 6) v[6]=0;
 
-  draw_text(0,0,v,header_color);//HEADER_COLOR);
+  draw_text(0,0,v,header_color);
 
-  // a hack!
   render_battery(0,128-24,power_battery_level(),power_charging());
     
 
@@ -916,7 +956,6 @@ void GUI::show_dialog(const char *dialog_text1,
 void GUI::render() {
 
   if(m_sleeping) {
-//     process_keys();
     return;
   }
 

@@ -13,6 +13,7 @@
 
 #define ITEM_TYPE_MENU          0  // A normal menu item
 #define ITEM_TYPE_LABEL         1  // A static label, can not be changed
+#define ITEM_TYPE_SOFTKEY		2  // A soft key label, a the bottom of the screen
 #define ITEM_TYPE_SELECTION     3  // An item selection, currently not implemented
 #define ITEM_TYPE_VARLABEL      4  // A variable label, can be set to a value in software
 #define ITEM_TYPE_GRAPH         5  // System graph.
