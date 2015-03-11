@@ -25,29 +25,29 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 0 - main screen
 {
- 7,
+ 4,
  {
    { ITEM_TYPE_HEAD       , 0, 0, "CPMDEADINT"      , 255},
    { ITEM_TYPE_MENU       , 1, 1, "Current Readings", 4  },
    { ITEM_TYPE_MENU       , 2, 2, "Advanced"        , 30 },
    { ITEM_TYPE_MENU       , 3, 3, "Settings"        , 0  },
-   { ITEM_TYPE_SOFTKEY	  , 0, 0, "Soft1"			, 0	 },
-   { ITEM_TYPE_SOFTKEY	  , 1, 0, "Soft2"			, 0	 },
-   { ITEM_TYPE_SOFTKEY	  , 2, 0, "Soft3"			, 0	 },
  }
  ,7
 },
 
 // Screen 1 - Current readings screen
 {
-  5,
+  6,
   {
     { ITEM_TYPE_HEAD        , 0 ,  0, "CPMDEADINT", 255},
-    { ITEM_TYPE_BIGVARLABEL , 0 , 26, "CPMDEAD"   , 255},
-    { ITEM_TYPE_VARLABEL    ,104, 60, "CPMSLABEL" , 255},
-    { ITEM_TYPE_BIGVARLABEL , 0 , 73, "SVREM"     , 255},
-    { ITEM_TYPE_VARLABEL    , 80,104, "SVREMLABEL", 255},
-  }
+    { ITEM_TYPE_BIGVARLABEL , 0 , 30, "CPMDEAD"   , 255},
+    { ITEM_TYPE_VARLABEL    ,104, 90, "CPMSLABEL" , 255},
+//    { ITEM_TYPE_BIGVARLABEL , 0 , 67, "SVREM"     , 255},
+//    { ITEM_TYPE_VARLABEL    , 80, 98, "SVREMLABEL", 255},
+    { ITEM_TYPE_SOFTKEY	  , 0, 0, "Home"			, 255},
+    { ITEM_TYPE_SOFTKEY	  , 1, 26, "\x80Sv/h"			, 255},
+    { ITEM_TYPE_SOFTKEY	  , 2, 0, "Beep"			, 255},
+}
   ,0
 },
 
@@ -382,6 +382,23 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   }
   ,7
 },
+
+// Screen 26 - Micro Sievert readings screen
+{
+  6,
+  {
+    { ITEM_TYPE_HEAD        , 0 ,  0, "CPMDEADINT", 255},
+//    { ITEM_TYPE_BIGVARLABEL , 0 , 30, "CPMDEAD"   , 255},
+//    { ITEM_TYPE_VARLABEL    ,104, 90, "CPMSLABEL" , 255},
+    { ITEM_TYPE_BIGVARLABEL , 0 , 30, "SVREM"     , 255},
+    { ITEM_TYPE_VARLABEL    , 80, 80, "SVREMLABEL", 255},
+    { ITEM_TYPE_SOFTKEY	  , 0, 0, "Home"			, 255},
+    { ITEM_TYPE_SOFTKEY	  , 1, 0, "Graph"			, 255},
+    { ITEM_TYPE_SOFTKEY	  , 2, 0, "Beep"			, 255},
+}
+  ,0
+},
+
 
 };
 

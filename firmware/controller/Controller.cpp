@@ -1011,8 +1011,8 @@ void Controller::send_cpm_values() {
 
 	if (!m_cpm_cps_switch) {       // no auto switch, just display CPM
 		char text_cpmd_tmp[30];
-		sprintf(text_cpmd_tmp, "%8.0f", cpm); // No need for decimals on CPM!
-		sprintf(text_cpmd, "%8.8s", text_cpmd_tmp);
+		sprintf(text_cpmd_tmp, "%6.0f", cpm); // No need for decimals on CPM!
+		sprintf(text_cpmd, "%6.6s", text_cpmd_tmp);
 		m_gui->receive_update("CPMSLABEL", "CPM");
 	} else {
 
@@ -1025,14 +1025,14 @@ void Controller::send_cpm_values() {
 
 		if (m_current_units == UNITS_CPM) {
 			char text_cpmd_tmp[30];
-			sprintf(text_cpmd_tmp, "%8.0f", cpm);
-			sprintf(text_cpmd, "%8.8s", text_cpmd_tmp);
+			sprintf(text_cpmd_tmp, "%6.0f", cpm);
+			sprintf(text_cpmd, "%6.6s", text_cpmd_tmp);
 			m_gui->receive_update("CPMSLABEL", "CPM");
 		} else {
 			char text_cpmd_tmp[30];
-			sprintf(text_cpmd_tmp, "%8.0f",
+			sprintf(text_cpmd_tmp, "%6.0f",
 					cpm / 60);
-			sprintf(text_cpmd, "%8.8s", text_cpmd_tmp);
+			sprintf(text_cpmd, "%6.6s", text_cpmd_tmp);
 			m_gui->receive_update("CPMSLABEL", "CPS");
 		}
 	}

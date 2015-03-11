@@ -26,8 +26,10 @@ extern uint8_t _binary___binary_data_bignumbers_data_size;
 
 uint16_t get_bigpixel(char c,int c_x,int c_y) {
 
-  int ypos = (c/(128/16)) * 32;
-  int xpos = (c%(128/16)) * 16;
+	// Get Y and X offset for this character
+	// Big numbers are 21 pixels wide, and 32 high
+  int ypos = (c/(128/21)) * 32;
+  int xpos = (c%(128/21)) * 21;
 //  ypos+=1;
 
   int bitposition = ((ypos*128)+(c_y*128) + (xpos)+c_x) *2;
@@ -135,12 +137,12 @@ void draw_character(uint32_t x,uint32_t y,char c,uint16_t background) {
 
 void draw_bigcharacter(int x,int y,char c,uint16_t background) {
 
-  uint16_t character_data[16*32];
-  for(int n=0;n<(16*32);n++) character_data[n]=background^65535;
+  uint16_t character_data[21*32];
+  for(int n=0;n<(21*32);n++) character_data[n]=background^65535;
 
   if(((c >= 'a')&&(c <= 'z')) ||
      ((c >= 'A')&&(c <= 'Z'))) {
-    oled_draw_rect(x,y,16,32,(uint8_t *) character_data);
+    oled_draw_rect(x,y,21,32,(uint8_t *) character_data);
     draw_character(x,y,c,background);
     return;
   }
@@ -150,7 +152,7 @@ void draw_bigcharacter(int x,int y,char c,uint16_t background) {
 
   if(c != ' ')
   for(size_t c_y=0;c_y<32;c_y++) {
-    for(size_t c_x=0;c_x<16;c_x++) {
+    for(size_t c_x=0;c_x<21;c_x++) {
       int32_t px = get_bigpixel(c,c_x,c_y);
       int32_t value;
       if(px == 65535) {
@@ -167,14 +169,18 @@ void draw_bigcharacter(int x,int y,char c,uint16_t background) {
       if(background == 65535) value = background ^ get_bigpixel(c,c_x,c_y);
       if(background ==     0) value = get_bigpixel(c,c_x,c_y);
 
-      character_data[(c_y*16)+c_x] = value;
+      character_data[(c_y*21)+c_x] = value;
     }
   }
 
-  oled_draw_rect(x,y,16,32,(uint8_t *) character_data);
+  oled_draw_rect(x,y,21,32,(uint8_t *) character_data);
 }
 
 
+/**
+ * Draw one character in tiny font.
+ * background: if zero: background is white (?) and 65535 is black.
+ */
 void draw_tinycharacter(int x,int y,char c,uint16_t background) {
 
   uint16_t character_data[5*5];
@@ -232,10 +238,13 @@ void draw_bigtext(int x,int y,const char *text,uint16_t background) {
   int c_y = y;
   for(size_t n=0;n<length;n++) {
     draw_bigcharacter(c_x,c_y,text[n],background);
-    c_x+=16;
+    c_x+=21;
   }
 }
 
+/**
+ * Draw a text in tiny font.
+ */
 void draw_tinytext(int x,int y,const char *text,uint16_t background) {
 
   uint32_t length = strlen(text);

@@ -345,8 +345,8 @@ void render_softkey(screen_item &item, bool selected) {
 		x1 = 86;
 		x2 = 127;
 	}
-	display_draw_rectangle(x1, 114, x2, 127, header_color );
-    draw_text(x1+2, 110, item.text, header_color);
+	display_draw_rectangle(x1, 109, x2, 127, header_color );
+    draw_text(x1+1, 110, item.text, header_color);
 
 }
 
@@ -498,6 +498,33 @@ void clear_item_head(screen_item &item, bool selected) {
   display_draw_rectangle(item.val1,item.val2,x_max,y_max,BACKGROUND_COLOR);
 }
 
+
+/**
+ * Render a soft key.
+ * item.val1: 0 to 2 (soft key number)
+ * item.val2: unused
+ * item.text: label (5 char max)
+ */
+void clear_softkey(screen_item &item, bool selected) {
+
+	// Truncate the label to 5 characters
+	if (item.val1 > 2) return;
+	uint8_t x1 = 0;
+	uint8_t x2 = 0;
+	if (item.val1 == 0) {
+		x2 = 41;
+	} else if (item.val1 == 1) {
+		x1 = 43;
+		x2 = 84;
+	} else {
+		x1 = 86;
+		x2 = 127;
+	}
+	display_draw_rectangle(x1, 109, x2, 127, BACKGROUND_COLOR );
+
+}
+
+
 void clear_item_bigvarlabel(screen_item &item, bool selected) {
   int32_t text_len = strlen(item.text);
 
@@ -565,6 +592,9 @@ void clear_item(screen_item &item,bool selected) {
   } else
   if(item.type == ITEM_TYPE_LABEL) {
     clear_item_label(item,selected);
+  } else
+  if(item.type == ITEM_TYPE_SOFTKEY) {
+		clear_softkey(item,selected);
   } else
   if(item.type == ITEM_TYPE_SMALLLABEL) {
     clear_item_label(item,selected);
