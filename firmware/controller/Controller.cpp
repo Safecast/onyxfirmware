@@ -9,6 +9,7 @@
 #include "rtc.h"
 #include "power.h"
 #include <stdio.h>
+#include "math.h"
 #include "accel.h"
 #include "log.h"
 #include "switch.h"
@@ -996,14 +997,21 @@ void Controller::do_dimming() {
 
 /**
  * Send current CPM value to the GUI for display.
+ * Since the display font is large, we need limit this to max 4 digits, or 5 if there is a dot.
  */
 void Controller::send_cpm_values() {
-	//TODO: I should change this so it only sends the messages the GUI currently needs.
+
 	char text_cpmdint[50];
 	char text_cpmd[50];
 
-	float cpm = system_geiger->get_cpm_deadtime_compensated();
-	int_to_char(cpm + 0.5, text_cpmdint, 7);
+	// Add 0.5 to have a nearest integer rounding
+	uint32_t cpm = (uint32_t) floor(system_geiger->get_cpm_deadtime_compensated()+0.5);
+
+	if (cpm == m_last_cpm_sent_to_gui)
+		return; // Let's not waste battery updating the GUI for a value that has not changed
+	m_last_cpm_sent_to_gui = cpm;
+
+	int_to_char(cpm, text_cpmdint, 7);
 
 	if (cpm > MAX_CPM) {
 		sprintf(text_cpmdint, "TOO HIGH"); // kanji image is 45
@@ -1011,8 +1019,8 @@ void Controller::send_cpm_values() {
 
 	if (!m_cpm_cps_switch) {       // no auto switch, just display CPM
 		char text_cpmd_tmp[30];
-		sprintf(text_cpmd_tmp, "%6.0f", cpm); // No need for decimals on CPM!
-		sprintf(text_cpmd, "%6.6s", text_cpmd_tmp);
+		sprintf(text_cpmd_tmp, "%4u", cpm); // No need for decimals on CPM!
+		sprintf(text_cpmd, "%4.4s", text_cpmd_tmp);
 		m_gui->receive_update("CPMSLABEL", "CPM");
 	} else {
 
@@ -1025,14 +1033,14 @@ void Controller::send_cpm_values() {
 
 		if (m_current_units == UNITS_CPM) {
 			char text_cpmd_tmp[30];
-			sprintf(text_cpmd_tmp, "%6.0f", cpm);
-			sprintf(text_cpmd, "%6.6s", text_cpmd_tmp);
+			sprintf(text_cpmd_tmp, "%4u", cpm);
+			sprintf(text_cpmd, "%4.4s", text_cpmd_tmp);
 			m_gui->receive_update("CPMSLABEL", "CPM");
 		} else {
 			char text_cpmd_tmp[30];
-			sprintf(text_cpmd_tmp, "%6.0f",
+			sprintf(text_cpmd_tmp, "%4u",
 					cpm / 60);
-			sprintf(text_cpmd, "%6.6s", text_cpmd_tmp);
+			sprintf(text_cpmd, "%4.4s", text_cpmd_tmp);
 			m_gui->receive_update("CPMSLABEL", "CPS");
 		}
 	}

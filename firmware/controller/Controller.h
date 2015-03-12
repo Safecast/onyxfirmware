@@ -79,6 +79,7 @@ public:
   uint32   m_total_timer_start;
   bool     m_dim_off;
   bool     m_never_dim;
+  uint32_t m_last_cpm_sent_to_gui;
 
   float    m_cpm_cps_threshold;
   float    m_cps_cpm_threshold;

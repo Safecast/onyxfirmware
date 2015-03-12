@@ -1,5 +1,5 @@
 /*
- * Maple (STM32F103RBT6, medium density) linker script for Flash builds.
+ * Safecast MCU (STM32F101RET6, High density) linker script for Flash builds.
  */
 
 /*
@@ -7,8 +7,8 @@
  */
 MEMORY
 {
-  ram (rwx) : ORIGIN = 0x20000C00, LENGTH = 45K
-  rom (rx)  : ORIGIN = 0x08000000, LENGTH = 492K
+  ram (rwx) : ORIGIN = 0x20000C00, LENGTH = 48K
+  rom (rx)  : ORIGIN = 0x08000000, LENGTH = 512K
 }
 
 /*
