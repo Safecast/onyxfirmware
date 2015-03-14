@@ -330,6 +330,7 @@ void draw_bigtext(int x, int y, const char *text, uint16_t background) {
 		if (text[n] == '.') {
 			dot = true;
 			dot_x = c_x - ((c_x > 3) ? 3 : 0);
+			c_x += 6;
 		} else {
 			draw_bigcharacter(c_x, c_y, text[n], background);
 			c_x += 30;
