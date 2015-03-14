@@ -66,6 +66,8 @@ private:
   void process_key_up();
   void process_key_down();
 
+  bool softkeys_active();
+  uint8_t softkey_screen(uint8_t idx);
   void process_key(int key_id,int type);
   void process_keys();
 

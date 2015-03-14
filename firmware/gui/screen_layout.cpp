@@ -17,7 +17,7 @@
  *     { item_type, val1, val2, text, kanji_image },
  *     ...
  *   },
- *   help_menu
+ *   help_menu (255 for no help)
  * }
  */
 
@@ -42,10 +42,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD        , 0 ,  0, "CPMDEADINT", 255},
     { ITEM_TYPE_BIGVARLABEL , 0 , 30, "CPMDEAD"   , 255},
     { ITEM_TYPE_VARLABEL    ,104, 90, "CPMSLABEL" , 255},
-//    { ITEM_TYPE_BIGVARLABEL , 0 , 67, "SVREM"     , 255},
-//    { ITEM_TYPE_VARLABEL    , 80, 98, "SVREMLABEL", 255},
     { ITEM_TYPE_SOFTKEY	  , 0, 0, "Home"			, 255},
-    { ITEM_TYPE_SOFTKEY	  , 1, 26, "\x80Sv/h"			, 255},
+    { ITEM_TYPE_SOFTKEY	  , 1, 26, "\x80Sv/h"		, 255},
     { ITEM_TYPE_SOFTKEY	  , 2, 0, "Beep"			, 255},
 }
   ,0
@@ -388,12 +386,10 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   6,
   {
     { ITEM_TYPE_HEAD        , 0 ,  0, "CPMDEADINT", 255},
-//    { ITEM_TYPE_BIGVARLABEL , 0 , 30, "CPMDEAD"   , 255},
-//    { ITEM_TYPE_VARLABEL    ,104, 90, "CPMSLABEL" , 255},
     { ITEM_TYPE_BIGVARLABEL , 0 , 30, "SVREM"     , 255},
-    { ITEM_TYPE_VARLABEL    , 80, 80, "SVREMLABEL", 255},
+    { ITEM_TYPE_VARLABEL    , 80, 90, "SVREMLABEL", 255},
     { ITEM_TYPE_SOFTKEY	  , 0, 0, "Home"			, 255},
-    { ITEM_TYPE_SOFTKEY	  , 1, 0, "Graph"			, 255},
+    { ITEM_TYPE_SOFTKEY	  , 1, 4, "Graph"			, 255},
     { ITEM_TYPE_SOFTKEY	  , 2, 0, "Beep"			, 255},
 }
   ,0

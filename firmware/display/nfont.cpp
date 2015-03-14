@@ -28,114 +28,145 @@ extern uint8_t _binary___binary_data_bignumbers_data_size;
  * Get the bitmap for a Large number. value of c is 0 to 10
  * for digits 0 to 9 and 10 is '.'
  */
-uint16_t get_bigpixel(char c,int c_x,int c_y) {
+uint16_t get_bigpixel(char c, int c_x, int c_y) {
 
 	// Get Y and X offset for this character
 	// Big numbers are 30 pixels wide, and 43 high
-  int ypos = (c/(128/30)) * 43;
-  int xpos = (c%(128/30)) * 30;
+	int ypos = (c / (128 / 30)) * 43;
+	int xpos = (c % (128 / 30)) * 30;
 
-  int bitposition = ((ypos*128)+(c_y*128) + (xpos)+c_x) *2;
+	int bitposition = ((ypos * 128) + (c_y * 128) + (xpos) + c_x) * 2;
 
-  int byte_position = bitposition/8;
-  int bit_in_byte   = 7-(bitposition%8);
+	int byte_position = bitposition / 8;
+	int bit_in_byte = 7 - (bitposition % 8);
 
-  uint8_t byte = ((uint8_t *) &_binary___binary_data_bignumbers_data_start)[byte_position];
+	uint8_t byte =
+			((uint8_t *) &_binary___binary_data_bignumbers_data_start)[byte_position];
 
-  uint8_t value=0;
-  if((byte & (1 << bit_in_byte)) > 0) value += 2;
+	uint8_t value = 0;
+	if ((byte & (1 << bit_in_byte)) > 0)
+		value += 2;
 
-  bit_in_byte--;
-  if((byte & (1 << bit_in_byte)) > 0) value += 1;
+	bit_in_byte--;
+	if ((byte & (1 << bit_in_byte)) > 0)
+		value += 1;
 
-  if(value == 0) {value = 0;   }
-  if(value == 1) {value = 85;  }
-  if(value == 2) {value = 170; }
-  if(value == 3) {value = 255; }
+	if (value == 0) {
+		value = 0;
+	}
+	if (value == 1) {
+		value = 85;
+	}
+	if (value == 2) {
+		value = 170;
+	}
+	if (value == 3) {
+		value = 255;
+	}
 
-  return to565(value,value,value);
+	return to565(value, value, value);
 }
 
-uint16_t get_pixel(char c,int c_x,int c_y) {
+uint16_t get_pixel(char c, int c_x, int c_y) {
 
-  int ypos = (c/(128/8)) * 16;
-  int xpos = (c%(128/8)) * 8;
-  ypos+=1;
+	int ypos = (c / (128 / 8)) * 16;
+	int xpos = (c % (128 / 8)) * 8;
+	ypos += 1;
 
-  int bitposition = ((ypos*128)+(c_y*128) + (xpos)+c_x) *2;
+	int bitposition = ((ypos * 128) + (c_y * 128) + (xpos) + c_x) * 2;
 
-  int byte_position = bitposition/8;
-  int bit_in_byte   = 7-(bitposition%8);
+	int byte_position = bitposition / 8;
+	int bit_in_byte = 7 - (bitposition % 8);
 
-  uint8_t byte = ((uint8_t *) &_binary___binary_data_font_data_start)[byte_position];
+	uint8_t byte =
+			((uint8_t *) &_binary___binary_data_font_data_start)[byte_position];
 
-  uint8_t value=0;
-  if((byte & (1 << bit_in_byte)) > 0) value += 2;
+	uint8_t value = 0;
+	if ((byte & (1 << bit_in_byte)) > 0)
+		value += 2;
 
-  bit_in_byte--;
-  if((byte & (1 << bit_in_byte)) > 0) value += 1;
+	bit_in_byte--;
+	if ((byte & (1 << bit_in_byte)) > 0)
+		value += 1;
 
-  if(value == 0) {value = 0;   }
-  if(value == 1) {value = 85;  }
-  if(value == 2) {value = 170; }
-  if(value == 3) {value = 255; }
+	if (value == 0) {
+		value = 0;
+	}
+	if (value == 1) {
+		value = 85;
+	}
+	if (value == 2) {
+		value = 170;
+	}
+	if (value == 3) {
+		value = 255;
+	}
 
-  return to565(value,value,value);
+	return to565(value, value, value);
 }
 
-uint16_t get_tinypixel(char c,int c_x,int c_y) {
+uint16_t get_tinypixel(char c, int c_x, int c_y) {
 
-  int ypos = (c/(120/5)) * 5;
-  int xpos = (c%(120/5)) * 5;
+	int ypos = (c / (120 / 5)) * 5;
+	int xpos = (c % (120 / 5)) * 5;
 
-  int bitposition = ((ypos*120)+(c_y*120) + (xpos)+c_x);
+	int bitposition = ((ypos * 120) + (c_y * 120) + (xpos) + c_x);
 
-  int byte_position = bitposition/8;
-  int bit_in_byte   = 7-(bitposition%8);//was8-
-  uint8_t byte = ((uint8_t *) &_binary___binary_data_tinyfont_data_start)[byte_position];
+	int byte_position = bitposition / 8;
+	int bit_in_byte = 7 - (bitposition % 8);	//was8-
+	uint8_t byte =
+			((uint8_t *) &_binary___binary_data_tinyfont_data_start)[byte_position];
 
-  uint8_t value=0;
-  if((byte & (1 << bit_in_byte)) > 0) value = 1;
+	uint8_t value = 0;
+	if ((byte & (1 << bit_in_byte)) > 0)
+		value = 1;
 
-  if(value == 0) {value = 0;   }
-  if(value == 1) {value = 255; }
+	if (value == 0) {
+		value = 0;
+	}
+	if (value == 1) {
+		value = 255;
+	}
 
-  return to565(value,value,value);
+	return to565(value, value, value);
 }
 
-void draw_character(uint32_t x,uint32_t y,char c,uint16_t background) {
+void draw_character(uint32_t x, uint32_t y, char c, uint16_t background) {
 
-  uint16_t character_data[8*16];
+	uint16_t character_data[8 * 16];
 //  for(int n=0;n<(8*16);n++) character_data[n] = 0xF000;//background;
 
-  for(size_t c_y=0;c_y<16;c_y++) {
-    for(size_t c_x=0;c_x<8;c_x++) {
-      int32_t px = get_pixel(c-32,c_x,c_y);
-      int32_t value;
+	for (size_t c_y = 0; c_y < 16; c_y++) {
+		for (size_t c_x = 0; c_x < 8; c_x++) {
+			int32_t px = get_pixel(c - 32, c_x, c_y);
+			int32_t value;
 
-      if((background != 0) || (background != 65535)) {
-				if(px == 65535) {
+			if ((background != 0) || (background != 65535)) {
+				if (px == 65535) {
 					value = background;
-				} else
-        if(px == 0) {
-          value = 0;
-        } else {
+				} else if (px == 0) {
+					value = 0;
+				} else {
 					uint16_t r = from565_r(px);
 					uint16_t g = from565_g(px);
 					uint16_t b = from565_b(px);
-					value = to565(r/background,g/background,b/background);
+					value = to565(r / background, g / background,
+							b / background);
 				}
-        if(value < 0) value=0;
-      }
+				if (value < 0)
+					value = 0;
+			}
 
-      if(background == 65535) value = background ^ get_pixel(c-32,c_x,c_y);
-      if(background ==     0) value = get_pixel(c-32,c_x,c_y);
+			if (background == 65535)
+				value = background ^ get_pixel(c - 32, c_x, c_y);
+			if (background == 0)
+				value = get_pixel(c - 32, c_x, c_y);
 
-      character_data[(c_y*8)+c_x] = value;
-    }
-  }
+			character_data[(c_y * 8) + c_x] = value;
+		}
+	}
 
-  oled_draw_rect(x,y,8,16,(uint8_t *) character_data);
+	oled_draw_rect(x, y, 8, 16, (uint8_t *) character_data);
 }
 
 /**
@@ -143,128 +174,188 @@ void draw_character(uint32_t x,uint32_t y,char c,uint16_t background) {
  * Big numbers are 30 pixels wide, and 43 high
  *
  */
-void draw_bigcharacter(int x,int y,char c,uint16_t background) {
+void draw_bigcharacter(int x, int y, char c, uint16_t background) {
 
-  uint16_t character_data[43*30];
-  for(int n=0;n<(43*30);n++) character_data[n]=background^65535;
+	uint16_t character_data[43 * 30];
+	for (int n = 0; n < (43 * 30); n++)
+		character_data[n] = background ^ 65535;
 
-  if(((c >= 'a')&&(c <= 'z')) ||
-     ((c >= 'A')&&(c <= 'Z'))) {
-    oled_draw_rect(x,y,30,43,(uint8_t *) character_data);
-    draw_character(x,y,c,background);
-    return;
-  }
+	if (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z'))) {
+		oled_draw_rect(x, y, 30, 43, (uint8_t *) character_data);
+		draw_character(x, y, c, background);
+		return;
+	}
 
-  if((c >= '0')&&(c <= '9')) c = c - 48; else
-  if(c == '.') c = 10;
+	if ((c >= '0') && (c <= '9'))
+		c = c - 48;
+	else if (c == '.')
+		c = 10;
 
-  if(c != ' ')
-  for(size_t c_y=0;c_y<43;c_y++) {
-    for(size_t c_x=0;c_x<30;c_x++) {
-      int32_t px = get_bigpixel(c,c_x,c_y);
-      int32_t value;
-      if(px == 65535) {
-        value = background;
-      } else {
-        int r = from565_r(px);
-        int g = from565_g(px);
-        int b = from565_b(px);
-        value = to565(r/background,g/background,b/background);
-      }
-
-      if(value < 0) value=0;
-
-      if(background == 65535) value = background ^ get_bigpixel(c,c_x,c_y);
-      if(background ==     0) value = get_bigpixel(c,c_x,c_y);
-
-      character_data[(c_y*30)+c_x] = value;
-    }
-  }
-
-  oled_draw_rect(x,y,30,43,(uint8_t *) character_data);
+	if (c != ' ')
+		for (size_t c_y = 0; c_y < 43; c_y++) {
+			for (size_t c_x = 0; c_x < 30; c_x++) {
+				int32_t px = get_bigpixel(c, c_x, c_y);
+				int32_t value;
+				if (background == 65535) {
+					value = background ^ px;
+				} else if (background == 0) {
+					value = px;
+				} else if (px == 65535) {
+					value = background;
+				} else {
+					int r = from565_r(px);
+					int g = from565_g(px);
+					int b = from565_b(px);
+					value = to565(r / background, g / background,
+							b / background);
+				}
+				if (value < 0)
+					value = 0;
+				character_data[(c_y * 30) + c_x] = value;
+			}
+		}
+	oled_draw_rect(x, y, 30, 43, (uint8_t *) character_data);
 }
 
+/**
+ * Special case: draw a big dot
+ */
+void draw_bigdot(int x, int y, uint16_t background) {
+
+	uint16_t character_data[8 * 7];
+	for (int n = 0; n < (8 * 7); n++)
+		character_data[n] = background ^ 65535;
+
+	for (size_t c_y = 31; c_y < 39; c_y++) {
+		for (size_t c_x = 2; c_x < 10; c_x++) {
+			int32_t px = get_bigpixel(10, c_x, c_y);
+			int32_t value;
+			if (px == 65535) {
+				value = background;
+			} else {
+				int r = from565_r(px);
+				int g = from565_g(px);
+				int b = from565_b(px);
+				value = to565(r / background, g / background, b / background);
+			}
+
+			if (value < 0)
+				value = 0;
+
+			if (background == 65535)
+				value = background ^ px;
+			if (background == 0)
+				value = px;
+
+			character_data[((c_y-31) * 8) + c_x-2] = value;
+		}
+	}
+
+	oled_draw_rect(x, y + 31, 8, 7, (uint8_t *) character_data);
+}
 
 /**
  * Draw one character in tiny font.
  * background: if zero: background is white (?) and 65535 is black.
  */
-void draw_tinycharacter(int x,int y,char c,uint16_t background) {
+void draw_tinycharacter(int x, int y, char c, uint16_t background) {
 
-  uint16_t character_data[5*5];
-  for(int n=0;n<(5*5);n++) character_data[n]=n;
+	uint16_t character_data[5 * 5];
+	for (int n = 0; n < (5 * 5); n++)
+		character_data[n] = n;
 
-  for(size_t c_y=0;c_y<5;c_y++) {
-    for(size_t c_x=0;c_x<5;c_x++) {
-      int32_t px = get_tinypixel(c-32,c_x,c_y);
-      int32_t value=9;
+	for (size_t c_y = 0; c_y < 5; c_y++) {
+		for (size_t c_x = 0; c_x < 5; c_x++) {
+			int32_t px = get_tinypixel(c - 32, c_x, c_y);
+			int32_t value = 9;
 
-      if((background != 0) && (background != 65535)) {
-        if(px == 65535) {
-          value = background;
-        }
-      } else {
-        int r = from565_r(px);
-        int g = from565_g(px);
-        int b = from565_b(px);
-        value = to565(r/background,g/background,b/background);
-      }
+			if ((background != 0) && (background != 65535)) {
+				if (px == 65535) {
+					value = background;
+				}
+			} else {
+				int r = from565_r(px);
+				int g = from565_g(px);
+				int b = from565_b(px);
+				value = to565(r / background, g / background, b / background);
+			}
 
-      if(value < 0) value=0;
+			if (value < 0)
+				value = 0;
 
-      if(background == 65535) value = background ^ get_tinypixel(c-32,c_x,c_y);
-      if(background ==     0) value = get_tinypixel(c-32,c_x,c_y);
+			if (background == 65535)
+				value = background ^ get_tinypixel(c - 32, c_x, c_y);
+			if (background == 0)
+				value = get_tinypixel(c - 32, c_x, c_y);
 
-      character_data[(c_y*5)+c_x] = value;
-    }
-  }
+			character_data[(c_y * 5) + c_x] = value;
+		}
+	}
 
-  oled_draw_rect(x,y,5,5,(uint8_t *) character_data);
+	oled_draw_rect(x, y, 5, 5, (uint8_t *) character_data);
 }
 
-void draw_text(int x,int y,const char *text,uint16_t background) {
+void draw_text(int x, int y, const char *text, uint16_t background) {
 
-  size_t length = strlen(text);
-  if(length < 0    ) return;
-  if(length > 10000) return;
+	size_t length = strlen(text);
+	if (length < 0)
+		return;
+	if (length > 10000)
+		return;
 
-  uint32_t c_x = x;
-  uint32_t c_y = y;
-  for(size_t n=0;n<length;n++) {
-    draw_character(c_x,c_y,text[n],background);
-    c_x+=8;
-  }
+	uint32_t c_x = x;
+	uint32_t c_y = y;
+	for (size_t n = 0; n < length; n++) {
+		draw_character(c_x, c_y, text[n], background);
+		c_x += 8;
+	}
 }
 
-void draw_bigtext(int x,int y,const char *text,uint16_t background) {
+/**
+ * Draw a large text (43px high characters, the screen can take 4 chars wide)
+ * One note: only digits are supported. We do fancy stuff with the dot so that
+ * it does not take extra space.
+ */
+void draw_bigtext(int x, int y, const char *text, uint16_t background) {
 
-  uint32_t length = strlen(text);
-  if(length < 0    ) return;
-  if(length > 10000) return;
+	bool dot = false;
+	int  dot_x = 0;
+	uint32_t length = strlen(text);
+	if ((length < 0) || (length > 6))
+		return;
 
-  int c_x = x;
-  int c_y = y;
-  for(size_t n=0;n<length;n++) {
-    draw_bigcharacter(c_x,c_y,text[n],background);
-    c_x += (text[n] == '.') ? 11 : 30; // Character width = 30, but don't waste space for dot.
-  }
+	int c_x = x;
+	int c_y = y;
+	for (size_t n = 0; n < length; n++) {
+		if (text[n] == '.') {
+			dot = true;
+			dot_x = c_x - ((c_x > 3) ? 3 : 0);
+		} else {
+			draw_bigcharacter(c_x, c_y, text[n], background);
+			c_x += 30;
+		}
+	}
+	if (dot)
+		draw_bigdot(dot_x, c_y, background);
 }
 
 /**
  * Draw a text in tiny font.
  */
-void draw_tinytext(int x,int y,const char *text,uint16_t background) {
+void draw_tinytext(int x, int y, const char *text, uint16_t background) {
 
-  uint32_t length = strlen(text);
-  if(length < 0    ) return;
-  if(length > 10000) return;
+	uint32_t length = strlen(text);
+	if (length < 0)
+		return;
+	if (length > 10000)
+		return;
 
-  int c_x = x;
-  int c_y = y;
-  for(size_t n=0;n<length;n++) {
-    draw_tinycharacter(c_x,c_y,text[n],background);
-    c_x+=6;
-  }
+	int c_x = x;
+	int c_y = y;
+	for (size_t n = 0; n < length; n++) {
+		draw_tinycharacter(c_x, c_y, text[n], background);
+		c_x += 6;
+	}
 }
 
 #endif

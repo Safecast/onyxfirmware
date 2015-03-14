@@ -1007,9 +1007,9 @@ void Controller::send_cpm_values() {
 	// Add 0.5 to have a nearest integer rounding
 	uint32_t cpm = (uint32_t) floor(system_geiger->get_cpm_deadtime_compensated()+0.5);
 
-	if (cpm == m_last_cpm_sent_to_gui)
-		return; // Let's not waste battery updating the GUI for a value that has not changed
-	m_last_cpm_sent_to_gui = cpm;
+	//if (cpm == m_last_cpm_sent_to_gui)
+	//	return; // Let's not waste battery updating the GUI for a value that has not changed
+	// m_last_cpm_sent_to_gui = cpm;
 
 	int_to_char(cpm, text_cpmdint, 7);
 
@@ -1096,8 +1096,8 @@ void Controller::send_svrem() {
 		char text_rem[50];
 		char text_rem_tmp[50];
 		text_rem[0] = 0;
-		sprintf(text_rem_tmp, "%8.3f", system_geiger->get_microrems());
-		sprintf(text_rem, "%8.8s", text_rem_tmp);
+		sprintf(text_rem_tmp, "%5.3f", system_geiger->get_microrems());
+		sprintf(text_rem, "%5.5s", text_rem_tmp);
 		if ((system_geiger->get_cpm_deadtime_compensated() > MAX_CPM)
 				|| (system_geiger->get_microrems() > 99999999)) {
 			sprintf(text_rem, "TOO HIGH");
@@ -1109,8 +1109,8 @@ void Controller::send_svrem() {
 		char text_sieverts[50];
 		char text_sieverts_tmp[50];
 		text_sieverts[0] = 0;
-		sprintf(text_sieverts_tmp, "%8.3f", system_geiger->get_microsieverts());
-		sprintf(text_sieverts, "%8.8s", text_sieverts_tmp);
+		sprintf(text_sieverts_tmp, "%5.3f", system_geiger->get_microsieverts());
+		sprintf(text_sieverts, "%5.5s", text_sieverts_tmp);
 		if ((system_geiger->get_cpm_deadtime_compensated() > MAX_CPM)
 				|| (system_geiger->get_microsieverts() > 99999999)) {
 			sprintf(text_sieverts, "TOO HIGH");
