@@ -385,6 +385,9 @@ void oled_init_commands(uint8_t clock,uint8_t multiplex,uint8_t functionselect,u
                                     // Select 8-bit Parallel Interface
     Set_VSL(vsl);                  // Enable External VSL
     Set_Gray_Scale_Table();         // Set Pulse Width for Gray Scale Table
+
+    //Set_Contrast_Color(0xC8, 0xC8, 0xC8);
+
     Set_Phase_Length(0x32);         // Set Phase 1 as 5 Clocks & Phase 2 as 3 Clocks
     Set_Display_Enhancement(0xA4);  // Enhance Display Performance
     Set_Precharge_Voltage(prechargevolt);    // Set Pre-Charge Voltage Level as 0.50*VCC, 1c in 4D

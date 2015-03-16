@@ -98,10 +98,10 @@ void Controller::set_gui(GUI &g) {
 }
 
 void Controller::update_calibration() {
-	int c1 = m_gui->get_item_state_uint8("CAL1");
-	int c2 = m_gui->get_item_state_uint8("CAL2");
-	int c3 = m_gui->get_item_state_uint8("CAL3");
-	int c4 = m_gui->get_item_state_uint8("CAL4");
+	int c1 = m_gui->get_item_state_uint8("$CAL1");
+	int c2 = m_gui->get_item_state_uint8("$CAL2");
+	int c3 = m_gui->get_item_state_uint8("$CAL3");
+	int c4 = m_gui->get_item_state_uint8("$CAL4");
 	float calibration_scaling = ((float) c1) + (((float) c2) / 10)
 			+ (((float) c3) / 100) + (((float) c4) / 1000);
 
@@ -112,14 +112,14 @@ void Controller::update_calibration() {
 	text_sieverts[7] = 'S';
 	text_sieverts[8] = 'v';
 	text_sieverts[9] = 0;
-	m_gui->receive_update("FIXEDSV", text_sieverts);
+	m_gui->receive_update("$FIXEDSV", text_sieverts);
 }
 
 void Controller::event_save_calibration() {
-	int c1 = m_gui->get_item_state_uint8("CAL1");
-	int c2 = m_gui->get_item_state_uint8("CAL2");
-	int c3 = m_gui->get_item_state_uint8("CAL3");
-	int c4 = m_gui->get_item_state_uint8("CAL4");
+	int c1 = m_gui->get_item_state_uint8("$CAL1");
+	int c2 = m_gui->get_item_state_uint8("$CAL2");
+	int c3 = m_gui->get_item_state_uint8("$CAL3");
+	int c4 = m_gui->get_item_state_uint8("$CAL4");
 	float calibration_scaling = ((float) c1) + (((float) c2) / 10)
 			+ (((float) c3) / 100) + (((float) c4) / 1000);
 	float base_sieverts = system_geiger->get_microsieverts_nocal();
@@ -150,25 +150,25 @@ void Controller::initialise_calibration() {
 	text_sieverts[7] = 'S';
 	text_sieverts[8] = 'v';
 	text_sieverts[9] = 0;
-	m_gui->receive_update("FIXEDSV", text_sieverts);
+	m_gui->receive_update("$FIXEDSV", text_sieverts);
 
 	uint8_t c1 = system_geiger->get_calibration();
 	uint8_t c2 = ((uint32_t) (system_geiger->get_calibration() * 10)) % 10;
 	uint8_t c3 = ((uint32_t) (system_geiger->get_calibration() * 100)) % 10;
 	uint8_t c4 = ((uint32_t) (system_geiger->get_calibration() * 1000)) % 10;
-	m_gui->receive_update("CAL1", &c1);
-	m_gui->receive_update("CAL2", &c2);
-	m_gui->receive_update("CAL3", &c3);
-	m_gui->receive_update("CAL4", &c4);
+	m_gui->receive_update("$CAL1", &c1);
+	m_gui->receive_update("$CAL2", &c2);
+	m_gui->receive_update("$CAL3", &c3);
+	m_gui->receive_update("$CAL4", &c4);
 }
 
 void Controller::save_warncpm() {
 	m_warning_raised = false;
-	int w1 = m_gui->get_item_state_uint8("WARNCPM1");
-	int w2 = m_gui->get_item_state_uint8("WARNCPM2");
-	int w3 = m_gui->get_item_state_uint8("WARNCPM3");
-	int w4 = m_gui->get_item_state_uint8("WARNCPM4");
-	int w5 = m_gui->get_item_state_uint8("WARNCPM5");
+	int w1 = m_gui->get_item_state_uint8("$WARNCPM1");
+	int w2 = m_gui->get_item_state_uint8("$WARNCPM2");
+	int w3 = m_gui->get_item_state_uint8("$WARNCPM3");
+	int w4 = m_gui->get_item_state_uint8("$WARNCPM4");
+	int w5 = m_gui->get_item_state_uint8("$WARNCPM5");
 
 	int32_t warn_cpm = 0;
 	warn_cpm += w1 * 10000;
@@ -187,9 +187,9 @@ void Controller::save_warncpm() {
 }
 
 void Controller::save_loginterval() {
-	int l1 = m_gui->get_item_state_uint8("LOGINTER1");
-	int l2 = m_gui->get_item_state_uint8("LOGINTER2");
-	int l3 = m_gui->get_item_state_uint8("LOGINTER3");
+	int l1 = m_gui->get_item_state_uint8("$LOGINTER1");
+	int l2 = m_gui->get_item_state_uint8("$LOGINTER2");
+	int l3 = m_gui->get_item_state_uint8("$LOGINTER3");
 	int32_t log_interval_mins = (l1 * 100) + (l2 * 10) + l3;
 	m_log_interval_seconds = log_interval_mins * 60;
 
@@ -203,12 +203,12 @@ void Controller::save_loginterval() {
 }
 
 void Controller::save_time() {
-	int h1 = m_gui->get_item_state_uint8("TIMEHOUR1");
-	int h2 = m_gui->get_item_state_uint8("TIMEHOUR2");
-	int m1 = m_gui->get_item_state_uint8("TIMEMIN1");
-	int m2 = m_gui->get_item_state_uint8("TIMEMIN2");
-	int s1 = m_gui->get_item_state_uint8("TIMESEC1");
-	int s2 = m_gui->get_item_state_uint8("TIMESEC2");
+	int h1 = m_gui->get_item_state_uint8("$TIMEHOUR1");
+	int h2 = m_gui->get_item_state_uint8("$TIMEHOUR2");
+	int m1 = m_gui->get_item_state_uint8("$TIMEMIN1");
+	int m2 = m_gui->get_item_state_uint8("$TIMEMIN2");
+	int s1 = m_gui->get_item_state_uint8("$TIMESEC1");
+	int s2 = m_gui->get_item_state_uint8("$TIMESEC2");
 
 	int new_hours = h2 + (h1 * 10);
 	int new_min = m2 + (m1 * 10);
@@ -228,12 +228,12 @@ void Controller::save_time() {
 }
 
 void Controller::save_date() {
-	int d1 = m_gui->get_item_state_uint8("DATEDAY1");
-	int d2 = m_gui->get_item_state_uint8("DATEDAY2");
-	int m1 = m_gui->get_item_state_uint8("DATEMON1");
-	int m2 = m_gui->get_item_state_uint8("DATEMON2");
-	int y1 = m_gui->get_item_state_uint8("DATEYEAR1");
-	int y2 = m_gui->get_item_state_uint8("DATEYEAR2");
+	int d1 = m_gui->get_item_state_uint8("$DATEDAY1");
+	int d2 = m_gui->get_item_state_uint8("$DATEDAY2");
+	int m1 = m_gui->get_item_state_uint8("$DATEMON1");
+	int m2 = m_gui->get_item_state_uint8("$DATEMON2");
+	int y1 = m_gui->get_item_state_uint8("$DATEYEAR1");
+	int y2 = m_gui->get_item_state_uint8("$DATEYEAR2");
 
 	int new_day = d2 + (d1 * 10);
 	int new_mon = m2 + (m1 * 10);
@@ -286,13 +286,13 @@ void Controller::event_totaltimer(const char *event, const char *value) {
 	m_total_timer_start = realtime_get_unixtime();
 
 	const char *blank = "              ";
-	m_gui->receive_update("TTCOUNT", blank);
-	m_gui->receive_update("TTTIME", blank);
+	m_gui->receive_update("$TTCOUNT", blank);
+	m_gui->receive_update("$TTTIME", blank);
 	m_gui->redraw();
 }
 
 void Controller::event_save_pulsewidth(const char *event, const char *value) {
-	int p1 = m_gui->get_item_state_uint8("PULSEWIDTH1");
+	int p1 = m_gui->get_item_state_uint8("$PULSEWIDTH1");
 	char sp[50];
 	sprintf(sp, "%d", p1);
 	flashstorage_keyval_set("PULSEWIDTH", sp);
@@ -302,10 +302,10 @@ void Controller::event_save_pulsewidth(const char *event, const char *value) {
 }
 
 void Controller::event_save_becq(const char *event, const char *value) {
-	int b1 = m_gui->get_item_state_uint8("BECQ1");
-	int b2 = m_gui->get_item_state_uint8("BECQ2");
-	int b3 = m_gui->get_item_state_uint8("BECQ3");
-	int b4 = m_gui->get_item_state_uint8("BECQ4");
+	int b1 = m_gui->get_item_state_uint8("$BECQ1");
+	int b2 = m_gui->get_item_state_uint8("$BECQ2");
+	int b3 = m_gui->get_item_state_uint8("$BECQ3");
+	int b4 = m_gui->get_item_state_uint8("$BECQ4");
 
 	float beff = b1 * 1000 + b2 * 100 + b3 * 10 + b4;
 	system_geiger->set_becquerel_eff(beff);
@@ -313,10 +313,10 @@ void Controller::event_save_becq(const char *event, const char *value) {
 }
 
 void Controller::event_save_utcoff(const char *event, const char *value) {
-	int h1 = m_gui->get_item_state_uint8("OFFHOUR1");
-	int h2 = m_gui->get_item_state_uint8("OFFHOUR2");
-	int m1 = m_gui->get_item_state_uint8("OFFMIN1");
-	int m2 = m_gui->get_item_state_uint8("OFFMIN2");
+	int h1 = m_gui->get_item_state_uint8("$OFFHOUR1");
+	int h2 = m_gui->get_item_state_uint8("$OFFHOUR2");
+	int m1 = m_gui->get_item_state_uint8("$OFFMIN1");
+	int m2 = m_gui->get_item_state_uint8("$OFFMIN2");
 
 	int utcoffset = (((h1 * 10) + h2) * 60) + (m1 * 10) + m2;
 	if (m_gui->get_item_state_uint8("SIGN:-,+,") == 0) {
@@ -373,23 +373,23 @@ void Controller::event_geiger_beep(const char *event, const char *value) {
 	system_geiger->toggle_beep();
 	if (system_geiger->is_beeping()) {
 		flashstorage_keyval_set("GEIGERBEEP", "true");
-		tick_item("Geiger Beep", true);
+		tick_item("Beep", true);
 	} else {
 		flashstorage_keyval_set("GEIGERBEEP", "false");
-		tick_item("Geiger Beep", false);
+		tick_item("Beep", false);
 	}
 }
 
 void Controller::event_usv(const char *event, const char *value) {
 	flashstorage_keyval_set("SVREM", "SV");
-	tick_item("\x80Sv", true);
-	tick_item("\x80R", false);
+	tick_item(" \x80Sv", true);
+	tick_item(" \x80R", false);
 }
 
 void Controller::event_rem(const char *event, const char *value) {
 	flashstorage_keyval_set("SVREM", "REM");
-	tick_item("\x80Sv", false);
-	tick_item("\x80R", true);
+	tick_item(" \x80Sv", false);
+	tick_item(" \x80R", true);
 }
 
 /**
@@ -401,7 +401,7 @@ void Controller::event_clear_log(const char *event, const char *value) {
 }
 
 void Controller::event_save_brightness(const char *event, const char *value) {
-	uint8 b = m_gui->get_item_state_uint8("BRIGHTNESS");
+	uint8 b = m_gui->get_item_state_uint8("$BRIGHTNESS");
 
 	int br;
 	if (b <= 5)
@@ -432,10 +432,10 @@ void Controller::event_utcscreen(const char *event, const char *value) {
 	m1 = min / 10;
 	m2 = min % 10;
 
-	m_gui->receive_update("OFFHOUR1", &h1);
-	m_gui->receive_update("OFFHOUR2", &h2);
-	m_gui->receive_update("OFFMIN1", &m1);
-	m_gui->receive_update("OFFMIN2", &m2);
+	m_gui->receive_update("$OFFHOUR1", &h1);
+	m_gui->receive_update("$OFFHOUR2", &h2);
+	m_gui->receive_update("$OFFMIN1", &m1);
+	m_gui->receive_update("$OFFMIN2", &m2);
 
 	uint8 zero = 0;
 	uint8 one = 1;
@@ -466,12 +466,12 @@ void Controller::event_timescreen(const char *event, const char *value) {
 	s1 = sec / 10;
 	s2 = sec % 10;
 
-	m_gui->receive_update("TIMEHOUR1", &h1);
-	m_gui->receive_update("TIMEHOUR2", &h2);
-	m_gui->receive_update("TIMEMIN1", &m1);
-	m_gui->receive_update("TIMEMIN2", &m2);
-	m_gui->receive_update("TIMESEC1", &s1);
-	m_gui->receive_update("TIMESEC2", &s2);
+	m_gui->receive_update("$TIMEHOUR1", &h1);
+	m_gui->receive_update("$TIMEHOUR2", &h2);
+	m_gui->receive_update("$TIMEMIN1", &m1);
+	m_gui->receive_update("$TIMEMIN2", &m2);
+	m_gui->receive_update("$TIMESEC1", &s1);
+	m_gui->receive_update("$TIMESEC2", &s2);
 	m_gui->redraw();
 }
 
@@ -487,10 +487,10 @@ void Controller::event_becqscreen(const char *event, const char *value) {
 	uint8_t b3 = ((int) becq_val % 100) / 10;
 	uint8_t b4 = ((int) becq_val % 10);
 
-	m_gui->receive_update("BECQ1", &b1);
-	m_gui->receive_update("BECQ2", &b2);
-	m_gui->receive_update("BECQ3", &b3);
-	m_gui->receive_update("BECQ4", &b4);
+	m_gui->receive_update("$BECQ1", &b1);
+	m_gui->receive_update("$BECQ2", &b2);
+	m_gui->receive_update("$BECQ3", &b3);
+	m_gui->receive_update("$BECQ4", &b4);
 	m_gui->redraw();
 }
 
@@ -508,9 +508,9 @@ void Controller::event_loginterval(const char *event, const char *value) {
 	uint8_t l2 = (log_interval % 100) / 10;
 	uint8_t l3 = (log_interval % 10) / 1;
 
-	m_gui->receive_update("LOGINTER1", &l1);
-	m_gui->receive_update("LOGINTER2", &l2);
-	m_gui->receive_update("LOGINTER3", &l3);
+	m_gui->receive_update("$LOGINTER1", &l1);
+	m_gui->receive_update("$LOGINTER2", &l2);
+	m_gui->receive_update("$LOGINTER3", &l3);
 	m_gui->redraw();
 }
 
@@ -527,11 +527,11 @@ void Controller::event_warnscreen(const char *event, const char *value) {
 	uint8_t w4 = (warn_level % 100) / 10;
 	uint8_t w5 = (warn_level % 10) / 1;
 
-	m_gui->receive_update("WARNCPM1", &w1);
-	m_gui->receive_update("WARNCPM2", &w2);
-	m_gui->receive_update("WARNCPM3", &w3);
-	m_gui->receive_update("WARNCPM4", &w4);
-	m_gui->receive_update("WARNCPM5", &w5);
+	m_gui->receive_update("$WARNCPM1", &w1);
+	m_gui->receive_update("$WARNCPM2", &w2);
+	m_gui->receive_update("$WARNCPM3", &w3);
+	m_gui->receive_update("$WARNCPM4", &w4);
+	m_gui->receive_update("$WARNCPM5", &w5);
 	m_gui->redraw();
 }
 
@@ -557,12 +557,12 @@ void Controller::event_datescreen(const char *event, const char *value) {
 	y1 = year / 10;
 	y2 = year % 10;
 
-	m_gui->receive_update("DATEMON1", &m1);
-	m_gui->receive_update("DATEMON2", &m2);
-	m_gui->receive_update("DATEDAY1", &d1);
-	m_gui->receive_update("DATEDAY2", &d2);
-	m_gui->receive_update("DATEYEAR1", &y1);
-	m_gui->receive_update("DATEYEAR2", &y2);
+	m_gui->receive_update("$DATEMON1", &m1);
+	m_gui->receive_update("$DATEMON2", &m2);
+	m_gui->receive_update("$DATEDAY1", &d1);
+	m_gui->receive_update("$DATEDAY2", &d2);
+	m_gui->receive_update("$DATEYEAR1", &y1);
+	m_gui->receive_update("$DATEYEAR2", &y2);
 	m_gui->redraw();
 }
 
@@ -580,7 +580,7 @@ void Controller::event_brightnessscn(const char *event, const char *value) {
 	if (c > 11)
 		b = c - 6;
 
-	m_gui->receive_update("BRIGHTNESS", &b);
+	m_gui->receive_update("$BRIGHTNESS", &b);
 	m_gui->redraw();
 }
 
@@ -595,7 +595,7 @@ void Controller::event_leftbrightness(const char *event, const char *value) {
 }
 
 void Controller::event_varnum_brightness(const char *event, const char *value) {
-	int b = m_gui->get_item_state_uint8("BRIGHTNESS");
+	int b = m_gui->get_item_state_uint8("$BRIGHTNESS");
 	m_dim_off = true;
 
 	int br;
@@ -607,12 +607,12 @@ void Controller::event_varnum_brightness(const char *event, const char *value) {
 }
 
 void Controller::event_varnum_date(const char *event, const char *value) {
-	int d1 = m_gui->get_item_state_uint8("DATEDAY1");
-	int d2 = m_gui->get_item_state_uint8("DATEDAY2");
-	int m1 = m_gui->get_item_state_uint8("DATEMON1");
-	int m2 = m_gui->get_item_state_uint8("DATEMON2");
-	int y1 = m_gui->get_item_state_uint8("DATEYEAR1");
-	int y2 = m_gui->get_item_state_uint8("DATEYEAR2");
+	int d1 = m_gui->get_item_state_uint8("$DATEDAY1");
+	int d2 = m_gui->get_item_state_uint8("$DATEDAY2");
+	int m1 = m_gui->get_item_state_uint8("$DATEMON1");
+	int m2 = m_gui->get_item_state_uint8("$DATEMON2");
+	int y1 = m_gui->get_item_state_uint8("$DATEYEAR1");
+	int y2 = m_gui->get_item_state_uint8("$DATEYEAR2");
 
 	if ((m1 == 0) && (m2 == 0))
 		m2 = 1;
@@ -681,19 +681,19 @@ void Controller::event_varnum_date(const char *event, const char *value) {
 		d2 = 8;
 	} // Feb
 
-	m_gui->receive_update("DATEMON1", &m1);
-	m_gui->receive_update("DATEMON2", &m2);
-	m_gui->receive_update("DATEDAY1", &d1);
-	m_gui->receive_update("DATEDAY2", &d2);
+	m_gui->receive_update("$DATEMON1", &m1);
+	m_gui->receive_update("$DATEMON2", &m2);
+	m_gui->receive_update("$DATEDAY1", &d1);
+	m_gui->receive_update("$DATEDAY2", &d2);
 }
 
 void Controller::event_varnum_time(const char *event, const char *value) {
-	uint8 h1 = m_gui->get_item_state_uint8("TIMEHOUR1");
-	uint8 h2 = m_gui->get_item_state_uint8("TIMEHOUR2");
-	uint8 m1 = m_gui->get_item_state_uint8("TIMEMIN1");
-	uint8 m2 = m_gui->get_item_state_uint8("TIMEMIN2");
-	uint8 s1 = m_gui->get_item_state_uint8("TIMESEC1");
-	uint8 s2 = m_gui->get_item_state_uint8("TIMESEC2");
+	uint8 h1 = m_gui->get_item_state_uint8("$TIMEHOUR1");
+	uint8 h2 = m_gui->get_item_state_uint8("$TIMEHOUR2");
+	uint8 m1 = m_gui->get_item_state_uint8("$TIMEMIN1");
+	uint8 m2 = m_gui->get_item_state_uint8("$TIMEMIN2");
+	uint8 s1 = m_gui->get_item_state_uint8("$TIMESEC1");
+	uint8 s2 = m_gui->get_item_state_uint8("$TIMESEC2");
 
 	uint8 h = (h1 * 10) + h2;
 	uint8 m = (m1 * 10) + m2;
@@ -711,12 +711,12 @@ void Controller::event_varnum_time(const char *event, const char *value) {
 		s2 = 9;
 	}
 
-	m_gui->receive_update("TIMEHOUR1", &h1);
-	m_gui->receive_update("TIMEHOUR2", &h2);
-	m_gui->receive_update("TIMEMIN1", &m1);
-	m_gui->receive_update("TIMEMIN2", &m2);
-	m_gui->receive_update("TIMESEC1", &s1);
-	m_gui->receive_update("TIMESEC2", &s2);
+	m_gui->receive_update("$TIMEHOUR1", &h1);
+	m_gui->receive_update("$TIMEHOUR2", &h2);
+	m_gui->receive_update("$TIMEMIN1", &m1);
+	m_gui->receive_update("$TIMEMIN2", &m2);
+	m_gui->receive_update("$TIMESEC1", &s1);
+	m_gui->receive_update("$TIMESEC2", &s2);
 }
 
 void Controller::event_audioxfer(const char *event, const char *value) {
@@ -781,11 +781,11 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 		event_english(event, value);
 	else if (strcmp(event, "CPM/CPS Auto") == 0)
 		event_cpm_cps_auto(event, value);
-	else if (strcmp(event, "Geiger Beep") == 0)
+	else if (strcmp(event, "Beep") == 0)
 		event_geiger_beep(event, value);
-	else if (strcmp(event, "\x80Sv") == 0)
+	else if (strcmp(event, " \x80Sv") == 0)
 		event_usv(event, value);
-	else if (strcmp(event, "\x80R") == 0)
+	else if (strcmp(event, " \x80R") == 0)
 		event_rem(event, value);
 	else if (strcmp(event, "Clear Log") == 0)
 		event_clear_log(event, value);
@@ -1021,7 +1021,7 @@ void Controller::send_cpm_values() {
 		char text_cpmd_tmp[30];
 		sprintf(text_cpmd_tmp, "%4u", cpm); // No need for decimals on CPM!
 		sprintf(text_cpmd, "%4.4s", text_cpmd_tmp);
-		m_gui->receive_update("CPMSLABEL", "CPM");
+		m_gui->receive_update("$CPMSLABEL", "CPM");
 	} else {
 
 		if (cpm > m_cpm_cps_threshold) {
@@ -1035,27 +1035,27 @@ void Controller::send_cpm_values() {
 			char text_cpmd_tmp[30];
 			sprintf(text_cpmd_tmp, "%4u", cpm);
 			sprintf(text_cpmd, "%4.4s", text_cpmd_tmp);
-			m_gui->receive_update("CPMSLABEL", "CPM");
+			m_gui->receive_update("$CPMSLABEL", "CPM");
 		} else {
 			char text_cpmd_tmp[30];
 			sprintf(text_cpmd_tmp, "%4u",
 					cpm / 60);
 			sprintf(text_cpmd, "%4.4s", text_cpmd_tmp);
-			m_gui->receive_update("CPMSLABEL", "CPS");
+			m_gui->receive_update("$CPMSLABEL", "CPS");
 		}
 	}
 
 	if (cpm > MAX_CPM) {
 		sprintf(text_cpmd, "TOO HIGH");
 	}
-	m_gui->receive_update("CPMDEADINT", text_cpmdint);
-	m_gui->receive_update("CPMDEAD", text_cpmd);
+	m_gui->receive_update("$CPMDEADINT", text_cpmdint);
+	m_gui->receive_update("$CPMDEAD", text_cpmd);
 }
 
 void Controller::send_graph_data() {
 	float *graph_data;
 	graph_data = system_geiger->get_cpm_last_windows();
-	m_gui->receive_update("RECENTDATA", graph_data);
+	m_gui->receive_update("$RECENTDATA", graph_data);
 }
 
 /**
@@ -1083,10 +1083,10 @@ void Controller::send_total_timer() {
 		text_totaltimer_count[n + 1] = 0;
 	}
 
-	m_gui->receive_update("DELAYA", NULL);
-	m_gui->receive_update("DELAYB", NULL);
-	m_gui->receive_update("TTCOUNT", text_totaltimer_count);
-	m_gui->receive_update("TTTIME", text_totaltimer_time);
+	m_gui->receive_update("$DELAYA", NULL);
+	m_gui->receive_update("$DELAYB", NULL);
+	m_gui->receive_update("$TTCOUNT", text_totaltimer_count);
+	m_gui->receive_update("$TTTIME", text_totaltimer_time);
 }
 
 void Controller::send_svrem() {
@@ -1103,8 +1103,8 @@ void Controller::send_svrem() {
 			sprintf(text_rem, "TOO HIGH");
 		}
 
-		m_gui->receive_update("SVREM", text_rem);
-		m_gui->receive_update("SVREMLABEL", "  \x80R/h");
+		m_gui->receive_update("$SVREM", text_rem);
+		m_gui->receive_update("$SVREMLABEL", " \x80R/h");
 	} else {
 		char text_sieverts[50];
 		char text_sieverts_tmp[50];
@@ -1116,8 +1116,8 @@ void Controller::send_svrem() {
 			sprintf(text_sieverts, "TOO HIGH");
 		}
 
-		m_gui->receive_update("SVREM", text_sieverts);
-		m_gui->receive_update("SVREMLABEL", " \x80Sv/h");
+		m_gui->receive_update("$SVREM", text_sieverts);
+		m_gui->receive_update("$SVREMLABEL", "\x80Sv/h");
 	}
 }
 
@@ -1134,9 +1134,9 @@ void Controller::send_becq() {
 			sprintf(text_becq, "TOO HIGH");
 		}
 
-		m_gui->receive_update("BECQ", text_becq);
+		m_gui->receive_update("$BECQ", text_becq);
 	} else {
-		m_gui->receive_update("BECQINFO", "Becquerel unset"); // kanji image is: 46
+		m_gui->receive_update("$BECQINFO", "Becquerel unset"); // kanji image is: 46
 	}
 }
 
@@ -1156,7 +1156,7 @@ void Controller::send_logstatus() {
 	char text[20];
 	char text2[20];
 	sprintf(text, "%"PRIu32"%% full", percent);
-	m_gui->receive_update("LOGPERCENT", text);
+	m_gui->receive_update("$LOGPERCENT", text);
 
 	// Now compute how much time we have left in the log area at
 	// current log interval:
@@ -1181,13 +1181,13 @@ void Controller::send_logstatus() {
 		sprintf(text, "Logging disabled");
 		sprintf(text2, "         ");
 	}
-	m_gui->receive_update("LOGREMAIN", text);
-	m_gui->receive_update("LOGREMAIN2", text2);
+	m_gui->receive_update("$LOGREMAIN", text);
+	m_gui->receive_update("$LOGREMAIN2", text2);
 
 	// Last, display at the bottom of the screen the log status in
 	// terms of current/total
 	sprintf(text, "%"PRIu32"/%"PRIu32" recs", current, total);
-	m_gui->receive_update("LOGREMAIN3", text);
+	m_gui->receive_update("$LOGREMAIN3", text);
 
 }
 

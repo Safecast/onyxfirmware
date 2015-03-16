@@ -68,6 +68,9 @@ private:
 
   bool softkeys_active();
   uint8_t softkey_screen(uint8_t idx);
+  uint8_t softkey_index(uint8_t idx);
+   char* softkey_action(uint8_t idx);
+
   void process_key(int key_id,int type);
   void process_keys();
 
@@ -83,6 +86,7 @@ private:
   bool    m_sleeping;
   bool    m_redraw;
   bool    m_screen_lock;
+
 
 
   int new_keys_start;

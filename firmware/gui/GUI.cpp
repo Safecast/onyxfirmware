@@ -19,6 +19,7 @@ bool first_render = true;
 uint16 header_color = HEADER_COLOR_CPMINVALID;
 
 uint8_t m_language;
+char softkeys[3][6] = { "  X  ", "  X  ", "  X  " };
 
 /****************
  *   Utility functions for drawing on the screen
@@ -357,16 +358,36 @@ void render_item_smalllabel(screen_item &item, bool selected) {
  * item.val2: unused
  * item.text: label (5 char max)
  */
-void render_softkey(screen_item &item, bool selected) {
+void render_item_softkey(screen_item &item) {
+	char text[6];
 
-	// Truncate the label to 5 characters
-	uint8_t text_len = strlen(item.text);
-	if (text_len == 0)
-		return;
-	if (text_len > 5)
-		item.text[5] = 0;
 	if (item.val1 > 2)
 		return;
+
+	// Truncate the label to 5 characters
+	if (strlen(item.text) == 0)
+		return;
+	// If it's a variable, then don't render now, wait
+	// for the update to come from the controller
+	if (item.text[0] == '$') {
+		softkeys[item.val1][0] = 1; // Invalidate softkey menu to force re-render next update.
+		return;
+	}
+
+	sprintf(text, "%1.5s", item.text);
+	// render tick
+	if (is_ticked(item.text)) {
+		// Reformat to 5 characters wide, left-justified
+		sprintf(text, "%-5.5s", item.text);
+		text[4] = 0x7F;
+	}
+
+	// We don't want to re-render an identical softkey, because
+	// it causes flickering (we don't have double buffering on the screen)
+	if (strcmp(softkeys[item.val1], text) == 0)
+		return;
+	strcpy(softkeys[item.val1], text);
+
 	uint8_t x1 = 0;
 	uint8_t x2 = 0;
 	if (item.val1 == 0) {
@@ -379,8 +400,8 @@ void render_softkey(screen_item &item, bool selected) {
 		x2 = 127;
 	}
 	display_draw_rectangle(x1, 109, x2, 127, header_color);
-	draw_text(x1 + 1, 110, item.text, header_color);
-
+	// We want to center the label
+	draw_text(x1 + 1 + 4*(5-strlen(text)), 110, text, header_color);
 }
 
 /**
@@ -573,7 +594,7 @@ void clear_item_head(screen_item &item, bool selected) {
  * item.val2: unused
  * item.text: label (5 char max)
  */
-void clear_softkey(screen_item &item, bool selected) {
+void clear_item_softkey(screen_item &item, bool selected) {
 
 	// Truncate the label to 5 characters
 	if (item.val1 > 2)
@@ -635,8 +656,9 @@ void render_item(screen_item &item, bool selected) {
 		render_item_menu(item, selected);
 	} else if (item.type == ITEM_TYPE_LABEL) {
 		render_item_label(item, selected);
-	} else if (item.type == ITEM_TYPE_SOFTKEY) {
-		render_softkey(item, selected);
+	} else if (item.type == ITEM_TYPE_SOFTKEY ||
+			   item.type == ITEM_TYPE_SOFTKEY_ACTION) {
+		render_item_softkey(item);
 	} else if (item.type == ITEM_TYPE_SMALLLABEL) {
 		render_item_smalllabel(item, selected);
 	} else if (item.type == ITEM_TYPE_GRAPH) {
@@ -657,8 +679,9 @@ void clear_item(screen_item &item, bool selected) {
 		clear_item_menu(item, selected);
 	} else if (item.type == ITEM_TYPE_LABEL) {
 		clear_item_label(item, selected);
-	} else if (item.type == ITEM_TYPE_SOFTKEY) {
-		clear_softkey(item, selected);
+	} else if (item.type == ITEM_TYPE_SOFTKEY ||
+			   item.type == ITEM_TYPE_SOFTKEY_ACTION ) {
+		clear_item_softkey(item, selected);
 	} else if (item.type == ITEM_TYPE_SMALLLABEL) {
 		clear_item_label(item, selected);
 	} else if (item.type == ITEM_TYPE_VARLABEL) {
@@ -683,12 +706,16 @@ void update_item_graph(screen_item &item, const void *value) {
 }
 
 uint8 lock_mask[11][8] = {
-
-{ 0, 1, 1, 1, 1, 1, 1, 0 }, { 1, 1, 0, 0, 0, 0, 1, 1 },
-		{ 1, 0, 0, 0, 0, 0, 0, 1 }, { 1, 1, 1, 1, 1, 1, 1, 1 }, { 1, 1, 1, 0, 0,
-				1, 1, 1 }, { 1, 1, 0, 0, 0, 0, 1, 1 },
-		{ 1, 1, 0, 0, 0, 0, 1, 1 }, { 1, 1, 1, 0, 0, 1, 1, 1 }, { 1, 1, 1, 0, 0,
-				1, 1, 1 }, { 1, 1, 1, 0, 0, 1, 1, 1 },
+		{ 0, 1, 1, 1, 1, 1, 1, 0 },
+		{ 1, 1, 0, 0, 0, 0, 1, 1 },
+		{ 1, 0, 0, 0, 0, 0, 0, 1 },
+		{ 1, 1, 1, 1, 1, 1, 1, 1 },
+		{ 1, 1, 1, 0, 0, 1, 1, 1 },
+		{ 1, 1, 0, 0, 0, 0, 1, 1 },
+		{ 1, 1, 0, 0, 0, 0, 1, 1 },
+		{ 1, 1, 1, 0, 0, 1, 1, 1 },
+		{ 1, 1, 1, 0, 0, 1, 1, 1 },
+		{ 1, 1, 1, 0, 0, 1, 1, 1 },
 		{ 1, 1, 1, 1, 1, 1, 1, 1 }
 
 };
@@ -841,6 +868,48 @@ void render_battery(int x, int y, int level, int charging) {
 }
 
 /**
+ * Update the text of a softkey
+ */
+void update_item_softkey(screen_item &item, char * value) {
+	char text[6];
+	// Truncate the label to 5 characters
+	if (strlen(value) == 0)
+		return;
+	if (item.val1 > 2)
+		return;
+	sprintf(text, "%1.5s", value);
+	// render tick
+	if (is_ticked(item.text)) {
+		// Reformat to 5 characters wide, left-justified
+		sprintf(text, "%-5.5s", value);
+		text[4] = 0x7F;
+	}
+
+	// We don't want to re-render an identical softkey, because
+	// it causes flickering (we don't have double buffering on the screen)
+	if (strcmp(softkeys[item.val1], text) == 0)
+		return;
+
+	strcpy(softkeys[item.val1], text);
+
+	uint8_t x1 = 0;
+	uint8_t x2 = 0;
+	if (item.val1 == 0) {
+		x2 = 41;
+	} else if (item.val1 == 1) {
+		x1 = 43;
+		x2 = 84;
+	} else {
+		x1 = 86;
+		x2 = 127;
+	}
+	display_draw_rectangle(x1, 109, x2, 127, header_color);
+	// Center the text when we draw it
+	draw_text(x1 + 1 + 4* (5-strlen(text)), 110, text	, header_color);
+}
+
+
+/**
  * Draw the GUI screen header
  *
  * @param item  unused
@@ -946,7 +1015,9 @@ int get_item_state_delay_destination(screen_item &item) {
 }
 
 /**
- * Update a part of the screen
+ * Update a part of the screen. Called when we receive an update from the
+ * controller where the "text" of the item is the same as the text coming
+ * from the controller
  *
  * @param item  type of item to draw
  * @param value value of the item to draw
@@ -954,14 +1025,15 @@ int get_item_state_delay_destination(screen_item &item) {
 void update_item(screen_item &item, const void *value) {
 	if (item.type == ITEM_TYPE_VARLABEL) {
 		if (item.val1 == 255) {
-			// display_draw_rectangle(0,item.val2,128,item.val2+16,BACKGROUND_COLOR); unfortunately renders badly.
 			display_draw_text_center(item.val2, (char *) value,
 					FOREGROUND_COLOR);
 		} else {
 			display_draw_text(item.val1, item.val2, (char *) value,
 					FOREGROUND_COLOR);
 		}
-
+	} else if ( (item.type == ITEM_TYPE_SOFTKEY) ||
+			    (item.type == ITEM_TYPE_SOFTKEY_ACTION) ) {
+		update_item_softkey(item, (char*) value);
 	} else if (item.type == ITEM_TYPE_GRAPH) {
 		update_item_graph(item, value);
 	} else if (item.type == ITEM_TYPE_HEAD) {
@@ -1131,6 +1203,10 @@ void GUI::render() {
 						screens_layout[cscreen].items[n].text,
 						screens_layout[cscreen].items[n].text);
 			}
+			// Invalidate softkeys to force re-render next update.
+			softkeys[0][0] = 1;
+			softkeys[1][0] = 1;
+			softkeys[2][0] = 1;
 		}
 
 		//bool selected = false;
@@ -1256,7 +1332,9 @@ void GUI::process_key_down() {
 		return;
 	}
 
-	if ((selected_item + 1) < screens_layout[current_screen].item_count) {
+	if ( ((selected_item + 1) < screens_layout[current_screen].item_count) &&
+		 (screens_layout[current_screen].items[selected_item+1].type != ITEM_TYPE_SOFTKEY)
+		) {
 		last_selected_item = selected_item;
 		selected_item++;
 	}
@@ -1290,7 +1368,9 @@ void GUI::process_key_up() {
  */
 bool GUI::softkeys_active() {
 	for (int i = screens_layout[current_screen].item_count-1 ; i >= 0; i--) {
-		if (screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY)
+		if ( (screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY) ||
+			 (screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY_ACTION)
+			 )
 			return true;
 	}
 	return false;
@@ -1307,11 +1387,52 @@ uint8_t GUI::softkey_screen(uint8_t idx) {
 
   	// Scan the whole screen definition until we find the correct softkey
 	for (int i = screens_layout[current_screen].item_count-1 ; i >= 0; i--) {
-		if (screens_layout[current_screen].items[i].val1 == idx)
+		if ( (screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY) &&
+			 (screens_layout[current_screen].items[i].val1 == idx)
+			)
 			return screens_layout[current_screen].items[i].val2;
 	}
 	return INVALID_SCREEN;
 }
+
+/**
+ * Returns the text of an action softkey, or NULL (0) if we did not
+ * find the softkey or it is not an action key.
+ */
+char* GUI::softkey_action(uint8_t idx) {
+  if (!softkeys_active() || idx > 2)
+	  return NULL;
+
+  	// Scan the whole screen definition until we find the correct softkey
+	for (int i = screens_layout[current_screen].item_count-1 ; i >= 0; i--) {
+		if ( (screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY_ACTION)
+			 && (screens_layout[current_screen].items[i].val1 == idx)
+		)
+			return screens_layout[current_screen].items[i].text;
+	}
+	return NULL;
+}
+
+/**
+ * Returns the index of a softkey in the current menu, or 255 if we did not
+ * find the softkey.
+ */
+uint8_t GUI::softkey_index(uint8_t idx) {
+  if (!softkeys_active() || idx > 2)
+	  return NULL;
+
+  	// Scan the whole screen definition until we find the correct softkey
+	for (uint8_t i = screens_layout[current_screen].item_count-1 ; i >= 0; i--) {
+		if ( ((screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY_ACTION) ||
+			  (screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY)
+			  ) && (screens_layout[current_screen].items[i].val1 == idx)
+		)
+			return i;
+	}
+	return 255;
+}
+
+
 
 
 /**
@@ -1333,11 +1454,35 @@ void GUI::process_key(int key_id, int type) {
 	if (m_sleeping)
 		return;
 
+	// TODO: remove the help system altogether here ??
 	// Display a help screen
 	if ((key_id == KEY_HELP) && (type == KEY_RELEASED)
 			&& (!m_displaying_help)) {
-		if (screens_layout[current_screen].help_screen != 255)
+		if (softkeys_active()) {
+			// We want softkey 2 here
+			if (softkey_action(2) != NULL) {
+				// We have an action key here:
+				receive_gui_events.receive_gui_event( softkey_action(2), "select");
+				// Flag the softkey for re-rendering
+				selected_item = softkey_index(2);
+			} else
+			if (softkey_screen(2) != INVALID_SCREEN) {
+				if (clear_next_render == false) {
+					clear_next_render = true;
+					first_render = true;
+					clear_screen_screen = current_screen;
+					clear_screen_selected = selected_item;
+				}
+
+				push_stack(current_screen, selected_item);
+				current_screen = softkey_screen(1);
+				last_selected_item = 1;
+				selected_item = 1;
+				return;
+			}
+		} else 	if (screens_layout[current_screen].help_screen != 255) {
 			show_help_screen(screens_layout[current_screen].help_screen);
+		}
 	}
 
 	if ((key_id == KEY_UP) && (type == KEY_PRESSED) && !softkeys_active()) {
@@ -1363,6 +1508,11 @@ void GUI::process_key(int key_id, int type) {
 		// If softkeys are active, we act on key release only.
 		if (softkeys_active()) {
 			// We want softkey 1 here
+			if (softkey_action(1) != NULL) {
+				// We have an action key here:
+				receive_gui_events.receive_gui_event( softkey_action(1), "select");
+				selected_item = softkey_index(1);
+			} else
 			if (softkey_screen(1) != INVALID_SCREEN) {
 				if (clear_next_render == false) {
 					clear_next_render = true;
@@ -1370,14 +1520,12 @@ void GUI::process_key(int key_id, int type) {
 					clear_screen_screen = current_screen;
 					clear_screen_selected = selected_item;
 				}
-
 				push_stack(current_screen, selected_item);
 				current_screen = softkey_screen(1);
 				last_selected_item = 1;
 				selected_item = 1;
 				return;
 			}
-
 		}
 		m_repeating = false;
 		m_repeated = false;

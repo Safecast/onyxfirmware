@@ -11,21 +11,22 @@
 // The constants below are the type of items that can be drawn
 // on the screen.
 
-#define ITEM_TYPE_MENU          0  // A normal menu item
-#define ITEM_TYPE_LABEL         1  // A static label, can not be changed
-#define ITEM_TYPE_SOFTKEY		2  // A soft key label, a the bottom of the screen
-#define ITEM_TYPE_SELECTION     3  // An item selection, currently not implemented
-#define ITEM_TYPE_VARLABEL      4  // A variable label, can be set to a value in software
-#define ITEM_TYPE_GRAPH         5  // System graph.
-#define ITEM_TYPE_HEAD          6  // Display HUD. Shows CPM etc.
-#define ITEM_TYPE_MENU_ACTION   7  // selection triggers a GUI event, which the Controller receives.
-#define ITEM_TYPE_VARNUM        8  // Variable single number
-#define ITEM_TYPE_DELAY         9  // A delay, basically a countdown timer.
-#define ITEM_TYPE_ACTION       10  // Generate an action as soon as the screen is created.
-#define ITEM_TYPE_BIGVARLABEL  11  // A bigfont variable label, currently only numeric.
-#define ITEM_TYPE_SMALLLABEL   12  // A tinyfont static label
-#define ITEM_TYPE_LEAVE_ACTION 13  // Action that occurs when you leave the screen
-
+#define ITEM_TYPE_MENU            0  // A normal menu item
+#define ITEM_TYPE_LABEL           1  // A static label, can not be changed
+#define ITEM_TYPE_SOFTKEY		  2  // A soft key label, a the bottom of the screen
+#define ITEM_TYPE_SELECTION       3  // An item selection, currently not implemented
+#define ITEM_TYPE_VARLABEL        4  // A variable label, can be set to a value in software
+#define ITEM_TYPE_GRAPH           5  // System graph.
+#define ITEM_TYPE_HEAD            6  // Display HUD. Shows CPM etc.
+#define ITEM_TYPE_MENU_ACTION     7  // selection triggers a GUI event, which the Controller receives.
+#define ITEM_TYPE_VARNUM          8  // Variable single number
+#define ITEM_TYPE_DELAY           9  // A delay, basically a countdown timer.
+#define ITEM_TYPE_ACTION         10  // Generate an action as soon as the screen is created.
+#define ITEM_TYPE_BIGVARLABEL    11  // A bigfont variable label, currently only numeric.
+#define ITEM_TYPE_SMALLLABEL     12  // A tinyfont static label
+#define ITEM_TYPE_LEAVE_ACTION   13  // Action that occurs when you leave the screen
+#define ITEM_TYPE_SOFTKEY_ACTION 14  // A soft key label that triggers a GUI event, which the Controller receives
+#define ITEM_TYPE_INVALID		255  // Invalid type
 
 #define INVALID_SCREEN 255
 

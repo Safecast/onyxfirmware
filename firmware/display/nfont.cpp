@@ -329,6 +329,11 @@ void draw_bigtext(int x, int y, const char *text, uint16_t background) {
 	for (size_t n = 0; n < length; n++) {
 		if (text[n] == '.') {
 			dot = true;
+			// Clear the area to avoid artifacts
+			uint16_t character_data[6 * 38];
+			for (int n = 0; n < (6*38); n++)
+				character_data[n] = 0;
+			oled_draw_rect(c_x,c_y,6,21, (uint8_t *) character_data);
 			dot_x = c_x - ((c_x > 3) ? 3 : 0);
 			c_x += 6;
 		} else {
