@@ -26,6 +26,7 @@
 #define ITEM_TYPE_SMALLLABEL     12  // A tinyfont static label
 #define ITEM_TYPE_LEAVE_ACTION   13  // Action that occurs when you leave the screen
 #define ITEM_TYPE_SOFTKEY_ACTION 14  // A soft key label that triggers a GUI event, which the Controller receives
+#define ITEM_TYPE_RED_VARLABEL   15  // A variable label with a red background, can be set to a value in software
 #define ITEM_TYPE_INVALID		255  // Invalid type
 
 #define INVALID_SCREEN 255

@@ -722,8 +722,8 @@ void Controller::event_varnum_time(const char *event, const char *value) {
 void Controller::event_audioxfer(const char *event, const char *value) {
 	display_clear(0);
 	modem_full_range = false;
-	display_draw_text(0, 16, " Audio Transfer ", 65535);
-	display_draw_text(4, 32, "  in progress  ", 65535);
+	display_draw_text(0, 16, " Audio Transfer ", 0, 65535);
+	display_draw_text(4, 32, "  in progress  ", 0, 65535);
 	modem_logxfer();
 	m_gui->jump_to_screen(0);
 }
@@ -1019,6 +1019,18 @@ void Controller::send_cpm_values() {
 
 	if (!m_cpm_cps_switch) {       // no auto switch, just display CPM
 		char text_cpmd_tmp[30];
+		// If CPM is above 9999, then we divide it by 1000, print it in red
+		// and turn on the "x1000" indicator.
+		// TEST: enable every time
+		if (cpm > 9999) {
+			cpm = cpm / 1000;
+			m_gui->receive_update("$X1000","x1000");
+		} else {
+			m_gui->receive_update("$X1000","     ");
+		}
+
+
+
 		sprintf(text_cpmd_tmp, "%4u", cpm); // No need for decimals on CPM!
 		sprintf(text_cpmd, "%4.4s", text_cpmd_tmp);
 		m_gui->receive_update("$CPMSLABEL", "CPM");

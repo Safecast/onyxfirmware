@@ -100,14 +100,17 @@ bool is_ticked(const char *name) {
 
 void render_item_menu(screen_item &item, bool selected) {
 
-	uint16_t highlight = FOREGROUND_COLOR;
-	if (selected)
-		highlight = BACKGROUND_COLOR;
+	uint16_t bg = BACKGROUND_COLOR;
+	uint16_t fg = FOREGROUND_COLOR;
+	if (selected) {
+		bg = FOREGROUND_COLOR;
+		fg = BACKGROUND_COLOR;
+	}
 
 	// render tick
 	bool ticked = is_ticked(item.text);
 	if (ticked) {
-		display_draw_text(128 - 8, item.val2 * 16, "\x7F", highlight);
+		display_draw_text(128 - 8, item.val2 * 16, "\x7F", fg, bg);
 	}
 
 	if ((m_language == LANGUAGE_ENGLISH) || (item.kanji_image == 255)) {
@@ -131,14 +134,14 @@ void render_item_menu(screen_item &item, bool selected) {
 		if (ticked)
 			text[15] = 0;
 
-		display_draw_text(0, item.val2 * 16, text, highlight);
+		display_draw_text(0, item.val2 * 16, text, fg, bg);
 	} else if (m_language == LANGUAGE_JAPANESE) {
 		if (!ticked) {
 			display_draw_fixedimage(0, item.val2 * 16, item.kanji_image,
-					highlight);
+					bg);
 		} else {
 			display_draw_fixedimage_xlimit(0, item.val2 * 16, item.kanji_image,
-					highlight, 128 - 8);
+					bg, 128 - 8);
 		}
 	}
 
@@ -262,9 +265,9 @@ void render_item_varnum(screen_item &item, bool selected) {
 	display_draw_equtriangle(x, y, 9, color);
 	display_draw_equtriangle_inv(x, y + 33, 9, color);
 	if (nonnumeric == false) {
-		display_draw_number(x - 4, y + 9, val, 1, FOREGROUND_COLOR);
+		display_draw_number(x - 4, y + 9, val, 1, FOREGROUND_COLOR, BACKGROUND_COLOR);
 	} else {
-		display_draw_text(x - 4, y + 9, selitem[val], FOREGROUND_COLOR);
+		display_draw_text(x - 4, y + 9, selitem[val], FOREGROUND_COLOR, BACKGROUND_COLOR);
 	}
 }
 
@@ -308,10 +311,10 @@ void render_item_label(screen_item &item, bool selected) {
 
 	if (m_language == LANGUAGE_ENGLISH) {
 		if (item.val1 == 255) {
-			display_draw_text_center(item.val2, item.text, FOREGROUND_COLOR);
+			display_draw_text_center(item.val2, item.text, FOREGROUND_COLOR, BACKGROUND_COLOR);
 		} else {
-			display_draw_text(item.val1, item.val2, item.text,
-					FOREGROUND_COLOR);
+			display_draw_text(item.val1, item.val2, item.text, FOREGROUND_COLOR,
+			BACKGROUND_COLOR);
 		}
 	}
 
@@ -319,19 +322,19 @@ void render_item_label(screen_item &item, bool selected) {
 		if (item.kanji_image != 255) {
 			if ((item.val1 != 255) && (item.val1 != 0)) {
 				display_draw_fixedimage_xlimit(item.val1, item.val2,
-						item.kanji_image, FOREGROUND_COLOR, 128 - item.val1);
+						item.kanji_image, BACKGROUND_COLOR, 128 - item.val1);
 			} else {
 				// we can't center fixed images as we don't know their width, just draw at 0, full width.
 				display_draw_fixedimage(0, item.val2, item.kanji_image,
-						FOREGROUND_COLOR);
+				BACKGROUND_COLOR);
 			}
 		} else {
 			if (item.val1 == 255) {
-				display_draw_text_center(item.val2, item.text,
-						FOREGROUND_COLOR);
+				display_draw_text_center(item.val2, item.text, FOREGROUND_COLOR,
+				BACKGROUND_COLOR);
 			} else {
-				display_draw_text(item.val1, item.val2, item.text,
-						FOREGROUND_COLOR);
+				display_draw_text(item.val1, item.val2, item.text, FOREGROUND_COLOR,
+				BACKGROUND_COLOR);
 			}
 		}
 	}
@@ -345,10 +348,10 @@ void render_item_label(screen_item &item, bool selected) {
  */
 void render_item_smalllabel(screen_item &item, bool selected) {
 	if (item.val1 == 255) {
-		display_draw_tinytext_center(item.val2, item.text, FOREGROUND_COLOR);
+		display_draw_tinytext_center(item.val2, item.text, BACKGROUND_COLOR);
 	} else {
 		display_draw_tinytext(item.val1, item.val2, item.text,
-				FOREGROUND_COLOR);
+		BACKGROUND_COLOR);
 	}
 }
 
@@ -401,14 +404,14 @@ void render_item_softkey(screen_item &item) {
 	}
 	display_draw_rectangle(x1, 109, x2, 127, header_color);
 	// We want to center the label
-	draw_text(x1 + 1 + 4*(5-strlen(text)), 110, text, header_color);
+	draw_text(x1 + 1 + 4 * (5 - strlen(text)), 110, text, COLOR_BLACK, header_color);
 }
 
 /**
  * Draw the header background
  */
 void render_item_head(screen_item &item, bool selected) {
-	draw_text(0, 0, "                ", header_color);
+	draw_text(0, 0, "                ", COLOR_BLACK, header_color);
 }
 
 float m_old_graph_data[120];
@@ -437,14 +440,14 @@ void render_item_graph(screen_item &item, bool selected) {
 
 	// axis
 	display_draw_line(m_x, m_y, m_x + (data_size / data_increment), m_y,
-			FOREGROUND_COLOR);
+	FOREGROUND_COLOR);
 	display_draw_line(m_x, m_y - max_height, m_x + (data_size / data_increment),
 			m_y - max_height, FOREGROUND_COLOR);
 
 	// if there's no data just draw labels and return.
 	if ((nmin == 0) && (nmax == 0)) {
 		display_draw_tinynumber(m_x + 5, m_y - max_height - 10, nmax, 4,
-				FOREGROUND_COLOR);
+		FOREGROUND_COLOR);
 		display_draw_tinynumber(m_x + 5, m_y - 10, nmin, 4, FOREGROUND_COLOR);
 		return;
 	}
@@ -485,10 +488,10 @@ void render_item_graph(screen_item &item, bool selected) {
 	// start clearing data, clear first 2.
 	if (!first_render)
 		display_draw_line(0, m_old_graph_data[0], 1, m_old_graph_data[1],
-				BACKGROUND_COLOR);
+		BACKGROUND_COLOR);
 	if (!first_render)
 		display_draw_line(1, m_old_graph_data[1], 2, m_old_graph_data[2],
-				BACKGROUND_COLOR);
+		BACKGROUND_COLOR);
 
 	// render the data
 	for (uint32_t n = 1; n < 120; n++) {
@@ -500,7 +503,7 @@ void render_item_graph(screen_item &item, bool selected) {
 		}
 
 		display_draw_line(cx - 1, m_graph_data[n - 1], cx, m_graph_data[n],
-				FOREGROUND_COLOR);
+		FOREGROUND_COLOR);
 	}
 
 	for (uint32_t n = 0; n < 120; n++) {
@@ -508,7 +511,7 @@ void render_item_graph(screen_item &item, bool selected) {
 	}
 
 	display_draw_tinynumber(m_x + 5, m_y - max_height - 10, nmax, 4,
-			FOREGROUND_COLOR);
+	FOREGROUND_COLOR);
 	display_draw_tinynumber(m_x + 5, m_y - 10, nmin, 4, FOREGROUND_COLOR);
 
 }
@@ -585,7 +588,7 @@ void clear_item_head(screen_item &item, bool selected) {
 	int x_max = 127;
 	int y_max = 16;
 	display_draw_rectangle(item.val1, item.val2, x_max, y_max,
-			BACKGROUND_COLOR);
+	BACKGROUND_COLOR);
 }
 
 /**
@@ -620,7 +623,7 @@ void clear_item_bigvarlabel(screen_item &item, bool selected) {
 	if (text_len == 0)
 		return;
 	display_draw_rectangle(item.val1, item.val2, 127, (item.val2 + 43),
-			BACKGROUND_COLOR);
+	BACKGROUND_COLOR);
 }
 
 void clear_item_varlabel(screen_item &item, bool selected) {
@@ -634,7 +637,7 @@ void clear_item_varlabel(screen_item &item, bool selected) {
 	else
 		x = item.val1;
 	display_draw_rectangle(x, item.val2, 127, (item.val2 + 16),
-			BACKGROUND_COLOR);
+	BACKGROUND_COLOR);
 }
 
 void clear_item_graph(screen_item &item, bool selected) {
@@ -644,11 +647,11 @@ void clear_item_graph(screen_item &item, bool selected) {
 
 void clear_item_delay(screen_item &item, bool selected) {
 	display_draw_rectangle(item.val1, item.val2, item.val1 + 24, item.val2 + 16,
-			BACKGROUND_COLOR);
+	BACKGROUND_COLOR);
 }
 
 void render_item_delay(screen_item &item, bool selected) {
-	display_draw_number(item.val1, item.val2, delay_time, 3, FOREGROUND_COLOR);
+	display_draw_number(item.val1, item.val2, delay_time, 3, FOREGROUND_COLOR, BACKGROUND_COLOR);
 }
 
 void render_item(screen_item &item, bool selected) {
@@ -656,8 +659,8 @@ void render_item(screen_item &item, bool selected) {
 		render_item_menu(item, selected);
 	} else if (item.type == ITEM_TYPE_LABEL) {
 		render_item_label(item, selected);
-	} else if (item.type == ITEM_TYPE_SOFTKEY ||
-			   item.type == ITEM_TYPE_SOFTKEY_ACTION) {
+	} else if (item.type == ITEM_TYPE_SOFTKEY
+			|| item.type == ITEM_TYPE_SOFTKEY_ACTION) {
 		render_item_softkey(item);
 	} else if (item.type == ITEM_TYPE_SMALLLABEL) {
 		render_item_smalllabel(item, selected);
@@ -679,8 +682,8 @@ void clear_item(screen_item &item, bool selected) {
 		clear_item_menu(item, selected);
 	} else if (item.type == ITEM_TYPE_LABEL) {
 		clear_item_label(item, selected);
-	} else if (item.type == ITEM_TYPE_SOFTKEY ||
-			   item.type == ITEM_TYPE_SOFTKEY_ACTION ) {
+	} else if (item.type == ITEM_TYPE_SOFTKEY
+			|| item.type == ITEM_TYPE_SOFTKEY_ACTION) {
 		clear_item_softkey(item, selected);
 	} else if (item.type == ITEM_TYPE_SMALLLABEL) {
 		clear_item_label(item, selected);
@@ -705,18 +708,12 @@ void update_item_graph(screen_item &item, const void *value) {
 	source_graph_data = (float *) value;
 }
 
-uint8 lock_mask[11][8] = {
-		{ 0, 1, 1, 1, 1, 1, 1, 0 },
-		{ 1, 1, 0, 0, 0, 0, 1, 1 },
-		{ 1, 0, 0, 0, 0, 0, 0, 1 },
-		{ 1, 1, 1, 1, 1, 1, 1, 1 },
-		{ 1, 1, 1, 0, 0, 1, 1, 1 },
-		{ 1, 1, 0, 0, 0, 0, 1, 1 },
-		{ 1, 1, 0, 0, 0, 0, 1, 1 },
-		{ 1, 1, 1, 0, 0, 1, 1, 1 },
-		{ 1, 1, 1, 0, 0, 1, 1, 1 },
-		{ 1, 1, 1, 0, 0, 1, 1, 1 },
-		{ 1, 1, 1, 1, 1, 1, 1, 1 }
+uint8 lock_mask[11][8] = { { 0, 1, 1, 1, 1, 1, 1, 0 },
+		{ 1, 1, 0, 0, 0, 0, 1, 1 }, { 1, 0, 0, 0, 0, 0, 0, 1 }, { 1, 1, 1, 1, 1,
+				1, 1, 1 }, { 1, 1, 1, 0, 0, 1, 1, 1 },
+		{ 1, 1, 0, 0, 0, 0, 1, 1 }, { 1, 1, 0, 0, 0, 0, 1, 1 }, { 1, 1, 1, 0, 0,
+				1, 1, 1 }, { 1, 1, 1, 0, 0, 1, 1, 1 },
+		{ 1, 1, 1, 0, 0, 1, 1, 1 }, { 1, 1, 1, 1, 1, 1, 1, 1 }
 
 };
 
@@ -905,9 +902,8 @@ void update_item_softkey(screen_item &item, char * value) {
 	}
 	display_draw_rectangle(x1, 109, x2, 127, header_color);
 	// Center the text when we draw it
-	draw_text(x1 + 1 + 4* (5-strlen(text)), 110, text	, header_color);
+	draw_text(x1 + 1 + 4 * (5 - strlen(text)), 110, text, COLOR_BLACK, header_color);
 }
-
 
 /**
  * Draw the GUI screen header
@@ -925,7 +921,7 @@ void update_item_head(screen_item &item, const void *value) {
 		new_header_color = HEADER_COLOR_CPMINVALID;
 
 	if (new_header_color != header_color) {
-		draw_text(0, 0, "                ", new_header_color);
+		draw_text(0, 0, "                ", COLOR_BLACK, new_header_color);
 	}
 	header_color = new_header_color;
 
@@ -939,7 +935,7 @@ void update_item_head(screen_item &item, const void *value) {
 	if (len > 6)
 		v[6] = 0;
 
-	draw_text(0, 0, v, header_color);
+	draw_text(0, 0, v, COLOR_BLACK, header_color);
 
 	render_battery(0, 128 - 24, power_battery_level(), power_charging());
 
@@ -998,7 +994,7 @@ void update_item_delay(screen_item &item, const void *value) {
 	if (delay_time >= 1)
 		delay_time--;
 	delay_us(1000000);
-	display_draw_number(item.val1, item.val2, delay_time, 3, FOREGROUND_COLOR);
+	display_draw_number(item.val1, item.val2, delay_time, 3, FOREGROUND_COLOR, BACKGROUND_COLOR);
 }
 
 int get_item_state_delay_destination(screen_item &item) {
@@ -1025,14 +1021,21 @@ int get_item_state_delay_destination(screen_item &item) {
 void update_item(screen_item &item, const void *value) {
 	if (item.type == ITEM_TYPE_VARLABEL) {
 		if (item.val1 == 255) {
-			display_draw_text_center(item.val2, (char *) value,
-					FOREGROUND_COLOR);
+			display_draw_text_center(item.val2, (char *) value, FOREGROUND_COLOR,
+			BACKGROUND_COLOR);
 		} else {
-			display_draw_text(item.val1, item.val2, (char *) value,
-					FOREGROUND_COLOR);
+			display_draw_text(item.val1, item.val2, (char *) value, FOREGROUND_COLOR,
+			BACKGROUND_COLOR);
 		}
-	} else if ( (item.type == ITEM_TYPE_SOFTKEY) ||
-			    (item.type == ITEM_TYPE_SOFTKEY_ACTION) ) {
+	} else if (item.type == ITEM_TYPE_RED_VARLABEL) {
+		// Convention: if first character is " " (space) then clear the label
+		if (((char*)value)[0] == ' ') {
+			display_draw_text(item.val1, item.val2, (char *) value, COLOR_WHITE, BACKGROUND_COLOR);
+		} else {
+			display_draw_text(item.val1, item.val2, (char *) value, COLOR_WHITE, COLOR_RED);
+		}
+	} else if ((item.type == ITEM_TYPE_SOFTKEY)
+			|| (item.type == ITEM_TYPE_SOFTKEY_ACTION)) {
 		update_item_softkey(item, (char*) value);
 	} else if (item.type == ITEM_TYPE_GRAPH) {
 		update_item_graph(item, value);
@@ -1044,10 +1047,9 @@ void update_item(screen_item &item, const void *value) {
 		update_item_delay(item, value);
 	} else if (item.type == ITEM_TYPE_BIGVARLABEL) {
 		display_draw_bigtext(item.val1, item.val2, (char *) value,
-				FOREGROUND_COLOR);
+		BACKGROUND_COLOR);
 	}
 }
-
 
 void GUI::clear_stack() {
 	selected_stack_size = 0;
@@ -1332,9 +1334,9 @@ void GUI::process_key_down() {
 		return;
 	}
 
-	if ( ((selected_item + 1) < screens_layout[current_screen].item_count) &&
-		 (screens_layout[current_screen].items[selected_item+1].type != ITEM_TYPE_SOFTKEY)
-		) {
+	if (((selected_item + 1) < screens_layout[current_screen].item_count)
+			&& (screens_layout[current_screen].items[selected_item + 1].type
+					!= ITEM_TYPE_SOFTKEY)) {
 		last_selected_item = selected_item;
 		selected_item++;
 	}
@@ -1367,10 +1369,10 @@ void GUI::process_key_up() {
  * Starts at the end since this is usually where softkey definitions are.
  */
 bool GUI::softkeys_active() {
-	for (int i = screens_layout[current_screen].item_count-1 ; i >= 0; i--) {
-		if ( (screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY) ||
-			 (screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY_ACTION)
-			 )
+	for (int i = screens_layout[current_screen].item_count - 1; i >= 0; i--) {
+		if ((screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY)
+				|| (screens_layout[current_screen].items[i].type
+						== ITEM_TYPE_SOFTKEY_ACTION))
 			return true;
 	}
 	return false;
@@ -1382,14 +1384,13 @@ bool GUI::softkeys_active() {
  * Returns 255 in case soft keys are not active
  */
 uint8_t GUI::softkey_screen(uint8_t idx) {
-  if (!softkeys_active() || idx > 2)
-	  return INVALID_SCREEN;
+	if (!softkeys_active() || idx > 2)
+		return INVALID_SCREEN;
 
-  	// Scan the whole screen definition until we find the correct softkey
-	for (int i = screens_layout[current_screen].item_count-1 ; i >= 0; i--) {
-		if ( (screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY) &&
-			 (screens_layout[current_screen].items[i].val1 == idx)
-			)
+	// Scan the whole screen definition until we find the correct softkey
+	for (int i = screens_layout[current_screen].item_count - 1; i >= 0; i--) {
+		if ((screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY)
+				&& (screens_layout[current_screen].items[i].val1 == idx))
 			return screens_layout[current_screen].items[i].val2;
 	}
 	return INVALID_SCREEN;
@@ -1400,14 +1401,14 @@ uint8_t GUI::softkey_screen(uint8_t idx) {
  * find the softkey or it is not an action key.
  */
 char* GUI::softkey_action(uint8_t idx) {
-  if (!softkeys_active() || idx > 2)
-	  return NULL;
+	if (!softkeys_active() || idx > 2)
+		return NULL;
 
-  	// Scan the whole screen definition until we find the correct softkey
-	for (int i = screens_layout[current_screen].item_count-1 ; i >= 0; i--) {
-		if ( (screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY_ACTION)
-			 && (screens_layout[current_screen].items[i].val1 == idx)
-		)
+	// Scan the whole screen definition until we find the correct softkey
+	for (int i = screens_layout[current_screen].item_count - 1; i >= 0; i--) {
+		if ((screens_layout[current_screen].items[i].type
+				== ITEM_TYPE_SOFTKEY_ACTION)
+				&& (screens_layout[current_screen].items[i].val1 == idx))
 			return screens_layout[current_screen].items[i].text;
 	}
 	return NULL;
@@ -1418,22 +1419,21 @@ char* GUI::softkey_action(uint8_t idx) {
  * find the softkey.
  */
 uint8_t GUI::softkey_index(uint8_t idx) {
-  if (!softkeys_active() || idx > 2)
-	  return NULL;
+	if (!softkeys_active() || idx > 2)
+		return NULL;
 
-  	// Scan the whole screen definition until we find the correct softkey
-	for (uint8_t i = screens_layout[current_screen].item_count-1 ; i >= 0; i--) {
-		if ( ((screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY_ACTION) ||
-			  (screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY)
-			  ) && (screens_layout[current_screen].items[i].val1 == idx)
-		)
+	// Scan the whole screen definition until we find the correct softkey
+	for (uint8_t i = screens_layout[current_screen].item_count - 1; i >= 0;
+			i--) {
+		if (((screens_layout[current_screen].items[i].type
+				== ITEM_TYPE_SOFTKEY_ACTION)
+				|| (screens_layout[current_screen].items[i].type
+						== ITEM_TYPE_SOFTKEY))
+				&& (screens_layout[current_screen].items[i].val1 == idx))
 			return i;
 	}
 	return 255;
 }
-
-
-
 
 /**
  * Process a key press.
@@ -1462,11 +1462,11 @@ void GUI::process_key(int key_id, int type) {
 			// We want softkey 2 here
 			if (softkey_action(2) != NULL) {
 				// We have an action key here:
-				receive_gui_events.receive_gui_event( softkey_action(2), "select");
+				receive_gui_events.receive_gui_event(softkey_action(2),
+						"select");
 				// Flag the softkey for re-rendering
 				selected_item = softkey_index(2);
-			} else
-			if (softkey_screen(2) != INVALID_SCREEN) {
+			} else if (softkey_screen(2) != INVALID_SCREEN) {
 				if (clear_next_render == false) {
 					clear_next_render = true;
 					first_render = true;
@@ -1480,7 +1480,7 @@ void GUI::process_key(int key_id, int type) {
 				selected_item = 1;
 				return;
 			}
-		} else 	if (screens_layout[current_screen].help_screen != 255) {
+		} else if (screens_layout[current_screen].help_screen != 255) {
 			show_help_screen(screens_layout[current_screen].help_screen);
 		}
 	}
@@ -1510,10 +1510,10 @@ void GUI::process_key(int key_id, int type) {
 			// We want softkey 1 here
 			if (softkey_action(1) != NULL) {
 				// We have an action key here:
-				receive_gui_events.receive_gui_event( softkey_action(1), "select");
+				receive_gui_events.receive_gui_event(softkey_action(1),
+						"select");
 				selected_item = softkey_index(1);
-			} else
-			if (softkey_screen(1) != INVALID_SCREEN) {
+			} else if (softkey_screen(1) != INVALID_SCREEN) {
 				if (clear_next_render == false) {
 					clear_next_render = true;
 					first_render = true;
@@ -1693,42 +1693,42 @@ void GUI::render_dialog(const char *text1, const char *text2, const char *text3,
 
 	if (m_language == LANGUAGE_JAPANESE) {
 		if (img1 == 255) {
-			display_draw_text_center(20, text1, FOREGROUND_COLOR);
+			display_draw_text_center(20, text1, FOREGROUND_COLOR, BACKGROUND_COLOR);
 		} else if (img1 == 254) {
 		} else {
-			display_draw_fixedimage(0, 20, img1, FOREGROUND_COLOR);
+			display_draw_fixedimage(0, 20, img1, BACKGROUND_COLOR);
 		}
 
 		if (img2 == 255) {
-			display_draw_text_center(36, text2, FOREGROUND_COLOR);
+			display_draw_text_center(36, text2, FOREGROUND_COLOR, BACKGROUND_COLOR);
 		} else if (img2 == 254) {
 		} else {
-			display_draw_fixedimage(0, 36, img2, FOREGROUND_COLOR);
+			display_draw_fixedimage(0, 36, img2, BACKGROUND_COLOR);
 		}
 
 		if (img3 == 255) {
-			display_draw_text_center(52, text3, FOREGROUND_COLOR);
+			display_draw_text_center(52, text3, FOREGROUND_COLOR, BACKGROUND_COLOR);
 		} else if (img3 == 254) {
 		} else {
-			display_draw_fixedimage(0, 52, img3, FOREGROUND_COLOR);
+			display_draw_fixedimage(0, 52, img3, BACKGROUND_COLOR);
 		}
 
 		if (img4 == 255) {
-			display_draw_text_center(68, text4, FOREGROUND_COLOR);
+			display_draw_text_center(68, text4, FOREGROUND_COLOR, BACKGROUND_COLOR);
 		} else if (img4 == 254) {
 		} else {
-			display_draw_fixedimage(0, 68, img4, FOREGROUND_COLOR);
+			display_draw_fixedimage(0, 68, img4, BACKGROUND_COLOR);
 		}
 
-		display_draw_fixedimage(0, 94, 49, FOREGROUND_COLOR); // press any key kanji image
+		display_draw_fixedimage(0, 94, 49, BACKGROUND_COLOR); // press any key kanji image
 	}
 
 	if (m_language == LANGUAGE_ENGLISH) {
-		display_draw_text_center(20, text1, FOREGROUND_COLOR);
-		display_draw_text_center(36, text2, FOREGROUND_COLOR);
-		display_draw_text_center(52, text3, FOREGROUND_COLOR);
+		display_draw_text_center(20, text1, FOREGROUND_COLOR, BACKGROUND_COLOR);
+		display_draw_text_center(36, text2, FOREGROUND_COLOR, BACKGROUND_COLOR);
+		display_draw_text_center(52, text3, FOREGROUND_COLOR, BACKGROUND_COLOR);
 
-		display_draw_text_center(68, text4, FOREGROUND_COLOR);
-		display_draw_text_center(94, "PRESS ANY KEY", FOREGROUND_COLOR);
+		display_draw_text_center(68, text4, FOREGROUND_COLOR, BACKGROUND_COLOR);
+		display_draw_text_center(94, "PRESS ANY KEY", FOREGROUND_COLOR, BACKGROUND_COLOR);
 	}
 }

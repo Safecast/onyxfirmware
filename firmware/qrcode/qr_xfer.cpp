@@ -34,8 +34,8 @@ void qr_draw(char *inputdata) {
 		int width=2;
 		int ok = qr_encode_data(0,0,0,1,(uint8_t *) inputdata,strlen(inputdata),image,&outputdata_len,&width);
 
-	  if(ok != 0) display_draw_text(0,64-8,"QR Error",0);
-	  if(ok != 0) display_draw_number(0,80,ok,5,0);
+	  if(ok != 0) display_draw_text(0,64-8,"QR Error",COLOR_WHITE, COLOR_BLACK);
+	  if(ok != 0) display_draw_number(0,80,ok,5,COLOR_WHITE, COLOR_BLACK);
 
 		int block_count = 4;
 		int scale       = 3;
@@ -117,8 +117,8 @@ void qr_logxfer() {
     id_pos+=(data_per_qr-4);
 
 		display_clear(0xFFFF);
-	  if(ok != 0) display_draw_text(0,64-8,"QR Error",0);
-	  if(ok != 0) display_draw_number(0,80,ok,5,0);
+	  if(ok != 0) display_draw_text(0,64-8,"QR Error",COLOR_WHITE, COLOR_BLACK);
+	  if(ok != 0) display_draw_number(0,80,ok,5, COLOR_WHITE, COLOR_BLACK);
 
 		int block_count = 4;
 		int scale       = 3;

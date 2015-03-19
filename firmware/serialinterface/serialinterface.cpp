@@ -704,7 +704,7 @@ void cmd_batinfodisp(char *line) {
     char s[20];
     sprintf(s,"%d   ",bat);
 
-    display_draw_text(0,0,s,0);
+    display_draw_text(0,0,s,COLOR_WHITE, COLOR_BLACK);
     delay_us(1000000);
   }
 }

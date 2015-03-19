@@ -41,14 +41,15 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 1 - Current readings screen
 {
-  6,
+  7,
   {
     { ITEM_TYPE_HEAD        , 0 ,  0, "$CPMDEADINT", 255},
     { ITEM_TYPE_BIGVARLABEL , 0 , 30, "$CPMDEAD"   , 255},
     { ITEM_TYPE_VARLABEL    ,104, 90, "$CPMSLABEL" , 255},
+    { ITEM_TYPE_RED_VARLABEL    , 5 , 80, "$X1000"     , 255},
     { ITEM_TYPE_SOFTKEY	  , 0, 0, "Home"			, 255},
-    { ITEM_TYPE_SOFTKEY	  , 1, 26, "$SVREMLABEL"		, 255},
-    { ITEM_TYPE_SOFTKEY_ACTION	  , 2, 0, "Beep"			, 255},
+    { ITEM_TYPE_SOFTKEY	  , 1, 26, "$SVREMLABEL"	, 255},
+    { ITEM_TYPE_SOFTKEY_ACTION	  , 2, 0, "Beep"	, 255},
 }
   ,0
 },

@@ -10,8 +10,11 @@
 #define NEW_KEYS_MAX_SIZE 40
 #define FOREGROUND_COLOR 65535
 #define BACKGROUND_COLOR 0
+#define COLOR_BLUE  0xF800
+#define COLOR_RED   0x7E0
+#define COLOR_GREEN 0x1F
+
 #define HEADER_COLOR_NORMAL 0xF800
-//#define HEADER_COLOR_CPMINVALID 0x03E0
 #define HEADER_COLOR_CPMINVALID 0x03EF
 
 #define LANGUAGE_ENGLISH  0
@@ -31,11 +34,6 @@ class Controller;
 
 class GUI {
 
-private:
-  int current_screen;
-  int selected_item;
-  int last_selected_item;
-
 public:
 
   GUI(Controller &r);
@@ -53,9 +51,17 @@ public:
   void show_dialog      (const char *text1 ,const char *text2 ,const char *text3,const char *text4,bool buzz,int img1=255,int img2=255,int img3=255,int img4=255);
   void render_dialog    (const char *text1 ,const char *text2 ,const char *text3,const char *text4,int img1,int img2,int img3,int img4);
   Controller &receive_gui_events;
-
   uint8_t get_item_state_uint8(const char *tag);
+
 private:
+  int current_screen;
+  int selected_item;
+  int last_selected_item;
+
+  bool x1000;     // indicator that we need to display the "x1000" CPM indicator
+  bool cpm_alarm; // indicator that we have a High CPM alarm (change display background in red)
+
+
   int32_t selected_screen_stack[MAX_SCREEN_STACK];
   int32_t selected_item_stack  [MAX_SCREEN_STACK];
   int32_t selected_stack_size;
