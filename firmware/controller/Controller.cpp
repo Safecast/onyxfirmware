@@ -1104,7 +1104,7 @@ void Controller::send_svrem() {
 		}
 
 		m_gui->receive_update("$SVREM", text_rem);
-		m_gui->receive_update("$SVREMLABEL", " \x80R/h");
+		m_gui->receive_update("$SVREMLABEL", "\x80R/h");
 	} else {
 		char text_sieverts[50];
 		char text_sieverts_tmp[50];

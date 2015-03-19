@@ -110,7 +110,8 @@ Geiger::Geiger() {
  */
 void Geiger::initialise() {
 
-	m_pulsewidth = 5;       // Width of the output pulse (on MIC output)
+	// Width of the output pulse in microseconds (on MIC output)
+	m_pulsewidth = 2000;
 	calibration_scaling = 1;
 	m_cpm_valid = false;
 	total_count = 0;
@@ -229,32 +230,8 @@ void Geiger::initialise() {
 void Geiger::pulse_timer_init() {
 	timer_pause(TIMER3);
 	// was 10000
-	timer_set_prescaler(TIMER3, 0);
-
-	uint32_t r = 0;
-	if (m_pulsewidth == 0) {
-		r = MAX_RELOAD / 2048;
-	} else if (m_pulsewidth == 1) {
-		r = MAX_RELOAD / 1024;
-	} else if (m_pulsewidth == 2) {
-		r = MAX_RELOAD / 512;
-	} else if (m_pulsewidth == 3) {
-		r = MAX_RELOAD / 256;
-	} else if (m_pulsewidth == 4) {
-		r = MAX_RELOAD / 128;
-	} else if (m_pulsewidth == 5) {
-		r = MAX_RELOAD / 64;
-	} else if (m_pulsewidth == 6) {
-		r = MAX_RELOAD / 32;
-	} else if (m_pulsewidth == 7) {
-		r = MAX_RELOAD / 16;
-	} else if (m_pulsewidth == 8) {
-		r = MAX_RELOAD / 8;
-	} else if (m_pulsewidth == 9) {
-		r = MAX_RELOAD / 4;
-	}
-
-	timer_set_reload(TIMER3, r);
+	timer_set_prescaler(TIMER3, (m_pulsewidth* CYCLES_PER_MICROSECOND) / MAX_RELOAD);
+	timer_set_reload(TIMER3, MAX_RELOAD);
 
 	// setup interrupt on channel 3
 	timer_set_mode(TIMER3, TIMER_CH3, TIMER_OUTPUT_COMPARE);
@@ -623,10 +600,10 @@ void Geiger::disable_micout() {
 	mic_output = false;
 }
 
-void Geiger::set_pulsewidth(uint8_t p) {
+void Geiger::set_pulsewidth(uint32_t p) {
 	m_pulsewidth = p;
 }
 
-uint8_t Geiger::get_pulsewidth() {
+uint32_t Geiger::get_pulsewidth() {
 	return m_pulsewidth;
 }

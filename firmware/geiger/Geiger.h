@@ -43,8 +43,8 @@ public:
   void  set_becquerel_eff(float v);
   void enable_micout();
   void disable_micout();
-  void set_pulsewidth(uint8_t p);
-  uint8_t get_pulsewidth();
+  void set_pulsewidth(uint32_t p);
+  uint32_t get_pulsewidth();
   void pulse_timer_init();
 
   uint16_t last_windows_position;
@@ -55,7 +55,7 @@ public:
   uint16_t m_samples_collected;
   bool     m_cpm_valid;
   float    m_becquerel_eff;
-  uint8_t  m_pulsewidth;
+  uint32_t  m_pulsewidth;
 };
 
 extern Geiger *system_geiger;
