@@ -185,7 +185,11 @@ void Controller::save_warncpm() {
 	warn_cpm += w4 * 10;
 	warn_cpm += w5 * 1;
 
+	// Reset warning state (will re-trigger at next refresh
+	// if new setting is under current CPM count)
 	m_warncpm = warn_cpm;
+	m_warning_raised = false;
+	m_gui->set_cpm_alarm(false, 0);
 
 	char swarncpm[50];
 	sprintf(swarncpm, "%"PRIi32"", warn_cpm);
@@ -844,13 +848,7 @@ void Controller::check_warning_level() {
 		if ((cpm >= m_warncpm) && (m_warning_raised == false) ) {
 			if (m_sleeping)
 				display_powerup();
-			/*
-			char text_cpm[20];
-			sprintf(text_cpm, "%8.0f",
-					system_geiger->get_cpm_deadtime_compensated());
-			m_gui->show_dialog("WARNING LEVEL", "EXCEEDED", text_cpm, "CPM", true,
-					42, 254, 255, 255);
-			*/
+
 			m_warning_raised = true;
 			m_gui->set_cpm_alarm(true, system_geiger->get_cpm_deadtime_compensated());
 		}
@@ -1015,8 +1013,8 @@ void Controller::do_dimming() {
  */
 void Controller::send_cpm_values() {
 
-	char text_cpmdint[50];
-	char text_cpmd[50];
+	char text_cpmdint[16];
+	char text_cpmd[6];
 
 	// Add 0.5 to have a nearest integer rounding
 	uint32_t cpm = (uint32_t) floor(system_geiger->get_cpm_deadtime_compensated()+0.5);
@@ -1026,16 +1024,18 @@ void Controller::send_cpm_values() {
 	if (!m_cpm_cps_switch) {       // no auto switch, just display CPM
 		// If CPM is above 9999, then we divide it by 1000, print it in red
 		// and turn on the "x1000" indicator.
-		// TEST: enable every time
 		if (cpm > 9999) {
-			float kcpm = cpm / 1000;
+			float kcpm = (float)cpm / 1000;
+			char tmp[16];
+			sprintf(tmp, "%5.3f", kcpm);
+			// Truncate to 5 character string (includes '.')
+			sprintf(text_cpmd, "%5.5s", tmp);
 			m_gui->receive_update("$X1000","x1000");
 		} else {
 			m_gui->receive_update("$X1000","     ");
 			sprintf(text_cpmd, "%4u", cpm);
 		}
 		m_gui->receive_update("$CPMSLABEL", "CPM");
-
 	} else {
 		if (cpm > m_cpm_cps_threshold) {
 			char text_cpmd_tmp[5];
@@ -1100,10 +1100,10 @@ void Controller::send_svrem() {
 
 	if ((svrem != 0) && (strcmp(svrem, "REM") == 0)) {
 		char text_rem[6];
-		//char text_rem_tmp[50];
-		text_rem[0] = 0;
-		sprintf(text_rem, "%5.3f", system_geiger->get_microrems());
-		//sprintf(text_rem, "%5.5s", text_rem_tmp);
+		char tmp[16];
+		sprintf(tmp, "%5.3f", system_geiger->get_microrems());
+		// Truncate to 5 character string (includes '.')
+		sprintf(text_rem, "%5.5s", tmp);
 		if ((system_geiger->get_cpm_deadtime_compensated() > MAX_CPM)
 				|| (system_geiger->get_microrems() > 99999999)) {
 			sprintf(text_rem, "TOO HIGH");
@@ -1113,10 +1113,10 @@ void Controller::send_svrem() {
 		m_gui->receive_update("$SVREMLABEL", "\x80R/h");
 	} else {
 		char text_sieverts[6];
-		//char text_sieverts_tmp[50];
-		text_sieverts[0] = 0;
-		sprintf(text_sieverts, "%5.3f", system_geiger->get_microsieverts());
-		//sprintf(text_sieverts, "%5.5s", text_sieverts_tmp);
+		char tmp[16];
+		sprintf(tmp, "%5.3f", system_geiger->get_microsieverts());
+		// Truncate to 5 character string (includes '.')
+		sprintf(text_sieverts, "%5.5s", tmp);
 		if ((system_geiger->get_cpm_deadtime_compensated() > MAX_CPM)
 				|| (system_geiger->get_microsieverts() > 99999999)) {
 			sprintf(text_sieverts, "TOO HIGH");

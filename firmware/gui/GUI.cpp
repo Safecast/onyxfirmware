@@ -923,6 +923,8 @@ void update_item_head(screen_item &item, const void *value) {
 
 	if (new_header_color != header_color) {
 		draw_text(0, 0, "                ", COLOR_BLACK, new_header_color);
+		// Also force update of softkeys
+		first_render = true;
 	}
 	header_color = new_header_color;
 

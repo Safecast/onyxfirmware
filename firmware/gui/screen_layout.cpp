@@ -47,8 +47,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_BIGVARLABEL , 0 , 30, "$CPMDEAD"   , 255},
     { ITEM_TYPE_VARLABEL    ,104, 90, "$CPMSLABEL" , 255},
     { ITEM_TYPE_RED_VARLABEL    , 5 , 80, "$X1000"     , 255},
-    { ITEM_TYPE_SOFTKEY	  , 0, 0, "Home"			, 255},
-    { ITEM_TYPE_SOFTKEY	  , 1, 26, "$SVREMLABEL"	, 255},
+    { ITEM_TYPE_SOFTKEY	  	, 0, 0, "Menu"			, 255},
+    { ITEM_TYPE_SOFTKEY	  	, 1, 26, "$SVREMLABEL"	, 255},
     { ITEM_TYPE_SOFTKEY_ACTION	  , 2, 0, "Beep"	, 255},
 }
   ,0
@@ -56,17 +56,16 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 2 - Advanced menu
 {
-  6,
+  5,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT"     ,255 },
-    { ITEM_TYPE_MENU       , 4, 1, "Graphs"         ,1   },
-    { ITEM_TYPE_MENU       ,15, 2, "Accumulate/Avg" ,6   },
-    { ITEM_TYPE_MENU       ,21, 3, "Becquerel"      ,31  },
+    { ITEM_TYPE_MENU       ,15, 1, "Accumulate/Avg" ,6   },
+    { ITEM_TYPE_MENU       ,21, 2, "Becquerel"      ,31  },
 //    { ITEM_TYPE_MENU_ACTION, 0, 4, "QR Transfer"    ,7   },
-    { ITEM_TYPE_MENU_ACTION, 0, 4, "QR Tweet"       ,32  },
+    { ITEM_TYPE_MENU_ACTION, 0, 3, "QR Tweet"       ,32  },
 //    { ITEM_TYPE_MENU_ACTION, 0, 5, "Audio Xfer"     ,255 },
 //    { ITEM_TYPE_MENU_ACTION, 0, 7, "Audio Xfer Full",255 },
-    { ITEM_TYPE_MENU      , 25, 5, "Log status",255 },
+    { ITEM_TYPE_MENU      , 25, 4, "Log status",255 },
   }
   ,7
 },
@@ -91,7 +90,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   {
     { ITEM_TYPE_HEAD    , 0 , 0  , "$CPMDEADINT"    , 255 },
     { ITEM_TYPE_GRAPH   , 4 , 108, "$RECENTDATA"    , 255 },
-    { ITEM_TYPE_SOFTKEY	  , 0, 0, "Home"			, 255},
+    { ITEM_TYPE_SOFTKEY	  , 0, 0, "Menu"			, 255},
     { ITEM_TYPE_SOFTKEY	  , 1, 1, "CPM"				, 255},
     { ITEM_TYPE_SOFTKEY_ACTION	  , 2, 0, "Beep"			, 255},
   }
@@ -395,7 +394,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD        , 0 ,  0, "$CPMDEADINT", 255},
     { ITEM_TYPE_BIGVARLABEL , 0 , 30, "$SVREM"     , 255},
     { ITEM_TYPE_VARLABEL    , 80, 90, "$SVREMLABEL", 255},
-    { ITEM_TYPE_SOFTKEY	  , 0, 0, "Home"			, 255},
+    { ITEM_TYPE_SOFTKEY	  , 0, 0, "Menu"			, 255},
     { ITEM_TYPE_SOFTKEY	  , 1, 4, "Graph"			, 255},
     { ITEM_TYPE_SOFTKEY_ACTION	  , 2, 0, "Beep"			, 255},
 }

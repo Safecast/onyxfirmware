@@ -225,7 +225,7 @@ void draw_bigcharacter(int x, int y, char c, uint16_t foreground, uint16_t backg
 		oled_draw_rect(x, y, 30, 43, (uint8_t *) character_data);
 	} else {
 		// Space: just create an empty space
-		display_draw_rectangle(x, y, 30, 43, background);
+		display_draw_rectangle(x, y,  x+ 30, y + 43, background);
 	}
 }
 
@@ -322,7 +322,7 @@ void draw_bigtext(int x, int y, const char *text, uint16_t foreground, uint16_t 
 		if (text[n] == '.') {
 			dot = true;
 			// Clear the area to avoid artifacts
-			display_draw_rectangle(c_x, c_y, 8, 31, background);
+			display_draw_rectangle(c_x, c_y, c_x + 8, c_y + 31, background);
 			dot_x = c_x - ((c_x > 3) ? 3 : 0);
 			c_x += 6;
 		} else {
