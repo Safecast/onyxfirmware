@@ -84,7 +84,7 @@ public:
   float    m_cpm_cps_threshold;
   float    m_cps_cpm_threshold;
   bool     m_cpm_cps_switch;
-  int      m_current_units;
+
 };
 
 #endif

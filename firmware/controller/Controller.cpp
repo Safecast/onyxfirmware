@@ -53,7 +53,6 @@ Controller::Controller() {
 	m_dim_off = false;
 
 	m_cpm_cps_switch = false;
-	m_current_units = 2;
 	m_cpm_cps_threshold = 1100.0;
 	m_cps_cpm_threshold = 1000.0;
 
@@ -77,8 +76,17 @@ Controller::Controller() {
 	} else
 		m_never_dim = false;
 
+	// Send this info to the GUI so that the tick correct on the display
 	if (m_never_dim)
 		tick_item("Never Dim", true);
+
+	// Restore Beep settings from Geiger
+	const char *beep = flashstorage_keyval_get("GEIGERBEEP");
+	if (strcmp(beep, "true") == 0) {
+		tick_item("Beep", true);
+	} else {
+		tick_item("Beep", false);
+	}
 
 	// Get logging interval from flash if it exists
 	const char *sloginter = flashstorage_keyval_get("LOGINTERVAL");
@@ -831,20 +839,26 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 
 void Controller::check_warning_level() {
 
-	if ((m_warncpm > 0)
-			&& (system_geiger->get_cpm_deadtime_compensated() >= m_warncpm)
-			&& (m_warning_raised == false) && system_geiger->is_cpm_valid()) {
-		if (m_sleeping)
-			display_powerup();
-		char text_cpm[20];
-		sprintf(text_cpm, "%8.0f",
-				system_geiger->get_cpm_deadtime_compensated());
-		m_gui->show_dialog("WARNING LEVEL", "EXCEEDED", text_cpm, "CPM", true,
-				42, 254, 255, 255);
-		m_warning_raised = true;
-
-		if (m_sleeping)
-			display_powerdown();
+	if ((m_warncpm > 0) && system_geiger->is_cpm_valid() ) {
+		float cpm = system_geiger->get_cpm_deadtime_compensated();
+		if ((cpm >= m_warncpm) && (m_warning_raised == false) ) {
+			if (m_sleeping)
+				display_powerup();
+			/*
+			char text_cpm[20];
+			sprintf(text_cpm, "%8.0f",
+					system_geiger->get_cpm_deadtime_compensated());
+			m_gui->show_dialog("WARNING LEVEL", "EXCEEDED", text_cpm, "CPM", true,
+					42, 254, 255, 255);
+			*/
+			m_warning_raised = true;
+			m_gui->set_cpm_alarm(true, system_geiger->get_cpm_deadtime_compensated());
+		}
+		else if ((cpm < m_warncpm) && (m_warning_raised == true)) {
+			// We are back to normal
+			m_warning_raised = false;
+			m_gui->set_cpm_alarm(false, 0);
+		}
 	}
 }
 
@@ -1007,59 +1021,39 @@ void Controller::send_cpm_values() {
 	// Add 0.5 to have a nearest integer rounding
 	uint32_t cpm = (uint32_t) floor(system_geiger->get_cpm_deadtime_compensated()+0.5);
 
-	//if (cpm == m_last_cpm_sent_to_gui)
-	//	return; // Let's not waste battery updating the GUI for a value that has not changed
-	// m_last_cpm_sent_to_gui = cpm;
-
-	int_to_char(cpm, text_cpmdint, 7);
-
-	if (cpm > MAX_CPM) {
-		sprintf(text_cpmdint, "TOO HIGH"); // kanji image is 45
-	}
+	sprintf(text_cpmdint,"%-*u", 7, cpm);
 
 	if (!m_cpm_cps_switch) {       // no auto switch, just display CPM
-		char text_cpmd_tmp[30];
 		// If CPM is above 9999, then we divide it by 1000, print it in red
 		// and turn on the "x1000" indicator.
 		// TEST: enable every time
 		if (cpm > 9999) {
-			cpm = cpm / 1000;
+			float kcpm = cpm / 1000;
 			m_gui->receive_update("$X1000","x1000");
 		} else {
 			m_gui->receive_update("$X1000","     ");
+			sprintf(text_cpmd, "%4u", cpm);
 		}
-
-
-
-		sprintf(text_cpmd_tmp, "%4u", cpm); // No need for decimals on CPM!
-		sprintf(text_cpmd, "%4.4s", text_cpmd_tmp);
 		m_gui->receive_update("$CPMSLABEL", "CPM");
+
 	} else {
-
 		if (cpm > m_cpm_cps_threshold) {
-			m_current_units = UNITS_CPS;
-		} else if (cpm < m_cps_cpm_threshold) {
-			m_current_units = UNITS_CPM;
-		}
-		// else { we are in the gray zone, do not switch }
-
-		if (m_current_units == UNITS_CPM) {
-			char text_cpmd_tmp[30];
-			sprintf(text_cpmd_tmp, "%4u", cpm);
-			sprintf(text_cpmd, "%4.4s", text_cpmd_tmp);
-			m_gui->receive_update("$CPMSLABEL", "CPM");
-		} else {
-			char text_cpmd_tmp[30];
-			sprintf(text_cpmd_tmp, "%4u",
-					cpm / 60);
-			sprintf(text_cpmd, "%4.4s", text_cpmd_tmp);
+			char text_cpmd_tmp[5];
+			sprintf(text_cpmd, "%4u", cpm / 60);
 			m_gui->receive_update("$CPMSLABEL", "CPS");
+		} else if (cpm < m_cps_cpm_threshold) {
+			char text_cpmd_tmp[5];
+			sprintf(text_cpmd, "%4u", cpm);
+			m_gui->receive_update("$CPMSLABEL", "CPM");
 		}
+
 	}
 
 	if (cpm > MAX_CPM) {
 		sprintf(text_cpmd, "TOO HIGH");
+		sprintf(text_cpmdint, "TOO HIGH"); // kanji image is 45
 	}
+
 	m_gui->receive_update("$CPMDEADINT", text_cpmdint);
 	m_gui->receive_update("$CPMDEAD", text_cpmd);
 }
@@ -1105,11 +1099,11 @@ void Controller::send_svrem() {
 	const char *svrem = flashstorage_keyval_get("SVREM");
 
 	if ((svrem != 0) && (strcmp(svrem, "REM") == 0)) {
-		char text_rem[50];
-		char text_rem_tmp[50];
+		char text_rem[6];
+		//char text_rem_tmp[50];
 		text_rem[0] = 0;
-		sprintf(text_rem_tmp, "%5.3f", system_geiger->get_microrems());
-		sprintf(text_rem, "%5.5s", text_rem_tmp);
+		sprintf(text_rem, "%5.3f", system_geiger->get_microrems());
+		//sprintf(text_rem, "%5.5s", text_rem_tmp);
 		if ((system_geiger->get_cpm_deadtime_compensated() > MAX_CPM)
 				|| (system_geiger->get_microrems() > 99999999)) {
 			sprintf(text_rem, "TOO HIGH");
@@ -1118,11 +1112,11 @@ void Controller::send_svrem() {
 		m_gui->receive_update("$SVREM", text_rem);
 		m_gui->receive_update("$SVREMLABEL", "\x80R/h");
 	} else {
-		char text_sieverts[50];
-		char text_sieverts_tmp[50];
+		char text_sieverts[6];
+		//char text_sieverts_tmp[50];
 		text_sieverts[0] = 0;
-		sprintf(text_sieverts_tmp, "%5.3f", system_geiger->get_microsieverts());
-		sprintf(text_sieverts, "%5.5s", text_sieverts_tmp);
+		sprintf(text_sieverts, "%5.3f", system_geiger->get_microsieverts());
+		//sprintf(text_sieverts, "%5.5s", text_sieverts_tmp);
 		if ((system_geiger->get_cpm_deadtime_compensated() > MAX_CPM)
 				|| (system_geiger->get_microsieverts() > 99999999)) {
 			sprintf(text_sieverts, "TOO HIGH");

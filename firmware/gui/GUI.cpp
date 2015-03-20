@@ -20,6 +20,7 @@ uint16 header_color = HEADER_COLOR_CPMINVALID;
 
 uint8_t m_language;
 char softkeys[3][6] = { "  X  ", "  X  ", "  X  " };
+uint16_t  background_color = BACKGROUND_COLOR;
 
 /****************
  *   Utility functions for drawing on the screen
@@ -100,11 +101,11 @@ bool is_ticked(const char *name) {
 
 void render_item_menu(screen_item &item, bool selected) {
 
-	uint16_t bg = BACKGROUND_COLOR;
+	uint16_t bg = background_color;
 	uint16_t fg = FOREGROUND_COLOR;
 	if (selected) {
 		bg = FOREGROUND_COLOR;
-		fg = BACKGROUND_COLOR;
+		fg = background_color;
 	}
 
 	// render tick
@@ -265,9 +266,9 @@ void render_item_varnum(screen_item &item, bool selected) {
 	display_draw_equtriangle(x, y, 9, color);
 	display_draw_equtriangle_inv(x, y + 33, 9, color);
 	if (nonnumeric == false) {
-		display_draw_number(x - 4, y + 9, val, 1, FOREGROUND_COLOR, BACKGROUND_COLOR);
+		display_draw_number(x - 4, y + 9, val, 1, FOREGROUND_COLOR, background_color);
 	} else {
-		display_draw_text(x - 4, y + 9, selitem[val], FOREGROUND_COLOR, BACKGROUND_COLOR);
+		display_draw_text(x - 4, y + 9, selitem[val], FOREGROUND_COLOR, background_color);
 	}
 }
 
@@ -299,7 +300,7 @@ void clear_item_varnum(screen_item &item, bool selected) {
 	if (end_y > 127)
 		end_y = 127;
 
-	display_draw_rectangle(start_x, start_y, end_x, end_y, BACKGROUND_COLOR);
+	display_draw_rectangle(start_x, start_y, end_x, end_y, background_color);
 }
 
 /**
@@ -311,10 +312,10 @@ void render_item_label(screen_item &item, bool selected) {
 
 	if (m_language == LANGUAGE_ENGLISH) {
 		if (item.val1 == 255) {
-			display_draw_text_center(item.val2, item.text, FOREGROUND_COLOR, BACKGROUND_COLOR);
+			display_draw_text_center(item.val2, item.text, FOREGROUND_COLOR, background_color);
 		} else {
 			display_draw_text(item.val1, item.val2, item.text, FOREGROUND_COLOR,
-			BACKGROUND_COLOR);
+			background_color);
 		}
 	}
 
@@ -322,19 +323,19 @@ void render_item_label(screen_item &item, bool selected) {
 		if (item.kanji_image != 255) {
 			if ((item.val1 != 255) && (item.val1 != 0)) {
 				display_draw_fixedimage_xlimit(item.val1, item.val2,
-						item.kanji_image, BACKGROUND_COLOR, 128 - item.val1);
+						item.kanji_image, background_color, 128 - item.val1);
 			} else {
 				// we can't center fixed images as we don't know their width, just draw at 0, full width.
 				display_draw_fixedimage(0, item.val2, item.kanji_image,
-				BACKGROUND_COLOR);
+				background_color);
 			}
 		} else {
 			if (item.val1 == 255) {
 				display_draw_text_center(item.val2, item.text, FOREGROUND_COLOR,
-				BACKGROUND_COLOR);
+				background_color);
 			} else {
 				display_draw_text(item.val1, item.val2, item.text, FOREGROUND_COLOR,
-				BACKGROUND_COLOR);
+				background_color);
 			}
 		}
 	}
@@ -348,10 +349,10 @@ void render_item_label(screen_item &item, bool selected) {
  */
 void render_item_smalllabel(screen_item &item, bool selected) {
 	if (item.val1 == 255) {
-		display_draw_tinytext_center(item.val2, item.text, BACKGROUND_COLOR);
+		display_draw_tinytext_center(item.val2, item.text, background_color);
 	} else {
 		display_draw_tinytext(item.val1, item.val2, item.text,
-		BACKGROUND_COLOR);
+		background_color);
 	}
 }
 
@@ -488,10 +489,10 @@ void render_item_graph(screen_item &item, bool selected) {
 	// start clearing data, clear first 2.
 	if (!first_render)
 		display_draw_line(0, m_old_graph_data[0], 1, m_old_graph_data[1],
-		BACKGROUND_COLOR);
+		background_color);
 	if (!first_render)
 		display_draw_line(1, m_old_graph_data[1], 2, m_old_graph_data[2],
-		BACKGROUND_COLOR);
+		background_color);
 
 	// render the data
 	for (uint32_t n = 1; n < 120; n++) {
@@ -499,7 +500,7 @@ void render_item_graph(screen_item &item, bool selected) {
 
 		if (!first_render && (n < 118)) {
 			display_draw_line(cx + 1, m_old_graph_data[n + 1], cx + 2,
-					m_old_graph_data[n + 2], BACKGROUND_COLOR);
+					m_old_graph_data[n + 2], background_color);
 		}
 
 		display_draw_line(cx - 1, m_graph_data[n - 1], cx, m_graph_data[n],
@@ -526,7 +527,7 @@ void clear_item_menu(screen_item &item, bool selected) {
 	uint8_t y_max = (item.val2 + 1) * 16;
 	if (y_max > 127)
 		y_max = 127;
-	display_draw_rectangle(0, item.val2 * 16, x_max, y_max, BACKGROUND_COLOR);
+	display_draw_rectangle(0, item.val2 * 16, x_max, y_max, background_color);
 }
 
 void clear_item_label(screen_item &item, bool selected) {
@@ -551,7 +552,7 @@ void clear_item_label(screen_item &item, bool selected) {
 		x_min = item.val1;
 		x_max = 127;
 	}
-	display_draw_rectangle(x_min, item.val2, x_max, y_max, BACKGROUND_COLOR);
+	display_draw_rectangle(x_min, item.val2, x_max, y_max, background_color);
 }
 
 void clear_item_smalllabel(screen_item &item, bool selected) {
@@ -576,7 +577,7 @@ void clear_item_smalllabel(screen_item &item, bool selected) {
 		x_min = item.val1;
 		x_max = 127;
 	}
-	display_draw_rectangle(x_min, item.val2, x_max, y_max, BACKGROUND_COLOR);
+	display_draw_rectangle(x_min, item.val2, x_max, y_max, background_color);
 }
 
 void clear_item_head(screen_item &item, bool selected) {
@@ -588,7 +589,7 @@ void clear_item_head(screen_item &item, bool selected) {
 	int x_max = 127;
 	int y_max = 16;
 	display_draw_rectangle(item.val1, item.val2, x_max, y_max,
-	BACKGROUND_COLOR);
+	background_color);
 }
 
 /**
@@ -613,7 +614,7 @@ void clear_item_softkey(screen_item &item, bool selected) {
 		x1 = 86;
 		x2 = 127;
 	}
-	display_draw_rectangle(x1, 109, x2, 127, BACKGROUND_COLOR);
+	display_draw_rectangle(x1, 109, x2, 127, background_color);
 
 }
 
@@ -623,7 +624,7 @@ void clear_item_bigvarlabel(screen_item &item, bool selected) {
 	if (text_len == 0)
 		return;
 	display_draw_rectangle(item.val1, item.val2, 127, (item.val2 + 43),
-	BACKGROUND_COLOR);
+	background_color);
 }
 
 void clear_item_varlabel(screen_item &item, bool selected) {
@@ -637,21 +638,21 @@ void clear_item_varlabel(screen_item &item, bool selected) {
 	else
 		x = item.val1;
 	display_draw_rectangle(x, item.val2, 127, (item.val2 + 16),
-	BACKGROUND_COLOR);
+	background_color);
 }
 
 void clear_item_graph(screen_item &item, bool selected) {
 
-	display_draw_rectangle(0, 16, 128, 128, BACKGROUND_COLOR);
+	display_draw_rectangle(0, 16, 128, 128, background_color);
 }
 
 void clear_item_delay(screen_item &item, bool selected) {
 	display_draw_rectangle(item.val1, item.val2, item.val1 + 24, item.val2 + 16,
-	BACKGROUND_COLOR);
+	background_color);
 }
 
 void render_item_delay(screen_item &item, bool selected) {
-	display_draw_number(item.val1, item.val2, delay_time, 3, FOREGROUND_COLOR, BACKGROUND_COLOR);
+	display_draw_number(item.val1, item.val2, delay_time, 3, FOREGROUND_COLOR, background_color);
 }
 
 void render_item(screen_item &item, bool selected) {
@@ -850,7 +851,7 @@ void render_battery(int x, int y, int level, int charging) {
 
 				if (x > level) {
 					if (render_value > 0)
-						render_value = BACKGROUND_COLOR; //6243 - (2081*(render_value-1));
+						render_value = background_color; //6243 - (2081*(render_value-1));
 					else
 						render_value = header_color; //HEADER_COLOR; // header background
 				}
@@ -994,7 +995,7 @@ void update_item_delay(screen_item &item, const void *value) {
 	if (delay_time >= 1)
 		delay_time--;
 	delay_us(1000000);
-	display_draw_number(item.val1, item.val2, delay_time, 3, FOREGROUND_COLOR, BACKGROUND_COLOR);
+	display_draw_number(item.val1, item.val2, delay_time, 3, FOREGROUND_COLOR, background_color);
 }
 
 int get_item_state_delay_destination(screen_item &item) {
@@ -1022,15 +1023,15 @@ void update_item(screen_item &item, const void *value) {
 	if (item.type == ITEM_TYPE_VARLABEL) {
 		if (item.val1 == 255) {
 			display_draw_text_center(item.val2, (char *) value, FOREGROUND_COLOR,
-			BACKGROUND_COLOR);
+			background_color);
 		} else {
 			display_draw_text(item.val1, item.val2, (char *) value, FOREGROUND_COLOR,
-			BACKGROUND_COLOR);
+			background_color);
 		}
 	} else if (item.type == ITEM_TYPE_RED_VARLABEL) {
 		// Convention: if first character is " " (space) then clear the label
 		if (((char*)value)[0] == ' ') {
-			display_draw_text(item.val1, item.val2, (char *) value, COLOR_WHITE, BACKGROUND_COLOR);
+			display_draw_text(item.val1, item.val2, (char *) value, COLOR_WHITE, background_color);
 		} else {
 			display_draw_text(item.val1, item.val2, (char *) value, COLOR_WHITE, COLOR_RED);
 		}
@@ -1046,8 +1047,8 @@ void update_item(screen_item &item, const void *value) {
 	} else if (item.type == ITEM_TYPE_DELAY) {
 		update_item_delay(item, value);
 	} else if (item.type == ITEM_TYPE_BIGVARLABEL) {
-		display_draw_bigtext(item.val1, item.val2, (char *) value,
-		BACKGROUND_COLOR);
+		display_draw_bigtext(item.val1, item.val2, (char *) value, FOREGROUND_COLOR,
+		background_color);
 	}
 }
 
@@ -1122,10 +1123,23 @@ void GUI::show_help_screen(uint8_t helpscreen) {
 	m_displaying_help = true;
 }
 
+void GUI::set_cpm_alarm(bool alrm, float cpm) {
+	if (alrm) {
+		background_color = COLOR_RED;
+		m_dialog_buzz = true;
+	} else {
+		background_color = COLOR_BLACK;
+		m_dialog_buzz = false;
+	}
+	display_clear(background_color);
+	first_render = true;
+//	redraw();
+}
+
 void GUI::show_dialog(const char *dialog_text1, const char *dialog_text2,
 		const char *dialog_text3, const char *dialog_text4, bool buzz, int img1,
 		int img2, int img3, int img4) {
-	display_draw_rectangle(0, 0, 128, 128, BACKGROUND_COLOR);
+	display_draw_rectangle(0, 0, 128, 128, background_color);
 	//strcpy(m_dialog_text1,dialog_text1);
 	//strcpy(m_dialog_text2,dialog_text2);
 	//strcpy(m_dialog_text3,dialog_text3);
@@ -1147,16 +1161,13 @@ void GUI::render() {
 		return;
 	}
 
-	if (m_displaying_dialog) {
-		if (m_dialog_buzz)
-			buzzer_nonblocking_buzz(1);
-		return;
-	}
+	if (m_dialog_buzz)
+		buzzer_nonblocking_buzz(1);
 
 	if (m_displaying_dialog_complete) {
 		m_displaying_dialog_complete = false;
 		m_pause_display_updates = false;
-		display_clear(0);
+		display_clear(background_color);
 		clear_pending_keys();
 		redraw();
 	}
@@ -1191,9 +1202,7 @@ void GUI::render() {
 		first_render = true;
 	}
 
-	bool do_redraw = false;
-	if (m_redraw)
-		do_redraw = true;
+	bool do_redraw = m_redraw;
 	m_redraw = false;
 
 	render_lock(m_screen_lock);
@@ -1693,42 +1702,42 @@ void GUI::render_dialog(const char *text1, const char *text2, const char *text3,
 
 	if (m_language == LANGUAGE_JAPANESE) {
 		if (img1 == 255) {
-			display_draw_text_center(20, text1, FOREGROUND_COLOR, BACKGROUND_COLOR);
+			display_draw_text_center(20, text1, FOREGROUND_COLOR, background_color);
 		} else if (img1 == 254) {
 		} else {
-			display_draw_fixedimage(0, 20, img1, BACKGROUND_COLOR);
+			display_draw_fixedimage(0, 20, img1, background_color);
 		}
 
 		if (img2 == 255) {
-			display_draw_text_center(36, text2, FOREGROUND_COLOR, BACKGROUND_COLOR);
+			display_draw_text_center(36, text2, FOREGROUND_COLOR, background_color);
 		} else if (img2 == 254) {
 		} else {
-			display_draw_fixedimage(0, 36, img2, BACKGROUND_COLOR);
+			display_draw_fixedimage(0, 36, img2, background_color);
 		}
 
 		if (img3 == 255) {
-			display_draw_text_center(52, text3, FOREGROUND_COLOR, BACKGROUND_COLOR);
+			display_draw_text_center(52, text3, FOREGROUND_COLOR, background_color);
 		} else if (img3 == 254) {
 		} else {
-			display_draw_fixedimage(0, 52, img3, BACKGROUND_COLOR);
+			display_draw_fixedimage(0, 52, img3, background_color);
 		}
 
 		if (img4 == 255) {
-			display_draw_text_center(68, text4, FOREGROUND_COLOR, BACKGROUND_COLOR);
+			display_draw_text_center(68, text4, FOREGROUND_COLOR, background_color);
 		} else if (img4 == 254) {
 		} else {
-			display_draw_fixedimage(0, 68, img4, BACKGROUND_COLOR);
+			display_draw_fixedimage(0, 68, img4, background_color);
 		}
 
-		display_draw_fixedimage(0, 94, 49, BACKGROUND_COLOR); // press any key kanji image
+		display_draw_fixedimage(0, 94, 49, background_color); // press any key kanji image
 	}
 
 	if (m_language == LANGUAGE_ENGLISH) {
-		display_draw_text_center(20, text1, FOREGROUND_COLOR, BACKGROUND_COLOR);
-		display_draw_text_center(36, text2, FOREGROUND_COLOR, BACKGROUND_COLOR);
-		display_draw_text_center(52, text3, FOREGROUND_COLOR, BACKGROUND_COLOR);
+		display_draw_text_center(20, text1, FOREGROUND_COLOR, background_color);
+		display_draw_text_center(36, text2, FOREGROUND_COLOR, background_color);
+		display_draw_text_center(52, text3, FOREGROUND_COLOR, background_color);
 
-		display_draw_text_center(68, text4, FOREGROUND_COLOR, BACKGROUND_COLOR);
-		display_draw_text_center(94, "PRESS ANY KEY", FOREGROUND_COLOR, BACKGROUND_COLOR);
+		display_draw_text_center(68, text4, FOREGROUND_COLOR, background_color);
+		display_draw_text_center(94, "PRESS ANY KEY", FOREGROUND_COLOR, background_color);
 	}
 }

@@ -31,7 +31,7 @@ extern uint8_t _binary___binary_data_bignumbers_data_size;
  * Note: our bitmap is in black characters over a white background,
  *       so in practice, we are returning a mask rather than a character
  */
-uint16_t get_bigpixel(char c, int c_x, int c_y) {
+uint8_t get_bigpixel(char c, int c_x, int c_y) {
 
 	// Get Y and X offset for this character
 	// Big numbers are 30 pixels wide, and 43 high
@@ -58,13 +58,13 @@ uint16_t get_bigpixel(char c, int c_x, int c_y) {
 		return 0;
 	}
 	if (value == 1) {
-		return to565(85, 85, 85);
+		return 85;
 	}
 	if (value == 2) {
-		return to565(170, 170, 170);
+		return 170;
 	}
 	if (value == 3) {
-		return to565(255, 255, 255);
+		return 255;
 	}
 
 	return 0;
@@ -145,6 +145,33 @@ uint16_t get_tinypixel(char c, int c_x, int c_y) {
 }
 
 /**
+ * Get the color of a pixel using bg and fg values and doing alpha blending.
+ * px is the opacity (alpha)
+ */
+int32_t compute_color(uint8_t px, uint16_t foreground, uint16_t background) {
+	int32_t value;
+	// Write in black over the background:
+	if (px == 255) {
+		value = background;
+	} else if (px == 0) {
+		value = foreground;
+	} else {
+		uint16_t rb = from565_r(background);
+		uint16_t gb = from565_g(background);
+		uint16_t bb = from565_b(background);
+		uint16_t rf = from565_r(foreground);
+		uint16_t gf = from565_g(foreground);
+		uint16_t bf = from565_b(foreground);
+		value = to565((rb * px + rf * (255 - px)) / 255,
+					  (gb * px + gf * (255 - px)) / 255,
+					  (bb * px + bf * (255 - px)) / 255 );
+	}
+	return value;
+}
+
+
+
+/**
  * Draws one character in the standard font (8x16)
  *  background is the screen background color to use (character is drawn
  *  in black over the background, unless background is black, and character
@@ -156,30 +183,11 @@ uint16_t get_tinypixel(char c, int c_x, int c_y) {
  *  as far as I can tell.
  */
 void draw_character(uint32_t x, uint32_t y, char c, uint16_t foreground, uint16_t background) {
-
 	uint16_t character_data[8 * 16];
-
 	for (size_t c_y = 0; c_y < 16; c_y++) {
 		for (size_t c_x = 0; c_x < 8; c_x++) {
 			uint8_t px = get_pixel(c - 32, c_x, c_y);
-			int32_t value;
-			// Write in black over the background:
-			if (px == 255) {
-				value = background;
-			} else if (px == 0) {
-				value = foreground;
-			} else {
-				uint16_t rb = from565_r(background);
-				uint16_t gb = from565_g(background);
-				uint16_t bb = from565_b(background);
-				uint16_t rf = from565_r(foreground);
-				uint16_t gf = from565_g(foreground);
-				uint16_t bf = from565_b(foreground);
-				value = to565((rb * px + rf * (255 - px)) / 255,
-						      (gb * px + gf * (255 - px)) / 255,
-						      (bb * px + bf * (255 - px)) / 255 );
-			}
-			character_data[(c_y * 8) + c_x] = value;
+			character_data[(c_y * 8) + c_x] = compute_color(px, foreground, background);
 		}
 	}
 	oled_draw_rect(x, y, 8, 16, (uint8_t *) character_data);
@@ -190,15 +198,14 @@ void draw_character(uint32_t x, uint32_t y, char c, uint16_t foreground, uint16_
  * Big numbers are 30 pixels wide, and 43 high
  *
  */
-void draw_bigcharacter(int x, int y, char c, uint16_t background) {
+void draw_bigcharacter(int x, int y, char c, uint16_t foreground, uint16_t background) {
 
 	uint16_t character_data[43 * 30];
-
 	// Our big font only contains digits, so fallback to standard font in case
 	// we're asked to draw something else:
 	if (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z'))) {
 		oled_draw_rect(x, y, 30, 43, (uint8_t *) character_data);
-		draw_character(x, y, c, COLOR_WHITE, background);
+		draw_character(x, y, c, foreground, background);
 		return;
 	}
 
@@ -210,29 +217,9 @@ void draw_bigcharacter(int x, int y, char c, uint16_t background) {
 	if (c != ' ') {
 		for (size_t c_y = 0; c_y < 43; c_y++) {
 			for (size_t c_x = 0; c_x < 30; c_x++) {
-				// get_pixel returns a mask - white background
-				// and black/grey character.
-				int32_t px = get_bigpixel(c, c_x, c_y);
-				int32_t value;
-
-				if (background == COLOR_WHITE) {
-					value = px;
-				} else if (background == COLOR_BLACK) {
-					value = ~px;
-				} else {
-					if (px == 65535) {
-						value = background;
-					} else if (px == 0) {
-						value = 0;
-					} else {
-						int r = from565_r(px);
-						int g = from565_g(px);
-						int b = from565_b(px);
-						value = to565(r / background, g / background,
-								b / background);
-					}
-				}
-				character_data[(c_y * 30) + c_x] = value;
+				// get_pixel returns a mask - basically an alpha value
+				uint8_t px = get_bigpixel(c, c_x, c_y);
+				character_data[(c_y * 30) + c_x] = compute_color(px, foreground, background);
 			}
 		}
 		oled_draw_rect(x, y, 30, 43, (uint8_t *) character_data);
@@ -245,30 +232,13 @@ void draw_bigcharacter(int x, int y, char c, uint16_t background) {
 /**
  * Special case: draw a big dot
  */
-void draw_bigdot(int x, int y, uint16_t background) {
+void draw_bigdot(int x, int y, uint16_t foreground, uint16_t background) {
 
 	uint16_t character_data[8 * 7];
-
 	for (size_t c_y = 31; c_y < 39; c_y++) {
 		for (size_t c_x = 2; c_x < 10; c_x++) {
-			int32_t px = get_bigpixel(10, c_x, c_y);
-			int32_t value;
-			if (background == COLOR_WHITE) {
-				value = px;
-			} else if (background == COLOR_BLACK) {
-				value = ~px;
-			} else {
-				if (px == 65535) {
-					value = background;
-				} else {
-					int r = from565_r(px);
-					int g = from565_g(px);
-					int b = from565_b(px);
-					value = to565(r / background, g / background,
-							b / background);
-				}
-			}
-			character_data[((c_y - 31) * 8) + c_x - 2] = value;
+			uint8_t px = get_bigpixel(10, c_x, c_y);
+			character_data[((c_y - 31) * 8) + c_x - 2] = compute_color(px, foreground, background);
 		}
 	}
 	oled_draw_rect(x, y + 31, 8, 7, (uint8_t *) character_data);
@@ -276,6 +246,7 @@ void draw_bigdot(int x, int y, uint16_t background) {
 
 /**
  * Draw one character in tiny font.
+ * Tiny font is black & white (1 bit depth), so the routine is simpler
  * background: if zero: background is white (?) and 65535 is black.
  */
 void draw_tinycharacter(int x, int y, char c, uint16_t background) {
@@ -337,7 +308,7 @@ void draw_text(int x, int y, const char *text, uint16_t foreground,
  * One note: only digits are supported. We do fancy stuff with the dot so that
  * it does not take extra space.
  */
-void draw_bigtext(int x, int y, const char *text, uint16_t background) {
+void draw_bigtext(int x, int y, const char *text, uint16_t foreground, uint16_t background) {
 
 	bool dot = false;
 	int dot_x = 0;
@@ -351,19 +322,16 @@ void draw_bigtext(int x, int y, const char *text, uint16_t background) {
 		if (text[n] == '.') {
 			dot = true;
 			// Clear the area to avoid artifacts
-			uint16_t character_data[8 * 31];
-			for (int n = 0; n < (8 * 31); n++)
-				character_data[n] = 0;
-			oled_draw_rect(c_x, c_y, 8, 31, (uint8_t *) character_data);
+			display_draw_rectangle(c_x, c_y, 8, 31, background);
 			dot_x = c_x - ((c_x > 3) ? 3 : 0);
 			c_x += 6;
 		} else {
-			draw_bigcharacter(c_x, c_y, text[n], background);
+			draw_bigcharacter(c_x, c_y, text[n], foreground, background);
 			c_x += 30;
 		}
 	}
 	if (dot)
-		draw_bigdot(dot_x, c_y, background);
+		draw_bigdot(dot_x, c_y, foreground, background);
 }
 
 /**

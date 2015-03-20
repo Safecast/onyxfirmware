@@ -39,6 +39,7 @@ public:
   GUI(Controller &r);
 
   void render();
+  void set_cpm_alarm(bool alarm, float cpm);
   void receive_update(const char *tag,const void *value);
   void receive_key(int key,int type);
   void set_key_trigger();
@@ -58,9 +59,7 @@ private:
   int selected_item;
   int last_selected_item;
 
-  bool x1000;     // indicator that we need to display the "x1000" CPM indicator
   bool cpm_alarm; // indicator that we have a High CPM alarm (change display background in red)
-
 
   int32_t selected_screen_stack[MAX_SCREEN_STACK];
   int32_t selected_item_stack  [MAX_SCREEN_STACK];

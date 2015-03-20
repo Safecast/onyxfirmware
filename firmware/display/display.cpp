@@ -103,8 +103,8 @@ void display_draw_tinytext_center(int y,const char *text,int16_t background) {
 }
 
 void display_draw_number(int x,int y,uint32_t number,int width,int16_t foreground,int16_t background) {
-  char text[50];
-  int_to_char(number,text,width);
+  char text[16];
+  sprintf(text,"%-*u", width, number);
   draw_text(x,y,text,foreground,background);
 }
 
@@ -121,14 +121,14 @@ void display_draw_tinytext(int x,int y,const char *text,int16_t background) {
   ::draw_tinytext(x,y,text,background);
 }
 
-void display_draw_bigtext(int x,int y,const char *text,int16_t background) {
-  ::draw_bigtext(x,y,text,background);
+void display_draw_bigtext(int x,int y,const char *text,int16_t foreground, int16_t background) {
+  ::draw_bigtext(x,y,text,foreground, background);
 }
 
 
 void display_draw_tinynumber(int x,int y,uint32_t number,int width,int16_t background) {
-  char text[50];
-  int_to_char(number,text,width);
+  char text[16];
+  sprintf(text,"%-*u", width, number);
   draw_tinytext(x,y,text,background);
 }
 
