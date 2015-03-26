@@ -80,12 +80,22 @@ Controller::Controller() {
 	if (m_never_dim)
 		tick_item("Never Dim", true);
 
-	// Restore Beep settings from Geiger
+	// Restore Beep settings from flash
 	const char *beep = flashstorage_keyval_get("GEIGERBEEP");
 	if (strcmp(beep, "true") == 0) {
 		tick_item("Beep", true);
 	} else {
 		tick_item("Beep", false);
+	}
+
+	// And restore uSv/ uR/h from flash
+	beep = flashstorage_keyval_get("SVREM");
+	if (strcmp(beep,"SV") == 0) {
+		tick_item(" \x80Sv", true);
+		tick_item(" \x80R", false);
+	} else {
+		tick_item(" \x80Sv", false);
+		tick_item(" \x80R", true);
 	}
 
 	// Get logging interval from flash if it exists
@@ -204,12 +214,15 @@ void Controller::save_loginterval() {
 	int l3 = m_gui->get_item_state_uint8("$LOGINTER3");
 	int32_t log_interval_mins = (l1 * 100) + (l2 * 10) + l3;
 	m_log_interval_seconds = log_interval_mins * 60;
-
-	char sloginterval[50];
+	char sloginterval[16];
 	sprintf(sloginterval, "%"PRIu32"", m_log_interval_seconds);
 	flashstorage_keyval_set("LOGINTERVAL", sloginterval);
-	uint32_t current_time = realtime_get_unixtime();
-	rtc_set_alarm(RTC, current_time + m_log_interval_seconds);
+	if (m_log_interval_seconds > 0) {
+		uint32_t current_time = realtime_get_unixtime();
+		rtc_set_alarm(RTC, current_time + m_log_interval_seconds);
+	} else {
+		rtc_clear_alarmed();
+	}
 	m_gui->jump_to_screen(0);
 
 }
@@ -506,6 +519,9 @@ void Controller::event_becqscreen(const char *event, const char *value) {
 	m_gui->redraw();
 }
 
+/**
+ * Send the current logging interval to the GUI
+ */
 void Controller::event_loginterval(const char *event, const char *value) {
 	int32_t log_interval = 0; // We do not log by default
 
@@ -843,9 +859,13 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 
 void Controller::check_warning_level() {
 
-	if ((m_warncpm > 0) && system_geiger->is_cpm_valid() ) {
+	// Note: we used to have a "reading valid" check here, but this is actually
+	// dangerous. it is better to raise a false alarm than expose the user to up to
+	// 2 minutes of harmful levels because the Onyx considers the reading as not valid
+	// yet !
+	if ((m_warncpm > 0) ) {
 		float cpm = system_geiger->get_cpm_deadtime_compensated();
-		if ((cpm >= m_warncpm) && (m_warning_raised == false) ) {
+		if ((cpm >= m_warncpm) && (m_warning_raised == false)) {
 			if (m_sleeping)
 				display_powerup();
 
@@ -1068,30 +1088,22 @@ void Controller::send_graph_data() {
  * Total counts
  */
 void Controller::send_total_timer() {
-	char text_totaltimer_count[50];
-	char text_totaltimer_time[50];
+	char text_totaltimer_avg[16];
+	char text_totaltimer_time[16];
+	char text_totaltimer_count[16];
 	uint32_t ctime = realtime_get_unixtime();
 	uint32_t totaltimer_time = ctime - m_total_timer_start;
+	uint32_t cnt = system_geiger->get_total_count();
 
-	char temp[50];
-	sprintf(text_totaltimer_time, "%"PRIu32"s", totaltimer_time);
-	sprintf(temp, "  %6.3f  ",
-			((float) system_geiger->get_total_count()
-					/ ((float) totaltimer_time)) * 60);
-	int len = strlen(temp);
-	int pad = (16 - len) / 2;
-	for (int n = 0; n < 16; n++) {
-		if ((n > pad) && (n < (pad + len))) {
-			text_totaltimer_count[n] = temp[n - pad];
-		} else {
-			text_totaltimer_count[n] = ' ';
-		}
-		text_totaltimer_count[n + 1] = 0;
-	}
+	sprintf(text_totaltimer_time, "%8"PRIu32" s", totaltimer_time);
+	sprintf(text_totaltimer_count, "%9"PRIu32"" , cnt );
+	sprintf(text_totaltimer_avg, "%7.2f CPM",
+			((float) cnt / ((float) totaltimer_time)) * 60);
 
 	m_gui->receive_update("$DELAYA", NULL);
 	m_gui->receive_update("$DELAYB", NULL);
 	m_gui->receive_update("$TTCOUNT", text_totaltimer_count);
+	m_gui->receive_update("$TTAVG", text_totaltimer_avg);
 	m_gui->receive_update("$TTTIME", text_totaltimer_time);
 }
 

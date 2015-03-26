@@ -22,6 +22,7 @@
 #define ITEM_TYPE_VARNUM          8  // Variable single number
 #define ITEM_TYPE_DELAY           9  // A delay, basically a countdown timer.
 #define ITEM_TYPE_ACTION         10  // Generate an action as soon as the screen is created.
+									 // Usually leads to a screen redraw, so it has to be last on the menu definition.
 #define ITEM_TYPE_BIGVARLABEL    11  // A bigfont variable label, currently only numeric.
 #define ITEM_TYPE_SMALLLABEL     12  // A tinyfont static label
 #define ITEM_TYPE_LEAVE_ACTION   13  // Action that occurs when you leave the screen
@@ -74,11 +75,11 @@ struct screen_item {
  * stored as flash variables since they are constant, this way they do not take
  * space in our RAM.
  *
- * A screen contains up to 10 items and a reference to a help screen (optional)
+ * A screen contains up to 11 items and a reference to a help screen (optional)
  */
 struct screen {
   uint8_t       item_count;
-  screen_item   items[10];
+  screen_item   items[13];
   uint8_t help_screen;
 };
 

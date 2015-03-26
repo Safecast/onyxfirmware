@@ -51,7 +51,7 @@ public:
   void set_language(uint8_t lang);
   void show_dialog      (const char *text1 ,const char *text2 ,const char *text3,const char *text4,bool buzz,int img1=255,int img2=255,int img3=255,int img4=255);
   void render_dialog    (const char *text1 ,const char *text2 ,const char *text3,const char *text4,int img1,int img2,int img3,int img4);
-  Controller &receive_gui_events;
+  Controller &controller;
   uint8_t get_item_state_uint8(const char *tag);
 
 private:
@@ -71,7 +71,7 @@ private:
   void process_key_up();
   void process_key_down();
 
-  bool softkeys_active();
+  bool softkey_active(uint8_t keynum);
   uint8_t softkey_screen(uint8_t idx);
   uint8_t softkey_index(uint8_t idx);
    char* softkey_action(uint8_t idx);

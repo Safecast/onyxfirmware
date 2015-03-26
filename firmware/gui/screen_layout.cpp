@@ -29,12 +29,15 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 0 - main screen
 {
- 4,
+ 7,
  {
-   { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT"      , 255},
-   { ITEM_TYPE_MENU       , 1, 1, "Current Readings", 4  },
-   { ITEM_TYPE_MENU       , 2, 2, "Advanced"        , 30 },
-   { ITEM_TYPE_MENU       , 3, 3, "Settings"        , 0  },
+   { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT"    , 255},
+   { ITEM_TYPE_MENU       ,15, 1, "Accumulate/Avg" ,6   },
+   { ITEM_TYPE_MENU       ,21, 2, "Becquerel"      ,31  },
+   { ITEM_TYPE_MENU_ACTION, 0, 3, "QR Tweet"       ,32  },
+   { ITEM_TYPE_MENU       , 3, 5, "Settings"       , 0  },
+   { ITEM_TYPE_SOFTKEY	  , 0, 1, "CPM"			   , 255},
+   { ITEM_TYPE_SOFTKEY	  , 2, 25, "Logs"	       , 255},
  }
  ,7
 },
@@ -46,28 +49,26 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD        , 0 ,  0, "$CPMDEADINT", 255},
     { ITEM_TYPE_BIGVARLABEL , 0 , 30, "$CPMDEAD"   , 255},
     { ITEM_TYPE_VARLABEL    ,104, 90, "$CPMSLABEL" , 255},
-    { ITEM_TYPE_RED_VARLABEL    , 5 , 80, "$X1000"     , 255},
-    { ITEM_TYPE_SOFTKEY	  	, 0, 0, "Menu"			, 255},
-    { ITEM_TYPE_SOFTKEY	  	, 1, 26, "$SVREMLABEL"	, 255},
-    { ITEM_TYPE_SOFTKEY_ACTION	  , 2, 0, "Beep"	, 255},
+    { ITEM_TYPE_RED_VARLABEL,  5, 80, "$X1000"     , 255},
+    { ITEM_TYPE_SOFTKEY	  	, 0 ,  0, "Menu"	   , 255},
+    { ITEM_TYPE_SOFTKEY	  	, 1 ,  2, "$SVREMLABEL"	, 255},
+    { ITEM_TYPE_SOFTKEY_ACTION ,2, 0, "Beep"	, 255},
 }
   ,0
 },
 
-// Screen 2 - Advanced menu
+// Screen 2  Micro Sievert readings screen
 {
-  5,
+  6,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT"     ,255 },
-    { ITEM_TYPE_MENU       ,15, 1, "Accumulate/Avg" ,6   },
-    { ITEM_TYPE_MENU       ,21, 2, "Becquerel"      ,31  },
-//    { ITEM_TYPE_MENU_ACTION, 0, 4, "QR Transfer"    ,7   },
-    { ITEM_TYPE_MENU_ACTION, 0, 3, "QR Tweet"       ,32  },
-//    { ITEM_TYPE_MENU_ACTION, 0, 5, "Audio Xfer"     ,255 },
-//    { ITEM_TYPE_MENU_ACTION, 0, 7, "Audio Xfer Full",255 },
-    { ITEM_TYPE_MENU      , 25, 4, "Log status",255 },
-  }
-  ,7
+    { ITEM_TYPE_HEAD        , 0 ,  0, "$CPMDEADINT" , 255},
+    { ITEM_TYPE_BIGVARLABEL , 0 , 30, "$SVREM"      , 255},
+    { ITEM_TYPE_VARLABEL    , 80, 90, "$SVREMLABEL" , 255},
+    { ITEM_TYPE_SOFTKEY	    ,  0,  0, "Menu"		, 255},
+    { ITEM_TYPE_SOFTKEY	    ,  1,  4, "Graph"		, 255},
+    { ITEM_TYPE_SOFTKEY_ACTION,2,  0, "Beep"	    , 255},
+}
+  ,0
 },
 
 // Screen 3 - Settings menu
@@ -141,7 +142,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 56, 50 , "$CAL2"      , 255 },
     { ITEM_TYPE_VARNUM     , 74, 50 , "$CAL3"      , 255 },
     { ITEM_TYPE_VARNUM     , 92, 50 , "$CAL4"      , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Calib", 2   },
+    { ITEM_TYPE_SOFTKEY_ACTION,  0,   0, "Save:Calib", 2   },
     { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE" , 255 },
     { ITEM_TYPE_VARLABEL   ,  0,   0, "$FIXEDSV"   , 255 }
   }
@@ -171,7 +172,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 76, 50, "$TIMEMIN2"   , 255 },
     { ITEM_TYPE_VARNUM     , 98, 50, "$TIMESEC1"   , 255 },
     { ITEM_TYPE_VARNUM     ,118, 50, "$TIMESEC2"   , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,  7, "Save:Time"  , 2   },
+    { ITEM_TYPE_SOFTKEY_ACTION	, 0, 0, "Save:Time" , 2},
     { ITEM_TYPE_LABEL      ,  0, 20, "HH:MM:SS"   , 50  },
     { ITEM_TYPE_ACTION     ,  0,  0, "TIMESCREEN" , 255 }
   }
@@ -189,7 +190,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 76, 50 , "$DATEDAY2"  , 255 },
     { ITEM_TYPE_VARNUM     , 98, 50 , "$DATEYEAR1" , 255 },
     { ITEM_TYPE_VARNUM     ,118, 50 , "$DATEYEAR2" , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Date"  , 2  },
+    { ITEM_TYPE_SOFTKEY_ACTION	, 0, 0, "Save:Date" , 2},
     { ITEM_TYPE_LABEL      , 0 ,  20, "MM/DD/YY"  , 24  },
     { ITEM_TYPE_ACTION     ,  0,   0, "DATESCREEN", 255 }
   }
@@ -202,7 +203,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   {
     { ITEM_TYPE_HEAD       , 0 , 0  , "$CPMDEADINT"    , 255 },
     { ITEM_TYPE_VARNUM     , 64, 64 , "$BRIGHTNESS"    , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Brightness", 2  },
+    { ITEM_TYPE_SOFTKEY_ACTION,  0,   0, "Save:Brightness", 2  },
     { ITEM_TYPE_ACTION     ,  0,   0, "BrightnessSCN" , 255 },
     { ITEM_TYPE_LEAVE_ACTION, 0,   0, "LeftBrightness", 255 }
   }
@@ -219,7 +220,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 54, 50 , "$WARNCPM3"    , 255 },
     { ITEM_TYPE_VARNUM     , 76, 50 , "$WARNCPM4"    , 255 },
     { ITEM_TYPE_VARNUM     , 98, 50 , "$WARNCPM5"    , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:WarnCPM", 2   },
+    { ITEM_TYPE_SOFTKEY_ACTION	, 0, 0, "Save:WarnCPM" , 2},
     { ITEM_TYPE_LABEL      , 0 ,  20, "Warning CPM" , 47  },
     { ITEM_TYPE_ACTION     ,  0,   0, "WARNSCREEN"  , 255 }
   }
@@ -239,12 +240,20 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 15 - Total/Timer mode
 {
-  4,
+  11,
   {
-    { ITEM_TYPE_LABEL      ,255,32, "Average CPM", 25 },
-    { ITEM_TYPE_VARLABEL   ,255,48, "$TTCOUNT"    , 255},
-    { ITEM_TYPE_VARLABEL   ,255,90, "$TTTIME"     , 255},
-    { ITEM_TYPE_ACTION     ,  2, 2, "TOTALTIMER" , 255}
+	{ ITEM_TYPE_HEAD        ,  0,  0, "$CPMDEADINT", 255},
+    { ITEM_TYPE_LABEL       ,  0, 32, "Count:", 255 },
+    { ITEM_TYPE_LABEL       ,  0, 48, "Avg:", 255 },
+    { ITEM_TYPE_LABEL       ,  0, 64, "Time:", 255 },
+    { ITEM_TYPE_LABEL       ,  0, 96, "Stop at:", 255 },
+    { ITEM_TYPE_VARLABEL    , 56, 32, "$TTCOUNT"    , 255},
+    { ITEM_TYPE_VARLABEL    , 40, 48, "$TTAVG"    , 255},
+    { ITEM_TYPE_VARLABEL    , 72, 64, "$TTTIME"     , 255},
+    { ITEM_TYPE_ACTION      ,  2, 2, "TOTALTIMER" , 255},
+    { ITEM_TYPE_SOFTKEY	  	, 0 ,  0, "Back"	   , 255},
+    { ITEM_TYPE_SOFTKEY	  	, 1 ,  0, "Setup"	   , 255},
+    { ITEM_TYPE_SOFTKEY	  	, 2 , 15, "Reset"	   , 255},
   }
   ,2
 },
@@ -265,16 +274,15 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 17 - Geiger settings
 {
-  8,
+  6,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT"      , 255},
     { ITEM_TYPE_MENU       ,19, 1, "\x80Sv/\x80R"    , 255},
     { ITEM_TYPE_MENU       , 5, 2, "Calibration"     , 26 },
-    { ITEM_TYPE_MENU_ACTION, 0, 3, "Clear Log"       , 27 },
-    { ITEM_TYPE_MENU       ,23, 4, "Log Interval"    , 34 },
-    { ITEM_TYPE_MENU       ,13, 5, "Warning Levels"  , 28 },
-    { ITEM_TYPE_MENU       ,22, 6, "Bq. Eff. Value"  , 35 },
-    { ITEM_TYPE_MENU_ACTION, 0, 7, "CPM/CPS Auto"    , 36 }
+//    { ITEM_TYPE_MENU_ACTION, 0, 3, "Clear Log"       , 27 },
+    { ITEM_TYPE_MENU       ,13, 3, "Warning Levels"  , 28 },
+    { ITEM_TYPE_MENU       ,22, 4, "Bq. Eff. Value"  , 35 },
+    { ITEM_TYPE_MENU_ACTION, 0, 5, "CPM/CPS Auto"    , 36 }
   }
   ,7
 },
@@ -311,7 +319,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 54, 50, "$OFFHOUR2"   , 255 },
     { ITEM_TYPE_VARNUM     , 76, 50, "$OFFMIN1"    , 255 },
     { ITEM_TYPE_VARNUM     , 98, 50, "$OFFMIN2"    , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,  7, "Save:UTCOff", 2   },
+    { ITEM_TYPE_SOFTKEY_ACTION	, 0, 0, "Save:UTCOff" , 2},
     { ITEM_TYPE_LABEL      , 0 , 20, "HH:MM"      , 40  },
     { ITEM_TYPE_ACTION     ,  0,  0, "UTCSCREEN"  , 255 }
 
@@ -340,7 +348,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 56, 50 , "$BECQ2"     , 255 },
     { ITEM_TYPE_VARNUM     , 74, 50 , "$BECQ3"     , 255 },
     { ITEM_TYPE_VARNUM     , 92, 50 , "$BECQ4"     , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:Becq" , 2   },
+    { ITEM_TYPE_SOFTKEY_ACTION	, 0, 0, "Save:Becq" , 2},
     { ITEM_TYPE_ACTION     ,  0,   0, "BECQSCREEN", 255 },
   }
   ,7
@@ -348,15 +356,16 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 23 - Set Logging Interval
 {
-  7,
+  8,
   {
-    { ITEM_TYPE_HEAD       , 0 ,  0 , "$CPMDEADINT"    , 255 },
-    { ITEM_TYPE_VARNUM     , 38, 50 , "$LOGINTER1"     , 255 },
-    { ITEM_TYPE_VARNUM     , 56, 50 , "$LOGINTER2"     , 255 },
-    { ITEM_TYPE_VARNUM     , 74, 50 , "$LOGINTER3"     , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:LogInter" , 2   },
-    { ITEM_TYPE_LABEL      , 90,  61, "mins"          , 41  },
-    { ITEM_TYPE_ACTION     ,  0,   0, "LOGINTERVAL" , 255 }
+    { ITEM_TYPE_HEAD           ,  0,  0, "$CPMDEADINT"    , 255 },
+    { ITEM_TYPE_VARNUM         , 38, 50, "$LOGINTER1"     , 255 },
+    { ITEM_TYPE_VARNUM         , 56, 50, "$LOGINTER2"     , 255 },
+    { ITEM_TYPE_VARNUM         , 74, 50, "$LOGINTER3"     , 255 },
+    { ITEM_TYPE_SOFTKEY	  	   ,  0, 25, "Back"	   , 255},
+    { ITEM_TYPE_SOFTKEY_ACTION ,  2,  0, "Save:LogInter" , 2},
+    { ITEM_TYPE_LABEL          , 90, 61, "mins"          , 41  },
+    { ITEM_TYPE_ACTION         ,  0,  0, "LOGINTERVAL" , 255 },
   }
   ,7
 },
@@ -375,32 +384,20 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 25 - Log status
 {
-  6,
+  9,
   {
     { ITEM_TYPE_HEAD       ,  0 ,  0 , "$CPMDEADINT"    , 255 },
     { ITEM_TYPE_LABEL      ,  0 , 20 , "Log storage"   , 255 },
     { ITEM_TYPE_VARLABEL   ,255 , 36, "$LOGPERCENT"     , 255 },
     { ITEM_TYPE_VARLABEL   ,  0 , 52, "$LOGREMAIN"      , 255 },
     { ITEM_TYPE_VARLABEL   ,255 , 68, "$LOGREMAIN2"     , 255 },
-    { ITEM_TYPE_VARLABEL   ,  0 ,100, "$LOGREMAIN3"     , 255 },
+    { ITEM_TYPE_VARLABEL   ,  0 ,90, "$LOGREMAIN3"     , 255 },
+    { ITEM_TYPE_SOFTKEY	  	, 0 ,  0, "Back"	   , 255},
+    { ITEM_TYPE_SOFTKEY	  	, 1 ,  23, "Setup"	   , 255},
+    { ITEM_TYPE_SOFTKEY_ACTION	  	, 2 ,  0, "Clear Log"	   , 255},
   }
   ,7
 },
-
-// Screen 26 - Micro Sievert readings screen
-{
-  6,
-  {
-    { ITEM_TYPE_HEAD        , 0 ,  0, "$CPMDEADINT", 255},
-    { ITEM_TYPE_BIGVARLABEL , 0 , 30, "$SVREM"     , 255},
-    { ITEM_TYPE_VARLABEL    , 80, 90, "$SVREMLABEL", 255},
-    { ITEM_TYPE_SOFTKEY	  , 0, 0, "Menu"			, 255},
-    { ITEM_TYPE_SOFTKEY	  , 1, 4, "Graph"			, 255},
-    { ITEM_TYPE_SOFTKEY_ACTION	  , 2, 0, "Beep"			, 255},
-}
-  ,0
-},
-
 
 };
 

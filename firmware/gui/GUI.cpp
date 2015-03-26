@@ -155,7 +155,7 @@ void render_item_menu(screen_item &item, bool selected) {
  */
 
 #define VARNUM_MAXSIZE 50  // Number of variables we can track
-char varnum_names[VARNUM_MAXSIZE][10];  // Name of the variables
+char varnum_names[VARNUM_MAXSIZE][11];  // Name of the variables
 uint8_t varnum_values[VARNUM_MAXSIZE]; // Value of the variables
 uint8_t varnum_size = 0;
 
@@ -314,8 +314,7 @@ void render_item_label(screen_item &item, bool selected) {
 		if (item.val1 == 255) {
 			display_draw_text_center(item.val2, item.text, FOREGROUND_COLOR, background_color);
 		} else {
-			display_draw_text(item.val1, item.val2, item.text, FOREGROUND_COLOR,
-			background_color);
+			display_draw_text(item.val1, item.val2, item.text, FOREGROUND_COLOR, background_color);
 		}
 	}
 
@@ -379,6 +378,12 @@ void render_item_softkey(screen_item &item) {
 	}
 
 	sprintf(text, "%1.5s", item.text);
+	// Search for : and truncate the string there if necessary:
+	char* c = strchr(text,':');
+	if (c != NULL) {
+		text[c-text] = 0;
+	}
+
 	// render tick
 	if (is_ticked(item.text)) {
 		// Reformat to 5 characters wide, left-justified
@@ -681,7 +686,8 @@ void render_item(screen_item &item, bool selected) {
 void clear_item(screen_item &item, bool selected) {
 	if (item.type == ITEM_TYPE_MENU) {
 		clear_item_menu(item, selected);
-	} else if (item.type == ITEM_TYPE_LABEL) {
+	} else if ((item.type == ITEM_TYPE_LABEL) ||
+			    (item.type == ITEM_TYPE_RED_VARLABEL)) {
 		clear_item_label(item, selected);
 	} else if (item.type == ITEM_TYPE_SOFTKEY
 			|| item.type == ITEM_TYPE_SOFTKEY_ACTION) {
@@ -875,6 +881,7 @@ void update_item_softkey(screen_item &item, char * value) {
 		return;
 	if (item.val1 > 2)
 		return;
+
 	sprintf(text, "%1.5s", value);
 	// render tick
 	if (is_ticked(item.text)) {
@@ -882,6 +889,7 @@ void update_item_softkey(screen_item &item, char * value) {
 		sprintf(text, "%-5.5s", value);
 		text[4] = 0x7F;
 	}
+
 
 	// We don't want to re-render an identical softkey, because
 	// it causes flickering (we don't have double buffering on the screen)
@@ -1084,7 +1092,7 @@ void GUI::push_stack(int current_screen, int selected_item) {
  * the main firmware event loop in main.cpp
  */
 GUI::GUI(Controller &r) :
-		receive_gui_events(r) {
+		controller(r) {
 
 	m_repeated = false;
 	m_displaying_help = false;
@@ -1142,10 +1150,6 @@ void GUI::show_dialog(const char *dialog_text1, const char *dialog_text2,
 		const char *dialog_text3, const char *dialog_text4, bool buzz, int img1,
 		int img2, int img3, int img4) {
 	display_draw_rectangle(0, 0, 128, 128, background_color);
-	//strcpy(m_dialog_text1,dialog_text1);
-	//strcpy(m_dialog_text2,dialog_text2);
-	//strcpy(m_dialog_text3,dialog_text3);
-	//strcpy(m_dialog_text4,dialog_text4);
 	m_dialog_buzz = buzz;
 	m_displaying_dialog = true;
 	m_displaying_dialog_complete = false;
@@ -1164,14 +1168,15 @@ void GUI::render() {
 	}
 
 	if (m_dialog_buzz)
-		buzzer_nonblocking_buzz(1);
+		buzzer_nonblocking_buzz(0.2);
 
 	if (m_displaying_dialog_complete) {
 		m_displaying_dialog_complete = false;
 		m_pause_display_updates = false;
 		display_clear(background_color);
 		clear_pending_keys();
-		redraw();
+		jump_to_screen(0);
+		return;
 	}
 
 	if (m_repeating) {
@@ -1195,77 +1200,54 @@ void GUI::render() {
 		m_repeat_time++;
 	}
 
-	// following two items really need to be atomic...
-	int32_t cscreen = current_screen;
+	if (!m_pause_display_updates) {
 
-	if (clear_next_render) {
-		clear_next_render = false;
-		clear_screen(clear_screen_screen, clear_screen_selected);
-		first_render = true;
-	}
+		if (clear_next_render) {
+			clear_screen(clear_screen_screen, clear_screen_selected);
+			clear_next_render = false;
+			first_render = true;
+		}
 
-	bool do_redraw = m_redraw;
-	m_redraw = false;
-
-	render_lock(m_screen_lock);
-	for (int32_t n = 0; n < screens_layout[cscreen].item_count; n++) {
-
-		if (first_render) {
-			if (screens_layout[current_screen].items[n].type == ITEM_TYPE_ACTION) {
-				receive_gui_events.receive_gui_event(
-						screens_layout[cscreen].items[n].text,
-						screens_layout[cscreen].items[n].text);
+		// Now render all items on the screen:
+		for (int32_t n = 0; n < screens_layout[current_screen].item_count; n++) {
+			if (first_render) {
+				if (screens_layout[current_screen].items[n].type == ITEM_TYPE_ACTION) {
+					controller.receive_gui_event(
+							screens_layout[current_screen].items[n].text,
+							screens_layout[current_screen].items[n].text);
+				}
+				// Invalidate softkeys to force re-render next update.
+				softkeys[0][0] = 1;
+				softkeys[1][0] = 1;
+				softkeys[2][0] = 1;
 			}
-			// Invalidate softkeys to force re-render next update.
-			softkeys[0][0] = 1;
-			softkeys[1][0] = 1;
-			softkeys[2][0] = 1;
+
+			bool select_render = ((n == selected_item) || (n == last_selected_item));
+			if (first_render || select_render || m_redraw) {
+				render_item(screens_layout[current_screen].items[n], (selected_item == n));
+			}
 		}
 
-		//bool selected = false;
-		bool select_render = false;
-		if (n == selected_item)
-			select_render = true;
-		if (n == last_selected_item)
-			select_render = true;
-
-		if (first_render || select_render || do_redraw) {
-			//bool do_render = true;
-
-			// don't render labels, just because they are near other things...
-			//if(!first_render && select_render && (screens_layout[cscreen].items[n].type == ITEM_TYPE_LABEL)) {
-			//  do_render = false;
-			//}
-
-			//if(do_render)
-			bool selected = false;
-			if (selected_item == n)
-				selected = true;
-			render_item(screens_layout[cscreen].items[n], selected);
-		}
+		render_lock(m_screen_lock);
+		// We need to check for the first_render flag, because in case there is
+		// an ITEM_TYPE_ACTION in the loop above that resets the m_redraw flag to 'true',
+		// we need that flag to remain true until the next rendering loop.
+		if (!first_render)
+			m_redraw = false;
+		first_render = false;
 	}
-	//last_selected_item = selected_item;
-
-	first_render = false;
 	process_keys();
 }
 
 void GUI::clear_screen(int32_t c_screen, int32_t c_selected) {
 	for (int32_t n = 0; n < screens_layout[c_screen].item_count; n++) {
-
-		bool selected = false;
-		if (n == c_selected)
-			selected = true;
-
-		clear_item(screens_layout[c_screen].items[n], selected);
+		clear_item(screens_layout[c_screen].items[n], (n == c_selected));
 	}
 	varnum_size = 0;
 }
 
 void GUI::set_key_trigger() {
-
 	m_trigger_any_key = true;
-
 }
 
 void GUI::redraw() {
@@ -1322,7 +1304,7 @@ void GUI::process_keys() {
 void GUI::leave_screen_actions(int screen) {
 	for (int n = 0; n < screens_layout[screen].item_count; n++) {
 		if (screens_layout[screen].items[n].type == ITEM_TYPE_LEAVE_ACTION) {
-			receive_gui_events.receive_gui_event(
+			controller.receive_gui_event(
 					screens_layout[screen].items[n].text, "Left");
 		}
 	}
@@ -1340,7 +1322,7 @@ void GUI::process_key_down() {
 			val[0] = 0;
 		update_item(screens_layout[current_screen].items[selected_item], val);
 
-		receive_gui_events.receive_gui_event("varnumchange",
+		controller.receive_gui_event("varnumchange",
 				screens_layout[current_screen].items[selected_item].text);
 		return;
 	}
@@ -1364,7 +1346,7 @@ void GUI::process_key_up() {
 		if (val[0] > 9)
 			val[0] = 9;
 		update_item(screens_layout[current_screen].items[selected_item], val);
-		receive_gui_events.receive_gui_event("varnumchange",
+		controller.receive_gui_event("varnumchange",
 				screens_layout[current_screen].items[selected_item].text);
 		return;
 	}
@@ -1379,11 +1361,15 @@ void GUI::process_key_up() {
  * Check if there is a softkey definition in the current screen.
  * Starts at the end since this is usually where softkey definitions are.
  */
-bool GUI::softkeys_active() {
+bool GUI::softkey_active(uint8_t keynum) {
+	if (keynum > 2)
+		return false;
 	for (int i = screens_layout[current_screen].item_count - 1; i >= 0; i--) {
-		if ((screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY)
+		if ( (screens_layout[current_screen].items[i].val1 == keynum) &&
+				((screens_layout[current_screen].items[i].type == ITEM_TYPE_SOFTKEY)
 				|| (screens_layout[current_screen].items[i].type
 						== ITEM_TYPE_SOFTKEY_ACTION))
+				)
 			return true;
 	}
 	return false;
@@ -1395,7 +1381,7 @@ bool GUI::softkeys_active() {
  * Returns 255 in case soft keys are not active
  */
 uint8_t GUI::softkey_screen(uint8_t idx) {
-	if (!softkeys_active() || idx > 2)
+	if (!softkey_active(idx))
 		return INVALID_SCREEN;
 
 	// Scan the whole screen definition until we find the correct softkey
@@ -1412,7 +1398,7 @@ uint8_t GUI::softkey_screen(uint8_t idx) {
  * find the softkey or it is not an action key.
  */
 char* GUI::softkey_action(uint8_t idx) {
-	if (!softkeys_active() || idx > 2)
+	if (!softkey_active(idx))
 		return NULL;
 
 	// Scan the whole screen definition until we find the correct softkey
@@ -1430,7 +1416,7 @@ char* GUI::softkey_action(uint8_t idx) {
  * find the softkey.
  */
 uint8_t GUI::softkey_index(uint8_t idx) {
-	if (!softkeys_active() || idx > 2)
+	if (!softkey_active(idx))
 		return NULL;
 
 	// Scan the whole screen definition until we find the correct softkey
@@ -1453,12 +1439,13 @@ uint8_t GUI::softkey_index(uint8_t idx) {
  */
 void GUI::process_key(int key_id, int type) {
 
+	// Don't react to locked keyboards!
 	if (m_screen_lock)
 		return;
 
 	// Typically used when displaying a dialog (or similar)
 	if (m_trigger_any_key) {
-		receive_gui_events.receive_gui_event("KEYPRESS", "any");
+		controller.receive_gui_event("KEYPRESS", "any");
 		m_trigger_any_key = false;
 	}
 
@@ -1466,38 +1453,28 @@ void GUI::process_key(int key_id, int type) {
 		return;
 
 	// TODO: remove the help system altogether here ??
+	//   Not sure a help system is that relevant in this device.
+	//      => To be discussed with Medcom
 	// Display a help screen
 	if ((key_id == KEY_HELP) && (type == KEY_RELEASED)
 			&& (!m_displaying_help)) {
-		if (softkeys_active()) {
 			// We want softkey 2 here
 			if (softkey_action(2) != NULL) {
-				// We have an action key here:
-				receive_gui_events.receive_gui_event(softkey_action(2),
+				// We have an action key, process it:
+				controller.receive_gui_event(softkey_action(2),
 						"select");
 				// Flag the softkey for re-rendering
 				selected_item = softkey_index(2);
-			} else if (softkey_screen(2) != INVALID_SCREEN) {
-				if (clear_next_render == false) {
-					clear_next_render = true;
-					first_render = true;
-					clear_screen_screen = current_screen;
-					clear_screen_selected = selected_item;
-				}
-
-				push_stack(current_screen, selected_item);
-				current_screen = softkey_screen(1);
-				last_selected_item = 1;
-				selected_item = 1;
 				return;
+			} else if (softkey_screen(2) != INVALID_SCREEN) {
+				jump_to_screen(softkey_screen(2));
+				return;
+			}  else if (screens_layout[current_screen].help_screen != 255) {
+				show_help_screen(screens_layout[current_screen].help_screen);
 			}
-		} else if (screens_layout[current_screen].help_screen != 255) {
-			show_help_screen(screens_layout[current_screen].help_screen);
-		}
 	}
 
-	if ((key_id == KEY_UP) && (type == KEY_PRESSED) && !softkeys_active()) {
-		// If softkeys are active, we act on key release only.
+	if ((key_id == KEY_UP) && (type == KEY_PRESSED) && !softkey_active(1)) {
 		process_key_up();
 		m_repeating = true;
 		m_repeat_key = KEY_UP;
@@ -1517,27 +1494,17 @@ void GUI::process_key(int key_id, int type) {
 
 	if ((key_id == KEY_UP) && (type == KEY_RELEASED)) {
 		// If softkeys are active, we act on key release only.
-		if (softkeys_active()) {
 			// We want softkey 1 here
 			if (softkey_action(1) != NULL) {
-				// We have an action key here:
-				receive_gui_events.receive_gui_event(softkey_action(1),
+				// We have an action key:
+				controller.receive_gui_event(softkey_action(1),
 						"select");
 				selected_item = softkey_index(1);
+				return;
 			} else if (softkey_screen(1) != INVALID_SCREEN) {
-				if (clear_next_render == false) {
-					clear_next_render = true;
-					first_render = true;
-					clear_screen_screen = current_screen;
-					clear_screen_selected = selected_item;
-				}
-				push_stack(current_screen, selected_item);
-				current_screen = softkey_screen(1);
-				last_selected_item = 1;
-				selected_item = 1;
+				jump_to_screen( softkey_screen(1));
 				return;
 			}
-		}
 		m_repeating = false;
 		m_repeated = false;
 	}
@@ -1561,23 +1528,11 @@ void GUI::process_key(int key_id, int type) {
 				== ITEM_TYPE_MENU) {
 			if (screens_layout[current_screen].items[selected_item].val1
 					!= INVALID_SCREEN) {
-
-				if (clear_next_render == false) {
-					clear_next_render = true;
-					first_render = true;
-					clear_screen_screen = current_screen;
-					clear_screen_selected = selected_item;
-				}
-
-				push_stack(current_screen, selected_item);
-				current_screen =
-						screens_layout[current_screen].items[selected_item].val1;
-				last_selected_item = 1;
-				selected_item = 1;
+				jump_to_screen(screens_layout[current_screen].items[selected_item].val1);
 			}
 		} else if (screens_layout[current_screen].items[selected_item].type
 				== ITEM_TYPE_MENU_ACTION) {
-			receive_gui_events.receive_gui_event(
+			controller.receive_gui_event(
 					screens_layout[current_screen].items[selected_item].text,
 					"select");
 		}
@@ -1595,7 +1550,7 @@ void GUI::process_key(int key_id, int type) {
 							== ITEM_TYPE_VARNUM) {
 						last_selected_item = selected_item;
 						selected_item--;
-						receive_gui_events.receive_gui_event("varnumchange",
+						controller.receive_gui_event("varnumchange",
 								screens_layout[current_screen].items[selected_item].text);
 						return;
 					}
@@ -1617,21 +1572,23 @@ void GUI::process_key(int key_id, int type) {
 		}
 	}
 
-	if ((key_id == KEY_HOME) && (type == KEY_RELEASED)
-			&& (!clear_next_render)) {
-		if (current_screen != 0) {
-			clear_next_render = true;
-			first_render = true;
-			clear_screen_screen = current_screen;
-			clear_screen_selected = selected_item;
-			leave_screen_actions(current_screen);
-			clear_stack();
-			current_screen = 0;
-			last_selected_item = 1;
-			selected_item = 1;
-		}
+	if ((key_id == KEY_HOME) && (type == KEY_RELEASED)) {
+				// We want softkey 0 here
+				if (softkey_action(0) != NULL) {
+					// We have an action key:
+					controller.receive_gui_event(softkey_action(0),
+							"select");
+					// Flag the softkey for re-rendering
+					selected_item = softkey_index(0);
+					return;
+				} else if (softkey_screen(0) != INVALID_SCREEN) {
+					jump_to_screen(softkey_screen(0));
+					return;
+				} else if (current_screen != 0) {
+					// Go to "Home" screen
+					jump_to_screen(0);
+				}
 	}
-
 }
 
 void GUI::jump_to_screen(const char screen) {
@@ -1640,8 +1597,13 @@ void GUI::jump_to_screen(const char screen) {
 	clear_screen_screen = current_screen;
 	clear_screen_selected = selected_item;
 	leave_screen_actions(current_screen);
-
-	clear_stack();
+	// When we go to home screen, simply clear the
+	// whole screen history
+	if (screen == 0) {
+		clear_stack();
+	} else {
+		push_stack(current_screen, selected_item);
+	}
 	current_screen = screen;
 	last_selected_item = 1;
 	selected_item = 1;
