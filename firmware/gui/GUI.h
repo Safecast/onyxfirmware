@@ -45,8 +45,8 @@ public:
   void set_key_trigger();
   void redraw();
   void set_sleeping(bool sleeping);
-  void jump_to_screen(const char screen);
-  void push_stack(int current_screen,int selected_item);
+  void jump_to_screen(uint8_t screen);
+  void push_stack(uint8_t current_screen,uint8_t selected_item);
   void toggle_screen_lock();
   void set_language(uint8_t lang);
   void show_dialog      (const char *text1 ,const char *text2 ,const char *text3,const char *text4,bool buzz,int img1=255,int img2=255,int img3=255,int img4=255);
@@ -55,17 +55,17 @@ public:
   uint8_t get_item_state_uint8(const char *tag);
 
 private:
-  int current_screen;
-  int selected_item;
-  int last_selected_item;
+  uint8_t current_screen;
+  uint8_t selected_item;
+  uint8_t last_selected_item;
 
   bool cpm_alarm; // indicator that we have a High CPM alarm (change display background in red)
 
-  int32_t selected_screen_stack[MAX_SCREEN_STACK];
-  int32_t selected_item_stack  [MAX_SCREEN_STACK];
-  int32_t selected_stack_size;
+  uint8_t selected_screen_stack[MAX_SCREEN_STACK];
+  uint8_t selected_item_stack  [MAX_SCREEN_STACK];
+  uint8_t selected_stack_size;
 
-  void pop_stack(int &current_screen,int &selected_item);
+  void pop_stack(uint8_t current_screen,uint8_t selected_item);
   void clear_stack();
 
   void process_key_up();
@@ -84,8 +84,8 @@ private:
   void leave_screen_actions(int screen);
   void clear_pending_keys();
 
-  int32_t clear_screen_selected;
-  int32_t clear_screen_screen;
+  uint8_t clear_screen_selected;
+  uint8_t clear_screen_screen;
   bool    clear_next_render;
   bool    m_trigger_any_key;
   bool    m_sleeping;

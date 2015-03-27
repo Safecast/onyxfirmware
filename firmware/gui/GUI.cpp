@@ -13,6 +13,7 @@
 #include <string.h>
 #include "buzzer.h"
 #include "captouch.h"
+#include "serialinterface.h"
 
 bool first_render = true;
 
@@ -1040,6 +1041,7 @@ void update_item(screen_item &item, const void *value) {
 		}
 	} else if (item.type == ITEM_TYPE_RED_VARLABEL) {
 		// Convention: if first character is " " (space) then clear the label
+		buzzer_morse_debug("E"); // .
 		if (((char*)value)[0] == ' ') {
 			display_draw_text(item.val1, item.val2, (char *) value, COLOR_WHITE, background_color);
 		} else {
@@ -1066,7 +1068,7 @@ void GUI::clear_stack() {
 	selected_stack_size = 0;
 }
 
-void GUI::pop_stack(int &current_screen, int &selected_item) {
+void GUI::pop_stack(uint8_t current_screen, uint8_t selected_item) {
 
 	if (selected_stack_size == 0)
 		return;
@@ -1077,7 +1079,7 @@ void GUI::pop_stack(int &current_screen, int &selected_item) {
 	selected_stack_size--;
 }
 
-void GUI::push_stack(int current_screen, int selected_item) {
+void GUI::push_stack(uint8_t current_screen, uint8_t selected_item) {
 
 	if (selected_stack_size >= MAX_SCREEN_STACK)
 		return;
@@ -1113,10 +1115,6 @@ GUI::GUI(Controller &r) :
 	m_language = LANGUAGE_ENGLISH;
 	m_displaying_dialog = false;
 	m_displaying_dialog_complete = false;
-	//m_dialog_text1[0]=0;
-	//m_dialog_text2[0]=0;
-	//m_dialog_text3[0]=0;
-	//m_dialog_text4[0]=0;
 	m_dialog_buzz = false;
 	m_pause_display_updates = false;
 }
@@ -1591,7 +1589,7 @@ void GUI::process_key(int key_id, int type) {
 	}
 }
 
-void GUI::jump_to_screen(const char screen) {
+void GUI::jump_to_screen(uint8_t screen) {
 	clear_next_render = true;
 	first_render = true;
 	clear_screen_screen = current_screen;

@@ -14,6 +14,7 @@ public:
   void update_calibration();
   void initialise_calibration();
   void save_loginterval();
+  void save_counterwindow();
   void save_time();
   void save_date();
   void receive_gui_event(const char *event,const char *value);
@@ -22,7 +23,7 @@ public:
 
   void event_save_calibration();
   void event_sleep(const char *event,const char *value);
-  void event_totaltimer(const char *event,const char *value);
+  void event_totaltimer();
   void event_japanese(const char *event,const char *value);
   void event_english(const char *event,const char *value);
   void event_cpm_cps_auto(const char *event,const char *value);
@@ -37,7 +38,8 @@ public:
   void event_utcscreen(const char *event,const char *value);
   void event_timescreen(const char *event,const char *value);
   void event_becqscreen(const char *event,const char *value);
-  void event_loginterval(const char *event,const char *value);
+  void event_loginterval();
+  void event_getcountwin();
   void event_warnscreen(const char *event,const char *value);
   void event_datescreen(const char *event,const char *value);
   void event_brightnessscn(const char *event,const char *value);
@@ -80,6 +82,7 @@ public:
   bool     m_dim_off;
   bool     m_never_dim;
   uint32_t m_last_cpm_sent_to_gui;
+  uint32_t m_count_timer_max;
 
   float    m_cpm_cps_threshold;
   float    m_cps_cpm_threshold;

@@ -107,7 +107,7 @@ int main(void) {
 	if (power_get_wakeup_source() == WAKEUP_RTC) {
 		rtc_set_alarmed(); // if we woke up from the RTC, force the the alarm trigger.
 		                   // because it was cleared when we initialized the controller.
-		buzzer_morse_debug("W"); // 'W'akeup
+		buzzer_morse_debug("W"); // 'W'akeup  .--
 		c.m_sleeping = true;
 	} else {
 		// Switch on our display, and
@@ -168,14 +168,14 @@ int main(void) {
 	 * m_gui is the GUI
 	 *
 	 */
-	buzzer_morse_debug("M");
+	buzzer_morse_debug("M");  // --
 	for (;;) {
 
 		// If our battery is too low, then we force
 		// standby and power off as many peripherals as we can
 		// to limit further discharge.
 		if (power_battery_level() < 10) {
-			buzzer_morse_debug("B");
+			buzzer_morse_debug("B");  // -...
 			rtc_clear_alarmed();
 			rtc_disable_alarm(RTC);
 			// turn iRover off

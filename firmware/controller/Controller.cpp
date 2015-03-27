@@ -37,11 +37,8 @@ Controller::Controller() {
 
 	m_sleeping = false;
 	m_powerup = false;
-	// We do not log by default
-	m_log_interval_seconds = 0;
-	rtc_clear_alarmed();
-	rtc_enable_alarm(RTC);
 	m_alarm_log = false;
+
 	system_controller = this;
 	m_last_switch_state = true;
 	m_never_dim = false;
@@ -99,6 +96,9 @@ Controller::Controller() {
 	}
 
 	// Get logging interval from flash if it exists
+	// We do not log by default
+	m_log_interval_seconds = 0;
+
 	const char *sloginter = flashstorage_keyval_get("LOGINTERVAL");
 	if (sloginter != 0) {
 		int32_t c;
@@ -107,8 +107,23 @@ Controller::Controller() {
 	}
 
 	if (m_log_interval_seconds > 0) {
-		rtc_set_alarm(RTC, rtc_get_time(RTC) + m_log_interval_seconds);
+		// TESTING: if we reset the alarm here, then we reset the current
+		// alarm cycle at each power-up, which is very bad. Alarm should
+		// only be set/reset when we edit the log interval. Disabling
+		// for now and testing.
+		// rtc_enable_alarm(RTC);
+		// rtc_set_alarm(RTC, rtc_get_time(RTC) + m_log_interval_seconds);
+	} else {
+		// No need to enable the Alarm until we have
+		// a logging interval above zero
+		rtc_clear_alarmed();
+		rtc_disable_alarm(RTC);
 	}
+
+	// And also restore the count timer:
+	m_count_timer_max = 0;
+	event_totaltimer();
+
 }
 
 void Controller::set_gui(GUI &g) {
@@ -208,6 +223,11 @@ void Controller::save_warncpm() {
 	m_gui->jump_to_screen(0);
 }
 
+/**
+ * Saves the Logging interval ("Save" softkey in the GUI).
+ * Enables and resets the RTC alarm if logging interval
+ * is > 0
+ */
 void Controller::save_loginterval() {
 	int l1 = m_gui->get_item_state_uint8("$LOGINTER1");
 	int l2 = m_gui->get_item_state_uint8("$LOGINTER2");
@@ -218,14 +238,29 @@ void Controller::save_loginterval() {
 	sprintf(sloginterval, "%"PRIu32"", m_log_interval_seconds);
 	flashstorage_keyval_set("LOGINTERVAL", sloginterval);
 	if (m_log_interval_seconds > 0) {
+		rtc_enable_alarm(RTC);
 		uint32_t current_time = realtime_get_unixtime();
 		rtc_set_alarm(RTC, current_time + m_log_interval_seconds);
 	} else {
 		rtc_clear_alarmed();
+		rtc_disable_alarm(RTC);
 	}
 	m_gui->jump_to_screen(0);
-
 }
+
+void Controller::save_counterwindow() {
+	int l1 = m_gui->get_item_state_uint8("$COUNTWIN1");
+	int l2 = m_gui->get_item_state_uint8("$COUNTWIN2");
+	int l3 = m_gui->get_item_state_uint8("$COUNTWIN3");
+	int l4 = m_gui->get_item_state_uint8("$COUNTWIN4");
+	int l5 = m_gui->get_item_state_uint8("$COUNTWIN5");
+	int32_t counter_window = l1*10000 + l2*1000 + l3*100 + l4*10 + l5;
+	char cwin[16];
+	sprintf(cwin, "%"PRIu32"", counter_window);
+	flashstorage_keyval_set("COUNTERWIN", cwin);
+	m_gui->jump_to_screen(15); // Counter screen
+}
+
 
 void Controller::save_time() {
 	int h1 = m_gui->get_item_state_uint8("$TIMEHOUR1");
@@ -246,7 +281,10 @@ void Controller::save_time() {
 	min = new_min;
 	sec = new_sec;
 	realtime_setdate(hours, min, sec, day, month, year);
-	rtc_set_alarm(RTC, rtc_get_time(RTC) + m_log_interval_seconds);
+	// If we are logging, we must reset the alarm!
+	if (m_log_interval_seconds > 0) {
+		rtc_set_alarm(RTC, rtc_get_time(RTC) + m_log_interval_seconds);
+	}
 
 	flashstorage_log_userchange();
 	m_gui->jump_to_screen(0);
@@ -271,7 +309,10 @@ void Controller::save_date() {
 	month = new_mon - 1;
 	year = (2000 + new_year) - 1900;
 	realtime_setdate(hours, min, sec, day, month, year);
-	rtc_set_alarm(RTC, rtc_get_time(RTC) + m_log_interval_seconds);
+	// If we are logging, we must reset the alarm!
+	if (m_log_interval_seconds > 0) {
+		rtc_set_alarm(RTC, rtc_get_time(RTC) + m_log_interval_seconds);
+	}
 
 	flashstorage_log_userchange();
 	m_gui->jump_to_screen(0);
@@ -296,24 +337,38 @@ bool is_leap(int month, int day, int year) {
  */
 void Controller::event_sleep(const char *event, const char *value) {
 	if (m_sleeping == false) {
-		// TODO: why two powerdown calls here ??
-		display_powerdown();
 		m_sleeping = true;
 		m_gui->set_key_trigger();
 		m_gui->set_sleeping(true);
-		display_powerdown();
 		power_standby();
 	}
 }
 
-void Controller::event_totaltimer(const char *event, const char *value) {
-	system_geiger->reset_total_count();
-	m_total_timer_start = realtime_get_unixtime();
+/**
+ * Initialize the total timer values when the GUI enters that screen.
+ * and resets the total timer value
+ */
+void Controller::event_totaltimer() {
 
-	const char *blank = "              ";
-	m_gui->receive_update("$TTCOUNT", blank);
-	m_gui->receive_update("$TTTIME", blank);
-	m_gui->redraw();
+	// Reset the counting period and Geiger counts:
+	m_total_timer_start = realtime_get_unixtime();
+	system_geiger->reset_total_count();
+
+	const char *win = flashstorage_keyval_get("COUNTERWIN");
+	if (win) {
+		uint32_t win_int;
+		sscanf(win, "%"PRIu32"", &win_int);
+		m_count_timer_max = win_int;
+	}
+
+	// Last, update the GUI with the value of the counter duration
+	if (m_count_timer_max > 0) {
+		m_gui->receive_update("$COUNTWIN", win);
+	}
+	else {
+		m_gui->receive_update("$COUNTWIN", "inf.");
+	}
+
 }
 
 void Controller::event_save_pulsewidth(const char *event, const char *value) {
@@ -520,9 +575,36 @@ void Controller::event_becqscreen(const char *event, const char *value) {
 }
 
 /**
+ * Send the current counter window to the GUI
+ * (this is the duration for the total/timer mode
+ */
+void Controller::event_getcountwin() {
+	int32_t win = 0; // by default, no limit
+
+	const char *val = flashstorage_keyval_get("COUNTERWIN");
+	if (val != NULL) {
+		sscanf(val, "%"PRIi32"", &win);
+	}
+
+	uint8_t l1 = (win % 100000) / 10000;
+	uint8_t l2 = (win % 10000) / 1000;
+	uint8_t l3 = (win % 1000) / 100;
+	uint8_t l4 = (win % 100) / 10;
+	uint8_t l5 = (win % 10);
+
+	m_gui->receive_update("$COUNTWIN1", &l1);
+	m_gui->receive_update("$COUNTWIN2", &l2);
+	m_gui->receive_update("$COUNTWIN3", &l3);
+	m_gui->receive_update("$COUNTWIN4", &l4);
+	m_gui->receive_update("$COUNTWIN5", &l5);
+	m_gui->redraw();
+
+}
+
+/**
  * Send the current logging interval to the GUI
  */
-void Controller::event_loginterval(const char *event, const char *value) {
+void Controller::event_loginterval() {
 	int32_t log_interval = 0; // We do not log by default
 
 	const char *val = flashstorage_keyval_get("LOGINTERVAL");
@@ -786,7 +868,7 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 	else if (strcmp(event, "KEYPRESS") == 0)
 		m_powerup = true;
 	else if (strcmp(event, "TOTALTIMER") == 0)
-		event_totaltimer(event, value);
+		event_totaltimer();
 	else if (strcmp(event, "Save:PulseWidth") == 0)
 		event_save_pulsewidth(event, value);
 	else if (strcmp(event, "Save:Calib") == 0)
@@ -821,6 +903,8 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 		event_save_brightness(event, value);
 	else if (strcmp(event, "Save:LogInter") == 0)
 		save_loginterval();
+	else if (strcmp(event, "Save:CountWin") == 0)
+		save_counterwindow();
 	else if (strcmp(event, "CALIBRATE") == 0)
 		initialise_calibration();
 	else if (strcmp(event, "UTCSCREEN") == 0)
@@ -830,7 +914,9 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 	else if (strcmp(event, "BECQSCREEN") == 0)
 		event_becqscreen(event, value);
 	else if (strcmp(event, "LOGINTERVAL") == 0)
-		event_loginterval(event, value);
+		event_loginterval();
+	else if (strcmp(event, "COUNTWINSCR") == 0)
+		event_getcountwin();
 	else if (strcmp(event, "WARNSCREEN") == 0)
 		event_warnscreen(event, value);
 	else if (strcmp(event, "DATESCREEN") == 0)
@@ -887,7 +973,7 @@ void Controller::check_warning_level() {
  */
 void Controller::do_logging() {
 	if (rtc_alarmed()) {
-		buzzer_morse_debug("R");  // for 'R'TC larm
+		buzzer_morse_debug("R");  // for 'R'TC larm  .-.
 		m_alarm_log = true;
 		m_last_alarm_time = rtc_get_time(RTC);
 #ifndef DISABLE_ACCEL
@@ -901,7 +987,7 @@ void Controller::do_logging() {
 
 	if (m_alarm_log == true) {
 		if (system_geiger->is_cpm30_valid()) {
-			buzzer_morse_debug("L");  // for 'L'og
+			buzzer_morse_debug("L");  // for 'L'og  .-..
 
 			log_data_t data;
 #ifndef DISABLE_ACCEL
@@ -940,10 +1026,10 @@ void Controller::do_logging() {
 			rtc_set_alarm(RTC, m_last_alarm_time + m_log_interval_seconds);
 			rtc_enable_alarm(RTC);
 			if (m_sleeping) {
-				buzzer_morse_debug("S");  // for 'S'tandby
+				buzzer_morse_debug("S");  // for 'S'tandby  ...
 				power_standby();
 			} else {
-				buzzer_morse_debug("A"); // for 'A'wake
+				buzzer_morse_debug("A"); // for 'A'wake   .-
 			}
 		}
 	}
@@ -978,10 +1064,6 @@ void Controller::check_sleep_switch() {
 	// with display sleeping (in logging mode)
 	if (m_powerup == true && m_sleeping) {
 		display_powerup();
-		m_gui->set_sleeping(false);
-		m_gui->redraw();
-		m_sleeping = false;
-		m_powerup = false;
 
 		const char *devicetag = flashstorage_keyval_get("DEVICETAG");
 		char revtext[10];
@@ -989,6 +1071,11 @@ void Controller::check_sleep_switch() {
 		display_splashscreen(devicetag, revtext);
 		delay_us(3000000);
 		display_clear(0);
+
+		m_gui->set_sleeping(false);
+		m_sleeping = false;
+		m_powerup = false;
+
 	}
 }
 
@@ -1039,7 +1126,7 @@ void Controller::send_cpm_values() {
 	// Add 0.5 to have a nearest integer rounding
 	uint32_t cpm = (uint32_t) floor(system_geiger->get_cpm_deadtime_compensated()+0.5);
 
-	sprintf(text_cpmdint,"%-*u", 7, cpm);
+	sprintf(text_cpmdint,"%-*"PRIu32"", 7, cpm);
 
 	if (!m_cpm_cps_switch) {       // no auto switch, just display CPM
 		// If CPM is above 9999, then we divide it by 1000, print it in red
@@ -1053,17 +1140,15 @@ void Controller::send_cpm_values() {
 			m_gui->receive_update("$X1000","x1000");
 		} else {
 			m_gui->receive_update("$X1000","     ");
-			sprintf(text_cpmd, "%4u", cpm);
+			sprintf(text_cpmd, "%4"PRIu32"", cpm);
 		}
 		m_gui->receive_update("$CPMSLABEL", "CPM");
 	} else {
 		if (cpm > m_cpm_cps_threshold) {
-			char text_cpmd_tmp[5];
-			sprintf(text_cpmd, "%4u", cpm / 60);
+			sprintf(text_cpmd, "%4"PRIu32"", cpm / 60);
 			m_gui->receive_update("$CPMSLABEL", "CPS");
 		} else if (cpm < m_cps_cpm_threshold) {
-			char text_cpmd_tmp[5];
-			sprintf(text_cpmd, "%4u", cpm);
+			sprintf(text_cpmd, "%4"PRIu32"", cpm);
 			m_gui->receive_update("$CPMSLABEL", "CPM");
 		}
 
@@ -1093,12 +1178,16 @@ void Controller::send_total_timer() {
 	char text_totaltimer_count[16];
 	uint32_t ctime = realtime_get_unixtime();
 	uint32_t totaltimer_time = ctime - m_total_timer_start;
-	uint32_t cnt = system_geiger->get_total_count();
 
-	sprintf(text_totaltimer_time, "%8"PRIu32" s", totaltimer_time);
-	sprintf(text_totaltimer_count, "%9"PRIu32"" , cnt );
-	sprintf(text_totaltimer_avg, "%7.2f CPM",
-			((float) cnt / ((float) totaltimer_time)) * 60);
+	// Only update the timer if we are below the max count
+	// window:
+	if (totaltimer_time <= m_count_timer_max || m_count_timer_max == 0) {
+		uint32_t cnt = system_geiger->get_total_count();
+			sprintf(text_totaltimer_time, "%8"PRIu32" s", totaltimer_time);
+		sprintf(text_totaltimer_count, "%9"PRIu32"" , cnt );
+		sprintf(text_totaltimer_avg, "%7.2f CPM",
+				((float) cnt / ((float) totaltimer_time)) * 60);
+	}
 
 	m_gui->receive_update("$DELAYA", NULL);
 	m_gui->receive_update("$DELAYB", NULL);

@@ -4,7 +4,7 @@
 #include "safecast_wirish_types.h"
 #include <stdint.h>
 
-#define TEXT_LENGTH 25
+#define TEXT_LENGTH 17
 #define SCREEN_COUNT 27
 
 
@@ -75,7 +75,7 @@ struct screen_item {
  * stored as flash variables since they are constant, this way they do not take
  * space in our RAM.
  *
- * A screen contains up to 11 items and a reference to a help screen (optional)
+ * A screen contains up to 13 items and a reference to a help screen (optional)
  */
 struct screen {
   uint8_t       item_count;

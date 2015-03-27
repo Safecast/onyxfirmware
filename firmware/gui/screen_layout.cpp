@@ -117,7 +117,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL,255, 32, "Waiting for 15s" , 20  },
     { ITEM_TYPE_LABEL,255, 64, "Please expose"   , 21  },
     { ITEM_TYPE_LABEL,255, 80, "to source."      , 22  },
-    { ITEM_TYPE_DELAY, 60,100,"DELAYA\0 16,7"    , 255 } // 16 second delay, then go to screen 7
+    { ITEM_TYPE_DELAY, 60,100, "DELAYA\0 16,7"    , 255 } // 16 second delay, then go to screen 7
   }
   ,255
 },
@@ -127,7 +127,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   2,
   {
     { ITEM_TYPE_LABEL,255, 32, "Acquiring, 30s" , 23  },
-    { ITEM_TYPE_DELAY, 60,100,"DELAYB\0 31,8"   , 255 } // 31 second delay
+    { ITEM_TYPE_DELAY, 60,100, "DELAYB\0 31,8"   , 255 } // 31 second delay
   }
   ,255
 },
@@ -240,19 +240,20 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 15 - Total/Timer mode
 {
-  11,
+  13,
   {
 	{ ITEM_TYPE_HEAD        ,  0,  0, "$CPMDEADINT", 255},
     { ITEM_TYPE_LABEL       ,  0, 32, "Count:", 255 },
     { ITEM_TYPE_LABEL       ,  0, 48, "Avg:", 255 },
     { ITEM_TYPE_LABEL       ,  0, 64, "Time:", 255 },
-    { ITEM_TYPE_LABEL       ,  0, 96, "Stop at:", 255 },
+    { ITEM_TYPE_LABEL       ,  0, 90, "Duration:", 255 },
     { ITEM_TYPE_VARLABEL    , 56, 32, "$TTCOUNT"    , 255},
     { ITEM_TYPE_VARLABEL    , 40, 48, "$TTAVG"    , 255},
-    { ITEM_TYPE_VARLABEL    , 72, 64, "$TTTIME"     , 255},
+    { ITEM_TYPE_VARLABEL    , 48, 64, "$TTTIME"     , 255},
+    { ITEM_TYPE_VARLABEL    , 80, 90, "$COUNTWIN",      255},
     { ITEM_TYPE_ACTION      ,  2, 2, "TOTALTIMER" , 255},
     { ITEM_TYPE_SOFTKEY	  	, 0 ,  0, "Back"	   , 255},
-    { ITEM_TYPE_SOFTKEY	  	, 1 ,  0, "Setup"	   , 255},
+    { ITEM_TYPE_SOFTKEY	  	, 1 , 26, "Setup"	   , 255},
     { ITEM_TYPE_SOFTKEY	  	, 2 , 15, "Reset"	   , 255},
   }
   ,2
@@ -279,7 +280,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT"      , 255},
     { ITEM_TYPE_MENU       ,19, 1, "\x80Sv/\x80R"    , 255},
     { ITEM_TYPE_MENU       , 5, 2, "Calibration"     , 26 },
-//    { ITEM_TYPE_MENU_ACTION, 0, 3, "Clear Log"       , 27 },
     { ITEM_TYPE_MENU       ,13, 3, "Warning Levels"  , 28 },
     { ITEM_TYPE_MENU       ,22, 4, "Bq. Eff. Value"  , 35 },
     { ITEM_TYPE_MENU_ACTION, 0, 5, "CPM/CPS Auto"    , 36 }
@@ -391,7 +391,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARLABEL   ,255 , 36, "$LOGPERCENT"     , 255 },
     { ITEM_TYPE_VARLABEL   ,  0 , 52, "$LOGREMAIN"      , 255 },
     { ITEM_TYPE_VARLABEL   ,255 , 68, "$LOGREMAIN2"     , 255 },
-    { ITEM_TYPE_VARLABEL   ,  0 ,90, "$LOGREMAIN3"     , 255 },
+    { ITEM_TYPE_VARLABEL   ,  0 , 90, "$LOGREMAIN3"     , 255 },
     { ITEM_TYPE_SOFTKEY	  	, 0 ,  0, "Back"	   , 255},
     { ITEM_TYPE_SOFTKEY	  	, 1 ,  23, "Setup"	   , 255},
     { ITEM_TYPE_SOFTKEY_ACTION	  	, 2 ,  0, "Clear Log"	   , 255},
@@ -399,5 +399,22 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   ,7
 },
 
-};
+//Screen 26 - Counting window config
+{
+  9,
+  {
+    { ITEM_TYPE_HEAD       , 0 , 0  , "$CPMDEADINT"  , 255 },
+    { ITEM_TYPE_VARNUM     , 10, 50 , "$COUNTWIN1"    , 255 },
+    { ITEM_TYPE_VARNUM     , 32, 50 , "$COUNTWIN2"    , 255 },
+    { ITEM_TYPE_VARNUM     , 54, 50 , "$COUNTWIN3"    , 255 },
+    { ITEM_TYPE_VARNUM     , 76, 50 , "$COUNTWIN4"    , 255 },
+    { ITEM_TYPE_VARNUM     , 98, 50 , "$COUNTWIN5"    , 255 },
+    { ITEM_TYPE_SOFTKEY_ACTION	, 0, 0, "Save:CountWin" , 2},
+    { ITEM_TYPE_LABEL      , 0 ,  20, "Max count window" , 47  },
+    { ITEM_TYPE_ACTION     ,  0,   0, "COUNTWINSCR"  , 255 }
+  }
+  ,7
+}
 
+
+};
