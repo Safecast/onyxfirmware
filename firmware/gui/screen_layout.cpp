@@ -39,7 +39,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
    { ITEM_TYPE_SOFTKEY	  , 0, 1, "CPM"			   , 255},
    { ITEM_TYPE_SOFTKEY	  , 2, 25, "Logs"	       , 255},
  }
- ,7
+ ,0
 },
 
 // Screen 1 - Current readings screen
@@ -73,15 +73,16 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 3 - Settings menu
 {
-  5,
+  6,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT", 255 },
     { ITEM_TYPE_MENU       ,16, 1, "Interface" , 8 },
     { ITEM_TYPE_MENU       ,17, 2, "Geiger"    , 9 },
     { ITEM_TYPE_MENU       , 9, 3, "Time/Date" , 13 },
-    { ITEM_TYPE_MENU       ,18, 4, "Version"   , 14 }
+    { ITEM_TYPE_MENU       ,18, 4, "Version"   , 14 },
+    { ITEM_TYPE_SOFTKEY	    ,  0,  0, "Home"   , 255}
   }
-  ,7
+  ,0
 },
 
 
@@ -95,7 +96,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_SOFTKEY	  , 1, 1, "CPM"				, 255},
     { ITEM_TYPE_SOFTKEY_ACTION	  , 2, 0, "Beep"			, 255},
   }
-  ,3
+  ,0
 },
 
 //Screen 5 - Calibration Confirmation
@@ -107,7 +108,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU , 3 , 4  , "     Cancel     " , 18 },
     { ITEM_TYPE_LABEL,255, 16 , "Are you sure?"    , 19 }
   }
-  ,4
+  ,0
 },
 
 //Screen 6 - Calibration Wait 1
@@ -119,7 +120,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL,255, 80, "to source."      , 22  },
     { ITEM_TYPE_DELAY, 60,100, "DELAYA\0 16,7"    , 255 } // 16 second delay, then go to screen 7
   }
-  ,255
+  ,0
 },
 
 //Screen 7 - Calibration Wait 2
@@ -129,7 +130,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL,255, 32, "Acquiring, 30s" , 23  },
     { ITEM_TYPE_DELAY, 60,100, "DELAYB\0 31,8"   , 255 } // 31 second delay
   }
-  ,255
+  ,0
 },
 
 
@@ -146,24 +147,25 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE" , 255 },
     { ITEM_TYPE_VARLABEL   ,  0,   0, "$FIXEDSV"   , 255 }
   }
-  ,4
+  ,0
 },
 
 //Screen 9 - Set time/date
 {
-  4,
+  5,
   {
     { ITEM_TYPE_HEAD,             0, 0, "$CPMDEADINT"    , 255 },
     { ITEM_TYPE_MENU,            10, 1, "Set Time (UTC)", 15  },
     { ITEM_TYPE_MENU,            11, 2, "Set Date (UTC)", 16  },
-    { ITEM_TYPE_MENU,            20, 3, "Set UTC Offset", 33  }
+    { ITEM_TYPE_MENU,            20, 3, "Set UTC Offset", 33  },
+    { ITEM_TYPE_SOFTKEY	    ,  0,  3, "Back"   , 255}
   }
-  ,7
+  ,0
 },
 
 //Screen 10 - Set time
 {
-  10,
+  11,
   {
     { ITEM_TYPE_HEAD       , 0 , 0 , "$CPMDEADINT" , 255 },
     { ITEM_TYPE_VARNUM     , 10, 50, "$TIMEHOUR1"  , 255 },
@@ -172,16 +174,17 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 76, 50, "$TIMEMIN2"   , 255 },
     { ITEM_TYPE_VARNUM     , 98, 50, "$TIMESEC1"   , 255 },
     { ITEM_TYPE_VARNUM     ,118, 50, "$TIMESEC2"   , 255 },
-    { ITEM_TYPE_SOFTKEY_ACTION	, 0, 0, "Save:Time" , 2},
+    { ITEM_TYPE_SOFTKEY	    ,  0,  9, "Back"   , 255},
+    { ITEM_TYPE_SOFTKEY_ACTION	, 2, 0, "Save:Time" , 2},
     { ITEM_TYPE_LABEL      ,  0, 20, "HH:MM:SS"   , 50  },
     { ITEM_TYPE_ACTION     ,  0,  0, "TIMESCREEN" , 255 }
   }
-  ,7
+  ,0
 },
 
 //Screen 11 - Set date
 {
-  10,
+  11,
   {
     { ITEM_TYPE_HEAD       , 0 , 0  , "$CPMDEADINT", 255 },
     { ITEM_TYPE_VARNUM     , 10, 50 , "$DATEMON1"  , 255 },
@@ -190,24 +193,26 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 76, 50 , "$DATEDAY2"  , 255 },
     { ITEM_TYPE_VARNUM     , 98, 50 , "$DATEYEAR1" , 255 },
     { ITEM_TYPE_VARNUM     ,118, 50 , "$DATEYEAR2" , 255 },
-    { ITEM_TYPE_SOFTKEY_ACTION	, 0, 0, "Save:Date" , 2},
+    { ITEM_TYPE_SOFTKEY	    ,  0,  9, "Back"   , 255},
+    { ITEM_TYPE_SOFTKEY_ACTION	, 2, 0, "Save:Date" , 2},
     { ITEM_TYPE_LABEL      , 0 ,  20, "MM/DD/YY"  , 24  },
     { ITEM_TYPE_ACTION     ,  0,   0, "DATESCREEN", 255 }
   }
-  ,7
+  ,0
 },
 
 //Screen 12 - Brightness control
 {
-  5,
+  6,
   {
     { ITEM_TYPE_HEAD       , 0 , 0  , "$CPMDEADINT"    , 255 },
     { ITEM_TYPE_VARNUM     , 64, 64 , "$BRIGHTNESS"    , 255 },
-    { ITEM_TYPE_SOFTKEY_ACTION,  0,   0, "Save:Brightness", 2  },
+    { ITEM_TYPE_SOFTKEY	    ,  0,  16, "Back"   , 255},
+    { ITEM_TYPE_SOFTKEY_ACTION,  2,   0, "Save:Brightness", 2  },
     { ITEM_TYPE_ACTION     ,  0,   0, "BrightnessSCN" , 255 },
     { ITEM_TYPE_LEAVE_ACTION, 0,   0, "LeftBrightness", 255 }
   }
-  ,7
+  ,0
 },
 
 //Screen 13 - Warning configuration
@@ -220,7 +225,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 54, 50 , "$WARNCPM3"    , 255 },
     { ITEM_TYPE_VARNUM     , 76, 50 , "$WARNCPM4"    , 255 },
     { ITEM_TYPE_VARNUM     , 98, 50 , "$WARNCPM5"    , 255 },
-    { ITEM_TYPE_SOFTKEY_ACTION	, 0, 0, "Save:WarnCPM" , 2},
+    { ITEM_TYPE_SOFTKEY	    ,  0,  17, "Back"   , 255},
+    { ITEM_TYPE_SOFTKEY_ACTION	, 2, 0, "Save:WarnCPM" , 2},
     { ITEM_TYPE_LABEL      , 0 ,  20, "Warning CPM" , 47  },
     { ITEM_TYPE_ACTION     ,  0,   0, "WARNSCREEN"  , 255 }
   }
@@ -254,46 +260,48 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_ACTION      ,  2, 2, "TOTALTIMER" , 255},
     { ITEM_TYPE_SOFTKEY	  	, 0 ,  0, "Back"	   , 255},
     { ITEM_TYPE_SOFTKEY	  	, 1 , 26, "Setup"	   , 255},
-    { ITEM_TYPE_SOFTKEY	  	, 2 , 15, "Reset"	   , 255},
+    { ITEM_TYPE_SOFTKEY	  	, 2 , 15, "Reset"	   , 255}
   }
   ,2
 },
 
 //Screen 16 - User interface settings
 {
-  5,
+  6,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT"   , 255},
     { ITEM_TYPE_MENU       ,12, 1, "Brightness"   , 10 },
     { ITEM_TYPE_MENU_ACTION, 0, 2, "Beep"  , 11 },
-//    { ITEM_TYPE_MENU       ,24, 3, "Geiger Pulse" , 255},
     { ITEM_TYPE_MENU       ,14, 3, "Language"     , 12 },
-    { ITEM_TYPE_MENU_ACTION, 0, 4, "Never Dim"    , 0  }
+    { ITEM_TYPE_MENU_ACTION, 0, 4, "Never Dim"    , 0  },
+    { ITEM_TYPE_SOFTKEY	    ,  0,  3, "Back"   , 255}
   }
-  ,7
+  ,0
 },
 
 //Screen 17 - Geiger settings
 {
-  6,
+  7,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT"      , 255},
     { ITEM_TYPE_MENU       ,19, 1, "\x80Sv/\x80R"    , 255},
     { ITEM_TYPE_MENU       , 5, 2, "Calibration"     , 26 },
     { ITEM_TYPE_MENU       ,13, 3, "Warning Levels"  , 28 },
     { ITEM_TYPE_MENU       ,22, 4, "Bq. Eff. Value"  , 35 },
-    { ITEM_TYPE_MENU_ACTION, 0, 5, "CPM/CPS Auto"    , 36 }
+    { ITEM_TYPE_MENU_ACTION, 0, 5, "CPM/CPS Auto"    , 36 },
+    { ITEM_TYPE_SOFTKEY	    ,  0,  3, "Back"   , 255}
   }
-  ,7
+  ,0
 },
 
 //Screen 18 - Version information
 {
-  3,
+  4,
   {
     { ITEM_TYPE_HEAD       , 0 , 0, "$CPMDEADINT"        , 255},
     { ITEM_TYPE_LABEL      , 0  ,32, "Firmware Release" , 37 },
-    { ITEM_TYPE_LABEL      , 255,64, OS100VERSION       , 255}
+    { ITEM_TYPE_LABEL      , 255,64, OS100VERSION       , 255},
+    { ITEM_TYPE_SOFTKEY	    ,  0,  3, "Back"   , 255}
   }
   ,7
 },
@@ -311,7 +319,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 20 - Set UTC offset
 {
-  9,
+  10,
   {
     { ITEM_TYPE_HEAD       , 0 , 0 , "$CPMDEADINT" , 255 },
     { ITEM_TYPE_VARNUM     , 10, 50, "SIGN:-,+,"  , 255 },
@@ -319,7 +327,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 54, 50, "$OFFHOUR2"   , 255 },
     { ITEM_TYPE_VARNUM     , 76, 50, "$OFFMIN1"    , 255 },
     { ITEM_TYPE_VARNUM     , 98, 50, "$OFFMIN2"    , 255 },
-    { ITEM_TYPE_SOFTKEY_ACTION	, 0, 0, "Save:UTCOff" , 2},
+    { ITEM_TYPE_SOFTKEY	    ,  0,  9, "Back"   , 255},
+    { ITEM_TYPE_SOFTKEY_ACTION	, 2, 0, "Save:UTCOff" , 2},
     { ITEM_TYPE_LABEL      , 0 , 20, "HH:MM"      , 40  },
     { ITEM_TYPE_ACTION     ,  0,  0, "UTCSCREEN"  , 255 }
 
@@ -341,13 +350,14 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 22 - Set Becquerel conversion value
 {
-  7,
+  8,
   {
     { ITEM_TYPE_HEAD       , 0 ,  0 , "$CPMDEADINT", 255 },
     { ITEM_TYPE_VARNUM     , 38, 50 , "$BECQ1"     , 255 },
     { ITEM_TYPE_VARNUM     , 56, 50 , "$BECQ2"     , 255 },
     { ITEM_TYPE_VARNUM     , 74, 50 , "$BECQ3"     , 255 },
     { ITEM_TYPE_VARNUM     , 92, 50 , "$BECQ4"     , 255 },
+    { ITEM_TYPE_SOFTKEY	    ,  0,  17, "Back"   , 255},
     { ITEM_TYPE_SOFTKEY_ACTION	, 0, 0, "Save:Becq" , 2},
     { ITEM_TYPE_ACTION     ,  0,   0, "BECQSCREEN", 255 },
   }

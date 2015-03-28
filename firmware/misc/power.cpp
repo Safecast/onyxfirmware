@@ -285,13 +285,13 @@ void power_standby(void) {
 	volatile uint32_t *pwr_csr = (uint32_t *) 0x40007004;
 	volatile uint32_t *scb_scr = (uint32_t *) 0xE000ED10;
 
-	*scb_scr |= (uint16_t) 1 << 2;  // SCB_SCR_SLEEPDEEP;   // set deepsleep
-	*pwr_cr  |= (uint16_t) 1 << 1;  // PWR_CR_PDDS          // set PDDS
-  	  	  	  	  	  	  	      	// PDDS at 1: Enter Standby mode when the CPU enters Deepsleep
-	*pwr_cr  |= (uint16_t) 1 << 2;  //PWR_CSR_WUF;         // clear WUF
-	*pwr_csr |= (uint16_t) 1 << 8;  // EWUP                // enable wakeup pin
+	*scb_scr |= (uint16_t) 1 << 2;   // SCB_SCR_SLEEPDEEP;   // set deepsleep
+	*pwr_cr  |= (uint16_t) 1 << 1;   // PWR_CR_PDDS          // set PDDS
+  	  	  	  	  	  	  	      	 // PDDS at 1: Enter Standby mode when the CPU enters Deepsleep
+	*pwr_cr  |= (uint16_t) 1 << 2;   //PWR_CSR_WUF;         // clear WUF (set to 1 to clear)
+	*pwr_csr |= (uint16_t) 1 << 8;   // EWUP                // enable wakeup pin
 
-	delay_us(100);
+	delay_us(100); // WUF is cleared after 2 clock cycles, so we need to delay a bit
 
 	asm volatile (
 			"WFI\n\t"

@@ -1041,7 +1041,6 @@ void update_item(screen_item &item, const void *value) {
 		}
 	} else if (item.type == ITEM_TYPE_RED_VARLABEL) {
 		// Convention: if first character is " " (space) then clear the label
-		buzzer_morse_debug("E"); // .
 		if (((char*)value)[0] == ' ') {
 			display_draw_text(item.val1, item.val2, (char *) value, COLOR_WHITE, background_color);
 		} else {

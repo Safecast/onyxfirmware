@@ -129,6 +129,8 @@ void rtc_init(rtc_dev *dev) {
 
     /* Disable writes to the backup region */
     bkp_disable_writes();
+
+    rtc_alarm_on = 0;
 }
 
 

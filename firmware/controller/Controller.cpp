@@ -100,24 +100,17 @@ Controller::Controller() {
 	m_log_interval_seconds = 0;
 
 	const char *sloginter = flashstorage_keyval_get("LOGINTERVAL");
-	if (sloginter != 0) {
+	if (sloginter) {
 		int32_t c;
 		sscanf(sloginter, "%"PRIu32"", &c);
 		m_log_interval_seconds = c;
 	}
 
-	if (m_log_interval_seconds > 0) {
-		// TESTING: if we reset the alarm here, then we reset the current
-		// alarm cycle at each power-up, which is very bad. Alarm should
-		// only be set/reset when we edit the log interval. Disabling
-		// for now and testing.
-		// rtc_enable_alarm(RTC);
-		// rtc_set_alarm(RTC, rtc_get_time(RTC) + m_log_interval_seconds);
-	} else {
+	if (m_log_interval_seconds == 0) {
 		// No need to enable the Alarm until we have
 		// a logging interval above zero
-		rtc_clear_alarmed();
 		rtc_disable_alarm(RTC);
+		rtc_clear_alarmed();
 	}
 
 	// And also restore the count timer:
@@ -242,8 +235,8 @@ void Controller::save_loginterval() {
 		uint32_t current_time = realtime_get_unixtime();
 		rtc_set_alarm(RTC, current_time + m_log_interval_seconds);
 	} else {
-		rtc_clear_alarmed();
 		rtc_disable_alarm(RTC);
+		rtc_clear_alarmed();
 	}
 	m_gui->jump_to_screen(0);
 }
@@ -1213,7 +1206,7 @@ void Controller::send_svrem() {
 		m_gui->receive_update("$SVREM", text_rem);
 		m_gui->receive_update("$SVREMLABEL", "\x80R/h");
 	} else {
-		char text_sieverts[6];
+		char text_sieverts[9];
 		char tmp[16];
 		sprintf(tmp, "%5.3f", system_geiger->get_microsieverts());
 		// Truncate to 5 character string (includes '.')
