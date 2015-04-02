@@ -10,6 +10,8 @@
 #include "safecast_config.h"
 #include <stdint.h>
 
+#include "buzzer.h"
+
 
 #define BPP 2 /* 2 bytes per pixel */
 
@@ -197,17 +199,24 @@ static void Set_VCOMH(unsigned char d) {
 
 //=========================================================
 // Clear OLED GDRAM
+//
+// Optimized for speed, does not call higher level routines.
 //=========================================================
 void CLS(uint16 color) {
   Home();
   write_c(SSD1351_CMD_WRITERAM);    // Enable MCU to Write to RAM
 
-  uint8_t c[256];
-  for(uint32_t i=0;i<256;i++) c[i] = color;
+  // Make a buffer with a line of the correct color:
+  uint16_t c[128];
+  for(uint8_t i=0;i<128;i++) c[i] = color;
 
-  for(uint32_t j=0;j<128;j++) {
-    oled_draw_rect(0,j,128,1,c);
+  gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
+                   PIN_MAP[LCD_DC_GPIO].gpio_bit,
+                   1);
+  for(uint8_t j=0;j<128;j++) {
+	spi_aux_write(LCD_SPI,(uint8 *)c, 256);
   }
+
 }
 
 static void Set_Contrast_Color(unsigned char a, unsigned char b, unsigned char c) {

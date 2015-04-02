@@ -1236,11 +1236,18 @@ void GUI::render() {
 	process_keys();
 }
 
+/**
+ * Clears the screen...
+ */
 void GUI::clear_screen(int32_t c_screen, int32_t c_selected) {
-	for (int32_t n = 0; n < screens_layout[c_screen].item_count; n++) {
-		clear_item(screens_layout[c_screen].items[n], (n == c_selected));
-	}
+
+	// why the heck were we doing this stupid complicated
+	// routine here? Why not just, well, you know... clear the screen ?
+	//	for (int32_t n = 0; n < screens_layout[c_screen].item_count; n++) {
+    //		clear_item(screens_layout[c_screen].items[n], (n == c_selected));
+    //	}
 	varnum_size = 0;
+	CLS(background_color);
 }
 
 void GUI::set_key_trigger() {
