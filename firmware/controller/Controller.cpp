@@ -86,13 +86,13 @@ Controller::Controller() {
 	}
 
 	// And restore uSv/ uR/h from flash
-	beep = flashstorage_keyval_get("SVREM");
-	if (strcmp(beep,"SV") == 0) {
-		tick_item(" \x80Sv", true);
-		tick_item(" \x80R", false);
-	} else {
+	const char *sv = flashstorage_keyval_get("SVREM");
+	if (strcmp(sv,"REM") == 0) {
 		tick_item(" \x80Sv", false);
 		tick_item(" \x80R", true);
+	} else {
+		tick_item(" \x80Sv", true);
+		tick_item(" \x80R", false);
 	}
 
 	// Get logging interval from flash if it exists

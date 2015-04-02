@@ -235,11 +235,12 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 14 - Language Selection Screen
 {
-  3,
+  4,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT", 255},
     { ITEM_TYPE_MENU_ACTION, 1, 1, "English"   , 255},
-    { ITEM_TYPE_MENU_ACTION, 2, 2, "Japanese"  , 3  }
+    { ITEM_TYPE_MENU_ACTION, 2, 2, "Japanese"  , 3  },
+    { ITEM_TYPE_SOFTKEY	    ,  0,  16, "Back"   , 255}
   }
   ,7
 },
@@ -308,11 +309,12 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 19 - Sieverts or Rems
 {
-  3,
+  4,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT", 255},
     { ITEM_TYPE_MENU_ACTION, 1, 1, " \x80Sv"    , 38 },
-    { ITEM_TYPE_MENU_ACTION, 2, 2, " \x80R"     , 39 }
+    { ITEM_TYPE_MENU_ACTION, 2, 2, " \x80R"     , 39 },
+    { ITEM_TYPE_SOFTKEY	    ,  0,  17, "Back"   , 255}
   }
   ,7
 },
@@ -358,7 +360,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 74, 50 , "$BECQ3"     , 255 },
     { ITEM_TYPE_VARNUM     , 92, 50 , "$BECQ4"     , 255 },
     { ITEM_TYPE_SOFTKEY	    ,  0,  17, "Back"   , 255},
-    { ITEM_TYPE_SOFTKEY_ACTION	, 0, 0, "Save:Becq" , 2},
+    { ITEM_TYPE_SOFTKEY_ACTION	, 2, 0, "Save:Becq" , 2},
     { ITEM_TYPE_ACTION     ,  0,   0, "BECQSCREEN", 255 },
   }
   ,7
@@ -411,7 +413,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 26 - Counting window config
 {
-  9,
+  11,
   {
     { ITEM_TYPE_HEAD       , 0 , 0  , "$CPMDEADINT"  , 255 },
     { ITEM_TYPE_VARNUM     , 10, 50 , "$COUNTWIN1"    , 255 },
@@ -419,8 +421,10 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 54, 50 , "$COUNTWIN3"    , 255 },
     { ITEM_TYPE_VARNUM     , 76, 50 , "$COUNTWIN4"    , 255 },
     { ITEM_TYPE_VARNUM     , 98, 50 , "$COUNTWIN5"    , 255 },
-    { ITEM_TYPE_SOFTKEY_ACTION	, 0, 0, "Save:CountWin" , 2},
+    { ITEM_TYPE_SOFTKEY	  	, 0 ,  15, "Back"	   , 255},
+    { ITEM_TYPE_SOFTKEY_ACTION	, 2, 0, "Save:CountWin" , 2},
     { ITEM_TYPE_LABEL      , 0 ,  20, "Max count window" , 47  },
+    { ITEM_TYPE_LABEL      , 255 ,  85, "seconds" , 47  },
     { ITEM_TYPE_ACTION     ,  0,   0, "COUNTWINSCR"  , 255 }
   }
   ,7
