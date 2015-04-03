@@ -42,6 +42,7 @@ Controller::Controller() {
 	system_controller = this;
 	m_last_switch_state = true;
 	m_never_dim = false;
+	m_screen_dimmed = true;
 
 	bool sstate = switch_state();
 	m_last_switch_state = sstate;
@@ -63,19 +64,13 @@ Controller::Controller() {
 	}
 
 	// Get never dim from flash
-	m_warncpm = -1;
 	const char *sneverdim = flashstorage_keyval_get("NEVERDIM");
 	if (sneverdim != 0) {
 		if (strcmp(sneverdim, "true") == 0)
 			m_never_dim = true;
-		else
-			m_never_dim = false;
-	} else
-		m_never_dim = false;
-
+	}
 	// Send this info to the GUI so that the tick correct on the display
-	if (m_never_dim)
-		tick_item("Never Dim", true);
+	tick_item("Never Dim", m_never_dim);
 
 	// Restore Beep settings from flash
 	const char *beep = flashstorage_keyval_get("GEIGERBEEP");
@@ -949,12 +944,14 @@ void Controller::check_warning_level() {
 				display_powerup();
 
 			m_warning_raised = true;
+			m_dim_off = true;
 			m_gui->set_cpm_alarm(true, system_geiger->get_cpm_deadtime_compensated());
 		}
 		else if ((cpm < m_warncpm) && (m_warning_raised == true)) {
 			// We are back to normal
 			m_warning_raised = false;
 			m_gui->set_cpm_alarm(false, 0);
+			m_dim_off = false;
 		}
 	}
 }
@@ -1079,7 +1076,7 @@ void Controller::check_sleep_switch() {
  */
 void Controller::do_dimming() {
 
-	if (m_never_dim)
+	if (m_never_dim && !m_screen_dimmed)
 		return;
 
 	// only dim if not in brightness changing mode
@@ -1094,6 +1091,7 @@ void Controller::do_dimming() {
 				&& ((current_time - release_time) > 10)) {
 			if (current_brightness > 1)
 				display_set_brightness(current_brightness - 1);
+			m_screen_dimmed = true;
 		} else {
 			const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
 			unsigned int user_brightness = 15;
@@ -1102,8 +1100,19 @@ void Controller::do_dimming() {
 			}
 			if (current_brightness < user_brightness) {
 				display_set_brightness(current_brightness + 1);
+			} else {
+				m_screen_dimmed = false;
 			}
 		}
+	} else if (m_screen_dimmed) {
+		// We have dim_off and the screen is dimmed: undim it!
+		const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
+		unsigned int user_brightness = 15;
+		if (sbright != 0) {
+			sscanf(sbright, "%u", &user_brightness);
+		}
+		display_set_brightness(user_brightness);
+		m_screen_dimmed = false;
 	}
 }
 

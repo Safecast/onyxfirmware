@@ -81,6 +81,7 @@ public:
   uint32   m_total_timer_start;
   bool     m_dim_off;
   bool     m_never_dim;
+  bool     m_screen_dimmed;
   uint32_t m_last_cpm_sent_to_gui;
   uint32_t m_count_timer_max;
 

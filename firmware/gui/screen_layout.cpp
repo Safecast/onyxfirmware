@@ -217,7 +217,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 13 - Warning configuration
 {
-  9,
+  10,
   {
     { ITEM_TYPE_HEAD       , 0 , 0  , "$CPMDEADINT"  , 255 },
     { ITEM_TYPE_VARNUM     , 10, 50 , "$WARNCPM1"    , 255 },
