@@ -1091,7 +1091,6 @@ GUI::GUI(Controller &r) :
 	selected_item = 1;
 	last_selected_item = 1;
 	m_trigger_any_key = false;
-	m_sleeping = false;
 	m_redraw = false;
 	m_screen_lock = false;
 	m_language = LANGUAGE_ENGLISH;
@@ -1132,12 +1131,15 @@ void GUI::show_dialog(const char *dialog_text1, const char *dialog_text2,
  */
 void GUI::render() {
 
-	if (m_sleeping) {
-		return;
-	}
-
 	if (m_dialog_buzz)
 		buzzer_nonblocking_buzz(0.2);
+
+	// We check for the buzzer before checking for m_sleeping, because
+	// the alarm system can be triggered during a logging period. This will
+	// turn the screen red (no display)
+	if (controller.m_sleeping) {
+		return;
+	}
 
 	if (m_displaying_dialog_complete) {
 		m_displaying_dialog_complete = false;
@@ -1416,7 +1418,7 @@ void GUI::process_key(int key_id, int type) {
 		m_trigger_any_key = false;
 	}
 
-	if (m_sleeping)
+	if (controller.m_sleeping)
 		return;
 
 	// This used to be for the help system, now just softkey 2
@@ -1585,10 +1587,6 @@ void GUI::receive_update(const char *tag, const void *value) {
 			}
 		}
 	}
-}
-
-void GUI::set_sleeping(bool v) {
-	m_sleeping = v;
 }
 
 void GUI::toggle_screen_lock() {

@@ -76,7 +76,6 @@ private:
 
   bool    clear_next_render;
   bool    m_trigger_any_key;
-  bool    m_sleeping;
   bool    m_redraw;
   bool    m_screen_lock;
 

@@ -316,7 +316,6 @@ void Controller::event_sleep(const char *event, const char *value) {
 	if (m_sleeping == false) {
 		m_sleeping = true;
 		m_gui->set_key_trigger();
-		m_gui->set_sleeping(true);
 		power_standby();
 	}
 }
@@ -1051,7 +1050,6 @@ void Controller::check_sleep_switch() {
 		delay_us(3000000);
 		display_clear(0);
 
-		m_gui->set_sleeping(false);
 		m_sleeping = false;
 		m_powerup = false;
 

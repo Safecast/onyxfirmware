@@ -185,9 +185,11 @@ int main(void) {
 		}
 
 		c.update();
+		// If we are sleeping, the GUI will just check the buzzer
+		// (in case we have an alarm) then stop.
+		m_gui.render();
 
 		if (!c.m_sleeping) {
-			m_gui.render();
 			serial_eventloop();
 
 			// Screen lock code
