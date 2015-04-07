@@ -156,7 +156,6 @@ int main(void) {
 		tick_item("English", true);
 	}
 	m_gui.jump_to_screen(1);
-	m_gui.push_stack(0, 1);
 
 	/**
 	 * Start of main event loop here, we will not leave this

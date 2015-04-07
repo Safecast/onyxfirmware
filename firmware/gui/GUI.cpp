@@ -1073,31 +1073,6 @@ void update_item(screen_item &item, const void *value) {
 	}
 }
 
-void GUI::clear_stack() {
-	selected_stack_size = 0;
-}
-
-void GUI::pop_stack(uint8_t current_screen, uint8_t selected_item) {
-
-	if (selected_stack_size == 0)
-		return;
-
-	current_screen = selected_screen_stack[selected_stack_size - 1];
-	last_selected_item = selected_item;
-	selected_item = selected_item_stack[selected_stack_size - 1];
-	selected_stack_size--;
-}
-
-void GUI::push_stack(uint8_t current_screen, uint8_t selected_item) {
-
-	if (selected_stack_size >= MAX_SCREEN_STACK)
-		return;
-
-	selected_screen_stack[selected_stack_size] = current_screen;
-	selected_item_stack[selected_stack_size] = selected_item;
-	selected_stack_size++;
-}
-
 /**
  * The GUI object. Interacts with the Controller object, manipulated from
  * the main firmware event loop in main.cpp
@@ -1106,7 +1081,6 @@ GUI::GUI(Controller &r) :
 		controller(r) {
 
 	m_repeated = false;
-	m_displaying_help = false;
 	m_repeat_time = 0;
 	m_repeat_delay = 8;
 	m_repeating = false;
@@ -1116,7 +1090,6 @@ GUI::GUI(Controller &r) :
 	current_screen = 0;
 	selected_item = 1;
 	last_selected_item = 1;
-	clear_stack();
 	m_trigger_any_key = false;
 	m_sleeping = false;
 	m_redraw = false;
@@ -1128,17 +1101,6 @@ GUI::GUI(Controller &r) :
 	m_pause_display_updates = false;
 }
 
-void GUI::show_help_screen(uint8_t helpscreen) {
-	if (m_language == LANGUAGE_ENGLISH)
-		display_draw_helpscreen_en(helpscreen);
-	if (m_language == LANGUAGE_JAPANESE)
-		display_draw_helpscreen_jp(helpscreen);
-	m_displaying_dialog = true;
-	m_displaying_dialog_complete = false;
-	m_pause_display_updates = true;
-	m_dialog_buzz = false;
-	m_displaying_help = true;
-}
 
 void GUI::set_cpm_alarm(bool alrm, float cpm) {
 	if (alrm) {
@@ -1210,7 +1172,7 @@ void GUI::render() {
 	if (!m_pause_display_updates) {
 
 		if (clear_next_render) {
-			clear_screen(clear_screen_screen, clear_screen_selected);
+			clear_screen();
 			clear_next_render = false;
 			first_render = true;
 		}
@@ -1249,13 +1211,7 @@ void GUI::render() {
 /**
  * Clears the screen...
  */
-void GUI::clear_screen(int32_t c_screen, int32_t c_selected) {
-
-	// why the heck were we doing this stupid complicated
-	// routine here? Why not just, well, you know... clear the screen ?
-	//	for (int32_t n = 0; n < screens_layout[c_screen].item_count; n++) {
-    //		clear_item(screens_layout[c_screen].items[n], (n == c_selected));
-    //	}
+void GUI::clear_screen() {
 	varnum_size = 0;
 	CLS(background_color);
 }
@@ -1276,12 +1232,9 @@ void GUI::redraw() {
 void GUI::receive_key(int key_id, int type) {
 
 	// don't activate HELP key when in a help screen
-	if ((m_displaying_help == true) && (key_id == KEY_HELP))
-		return;
 
 	if (m_displaying_dialog == true) {
 		m_displaying_dialog = false;
-		m_displaying_help = false;
 		m_displaying_dialog_complete = true;
 		return;
 	}
@@ -1466,25 +1419,19 @@ void GUI::process_key(int key_id, int type) {
 	if (m_sleeping)
 		return;
 
-	// TODO: remove the help system altogether here ??
-	//   Not sure a help system is that relevant in this device.
-	//      => To be discussed with Medcom
-	// Display a help screen
-	if ((key_id == KEY_HELP) && (type == KEY_RELEASED)
-			&& (!m_displaying_help)) {
+	// This used to be for the help system, now just softkey 2
+	if ((key_id == KEY_HELP) && (type == KEY_RELEASED)) {
 			// We want softkey 2 here
 			if (softkey_action(2) != NULL) {
 				// We have an action key, process it:
 				controller.receive_gui_event(softkey_action(2),
 						"select");
 				// Flag the softkey for re-rendering
-				selected_item = softkey_index(2);
+				last_selected_item = softkey_index(2);
 				return;
 			} else if (softkey_screen(2) != INVALID_SCREEN) {
 				jump_to_screen(softkey_screen(2));
 				return;
-			}  else if (screens_layout[current_screen].help_screen != 255) {
-				show_help_screen(screens_layout[current_screen].help_screen);
 			}
 	}
 
@@ -1513,7 +1460,7 @@ void GUI::process_key(int key_id, int type) {
 				// We have an action key:
 				controller.receive_gui_event(softkey_action(1),
 						"select");
-				selected_item = softkey_index(1);
+				last_selected_item = softkey_index(1);
 				return;
 			} else if (softkey_screen(1) != INVALID_SCREEN) {
 				jump_to_screen( softkey_screen(1));
@@ -1573,16 +1520,9 @@ void GUI::process_key(int key_id, int type) {
 		}
 
 		if ((current_screen != 0) && (!clear_next_render)) {
-			if (selected_stack_size != 0) {
 				clear_next_render = true;
 				first_render = true;
-				clear_screen_screen = current_screen;
-				clear_screen_selected = selected_item;
-
 				leave_screen_actions(current_screen);
-
-				pop_stack(current_screen, selected_item);
-			}
 		}
 	}
 
@@ -1593,7 +1533,7 @@ void GUI::process_key(int key_id, int type) {
 					controller.receive_gui_event(softkey_action(0),
 							"select");
 					// Flag the softkey for re-rendering
-					selected_item = softkey_index(0);
+					last_selected_item = softkey_index(0);
 					return;
 				} else if (softkey_screen(0) != INVALID_SCREEN) {
 					jump_to_screen(softkey_screen(0));
@@ -1605,19 +1545,13 @@ void GUI::process_key(int key_id, int type) {
 	}
 }
 
+/**
+ * Direct jump to another screen. Autoselects the first item on
+ * that screen.
+ */
 void GUI::jump_to_screen(uint8_t screen) {
-	clear_next_render = true;
-	first_render = true;
-	clear_screen_screen = current_screen;
-	clear_screen_selected = selected_item;
 	leave_screen_actions(current_screen);
-	// When we go to home screen, simply clear the
-	// whole screen history
-	if (screen == 0) {
-		clear_stack();
-	} else {
-		push_stack(current_screen, selected_item);
-	}
+	clear_next_render = true;
 	current_screen = screen;
 	last_selected_item = 1;
 	selected_item = 1;

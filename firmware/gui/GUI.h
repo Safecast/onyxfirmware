@@ -6,7 +6,6 @@
 #include "display.h"
 #include "UserInput.h"
 
-#define MAX_SCREEN_STACK 10
 #define NEW_KEYS_MAX_SIZE 40
 #define FOREGROUND_COLOR 65535
 #define BACKGROUND_COLOR 0
@@ -46,7 +45,6 @@ public:
   void redraw();
   void set_sleeping(bool sleeping);
   void jump_to_screen(uint8_t screen);
-  void push_stack(uint8_t current_screen,uint8_t selected_item);
   void toggle_screen_lock();
   void set_language(uint8_t lang);
   void show_dialog      (const char *text1 ,const char *text2 ,const char *text3,const char *text4,bool buzz,int img1=255,int img2=255,int img3=255,int img4=255);
@@ -61,13 +59,6 @@ private:
 
   bool cpm_alarm; // indicator that we have a High CPM alarm (change display background in red)
 
-  uint8_t selected_screen_stack[MAX_SCREEN_STACK];
-  uint8_t selected_item_stack  [MAX_SCREEN_STACK];
-  uint8_t selected_stack_size;
-
-  void pop_stack(uint8_t current_screen,uint8_t selected_item);
-  void clear_stack();
-
   void process_key_up();
   void process_key_down();
 
@@ -79,13 +70,10 @@ private:
   void process_key(int key_id,int type);
   void process_keys();
 
-  void clear_screen(int32_t c_screen,int32_t c_selected);
-  void show_help_screen(uint8_t help_screen);
+  void clear_screen();
   void leave_screen_actions(int screen);
   void clear_pending_keys();
 
-  uint8_t clear_screen_selected;
-  uint8_t clear_screen_screen;
   bool    clear_next_render;
   bool    m_trigger_any_key;
   bool    m_sleeping;
@@ -110,7 +98,6 @@ private:
   int  m_repeat_key;
   int m_repeat_time;
   int m_repeat_delay;
-  bool m_displaying_help;
   bool m_repeated;
 };
 

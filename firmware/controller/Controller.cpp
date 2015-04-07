@@ -1225,17 +1225,17 @@ void Controller::send_svrem() {
 }
 
 void Controller::send_becq() {
-	char text_becq_tmp[50];
-	char text_becq[50];
+	char text_becq_tmp[16];
+	char text_becq[6];
 	float becq = system_geiger->get_becquerel();
 	if (becq >= 0) {
-		sprintf(text_becq_tmp, "%8.3f", system_geiger->get_becquerel());
-		sprintf(text_becq, "%8.8s", text_becq_tmp);
-
-		if (system_geiger->get_becquerel() > 99999999) {
+		if (becq > 9999) {
 			sprintf(text_becq, "TOO HIGH");
+		} else {
+			sprintf(text_becq_tmp, "%5.3f", becq);
+			// Truncate to 5 character string (includes '.')
+			sprintf(text_becq, "%5.5s", text_becq_tmp);
 		}
-
 		m_gui->receive_update("$BECQ", text_becq);
 	} else {
 		m_gui->receive_update("$BECQINFO", "Becquerel unset"); // kanji image is: 46

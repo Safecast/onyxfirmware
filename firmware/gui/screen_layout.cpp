@@ -340,12 +340,14 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 21 - Becquerel
 {
-  4,
+  6,
   {
     { ITEM_TYPE_HEAD        , 0  ,  0, "$CPMDEADINT", 255},
     { ITEM_TYPE_VARLABEL    , 0  , 30, "$BECQINFO"  , 255},
     { ITEM_TYPE_BIGVARLABEL , 0  , 43, "$BECQ"      , 255},
-    { ITEM_TYPE_LABEL        ,81 , 74, "Bq/m2"     , 255}
+    { ITEM_TYPE_LABEL        ,81 , 90, "Bq/m2"     , 255},
+    { ITEM_TYPE_SOFTKEY	    ,  0,   0, "Menu"   , 255},
+    { ITEM_TYPE_SOFTKEY	    ,  2,  22, "Setup"   , 255},
   }
   ,1
 },
