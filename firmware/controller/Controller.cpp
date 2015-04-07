@@ -51,8 +51,9 @@ Controller::Controller() {
 	m_dim_off = false;
 
 	m_cpm_cps_switch = false;
-	m_cpm_cps_threshold = 1100.0;
-	m_cps_cpm_threshold = 1000.0;
+	m_displaying_cps = false; // For hysteresis
+	m_cpm_cps_threshold = 1010;
+	m_cps_cpm_threshold = 990;
 
 	// Get warning cpm from flash
 	m_warncpm = 0;
@@ -126,13 +127,9 @@ void Controller::update_calibration() {
 	float calibration_scaling = ((float) c1) + (((float) c2) / 10)
 			+ (((float) c3) / 100) + (((float) c4) / 1000);
 
-	char text_sieverts[50];
-	float_to_char(m_calibration_base * calibration_scaling, text_sieverts, 5);
-	text_sieverts[5] = ' ';
-	text_sieverts[6] = '\x80';
-	text_sieverts[7] = 'S';
-	text_sieverts[8] = 'v';
-	text_sieverts[9] = 0;
+	char text_sieverts[16];
+	sprintf(text_sieverts, "%5.3f \x80Sv", m_calibration_base * calibration_scaling);
+
 	m_gui->receive_update("$FIXEDSV", text_sieverts);
 }
 
@@ -145,14 +142,10 @@ void Controller::event_save_calibration() {
 			+ (((float) c3) / 100) + (((float) c4) / 1000);
 	float base_sieverts = system_geiger->get_microsieverts_nocal();
 
-	char text_sieverts[50];
-	float_to_char(base_sieverts * calibration_scaling, text_sieverts, 5);
-	text_sieverts[5] = ' ';
-	text_sieverts[6] = '\x80';
-	text_sieverts[7] = 'S';
-	text_sieverts[8] = 'v';
-	text_sieverts[9] = 0;
+	char text_sieverts[16];
+	sprintf(text_sieverts, "%5.3f \x80Sv", base_sieverts * calibration_scaling);
 
+	// FIXME: there is no entry in the screen definition called "Sieverts" !!
 	m_gui->receive_update("Sieverts", text_sieverts);
 	system_geiger->set_calibration(calibration_scaling);
 	m_dim_off = false;
@@ -163,14 +156,10 @@ void Controller::initialise_calibration() {
 	m_dim_off = true;
 	display_set_brightness(15);
 	m_calibration_base = system_geiger->get_microsieverts_nocal();
-	char text_sieverts[50];
-	float_to_char(m_calibration_base * system_geiger->get_calibration(),
-			text_sieverts, 5);
-	text_sieverts[5] = ' ';
-	text_sieverts[6] = '\x80';
-	text_sieverts[7] = 'S';
-	text_sieverts[8] = 'v';
-	text_sieverts[9] = 0;
+	char text_sieverts[16];
+	sprintf(text_sieverts, "%5.3f \x80Sv", m_calibration_base * system_geiger->get_calibration(),
+			text_sieverts);
+
 	m_gui->receive_update("$FIXEDSV", text_sieverts);
 
 	uint8_t c1 = system_geiger->get_calibration();
@@ -1122,8 +1111,8 @@ void Controller::do_dimming() {
  */
 void Controller::send_cpm_values() {
 
-	char text_cpmdint[16];
-	char text_cpmd[6];
+	char text_cpmdint[16]; // CPM integer
+	char text_cpmd[6];     // CPM with decimals
 
 	// Add 0.5 to have a nearest integer rounding
 	uint32_t cpm = (uint32_t) floor(system_geiger->get_cpm_deadtime_compensated()+0.5);
@@ -1146,10 +1135,15 @@ void Controller::send_cpm_values() {
 		}
 		m_gui->receive_update("$CPMSLABEL", "CPM");
 	} else {
-		if (cpm > m_cpm_cps_threshold) {
-			sprintf(text_cpmd, "%4"PRIu32"", cpm / 60);
+		if ((cpm > m_cpm_cps_threshold) || ((cpm > m_cps_cpm_threshold) && m_displaying_cps)) {
+			float cps = (float) cpm/60;
+			char tmp[16];
+			sprintf(tmp,"%5.3f",cps);
+			sprintf(text_cpmd, "%5.5s", tmp);
 			m_gui->receive_update("$CPMSLABEL", "CPS");
-		} else if (cpm < m_cps_cpm_threshold) {
+			m_displaying_cps = true;
+		} else { // We are under cps to cpm threshold
+			m_displaying_cps = false;
 			sprintf(text_cpmd, "%4"PRIu32"", cpm);
 			m_gui->receive_update("$CPMSLABEL", "CPM");
 		}
@@ -1189,13 +1183,13 @@ void Controller::send_total_timer() {
 		sprintf(text_totaltimer_count, "%9"PRIu32"" , cnt );
 		sprintf(text_totaltimer_avg, "%7.2f CPM",
 				((float) cnt / ((float) totaltimer_time)) * 60);
+		m_gui->receive_update("$TTCOUNT", text_totaltimer_count);
+		m_gui->receive_update("$TTAVG", text_totaltimer_avg);
+		m_gui->receive_update("$TTTIME", text_totaltimer_time);
 	}
 
 	m_gui->receive_update("$DELAYA", NULL);
 	m_gui->receive_update("$DELAYB", NULL);
-	m_gui->receive_update("$TTCOUNT", text_totaltimer_count);
-	m_gui->receive_update("$TTAVG", text_totaltimer_avg);
-	m_gui->receive_update("$TTTIME", text_totaltimer_time);
 }
 
 void Controller::send_svrem() {
@@ -1235,7 +1229,6 @@ void Controller::send_becq() {
 	char text_becq[50];
 	float becq = system_geiger->get_becquerel();
 	if (becq >= 0) {
-		//float_to_char(system_geiger->get_becquerel(),text_becq,7);
 		sprintf(text_becq_tmp, "%8.3f", system_geiger->get_becquerel());
 		sprintf(text_becq, "%8.8s", text_becq_tmp);
 

@@ -85,9 +85,10 @@ public:
   uint32_t m_last_cpm_sent_to_gui;
   uint32_t m_count_timer_max;
 
-  float    m_cpm_cps_threshold;
-  float    m_cps_cpm_threshold;
-  bool     m_cpm_cps_switch;
+  uint32_t  m_cpm_cps_threshold;
+  uint32_t  m_cps_cpm_threshold;
+  bool 		m_displaying_cps;
+  bool      m_cpm_cps_switch;
 
 };
 

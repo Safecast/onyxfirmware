@@ -661,6 +661,10 @@ void render_item_delay(screen_item &item, bool selected) {
 	display_draw_number(item.val1, item.val2, delay_time, 3, FOREGROUND_COLOR, background_color);
 }
 
+/**
+ * Renders a GUI item. render_item is used for the initial rendering of the
+ * item. Further updates are done through update_item.
+ */
 void render_item(screen_item &item, bool selected) {
 	if (item.type == ITEM_TYPE_MENU) {
 		render_item_menu(item, selected);
@@ -995,24 +999,30 @@ void update_item_varnum(screen_item &item, const void *value) {
 	set_item_state_varnum(item.text, ((uint8_t *) value)[0]);
 }
 
+/**
+ * Update our delay countdown, which is used for calibrations.
+ */
 void update_item_delay(screen_item &item, const void *value) {
-
 	if (first_render == true) {
 		// parse out delay time
-		delay_time = str_to_uint(item.text + 8);
-
+		delay_time = str_to_uint(item.text + 9);
 	}
 
 	if (delay_time >= 1)
 		delay_time--;
+	// 1 second delay
 	delay_us(1000000);
 	display_draw_number(item.val1, item.val2, delay_time, 3, FOREGROUND_COLOR, background_color);
 }
 
+/**
+ * Find the menu number for the destination after a delay (second argument
+ * in the menu text)
+ */
 int get_item_state_delay_destination(screen_item &item) {
 	// parse out destination screen
 
-	for (int n = 9; n < 50; n++) {
+	for (int n = 10; n < 16; n++) {
 		if (!((item.text[n] >= '0') && (item.text[n] <= '9'))) {
 			uint32_t destination_screen_start = n + 1;
 			int dest = str_to_uint(item.text + destination_screen_start);
@@ -1156,7 +1166,7 @@ void GUI::show_dialog(const char *dialog_text1, const char *dialog_text2,
 }
 
 /**
- * The main render loop of the GUI
+ * The main render loop of the GUI. Called about twice per second.
  */
 void GUI::render() {
 
@@ -1633,8 +1643,7 @@ void GUI::receive_update(const char *tag, const void *value) {
 
 			// has to be in the GUI object, because we don't have access to current_screen outside it.
 			if (screens_layout[current_screen].items[n].type == ITEM_TYPE_DELAY) {
-				if (get_item_state_delay(
-						screens_layout[current_screen].items[n]) == 0) {
+				if (delay_time == 0) {
 					jump_to_screen(
 							get_item_state_delay_destination(
 									screens_layout[current_screen].items[n]));

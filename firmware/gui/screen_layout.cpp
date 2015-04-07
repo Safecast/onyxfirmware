@@ -118,7 +118,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL,255, 32, "Waiting for 15s" , 20  },
     { ITEM_TYPE_LABEL,255, 64, "Please expose"   , 21  },
     { ITEM_TYPE_LABEL,255, 80, "to source."      , 22  },
-    { ITEM_TYPE_DELAY, 60,100, "DELAYA\0 16,7"    , 255 } // 16 second delay, then go to screen 7
+    { ITEM_TYPE_DELAY, 60,100, "$DELAYA\0 16,7"    , 255 } // 16 second delay, then go to screen 7
   }
   ,0
 },
@@ -128,7 +128,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   2,
   {
     { ITEM_TYPE_LABEL,255, 32, "Acquiring, 30s" , 23  },
-    { ITEM_TYPE_DELAY, 60,100, "DELAYB\0 31,8"   , 255 } // 31 second delay
+    { ITEM_TYPE_DELAY, 60,100, "$DELAYB\0 31,8"   , 255 } // 31 second delay
   }
   ,0
 },

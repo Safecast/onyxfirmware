@@ -454,8 +454,9 @@ float Geiger::get_microsieverts() {
 	float conversionCoefficient = 0.00294;
 	float microsieverts = (get_cpm_deadtime_compensated()
 			* conversionCoefficient) * calibration_scaling;
-	char t[50];
-	float_to_char(microsieverts, t, 6);
+	char t[16];
+	sprintf(t, "%5.3f \x80Sv", microsieverts);
+
 	return microsieverts;
 }
 
