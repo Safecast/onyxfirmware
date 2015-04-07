@@ -1101,10 +1101,11 @@ GUI::GUI(Controller &r) :
 }
 
 
-void GUI::set_cpm_alarm(bool alrm, float cpm) {
+void GUI::set_cpm_alarm(bool alrm, bool silent, float cpm) {
 	if (alrm) {
 		background_color = COLOR_RED;
-		m_dialog_buzz = true;
+		if (!silent)
+			m_dialog_buzz = true;
 	} else {
 		background_color = COLOR_BLACK;
 		m_dialog_buzz = false;

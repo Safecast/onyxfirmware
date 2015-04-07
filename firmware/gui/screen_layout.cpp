@@ -73,13 +73,14 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 3 - Settings menu
 {
-  6,
+  7,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT", 255 },
     { ITEM_TYPE_MENU       ,16, 1, "Interface" , 8 },
     { ITEM_TYPE_MENU       ,17, 2, "Geiger"    , 9 },
     { ITEM_TYPE_MENU       , 9, 3, "Time/Date" , 13 },
-    { ITEM_TYPE_MENU       ,18, 4, "Version"   , 14 },
+    { ITEM_TYPE_MENU_ACTION, 0, 5, "Mute Alarm", 255 },
+    { ITEM_TYPE_SOFTKEY      ,2, 18, "About"   , 14 },
     { ITEM_TYPE_SOFTKEY	    ,  0,  0, "Home"   , 255}
   }
   ,0

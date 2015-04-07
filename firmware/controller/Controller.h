@@ -27,6 +27,7 @@ public:
   void event_japanese(const char *event,const char *value);
   void event_english(const char *event,const char *value);
   void event_cpm_cps_auto(const char *event,const char *value);
+  void event_mute_alarm();
   void event_geiger_beep(const char *event,const char *value);
   void event_usv(const char *event,const char *value);
   void event_rem(const char *event,const char *value);
@@ -79,6 +80,7 @@ public:
   bool     m_keytrigger;
   bool     m_warning_raised;
   uint32   m_total_timer_start;
+  bool     m_mute_alarm;
   bool     m_dim_off;
   bool     m_never_dim;
   bool     m_screen_dimmed;
@@ -89,6 +91,9 @@ public:
   uint32_t  m_cps_cpm_threshold;
   bool 		m_displaying_cps;
   bool      m_cpm_cps_switch;
+
+private:
+  void reset_alarm(int32_t warn_cpm);
 
 };
 

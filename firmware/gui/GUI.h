@@ -38,7 +38,7 @@ public:
   GUI(Controller &r);
 
   void render();
-  void set_cpm_alarm(bool alarm, float cpm);
+  void set_cpm_alarm(bool alarm, bool silent, float cpm);
   void receive_update(const char *tag,const void *value);
   void receive_key(int key,int type);
   void set_key_trigger();

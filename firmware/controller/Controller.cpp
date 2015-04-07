@@ -41,7 +41,6 @@ Controller::Controller() {
 
 	system_controller = this;
 	m_last_switch_state = true;
-	m_never_dim = false;
 	m_screen_dimmed = true;
 
 	bool sstate = switch_state();
@@ -65,6 +64,7 @@ Controller::Controller() {
 	}
 
 	// Get never dim from flash
+	m_never_dim = false;
 	const char *sneverdim = flashstorage_keyval_get("NEVERDIM");
 	if (sneverdim != 0) {
 		if (strcmp(sneverdim, "true") == 0)
@@ -72,6 +72,17 @@ Controller::Controller() {
 	}
 	// Send this info to the GUI so that the tick correct on the display
 	tick_item("Never Dim", m_never_dim);
+
+	// Get "mute alarm" from flash
+	m_mute_alarm = false;
+	const char *mute = flashstorage_keyval_get("MUTEALARM");
+	if (mute!= 0) {
+		if (strcmp(mute, "true") == 0)
+			m_mute_alarm = true;
+	}
+	// Send this info to the GUI so that the tick correct on the display
+	tick_item("Mute Alarm", m_mute_alarm);
+
 
 	// Restore Beep settings from flash
 	const char *beep = flashstorage_keyval_get("GEIGERBEEP");
@@ -189,9 +200,7 @@ void Controller::save_warncpm() {
 
 	// Reset warning state (will re-trigger at next refresh
 	// if new setting is under current CPM count)
-	m_warncpm = warn_cpm;
-	m_warning_raised = false;
-	m_gui->set_cpm_alarm(false, 0);
+	reset_alarm(warn_cpm);
 
 	char swarncpm[50];
 	sprintf(swarncpm, "%"PRIi32"", warn_cpm);
@@ -387,6 +396,9 @@ void Controller::event_save_utcoff(const char *event, const char *value) {
 	m_gui->jump_to_screen(0);
 }
 
+/**
+ * Update the value of the "Never Dim" setting
+ */
 void Controller::event_neverdim(const char *event, const char *value) {
 	if (m_never_dim == false) {
 		flashstorage_keyval_set("NEVERDIM", "true");
@@ -398,6 +410,37 @@ void Controller::event_neverdim(const char *event, const char *value) {
 		m_never_dim = false;
 	}
 }
+
+/**
+ * Update the value of the "Mute Alarm" setting
+ */
+void Controller::event_mute_alarm() {
+	if (m_mute_alarm == false) {
+		flashstorage_keyval_set("MUTEALARM", "true");
+		tick_item("Mute Alarm", true);
+		m_mute_alarm = true;
+	} else {
+		flashstorage_keyval_set("MUTEALARM", "false");
+		tick_item("Mute Alarm", false);
+		m_mute_alarm = false;
+	}
+	// Clear the alarm to force a re-trigger on the GUI with or witout
+	// sound depending on mute_alarm value
+	reset_alarm(-1);
+
+}
+
+/**
+ * Resets the Warning alarm to a new value (or just clears the GUI
+ * if warn_cpm = -1)
+ */
+void Controller::reset_alarm(int32_t warn_cpm) {
+	if (warn_cpm > -1)
+		m_warncpm = warn_cpm;
+	m_warning_raised = false;
+	m_gui->set_cpm_alarm(false, m_mute_alarm, 0);
+}
+
 
 void Controller::event_japanese(const char *event, const char *value) {
 	m_gui->set_language(LANGUAGE_JAPANESE);
@@ -863,6 +906,8 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 		event_japanese(event, value);
 	else if (strcmp(event, "Never Dim") == 0)
 		event_neverdim(event, value);
+	else if (strcmp(event, "Mute Alarm") == 0)
+		event_mute_alarm();
 	else if (strcmp(event, "English") == 0)
 		event_english(event, value);
 	else if (strcmp(event, "CPM/CPS Auto") == 0)
@@ -933,12 +978,12 @@ void Controller::check_warning_level() {
 
 			m_warning_raised = true;
 			m_dim_off = true;
-			m_gui->set_cpm_alarm(true, system_geiger->get_cpm_deadtime_compensated());
+			m_gui->set_cpm_alarm(true, m_mute_alarm, system_geiger->get_cpm_deadtime_compensated());
 		}
 		else if ((cpm < m_warncpm) && (m_warning_raised == true)) {
 			// We are back to normal
 			m_warning_raised = false;
-			m_gui->set_cpm_alarm(false, 0);
+			m_gui->set_cpm_alarm(false, m_mute_alarm, 0);
 			m_dim_off = false;
 		}
 	}
