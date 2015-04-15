@@ -953,13 +953,13 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 	else if (strcmp(event, "QR Tweet") == 0)
 		event_qrtweet(event, value);
 	else if (strcmp(event, "varnumchange") == 0) {
-		if (strcmp("BRIGHTNESS", value) == 0)
+		if (strcmp("$BRIGHTNESS", value) == 0)
 			event_varnum_brightness(event, value);
-		else if (strcmpl("CAL", value, 3))
+		else if (strcmpl("$CAL", value, 4))
 			update_calibration();
-		else if (strcmpl("DATE", value, 4))
+		else if (strcmpl("$DATE", value, 5))
 			event_varnum_date(event, value);
-		else if (strcmpl("TIME", value, 4))
+		else if (strcmpl("$TIME", value, 5))
 			event_varnum_time(event, value);
 	}
 }

@@ -105,9 +105,9 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   4,
   {
     { ITEM_TYPE_HEAD , 0 , 0  , "$CPMDEADINT"       , 255},
-    { ITEM_TYPE_MENU , 6 , 3  , "       OK       " , 255},
-    { ITEM_TYPE_MENU , 3 , 4  , "     Cancel     " , 18 },
-    { ITEM_TYPE_LABEL,255, 16 , "Are you sure?"    , 19 }
+    { ITEM_TYPE_SOFTKEY , 0 , 3  , "Abort" , 18 },
+    { ITEM_TYPE_SOFTKEY , 2 , 6  , "OK" , 255},
+    { ITEM_TYPE_LABEL,255, 40 , "Are you sure?"    , 19 }
   }
   ,0
 },
@@ -144,8 +144,9 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 56, 50 , "$CAL2"      , 255 },
     { ITEM_TYPE_VARNUM     , 74, 50 , "$CAL3"      , 255 },
     { ITEM_TYPE_VARNUM     , 92, 50 , "$CAL4"      , 255 },
-    { ITEM_TYPE_SOFTKEY_ACTION,  0,   0, "Save:Calib", 2   },
-    { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE" , 255 },
+    { ITEM_TYPE_SOFTKEY    ,  0,  4, "Abort", 255   },
+    { ITEM_TYPE_SOFTKEY_ACTION,  2,   0, "Save:Calib", 2   },
+//    { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE" , 255 },
     { ITEM_TYPE_VARLABEL   ,  0,   0, "$FIXEDSV"   , 255 }
   }
   ,0

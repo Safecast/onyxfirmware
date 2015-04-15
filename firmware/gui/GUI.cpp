@@ -16,6 +16,7 @@
 #include "serialinterface.h"
 
 bool first_render = true;
+bool clear_next_render = true;
 
 uint16 header_color = HEADER_COLOR_CPMINVALID;
 
@@ -1003,16 +1004,29 @@ void update_item_varnum(screen_item &item, const void *value) {
  * Update our delay countdown, which is used for calibrations.
  */
 void update_item_delay(screen_item &item, const void *value) {
-	if (first_render == true) {
+
+	// Because of the way the main loop works, this function will be called before
+	// the first screen render, so this is where we initially setup the delay_time.
+	if (clear_next_render == true) {
 		// parse out delay time
 		delay_time = str_to_uint(item.text + 9);
-	}
+	} else {
 
-	if (delay_time >= 1)
-		delay_time--;
-	// 1 second delay
-	delay_us(1000000);
-	display_draw_number(item.val1, item.val2, delay_time, 3, FOREGROUND_COLOR, background_color);
+		if (delay_time >= 1)
+			delay_time--;
+
+		// 1 second delay
+		delay_us(1000000);
+		display_draw_number(item.val1, item.val2, delay_time, 3, FOREGROUND_COLOR, background_color);
+
+		if (delay_time > 5) {
+			buzzer_morse("E");  // .
+		} else if (delay_time > 1 ){
+			buzzer_morse("I");  // ..
+		} else {
+			buzzer_morse("H"); // ....
+		}
+	}
 }
 
 /**
@@ -1479,8 +1493,10 @@ void GUI::process_key(int key_id, int type) {
 		if (screens_layout[current_screen].items[selected_item].type
 				== ITEM_TYPE_VARNUM) {
 			if (selected_item != 0) {
-				if ((selected_item + 1)
-						< screens_layout[current_screen].item_count) {
+				if (((selected_item + 1) < screens_layout[current_screen].item_count) &&
+					(screens_layout[current_screen].items[selected_item+1].type
+										== ITEM_TYPE_VARNUM)
+						) {
 					last_selected_item = selected_item;
 					selected_item++;
 					return;
@@ -1493,12 +1509,14 @@ void GUI::process_key(int key_id, int type) {
 			if (screens_layout[current_screen].items[selected_item].val1
 					!= INVALID_SCREEN) {
 				jump_to_screen(screens_layout[current_screen].items[selected_item].val1);
+				return;
 			}
 		} else if (screens_layout[current_screen].items[selected_item].type
 				== ITEM_TYPE_MENU_ACTION) {
 			controller.receive_gui_event(
 					screens_layout[current_screen].items[selected_item].text,
 					"select");
+			return;
 		}
 
 	}

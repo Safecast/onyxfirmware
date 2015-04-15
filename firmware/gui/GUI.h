@@ -74,7 +74,6 @@ private:
   void leave_screen_actions(int screen);
   void clear_pending_keys();
 
-  bool    clear_next_render;
   bool    m_trigger_any_key;
   bool    m_redraw;
   bool    m_screen_lock;
