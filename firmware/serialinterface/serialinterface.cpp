@@ -341,7 +341,7 @@ void cmd_magread(char *line) {
  *     "value": val,      // Actual value
  *     "valid": boolean,  // Valid flag
  *     "cpm30": val       // 30 second window
- *     "usv": val         // reading in microsieverts
+ *     "usv": val         // reading in microsieverts per hour
  *      }
  *  }
  *
@@ -454,6 +454,19 @@ void cmd_guid(char *line) {
   serial_write_string("{ \"guid\": \"");
   signing_printGUID();
   serial_write_string("\"}\r\n");
+}
+
+/**
+ * Prints the calibration factor of the device. Does not use libjson
+ * for output formatting for the sake of convenience.
+ */
+void cmd_calfactor(char *line) {
+	char calstr[20];
+	float cal = system_geiger->get_calibration();
+	sprintf(calstr, "%f", cal);
+	serial_write_string("{ \"cal\": \"");
+	serial_write_string(calstr);
+	serial_write_string("\"}\r\n");
 }
 
 void cmd_keyvalid(char *line) {
@@ -900,8 +913,10 @@ void serial_writeprivatekey() {
  *
  * Settings not linked to setting keys
  * "set" {
- *      "rtc": integer (Unix timestamp)
- *      "devicetag": string (device tag)
+ *      "rtc": integer (Unix timestamp),
+ *      "devicetag": string (device tag),
+ *      "debug": integer,
+ *      "cal": float  (calibration factor)
  *      }
  *
  *  Get/set settings keys (Work in progress not implemented yet):
@@ -915,6 +930,9 @@ void serial_writeprivatekey() {
  *    - "devicetag"
  *    - "settings"
  *    - "cpm"
+ *    - "version"
+ *    - "logstatus"
+ *    - "cal"
  *
  */
 void serial_process_command(char *line) {
@@ -959,6 +977,10 @@ void serial_process_command(char *line) {
       if (strcmp(val,"logstatus") == 0) {
          err = false;
          cmd_logstatus(0);
+      } else
+      if (strcmp(val,"cal") == 0) {
+         err = false;
+         cmd_calfactor(0);
       }
       json_free(val);
     }
@@ -991,6 +1013,14 @@ void serial_process_command(char *line) {
     	  flashstorage_keyval_set("DEBUG", mode);
     	  json_keyval("ok","debug");
       }
+      op = json_get_nocase(cmd, "cal");
+      if (op != 0 && json_type(op) == JSON_NUMBER) {
+    	  err = false;
+    	  float cal = json_as_float(op);
+    	  system_geiger->set_calibration(cal);
+    	  json_keyval("ok","cal");
+      }
+
     }
     if (err) {
       json_keyval("error", "unknown command");

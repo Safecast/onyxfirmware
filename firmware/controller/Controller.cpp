@@ -130,6 +130,10 @@ void Controller::set_gui(GUI &g) {
 	m_gui = &g;
 }
 
+/**
+ * Called whenever the unser changes the calibration value
+ * in the settings screen.
+ */
 void Controller::update_calibration() {
 	int c1 = m_gui->get_item_state_uint8("$CAL1");
 	int c2 = m_gui->get_item_state_uint8("$CAL2");
@@ -144,6 +148,9 @@ void Controller::update_calibration() {
 	m_gui->receive_update("$FIXEDSV", text_sieverts);
 }
 
+/**
+ * Saves the calibration value
+ */
 void Controller::event_save_calibration() {
 	int c1 = m_gui->get_item_state_uint8("$CAL1");
 	int c2 = m_gui->get_item_state_uint8("$CAL2");
@@ -163,6 +170,9 @@ void Controller::event_save_calibration() {
 	m_gui->jump_to_screen(0);
 }
 
+/**
+ * Initialize the final calibration screen
+ */
 void Controller::initialise_calibration() {
 	m_dim_off = true;
 	display_set_brightness(15);
@@ -857,6 +867,9 @@ void Controller::event_audioxfer(const char *event, const char *value) {
 	m_gui->jump_to_screen(0);
 }
 
+/**
+ * Generate a QR Code to tweet current CPM
+ */
 void Controller::event_qrtweet(const char *event, const char *value) {
 	char str[1024];
 
