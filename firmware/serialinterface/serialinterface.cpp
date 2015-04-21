@@ -95,6 +95,28 @@ void json_keyval(const char *cmd, const char *val) {
 }
 
 /**
+ * Firmware command to jump to DFU bootloader for firmware upgrades
+ *
+ * In order to make our life easier, we just load a special magic value
+ * in the RAM and trigger a reset. RAM survives the reset and the value is checked
+ * at boot time. This way we don't need to deinit the CPU before jumping to bootloader,
+ * reset takes care of this for us.
+ */
+
+void cmd_bootloader(void) {
+
+	// Write a magic value in RAM
+	*((unsigned long *)0x2000BFF0) = 0xBABEFEED; // 48K STM32F101RET6
+
+	// Initialize Reset counter too
+	*((unsigned long *)0x2000BFF4) = 0x0;
+
+	// Now reset!
+	nvic_sys_reset();
+
+}
+
+/**
  * hello: a simple "ping" command to check that the
  *        device is responsive
  */
@@ -917,9 +939,10 @@ void serial_writeprivatekey() {
  *      "devicetag": string (device tag),
  *      "debug": integer,
  *      "cal": float  (calibration factor)
+ *      "reset": "bootloader" (reset device to bootloader for FW upgrade)
  *      }
  *
- *  Get/set settings keys (Work in progress not implemented yet):
+ *  Get/set settings keys (not implemented yet):
  * "setkey" { "name": string, "value": value }
  * "getkey": "name"
  *
@@ -1020,7 +1043,15 @@ void serial_process_command(char *line) {
     	  system_geiger->set_calibration(cal);
     	  json_keyval("ok","cal");
       }
-
+      op = json_get_nocase(cmd, "reset");
+      if (op != 0 && json_type(op) == JSON_STRING) {
+          json_char *tag = json_as_string(op);
+          if (strcmp(tag, "bootloader") == 0) {
+        	  cmd_bootloader();
+        	  // no need to do anything later, the device
+        	  // is going to reset...
+          }
+      }
     }
     if (err) {
       json_keyval("error", "unknown command");
