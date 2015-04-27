@@ -382,6 +382,7 @@ void cmd_cpm(char *line) {
   json_push_back(reading, json_new_b("valid", system_geiger->is_cpm_valid()));
   json_push_back(reading, json_new_f("cpm30", system_geiger->get_cpm30_deadtime_compensated()));
   json_push_back(reading, json_new_f("usv", system_geiger->get_microsieverts()));
+  json_push_back(reading, json_new_i("count", system_geiger->get_total_count()));
   json_push_back(n, reading);
   json_char *jc = json_write_formatted(n);
   serial_write_string(jc);
