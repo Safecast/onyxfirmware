@@ -88,10 +88,14 @@ extern const uint8 boardUsedPins[];
 #define CHG_TIMEREN_N_GPIO      37  // PC8
 #define WAKEUP_GPIO              2  // PA0
 
+#define CAPTOUCH_GPIO 			30  // PB11
 #define LCD_DC_GPIO  			31	// PB12
 #define LCD_CS_GPIO  			33	// PB14
 #define LED_PWR_ENA 			16	// PC1
 #define LCD_RES_GPIO 			17	// PC2
+
+#define BOARD_I2C_SDA			9
+#define BOARD_I2C_SCL			5
 
 
 /* Number of USARTs/UARTs whose pins are broken out to headers */

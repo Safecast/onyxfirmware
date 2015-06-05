@@ -69,13 +69,6 @@ void pulse_output_end(void) {
  */
 void static geiger_rising(void) {
 
-	// for now, set to defaults but may want to lower clock rate so we're not burning battery
-	// to run a CPU just while the buzzer does its thing
-	//  rcc_clk_init(RCC_CLKSRC_PLL, RCC_PLLSRC_HSI_DIV_2, RCC_PLLMUL_9);
-	//  rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
-	//  rcc_set_prescaler(RCC_PRESCALER_APB1, RCC_APB2_HCLK_DIV_1);
-	//  rcc_set_prescaler(RCC_PRESCALER_APB2, RCC_APB2_HCLK_DIV_1);
-
 	current_count++;
 	total_count++;
 
@@ -166,6 +159,7 @@ void Geiger::initialise() {
 			PIN_MAP[GEIGER_PULSE_GPIO].gpio_bit);
 	if (bit)
 		geiger_rising(); // in case there was a pulse right at this moment...
+
 	// we attach the interrupt to "geiger_rising":
 	exti_attach_interrupt((afio_exti_num) PIN_MAP[GEIGER_PULSE_GPIO].gpio_bit,
 			gpio_exti_port(PIN_MAP[GEIGER_PULSE_GPIO].gpio_device),
@@ -203,7 +197,6 @@ void Geiger::initialise() {
 	pulse_timer_init();
 
 	// Initialize timer at 2Hz (500k microseconds = 0.5 s)
-
 	timer_pause(TIMER4);
 	//TODO: fix this so it uses both prescaler and reload...
 	timer_set_prescaler(TIMER4,
@@ -218,6 +211,7 @@ void Geiger::initialise() {
 	timer_generate_update(TIMER4); // refresh timer count, prescale, overflow
 
 	timer_resume(TIMER4);
+
 	m_samples_collected = 0;
 }
 

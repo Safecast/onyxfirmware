@@ -1248,8 +1248,6 @@ void GUI::redraw() {
  */
 void GUI::receive_key(int key_id, int type) {
 
-	// don't activate HELP key when in a help screen
-
 	if (m_displaying_dialog == true) {
 		m_displaying_dialog = false;
 		m_displaying_dialog_complete = true;
@@ -1258,10 +1256,9 @@ void GUI::receive_key(int key_id, int type) {
 
 	new_keys_key[new_keys_end] = key_id;
 	new_keys_type[new_keys_end] = type;
-	new_keys_end++;
 
-	if (new_keys_end >= NEW_KEYS_MAX_SIZE)
-		new_keys_end = 0;
+	new_keys_end = ++new_keys_end % NEW_KEYS_MAX_SIZE;
+
 }
 
 void GUI::clear_pending_keys() {

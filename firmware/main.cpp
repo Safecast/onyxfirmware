@@ -17,6 +17,7 @@
 #include "rtc.h"
 #include "accel.h"
 #include "realtime.h"
+#include "usart.h"
 #include "serialinterface.h"
 #include "switch.h"
 #include "buzzer.h"
