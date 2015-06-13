@@ -244,7 +244,10 @@ void Geiger::update_last_windows() {
 	last_windows_position++;
 	if (last_windows_position >= WINDOWS_STORED)
 		last_windows_position = 0;
-	m_samples_collected++;
+	// The number of samples collected is only relevant
+	// while the window is not valid yet
+	if (!m_cpm_valid)
+		m_samples_collected++;
 }
 
 /**
@@ -464,6 +467,9 @@ float Geiger::get_microsieverts_nocal() {
 	return microsieverts;
 }
 
+/**
+ * Returns a float array of the past CPM for graphing it
+ */
 float *Geiger::get_cpm_last_windows() {
 
 	float cpm_last_windows_temp[WINDOWS_STORED];

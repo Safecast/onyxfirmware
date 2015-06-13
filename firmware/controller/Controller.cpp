@@ -6,6 +6,7 @@
 #include "realtime.h"
 #include "flashstorage.h"
 #include "usart.h"
+#include "captouch.h"
 #include "rtc.h"
 #include "power.h"
 #include <stdio.h>
@@ -238,8 +239,8 @@ void Controller::save_loginterval() {
 		uint32_t current_time = realtime_get_unixtime();
 		rtc_set_alarm(RTC, current_time + m_log_interval_seconds);
 	} else {
-		rtc_disable_alarm(RTC);
 		rtc_clear_alarmed();
+		rtc_disable_alarm(RTC);
 	}
 	m_gui->jump_to_screen(0);
 }
@@ -1009,7 +1010,7 @@ void Controller::check_warning_level() {
  */
 void Controller::do_logging() {
 	if (rtc_alarmed()) {
-		buzzer_morse_debug("R");  // for 'R'TC larm  .-.
+		buzzer_morse_debug("R");  // for 'R'TC alarm  .-.
 		m_alarm_log = true;
 		m_last_alarm_time = rtc_get_time(RTC);
 #ifndef DISABLE_ACCEL
@@ -1041,15 +1042,7 @@ void Controller::do_logging() {
 			//data.magsensor_start = m_magsensor_stored;
 			data.log_type = UINT_MAX;
 
-			// Interrupt issue: something is wrong, and very high
-			// traffic on the serial port lead to crashes when writing to flash
-			// - probably something in interrupt priorities ?? -
-			// A workaround is to disable the UART during those operations
-			if (!m_sleeping)
-				usart_disable(USART1);
 			flashstorage_log_pushback((uint8_t *) &data, sizeof(log_data_t));
-			if (!m_sleeping)
-				usart_enable(USART1);
 
 			bool full = flashstorage_log_isfull();
 			if ((full == true) && (!m_sleeping)) {
@@ -1058,9 +1051,12 @@ void Controller::do_logging() {
 			}
 
 			m_alarm_log = false;
-
-			rtc_set_alarm(RTC, m_last_alarm_time + m_log_interval_seconds);
-			rtc_enable_alarm(RTC);
+			// We can have one last alarm after m_log_interval_seconds is set to zero,
+			// so make sure we don't re-enable the alarms then.
+			if (m_log_interval_seconds > 0) {
+				rtc_set_alarm(RTC, m_last_alarm_time + m_log_interval_seconds);
+				rtc_enable_alarm(RTC);
+			}
 			if (m_sleeping) {
 				buzzer_morse_debug("S");  // for 'S'tandby  ...
 				power_standby();
@@ -1228,8 +1224,7 @@ void Controller::send_total_timer() {
 	char text_totaltimer_avg[16];
 	char text_totaltimer_time[16];
 	char text_totaltimer_count[16];
-	uint32_t ctime = realtime_get_unixtime();
-	uint32_t totaltimer_time = ctime - m_total_timer_start;
+	uint32_t totaltimer_time = realtime_get_unixtime() - m_total_timer_start;
 
 	// Only update the timer if we are below the max count
 	// window:

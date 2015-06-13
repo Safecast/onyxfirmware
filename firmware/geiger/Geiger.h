@@ -30,7 +30,6 @@ public:
   float *get_cpm_last_windows();
   void powerup  ();
   void powerdown();
-  float cpm_last_windows[WINDOWS_STORED];
   void update_last_windows();
   bool is_cpm_valid();
   bool is_cpm30_valid();
@@ -47,6 +46,7 @@ public:
   uint32_t get_pulsewidth();
   void pulse_timer_init();
 
+  float    cpm_last_windows[WINDOWS_STORED];
   uint16_t last_windows_position;
   uint16_t last_windows[WINDOWS_STORED];
   uint16_t max_averaging_period;
