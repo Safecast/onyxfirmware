@@ -1254,6 +1254,22 @@ void GUI::receive_key(int key_id, int type) {
 		return;
 	}
 
+	// We discard keys until the screen is undimmed
+	// Whenever we press a key, we actually get two events:
+	// - Keypress
+	// - Key release
+	// --> We need to use the discard_next_keypress to discard
+	//     both events
+	if (controller.m_screen_dimmed) {
+		m_discard_next_keypress = true;
+		return;
+	}
+
+	if (m_discard_next_keypress) {
+		m_discard_next_keypress = false;
+		return;
+	}
+
 	new_keys_key[new_keys_end] = key_id;
 	new_keys_type[new_keys_end] = type;
 

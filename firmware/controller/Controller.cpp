@@ -1113,7 +1113,9 @@ void Controller::check_sleep_switch() {
 
 /**
  * Dim the screen if necessary. Called by the Controller. Will dim in
- * several steps (one dim level at each call)
+ * several steps (one dim level at each call). Undims instantly for useability reasons
+ * (don't want to wait for display to undim if the operator wants to check the reading
+ * quickly)
  */
 void Controller::do_dimming() {
 
@@ -1131,7 +1133,7 @@ void Controller::do_dimming() {
 		if (((current_time - press_time) > 10)
 				&& ((current_time - release_time) > 10)) {
 			if (current_brightness > 1)
-				display_set_brightness(current_brightness - 1);
+				display_set_brightness(current_brightness/2);
 			m_screen_dimmed = true;
 		} else {
 			const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
@@ -1140,8 +1142,7 @@ void Controller::do_dimming() {
 				sscanf(sbright, "%u", &user_brightness);
 			}
 			if (current_brightness < user_brightness) {
-				display_set_brightness(current_brightness + 1);
-			} else {
+				display_set_brightness(user_brightness);
 				m_screen_dimmed = false;
 			}
 		}

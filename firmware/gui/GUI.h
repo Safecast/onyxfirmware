@@ -97,6 +97,7 @@ private:
   int m_repeat_time;
   int m_repeat_delay;
   bool m_repeated;
+  bool m_discard_next_keypress;
 };
 
 void tick_item(const char *name,bool tick_val);

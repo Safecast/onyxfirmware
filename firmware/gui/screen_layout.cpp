@@ -16,8 +16,7 @@
  *   {
  *     { item_type, val1, val2, text, kanji_image },
  *     ...
- *   },
- *   help_menu (255 for no help)
+ *   }
  * }
  *
  *  Text can also be a reference to a value sent by the controller. It starts with a $
@@ -39,7 +38,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
    { ITEM_TYPE_SOFTKEY	  , 0, 1, "CPM"			   , 255},
    { ITEM_TYPE_SOFTKEY	  , 2, 25, "Logs"	       , 255},
  }
- ,0
 },
 
 // Screen 1 - Current readings screen
@@ -53,8 +51,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_SOFTKEY	  	, 0 ,  0, "Menu"	   , 255},
     { ITEM_TYPE_SOFTKEY	  	, 1 ,  2, "$SVREMLABEL"	, 255},
     { ITEM_TYPE_SOFTKEY_ACTION ,2, 0, "Beep"	, 255},
-}
-  ,0
+  }
 },
 
 // Screen 2  Micro Sievert readings screen
@@ -67,8 +64,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_SOFTKEY	    ,  0,  0, "Menu"		, 255},
     { ITEM_TYPE_SOFTKEY	    ,  1,  4, "Graph"		, 255},
     { ITEM_TYPE_SOFTKEY_ACTION,2,  0, "Beep"	    , 255},
-}
-  ,0
+  }
 },
 
 // Screen 3 - Settings menu
@@ -83,7 +79,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_SOFTKEY      ,2, 18, "About"   , 14 },
     { ITEM_TYPE_SOFTKEY	    ,  0,  0, "Home"   , 255}
   }
-  ,0
 },
 
 
@@ -97,7 +92,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_SOFTKEY	  , 1, 1, "CPM"				, 255},
     { ITEM_TYPE_SOFTKEY_ACTION	  , 2, 0, "Beep"			, 255},
   }
-  ,0
 },
 
 //Screen 5 - Calibration Confirmation
@@ -109,7 +103,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_SOFTKEY , 2 , 6  , "OK" , 255},
     { ITEM_TYPE_LABEL,255, 40 , "Are you sure?"    , 19 }
   }
-  ,0
 },
 
 //Screen 6 - Calibration Wait 1
@@ -121,7 +114,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL,255, 80, "to source."      , 22  },
     { ITEM_TYPE_DELAY, 60,100, "$DELAYA\0 16,7"    , 255 } // 16 second delay, then go to screen 7
   }
-  ,0
 },
 
 //Screen 7 - Calibration Wait 2
@@ -131,7 +123,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL,255, 32, "Acquiring, 30s" , 23  },
     { ITEM_TYPE_DELAY, 60,100, "$DELAYB\0 31,8"   , 255 } // 31 second delay
   }
-  ,0
 },
 
 
@@ -149,7 +140,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 //    { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE" , 255 },
     { ITEM_TYPE_VARLABEL   ,  0,   0, "$FIXEDSV"   , 255 }
   }
-  ,0
 },
 
 //Screen 9 - Set time/date
@@ -162,7 +152,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU,            20, 3, "Set UTC Offset", 33  },
     { ITEM_TYPE_SOFTKEY	    ,  0,  3, "Back"   , 255}
   }
-  ,0
 },
 
 //Screen 10 - Set time
@@ -181,7 +170,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL      ,  0, 20, "HH:MM:SS"   , 50  },
     { ITEM_TYPE_ACTION     ,  0,  0, "TIMESCREEN" , 255 }
   }
-  ,0
 },
 
 //Screen 11 - Set date
@@ -200,7 +188,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL      , 0 ,  20, "MM/DD/YY"  , 24  },
     { ITEM_TYPE_ACTION     ,  0,   0, "DATESCREEN", 255 }
   }
-  ,0
 },
 
 //Screen 12 - Brightness control
@@ -214,7 +201,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_ACTION     ,  0,   0, "BrightnessSCN" , 255 },
     { ITEM_TYPE_LEAVE_ACTION, 0,   0, "LeftBrightness", 255 }
   }
-  ,0
 },
 
 //Screen 13 - Warning configuration
@@ -232,7 +218,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL      , 0 ,  20, "Warning CPM" , 47  },
     { ITEM_TYPE_ACTION     ,  0,   0, "WARNSCREEN"  , 255 }
   }
-  ,7
 },
 
 //Screen 14 - Language Selection Screen
@@ -244,7 +229,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU_ACTION, 2, 2, "Japanese"  , 3  },
     { ITEM_TYPE_SOFTKEY	    ,  0,  16, "Back"   , 255}
   }
-  ,7
 },
 
 //Screen 15 - Total/Timer mode
@@ -265,7 +249,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_SOFTKEY	  	, 1 , 26, "Setup"	   , 255},
     { ITEM_TYPE_SOFTKEY	  	, 2 , 15, "Reset"	   , 255}
   }
-  ,2
 },
 
 //Screen 16 - User interface settings
@@ -279,7 +262,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU_ACTION, 0, 4, "Never Dim"    , 0  },
     { ITEM_TYPE_SOFTKEY	    ,  0,  3, "Back"   , 255}
   }
-  ,0
 },
 
 //Screen 17 - Geiger settings
@@ -294,7 +276,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU_ACTION, 0, 5, "CPM/CPS Auto"    , 36 },
     { ITEM_TYPE_SOFTKEY	    ,  0,  3, "Back"   , 255}
   }
-  ,0
 },
 
 //Screen 18 - Version information
@@ -306,7 +287,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL      , 255,64, OS100VERSION       , 255},
     { ITEM_TYPE_SOFTKEY	    ,  0,  3, "Back"   , 255}
   }
-  ,7
 },
 
 //Screen 19 - Sieverts or Rems
@@ -318,7 +298,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU_ACTION, 2, 2, " \x80R"     , 39 },
     { ITEM_TYPE_SOFTKEY	    ,  0,  17, "Back"   , 255}
   }
-  ,7
 },
 
 //Screen 20 - Set UTC offset
@@ -337,7 +316,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_ACTION     ,  0,  0, "UTCSCREEN"  , 255 }
 
   }
-  ,7
 },
 
 //Screen 21 - Becquerel
@@ -351,7 +329,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_SOFTKEY	    ,  0,   0, "Menu"   , 255},
     { ITEM_TYPE_SOFTKEY	    ,  2,  22, "Setup"   , 255},
   }
-  ,1
 },
 
 //Screen 22 - Set Becquerel conversion value
@@ -367,7 +344,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_SOFTKEY_ACTION	, 2, 0, "Save:Becq" , 2},
     { ITEM_TYPE_ACTION     ,  0,   0, "BECQSCREEN", 255 },
   }
-  ,7
 },
 
 //Screen 23 - Set Logging Interval
@@ -383,7 +359,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL          , 90, 61, "mins"          , 41  },
     { ITEM_TYPE_ACTION         ,  0,  0, "LOGINTERVAL" , 255 },
   }
-  ,7
 },
 
 //Screen 24 - Geiger Pulse width
@@ -394,7 +369,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 38, 50 , "$PULSEWIDTH1"     , 255 },
     { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:PulseWidth" ,2    },
   }
-  ,7
 },
 
 
@@ -412,7 +386,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_SOFTKEY	  	, 1 ,  23, "Setup"	   , 255},
     { ITEM_TYPE_SOFTKEY_ACTION	  	, 2 ,  0, "Clear Log"	   , 255},
   }
-  ,7
 },
 
 //Screen 26 - Counting window config
@@ -431,7 +404,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL      , 255 ,  85, "seconds" , 47  },
     { ITEM_TYPE_ACTION     ,  0,   0, "COUNTWINSCR"  , 255 }
   }
-  ,7
 }
 
 

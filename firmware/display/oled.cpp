@@ -228,6 +228,8 @@ static void Set_Contrast_Color(unsigned char a, unsigned char b, unsigned char c
 
 
 void Set_Master_Current(unsigned char d) {
+	if (d > 0x0f)
+		d = 0x0f;			// Protection
     write_c(0xC7);            // Master Contrast Current Control
     write_d(d);              //   Default => 0x0F (Maximum)
 }
