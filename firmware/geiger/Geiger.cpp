@@ -11,10 +11,12 @@
 #include <stdlib.h>
 #include "flashstorage.h"
 #include <stdio.h>
+#include <inttypes.h>
 #include "buzzer.h"
 #include "serialinterface.h"
 
 #define MAX_RELOAD ((1 << 16) - 1)
+#define LED_PULSE 2000 // Microseconds
 
 Geiger *system_geiger;
 
@@ -24,7 +26,10 @@ uint32_t current_count;
 bool enable_beep = false;
 
 uint32_t total_count;
-bool mic_output = true;
+bool mic_output = false;
+bool headphones_output = false;
+bool led_on = false;
+uint16_t pulse_width = 0;
 
 /**
  * Interrupt handler for TIMER4.
@@ -41,21 +46,28 @@ void static geiger_min_log(void) {
  * Interrupt handler for end of pulse. Triggered when Timer3
  * overflows
  *
- * - Set pulse output to 0 (if enabled)
  * - Switch off LED
+ * - Switch off the headphones pulse output
  * - Pause Timer3
  *
  */
 void pulse_output_end(void) {
-	gpio_write_bit(PIN_MAP[BOARD_LED_PIN].gpio_device,
-			PIN_MAP[BOARD_LED_PIN].gpio_bit, 0);
-	if (mic_output) {
-		dac_write_channel(DAC, 2, 0);
-		//gpio_set_mode (PIN_MAP[MODEM_OUT].gpio_device,PIN_MAP[MODEM_OUT].gpio_bit,GPIO_INPUT_PD);
-		//gpio_write_bit(PIN_MAP[MODEM_OUT].gpio_device,PIN_MAP[MODEM_OUT].gpio_bit,0);
-	}
 
 	timer_pause(TIMER3);
+	// Now if we just finished a pulse, we should reload the timer
+	// and finish counting to 2000 microseconds before switching the LED
+	// off.
+	if (pulse_width > 0 && led_on) {
+		gpio_write_bit(PIN_MAP[HP_COMBINED].gpio_device,
+				PIN_MAP[HP_COMBINED].gpio_bit, 0);
+		timer_set_prescaler(TIMER3, ((LED_PULSE-pulse_width) * CYCLES_PER_MICROSECOND) / MAX_RELOAD);
+		timer_generate_update(TIMER3);
+		timer_resume(TIMER3);
+		led_on = false;
+	} else {
+		gpio_write_bit(PIN_MAP[BOARD_LED_PIN].gpio_device,
+				PIN_MAP[BOARD_LED_PIN].gpio_bit, 0);
+	}
 }
 
 /**
@@ -75,16 +87,15 @@ void static geiger_rising(void) {
 	gpio_write_bit(PIN_MAP[BOARD_LED_PIN].gpio_device,
 			PIN_MAP[BOARD_LED_PIN].gpio_bit, 1);
 
-	// Reflect the pulse on the Mic output if requested
-	if (mic_output) {
-		// dac_init(DAC,DAC_CH2);
-		dac_write_channel(DAC, 2, 20);
+	if (pulse_width > 0) {
+		gpio_write_bit(PIN_MAP[HP_COMBINED].gpio_device,
+				PIN_MAP[HP_COMBINED].gpio_bit, 1);
 	}
 
+	led_on = true;
 	timer_generate_update(TIMER3); // refresh timer count, prescale, overflow
 	timer_resume(TIMER3);
-	if (enable_beep)
-		buzzer_nonblocking_buzz(0.1);
+	buzzer_nonblocking_buzz(0.1, enable_beep, headphones_output);
 }
 
 /**
@@ -103,11 +114,15 @@ Geiger::Geiger() {
  */
 void Geiger::initialise() {
 
-	// Width of the output pulse in microseconds (on MIC output)
-	m_pulsewidth = 2000;
 	calibration_scaling = 1;
 	m_cpm_valid = false;
 	total_count = 0;
+
+	pulse_width = 0;
+	const char *spulsewidth = flashstorage_keyval_get("PULSE");
+	if (spulsewidth != 0) {
+		sscanf(spulsewidth, "%"SCNu16"", &pulse_width);
+	}
 
 	// Load settings from flash. Those values
 	// are used by the methods that return calibrated values.
@@ -171,12 +186,10 @@ void Geiger::initialise() {
 
 	//gpio_set_mode(PIN_MAP[LIMIT_VREF_DAC].gpio_device,PIN_MAP[LIMIT_VREF_DAC].gpio_bit,GPIO_OUTPUT_PP);
 
-	// TODO: Make this a setting: whether we want pulse output and/or Microphone output (?)
-
 	// If you want to use it as a digital output
 	//gpio_set_mode (PIN_MAP[MODEM_OUT].gpio_device,PIN_MAP[MODEM_OUT].gpio_bit,GPIO_OUTPUT_PP);
 	//gpio_write_bit(PIN_MAP[MODEM_OUT].gpio_device,PIN_MAP[MODEM_OUT].gpio_bit,0);
-	dac_init(DAC, DAC_CH2);
+	// dac_init(DAC, DAC_CH2);
 
 	gpio_set_mode(PIN_MAP[MIC_IPHONE].gpio_device, PIN_MAP[MIC_IPHONE].gpio_bit,
 			GPIO_OUTPUT_PP);
@@ -188,7 +201,7 @@ void Geiger::initialise() {
 	gpio_write_bit(PIN_MAP[MIC_REVERSE].gpio_device,
 			PIN_MAP[MIC_REVERSE].gpio_bit, 0);
 
-	// headphone output
+	// Headphone output
 	gpio_set_mode(PIN_MAP[HP_COMBINED].gpio_device,
 			PIN_MAP[HP_COMBINED].gpio_bit, GPIO_OUTPUT_PP);
 	gpio_write_bit(PIN_MAP[HP_COMBINED].gpio_device,
@@ -216,15 +229,15 @@ void Geiger::initialise() {
 }
 
 /**
- * Initialize the pulse timer (Timer3). Timer3 is started at each
+ * Initialize the LED timer (Timer3). Timer3 is started at each
  * incoming pulse on the Geiger counter, and is used to get a fixed width
- * output pulse on the Mic output. Also drives the Pulse LED.
+ * output pulse on the LED.
  *
  */
 void Geiger::pulse_timer_init() {
 	timer_pause(TIMER3);
-	// was 10000
-	timer_set_prescaler(TIMER3, (m_pulsewidth* CYCLES_PER_MICROSECOND) / MAX_RELOAD);
+	uint16 width = (pulse_width > 0) ? pulse_width : LED_PULSE;
+	timer_set_prescaler(TIMER3, (width * CYCLES_PER_MICROSECOND) / MAX_RELOAD);
 	timer_set_reload(TIMER3, MAX_RELOAD);
 
 	// setup interrupt on channel 3
@@ -593,6 +606,12 @@ void Geiger::powerdown() {
 
 }
 
+void Geiger::enable_headphones(bool en) {
+	headphones_output = en;
+	pulse_width = 0;
+	pulse_timer_init();
+}
+
 void Geiger::enable_micout() {
 	mic_output = true;
 }
@@ -601,10 +620,22 @@ void Geiger::disable_micout() {
 	mic_output = false;
 }
 
+/**
+ * Set the headphone audio out pulse width in microseconds.
+ * Note: we use the special value "65535" to indicate we want
+ *       an audio beep, not a click.
+ */
 void Geiger::set_pulsewidth(uint32_t p) {
-	m_pulsewidth = p;
+	if (p == 65535) {
+		pulse_width = 0;
+		headphones_output = true;
+	} else {
+		headphones_output = false;
+		pulse_width = p;
+	}
+	pulse_timer_init();
 }
 
 uint32_t Geiger::get_pulsewidth() {
-	return m_pulsewidth;
+	return pulse_width;
 }

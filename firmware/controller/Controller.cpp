@@ -367,16 +367,6 @@ void Controller::event_totaltimer() {
 
 }
 
-void Controller::event_save_pulsewidth(const char *event, const char *value) {
-	int p1 = m_gui->get_item_state_uint8("$PULSEWIDTH1");
-	char sp[50];
-	sprintf(sp, "%d", p1);
-	flashstorage_keyval_set("PULSEWIDTH", sp);
-	system_geiger->set_pulsewidth(p1);
-	system_geiger->pulse_timer_init();
-	m_gui->jump_to_screen(0);
-}
-
 void Controller::event_save_becq(const char *event, const char *value) {
 	int b1 = m_gui->get_item_state_uint8("$BECQ1");
 	int b2 = m_gui->get_item_state_uint8("$BECQ2");
@@ -413,13 +403,12 @@ void Controller::event_save_utcoff(const char *event, const char *value) {
 void Controller::event_neverdim(const char *event, const char *value) {
 	if (m_never_dim == false) {
 		flashstorage_keyval_set("NEVERDIM", "true");
-		tick_item("Never Dim", true);
 		m_never_dim = true;
 	} else {
 		flashstorage_keyval_set("NEVERDIM", "false");
-		tick_item("Never Dim", false);
 		m_never_dim = false;
 	}
+	tick_item("Never Dim", m_never_dim);
 }
 
 /**
@@ -471,12 +460,11 @@ void Controller::event_cpm_cps_auto(const char *event, const char *value) {
 	if (m_cpm_cps_switch == false) {
 		m_cpm_cps_switch = true;
 		flashstorage_keyval_set("CPMCPSAUTO", "true");
-		tick_item("CPM/CPS Auto", true);
 	} else {
 		m_cpm_cps_switch = false;
 		flashstorage_keyval_set("CPMCPSAUTO", "false");
-		tick_item("CPM/CPS Auto", false);
 	}
+	tick_item("CPM/CPS Auto", m_cpm_cps_switch);
 }
 
 void Controller::event_geiger_beep(const char *event, const char *value) {
@@ -887,6 +875,43 @@ void Controller::event_qrtweet(const char *event, const char *value) {
 }
 
 /**
+ * Setup how the headphone output pulse behaves.
+ */
+void Controller::event_pulse(uint16_t width) {
+	// First, deactivate any current option, then
+	// reactivate the right one, this is faster and
+	// cleaner:
+	tick_item(" No pulse", false);
+	tick_item(" 10 \x80s", false);
+	tick_item("  1 ms", false);
+	tick_item(" Audio tone", false);
+	system_geiger->enable_headphones(false);
+	switch (width) {
+		case PULSE_NONE:
+			flashstorage_keyval_set("PULSE", "0");
+			tick_item(" No pulse", true);
+			system_geiger->set_pulsewidth(0);
+			break;
+		case PULSE_10us:
+			flashstorage_keyval_set("PULSE", "10");
+			tick_item(" 10 \x80s", true);
+			system_geiger->set_pulsewidth(10);
+			break;
+		case PULSE_1ms:
+			flashstorage_keyval_set("PULSE", "1000");
+			tick_item("  1 ms", true);
+			system_geiger->set_pulsewidth(1000);
+			break;
+		case PULSE_AUDIO:
+			flashstorage_keyval_set("PULSE", "65535");
+			tick_item(" Audio tone", true);
+			system_geiger->enable_headphones(true);
+			break;
+	}
+	m_gui->redraw(); // Force the redraw of all menu items
+}
+
+/**
  * Called by the GUI when a key event is received, triggers an action in the
  * controller.
  *
@@ -902,8 +927,6 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 		m_powerup = true;
 	else if (strcmp(event, "TOTALTIMER") == 0)
 		event_totaltimer();
-	else if (strcmp(event, "Save:PulseWidth") == 0)
-		event_save_pulsewidth(event, value);
 	else if (strcmp(event, "Save:Calib") == 0)
 		event_save_calibration();
 	else if (strcmp(event, "Save:Becq") == 0)
@@ -932,6 +955,14 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 		event_usv(event, value);
 	else if (strcmp(event, " \x80R") == 0)
 		event_rem(event, value);
+	else if (strcmp(event, " No pulse") == 0)
+		event_pulse(PULSE_NONE);
+	else if (strcmp(event, " 10 \x80s") == 0)
+		event_pulse(PULSE_10us);
+	else if (strcmp(event, "  1 ms") == 0)
+		event_pulse(PULSE_1ms);
+	else if (strcmp(event, " Audio tone") == 0)
+		event_pulse(PULSE_AUDIO);
 	else if (strcmp(event, "Clear Log") == 0)
 		event_clear_log(event, value);
 	else if (strcmp(event, "Save:Brightness") == 0)

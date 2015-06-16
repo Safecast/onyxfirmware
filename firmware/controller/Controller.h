@@ -34,7 +34,6 @@ public:
   void event_clear_log(const char *event,const char *value);
   void event_save_brightness(const char *event,const char *value);
   void event_save_becq(const char *event,const char *value);
-  void event_save_pulsewidth(const char *event,const char *value);
   void event_save_utcoff(const char *event,const char *value);
   void event_utcscreen(const char *event,const char *value);
   void event_timescreen(const char *event,const char *value);
@@ -51,6 +50,7 @@ public:
   void event_varnum_date(const char *event,const char *value);
   void event_audioxfer(const char *event,const char *value);
   void event_qrtweet(const char *event,const char *value);
+  void event_pulse(uint16_t width);
   void check_warning_level();
   void do_logging();
   void check_sleep_switch();

@@ -13,17 +13,33 @@
 uint32_t buzz_count;
 uint32_t buzz_time;
 
-void buzzer_handler(void) {
-  gpio_toggle_bit(PIN_MAP[BUZZER_PWM].gpio_device, PIN_MAP[BUZZER_PWM].gpio_bit);
+bool headphones_out = false;
+bool piezo_out = true;
 
-  buzz_count++;
-  if(buzz_count == buzz_time) {
-    timer_pause(TIMER2);
-  }
+void buzzer_handler(void) {
+	if (piezo_out)
+		gpio_toggle_bit(PIN_MAP[BUZZER_PWM].gpio_device, PIN_MAP[BUZZER_PWM].gpio_bit);
+	if (headphones_out)
+		gpio_toggle_bit(PIN_MAP[HP_COMBINED].gpio_device,PIN_MAP[HP_COMBINED].gpio_bit);
+
+	buzz_count++;
+	if(buzz_count == buzz_time) {
+		timer_pause(TIMER2);
+		piezo_out = true;
+	}
 }
 
-void buzzer_nonblocking_buzz(float time) {
+/**
+ * Non-blocking piezo/headphone beep
+ */
+void buzzer_nonblocking_buzz(float time, bool piezo, bool headphones) {
 
+	// No need to go further if both outputs are
+	// false
+  if (!(piezo || headphones))
+	  return;
+  piezo_out = piezo;
+  headphones_out = headphones;
   buzz_time = 4100*time*2;
 
   // Configure timer2 to fire every N microseconds

@@ -14,7 +14,7 @@
  * {
  *   item_count,
  *   {
- *     { item_type, val1, val2, text, kanji_image },
+ *     { item_type, val1, val2, text, kanji_image }
  *     ...
  *   }
  * }
@@ -266,7 +266,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 17 - Geiger settings
 {
-  7,
+  8,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT"      , 255},
     { ITEM_TYPE_MENU       ,19, 1, "\x80Sv/\x80R"    , 255},
@@ -274,6 +274,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU       ,13, 3, "Warning Levels"  , 28 },
     { ITEM_TYPE_MENU       ,22, 4, "Bq. Eff. Value"  , 35 },
     { ITEM_TYPE_MENU_ACTION, 0, 5, "CPM/CPS Auto"    , 36 },
+    { ITEM_TYPE_MENU       , 24, 6, "Pulse output", 255},
     { ITEM_TYPE_SOFTKEY	    ,  0,  3, "Back"   , 255}
   }
 },
@@ -363,11 +364,15 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 24 - Geiger Pulse width
 {
-  3,
+  7,
   {
-    { ITEM_TYPE_HEAD       , 0 ,  0 , "$CPMDEADINT"      , 255 },
-    { ITEM_TYPE_VARNUM     , 38, 50 , "$PULSEWIDTH1"     , 255 },
-    { ITEM_TYPE_MENU_ACTION,  0,   7, "Save:PulseWidth" ,2    },
+    { ITEM_TYPE_HEAD       ,  0,  0 , "$CPMDEADINT"      , 255 },
+    { ITEM_TYPE_LABEL      ,255, 18 , "Headphone output", 255},
+    { ITEM_TYPE_MENU_ACTION, 255, 2, " No pulse"    , 255 },
+    { ITEM_TYPE_MENU_ACTION, 255, 3, " 10 \x80s"    , 255 },
+    { ITEM_TYPE_MENU_ACTION, 255, 4, "  1 ms", 255 },
+    { ITEM_TYPE_MENU_ACTION, 255, 5, " Audio tone"    , 255 },
+    { ITEM_TYPE_SOFTKEY	    ,  0,  17, "Back"   , 255},
   }
 },
 

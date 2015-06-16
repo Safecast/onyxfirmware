@@ -11,6 +11,13 @@
 
 #define MAX_CPM            350000
 
+// Constants for headphone pulse output
+// (also used in Controller.cpp
+#define PULSE_NONE   0
+#define PULSE_10us   1
+#define PULSE_1ms    2
+#define PULSE_AUDIO  3
+
 class Geiger {
 
 public:
@@ -42,6 +49,7 @@ public:
   void  set_becquerel_eff(float v);
   void enable_micout();
   void disable_micout();
+  void enable_headphones(bool en);
   void set_pulsewidth(uint32_t p);
   uint32_t get_pulsewidth();
   void pulse_timer_init();
@@ -55,7 +63,6 @@ public:
   uint16_t m_samples_collected;
   bool     m_cpm_valid;
   float    m_becquerel_eff;
-  uint32_t  m_pulsewidth;
 };
 
 extern Geiger *system_geiger;

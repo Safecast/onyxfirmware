@@ -68,6 +68,11 @@ void display_draw_equtriangle_inv(uint8_t x, uint8_t y, uint8_t s,
 char ticked_items[10][TEXT_LENGTH];
 uint32_t ticked_items_size = 0;
 
+/**
+ * Toggles a menu option. This is only called from controller.cpp and
+ * is really ugly - this should be a method in the GUI class, but this is
+ * how the firmware was initially written :(
+ */
 void tick_item(const char *name, bool tick_val) {
 
 	if ((ticked_items_size >= 10) && (tick_val == true))
@@ -101,6 +106,12 @@ bool is_ticked(const char *name) {
 	return false;
 }
 
+/**
+ * Renders a menu item, with an optional "Tick" mark if the
+ * menu can be toggled.
+ *   item.val2 is used as the menu number to decide where to draw
+ *   it on screen.
+ */
 void render_item_menu(screen_item &item, bool selected) {
 
 	uint16_t bg = background_color;
@@ -1147,7 +1158,7 @@ void GUI::show_dialog(const char *dialog_text1, const char *dialog_text2,
 void GUI::render() {
 
 	if (m_dialog_buzz)
-		buzzer_nonblocking_buzz(0.2);
+		buzzer_nonblocking_buzz(0.2, true, false);
 
 	// We check for the buzzer before checking for m_sleeping, because
 	// the alarm system can be triggered during a logging period. This will

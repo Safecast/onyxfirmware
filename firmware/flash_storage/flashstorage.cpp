@@ -643,15 +643,6 @@ bool flashstorage_logpaused() {
  *
  */
 void flashstorage_keyval_update() {
-	const char *spulsewidth = flashstorage_keyval_get("PULSEWIDTH");
-	if (spulsewidth != 0) {
-		unsigned int c;
-		sscanf(spulsewidth, "%u", &c);
-		system_geiger->set_pulsewidth(c);
-		system_geiger->pulse_timer_init();
-	} else {
-		system_geiger->set_pulsewidth(6);
-	}
 
 	const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
 	if (sbright != 0) {
