@@ -60,7 +60,7 @@ void pulse_output_end(void) {
 	if (pulse_width > 0 && led_on) {
 		gpio_write_bit(PIN_MAP[HP_COMBINED].gpio_device,
 				PIN_MAP[HP_COMBINED].gpio_bit, 0);
-		timer_set_prescaler(TIMER3, ((LED_PULSE-pulse_width) * CYCLES_PER_MICROSECOND) / MAX_RELOAD);
+		timer_set_compare(TIMER3, TIMER_CH3, LED_PULSE - pulse_width - 1);
 		timer_generate_update(TIMER3);
 		timer_resume(TIMER3);
 		led_on = false;
@@ -83,6 +83,7 @@ void static geiger_rising(void) {
 
 	current_count++;
 	total_count++;
+	led_on = true;
 
 	gpio_write_bit(PIN_MAP[BOARD_LED_PIN].gpio_device,
 			PIN_MAP[BOARD_LED_PIN].gpio_bit, 1);
@@ -90,10 +91,10 @@ void static geiger_rising(void) {
 	if (pulse_width > 0) {
 		gpio_write_bit(PIN_MAP[HP_COMBINED].gpio_device,
 				PIN_MAP[HP_COMBINED].gpio_bit, 1);
+		timer_set_compare(TIMER3, TIMER_CH3, pulse_width - 1);
 	}
 
-	led_on = true;
-	timer_generate_update(TIMER3); // refresh timer count, prescale, overflow
+	timer_generate_update(TIMER3);
 	timer_resume(TIMER3);
 	buzzer_nonblocking_buzz(0.1, enable_beep, headphones_output);
 }
@@ -233,16 +234,20 @@ void Geiger::initialise() {
  * incoming pulse on the Geiger counter, and is used to get a fixed width
  * output pulse on the LED.
  *
+ *  We setup the timer to count at 1MHz (sys clock divided by 36 since the
+ *  processor is running at 36MHz). And we trigger an interrupt after
+ *  'pulse_width' microseconds.
+ *
  */
 void Geiger::pulse_timer_init() {
 	timer_pause(TIMER3);
 	uint16 width = (pulse_width > 0) ? pulse_width : LED_PULSE;
-	timer_set_prescaler(TIMER3, (width * CYCLES_PER_MICROSECOND) / MAX_RELOAD);
+	timer_set_prescaler(TIMER3, CYCLES_PER_MICROSECOND);
 	timer_set_reload(TIMER3, MAX_RELOAD);
 
 	// setup interrupt on channel 3
 	timer_set_mode(TIMER3, TIMER_CH3, TIMER_OUTPUT_COMPARE);
-	timer_set_compare(TIMER3, TIMER_CH3, MAX_RELOAD - 1);
+	timer_set_compare(TIMER3, TIMER_CH3, width - 1);
 	timer_attach_interrupt(TIMER3, TIMER_CH3, pulse_output_end);
 }
 

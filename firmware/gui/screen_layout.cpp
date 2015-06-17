@@ -364,14 +364,13 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 24 - Geiger Pulse width
 {
-  7,
+  6,
   {
     { ITEM_TYPE_HEAD       ,  0,  0 , "$CPMDEADINT"      , 255 },
-    { ITEM_TYPE_LABEL      ,255, 18 , "Headphone output", 255},
-    { ITEM_TYPE_MENU_ACTION, 255, 2, " No pulse"    , 255 },
-    { ITEM_TYPE_MENU_ACTION, 255, 3, " 10 \x80s"    , 255 },
-    { ITEM_TYPE_MENU_ACTION, 255, 4, "  1 ms", 255 },
-    { ITEM_TYPE_MENU_ACTION, 255, 5, " Audio tone"    , 255 },
+    { ITEM_TYPE_MENU_ACTION,  1, 1, " No pulse"    , 255 },
+    { ITEM_TYPE_MENU_ACTION,  2, 2, " 10 \x80s"    , 255 },
+    { ITEM_TYPE_MENU_ACTION,  3, 3, "  1 ms", 255 },
+    { ITEM_TYPE_MENU_ACTION,  4, 4, " Audio tone"    , 255 },
     { ITEM_TYPE_SOFTKEY	    ,  0,  17, "Back"   , 255},
   }
 },
