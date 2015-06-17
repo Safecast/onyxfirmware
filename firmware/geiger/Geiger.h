@@ -53,6 +53,7 @@ public:
   void set_pulsewidth(uint32_t p);
   uint32_t get_pulsewidth();
   void pulse_timer_init();
+  bool pulse_triggered();
 
   float    cpm_last_windows[WINDOWS_STORED];
   uint16_t last_windows_position;

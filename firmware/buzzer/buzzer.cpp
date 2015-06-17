@@ -25,7 +25,9 @@ void buzzer_handler(void) {
 	buzz_count++;
 	if(buzz_count == buzz_time) {
 		timer_pause(TIMER2);
-		piezo_out = true;
+		gpio_write_bit(PIN_MAP[BUZZER_PWM].gpio_device,PIN_MAP[BUZZER_PWM].gpio_bit,0);
+		gpio_write_bit(PIN_MAP[HP_COMBINED].gpio_device,PIN_MAP[HP_COMBINED].gpio_bit,0);
+		headphones_out = false;
 	}
 }
 

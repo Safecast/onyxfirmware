@@ -18,6 +18,8 @@
 #define MAX_RELOAD ((1 << 16) - 1)
 #define LED_PULSE 2000 // Microseconds
 
+extern bool headphones_out; // from buzzer.cpp
+
 Geiger *system_geiger;
 
 using namespace std;
@@ -63,11 +65,12 @@ void pulse_output_end(void) {
 		timer_set_compare(TIMER3, TIMER_CH3, LED_PULSE - pulse_width - 1);
 		timer_generate_update(TIMER3);
 		timer_resume(TIMER3);
-		led_on = false;
 	} else {
 		gpio_write_bit(PIN_MAP[BOARD_LED_PIN].gpio_device,
 				PIN_MAP[BOARD_LED_PIN].gpio_bit, 0);
 	}
+	led_on = false; // Need to put it here because we use this as a flag
+	                // to discard switch reading during pulses.
 }
 
 /**
@@ -248,6 +251,22 @@ void Geiger::pulse_timer_init() {
 	timer_set_mode(TIMER3, TIMER_CH3, TIMER_OUTPUT_COMPARE);
 	timer_set_compare(TIMER3, TIMER_CH3, width - 1);
 	timer_attach_interrupt(TIMER3, TIMER_CH3, pulse_output_end);
+}
+
+/**
+ * The current production Onyx units have a wrong chip (U103 is a 98, not 97),
+ * which leads to the headphones comparator (U102) being not powered when the
+ * onyx is running. Which in turn leads to random voltages on MANUAL_WAKEUP
+ * when +IN is modulated through HP_COMBINED, then leading to false detection
+ * of switch changes. This took me a couple of hours to understand...
+ * 2015.06.17, E. Lafargue
+ *
+ * This is a workaround: the check_sleep_switch method in the controller calls this
+ * to ignore those random switch changes during pulses.
+ *
+ */
+bool Geiger::pulse_triggered() {
+	return led_on || headphones_out;
 }
 
 /**

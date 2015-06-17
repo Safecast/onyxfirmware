@@ -77,13 +77,12 @@ Controller::Controller() {
 	// Get "mute alarm" from flash
 	m_mute_alarm = false;
 	const char *mute = flashstorage_keyval_get("MUTEALARM");
-	if (mute!= 0) {
+	if (mute != 0) {
 		if (strcmp(mute, "true") == 0)
 			m_mute_alarm = true;
 	}
 	// Send this info to the GUI so that the tick correct on the display
 	tick_item("Mute Alarm", m_mute_alarm);
-
 
 	// Restore Beep settings from flash
 	const char *beep = flashstorage_keyval_get("GEIGERBEEP");
@@ -95,7 +94,7 @@ Controller::Controller() {
 
 	// And restore uSv/ uR/h from flash
 	const char *sv = flashstorage_keyval_get("SVREM");
-	if (strcmp(sv,"REM") == 0) {
+	if (strcmp(sv, "REM") == 0) {
 		tick_item(" \x80Sv", false);
 		tick_item(" \x80R", true);
 	} else {
@@ -121,6 +120,23 @@ Controller::Controller() {
 		rtc_clear_alarmed();
 	}
 
+	// Get the headphone pulse output from flash as well
+	// We do not update the Geiger object because it initializes
+	// by itself, here we just want to get the default tick values
+	// for the menu
+	const char *spw = flashstorage_keyval_get("PULSE");
+	if (spw) {
+		if (strcmp(spw, "0") == 0) {
+			tick_item(" No pulse", true);
+		} else if (strcmp(spw, "10") == 0) {
+			tick_item(" 10 \x80s", true);
+		} else if (strcmp(spw, "1000") == 0) {
+			tick_item("  1 ms", true);
+		} else if (strcmp(spw, "65535") == 0) {
+			tick_item(" Audio tone", true);
+		}
+	}
+
 	// And also restore the count timer:
 	m_count_timer_max = 0;
 	event_totaltimer();
@@ -144,7 +160,8 @@ void Controller::update_calibration() {
 			+ (((float) c3) / 100) + (((float) c4) / 1000);
 
 	char text_sieverts[16];
-	sprintf(text_sieverts, "%5.3f \x80Sv", m_calibration_base * calibration_scaling);
+	sprintf(text_sieverts, "%5.3f \x80Sv",
+			m_calibration_base * calibration_scaling);
 
 	m_gui->receive_update("$FIXEDSV", text_sieverts);
 }
@@ -179,7 +196,8 @@ void Controller::initialise_calibration() {
 	display_set_brightness(15);
 	m_calibration_base = system_geiger->get_microsieverts_nocal();
 	char text_sieverts[16];
-	sprintf(text_sieverts, "%5.3f \x80Sv", m_calibration_base * system_geiger->get_calibration(),
+	sprintf(text_sieverts, "%5.3f \x80Sv",
+			m_calibration_base * system_geiger->get_calibration(),
 			text_sieverts);
 
 	m_gui->receive_update("$FIXEDSV", text_sieverts);
@@ -251,13 +269,12 @@ void Controller::save_counterwindow() {
 	int l3 = m_gui->get_item_state_uint8("$COUNTWIN3");
 	int l4 = m_gui->get_item_state_uint8("$COUNTWIN4");
 	int l5 = m_gui->get_item_state_uint8("$COUNTWIN5");
-	int32_t counter_window = l1*10000 + l2*1000 + l3*100 + l4*10 + l5;
+	int32_t counter_window = l1 * 10000 + l2 * 1000 + l3 * 100 + l4 * 10 + l5;
 	char cwin[16];
 	sprintf(cwin, "%"PRIu32"", counter_window);
 	flashstorage_keyval_set("COUNTERWIN", cwin);
 	m_gui->jump_to_screen(15); // Counter screen
 }
-
 
 void Controller::save_time() {
 	int h1 = m_gui->get_item_state_uint8("$TIMEHOUR1");
@@ -360,8 +377,7 @@ void Controller::event_totaltimer() {
 	// Last, update the GUI with the value of the counter duration
 	if (m_count_timer_max > 0) {
 		m_gui->receive_update("$COUNTWIN", win);
-	}
-	else {
+	} else {
 		m_gui->receive_update("$COUNTWIN", "inf.");
 	}
 
@@ -440,7 +456,6 @@ void Controller::reset_alarm(int32_t warn_cpm) {
 	m_warning_raised = false;
 	m_gui->set_cpm_alarm(false, m_mute_alarm, 0);
 }
-
 
 void Controller::event_japanese(const char *event, const char *value) {
 	m_gui->set_language(LANGUAGE_JAPANESE);
@@ -887,26 +902,26 @@ void Controller::event_pulse(uint16_t width) {
 	tick_item(" Audio tone", false);
 	system_geiger->enable_headphones(false);
 	switch (width) {
-		case PULSE_NONE:
-			flashstorage_keyval_set("PULSE", "0");
-			tick_item(" No pulse", true);
-			system_geiger->set_pulsewidth(0);
-			break;
-		case PULSE_10us:
-			flashstorage_keyval_set("PULSE", "10");
-			tick_item(" 10 \x80s", true);
-			system_geiger->set_pulsewidth(10);
-			break;
-		case PULSE_1ms:
-			flashstorage_keyval_set("PULSE", "1000");
-			tick_item("  1 ms", true);
-			system_geiger->set_pulsewidth(1000);
-			break;
-		case PULSE_AUDIO:
-			flashstorage_keyval_set("PULSE", "65535");
-			tick_item(" Audio tone", true);
-			system_geiger->enable_headphones(true);
-			break;
+	case PULSE_NONE:
+		flashstorage_keyval_set("PULSE", "0");
+		tick_item(" No pulse", true);
+		system_geiger->set_pulsewidth(0);
+		break;
+	case PULSE_10us:
+		flashstorage_keyval_set("PULSE", "10");
+		tick_item(" 10 \x80s", true);
+		system_geiger->set_pulsewidth(10);
+		break;
+	case PULSE_1ms:
+		flashstorage_keyval_set("PULSE", "1000");
+		tick_item("  1 ms", true);
+		system_geiger->set_pulsewidth(1000);
+		break;
+	case PULSE_AUDIO:
+		flashstorage_keyval_set("PULSE", "65535");
+		tick_item(" Audio tone", true);
+		system_geiger->enable_headphones(true);
+		break;
 	}
 	m_gui->redraw(); // Force the redraw of all menu items
 }
@@ -1015,7 +1030,7 @@ void Controller::check_warning_level() {
 	// dangerous. it is better to raise a false alarm than expose the user to up to
 	// 2 minutes of harmful levels because the Onyx considers the reading as not valid
 	// yet !
-	if ((m_warncpm > 0) ) {
+	if ((m_warncpm > 0)) {
 		float cpm = system_geiger->get_cpm_deadtime_compensated();
 		if ((cpm >= m_warncpm) && (m_warning_raised == false)) {
 			if (m_sleeping)
@@ -1023,9 +1038,9 @@ void Controller::check_warning_level() {
 
 			m_warning_raised = true;
 			m_dim_off = true;
-			m_gui->set_cpm_alarm(true, m_mute_alarm, system_geiger->get_cpm_deadtime_compensated());
-		}
-		else if ((cpm < m_warncpm) && (m_warning_raised == true)) {
+			m_gui->set_cpm_alarm(true, m_mute_alarm,
+					system_geiger->get_cpm_deadtime_compensated());
+		} else if ((cpm < m_warncpm) && (m_warning_raised == true)) {
 			// We are back to normal
 			m_warning_raised = false;
 			m_gui->set_cpm_alarm(false, m_mute_alarm, 0);
@@ -1104,6 +1119,10 @@ void Controller::do_logging() {
  */
 void Controller::check_sleep_switch() {
 
+	// Check explanation in Geiger.cpp
+	if (system_geiger->pulse_triggered())
+		return;
+
 	bool sstate = switch_state();
 	if (sstate != m_last_switch_state) {
 		m_last_switch_state = sstate;
@@ -1141,7 +1160,6 @@ void Controller::check_sleep_switch() {
 	}
 }
 
-
 /**
  * Dim the screen if necessary. Called by the Controller. Will dim in
  * several steps (one dim level at each call). Undims instantly for useability reasons
@@ -1164,7 +1182,7 @@ void Controller::do_dimming() {
 		if (((current_time - press_time) > 10)
 				&& ((current_time - release_time) > 10)) {
 			if (current_brightness > 1)
-				display_set_brightness(current_brightness/2);
+				display_set_brightness(current_brightness / 2);
 			m_screen_dimmed = true;
 		} else {
 			const char *sbright = flashstorage_keyval_get("BRIGHTNESS");
@@ -1199,30 +1217,32 @@ void Controller::send_cpm_values() {
 	char text_cpmd[6];     // CPM with decimals
 
 	// Add 0.5 to have a nearest integer rounding
-	uint32_t cpm = (uint32_t) floor(system_geiger->get_cpm_deadtime_compensated()+0.5);
+	uint32_t cpm = (uint32_t) floor(
+			system_geiger->get_cpm_deadtime_compensated() + 0.5);
 
-	sprintf(text_cpmdint,"%-*"PRIu32"", 7, cpm);
+	sprintf(text_cpmdint, "%-*"PRIu32"", 7, cpm);
 
 	if (!m_cpm_cps_switch) {       // no auto switch, just display CPM
 		// If CPM is above 9999, then we divide it by 1000, print it in red
 		// and turn on the "x1000" indicator.
 		if (cpm > 9999) {
-			float kcpm = (float)cpm / 1000;
+			float kcpm = (float) cpm / 1000;
 			char tmp[16];
 			sprintf(tmp, "%5.3f", kcpm);
 			// Truncate to 5 character string (includes '.')
 			sprintf(text_cpmd, "%5.5s", tmp);
-			m_gui->receive_update("$X1000","x1000");
+			m_gui->receive_update("$X1000", "x1000");
 		} else {
-			m_gui->receive_update("$X1000","     ");
+			m_gui->receive_update("$X1000", "     ");
 			sprintf(text_cpmd, "%4"PRIu32"", cpm);
 		}
 		m_gui->receive_update("$CPMSLABEL", "CPM");
 	} else {
-		if ((cpm > m_cpm_cps_threshold) || ((cpm > m_cps_cpm_threshold) && m_displaying_cps)) {
-			float cps = (float) cpm/60;
+		if ((cpm > m_cpm_cps_threshold)
+				|| ((cpm > m_cps_cpm_threshold) && m_displaying_cps)) {
+			float cps = (float) cpm / 60;
 			char tmp[16];
-			sprintf(tmp,"%5.3f",cps);
+			sprintf(tmp, "%5.3f", cps);
 			sprintf(text_cpmd, "%5.5s", tmp);
 			m_gui->receive_update("$CPMSLABEL", "CPS");
 			m_displaying_cps = true;
@@ -1262,8 +1282,8 @@ void Controller::send_total_timer() {
 	// window:
 	if (totaltimer_time <= m_count_timer_max || m_count_timer_max == 0) {
 		uint32_t cnt = system_geiger->get_total_count();
-			sprintf(text_totaltimer_time, "%8"PRIu32" s", totaltimer_time);
-		sprintf(text_totaltimer_count, "%9"PRIu32"" , cnt );
+		sprintf(text_totaltimer_time, "%8"PRIu32" s", totaltimer_time);
+		sprintf(text_totaltimer_count, "%9"PRIu32"", cnt);
 		sprintf(text_totaltimer_avg, "%7.2f CPM",
 				((float) cnt / ((float) totaltimer_time)) * 60);
 		m_gui->receive_update("$TTCOUNT", text_totaltimer_count);
