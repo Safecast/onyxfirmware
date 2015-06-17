@@ -119,12 +119,6 @@ void Geiger::initialise() {
 	m_cpm_valid = false;
 	total_count = 0;
 
-	pulse_width = 0;
-	const char *spulsewidth = flashstorage_keyval_get("PULSE");
-	if (spulsewidth != 0) {
-		sscanf(spulsewidth, "%"SCNu16"", &pulse_width);
-	}
-
 	// Load settings from flash. Those values
 	// are used by the methods that return calibrated values.
 	const char *sfloat = flashstorage_keyval_get("CALIBRATIONSCALING");
@@ -190,7 +184,6 @@ void Geiger::initialise() {
 	// If you want to use it as a digital output
 	//gpio_set_mode (PIN_MAP[MODEM_OUT].gpio_device,PIN_MAP[MODEM_OUT].gpio_bit,GPIO_OUTPUT_PP);
 	//gpio_write_bit(PIN_MAP[MODEM_OUT].gpio_device,PIN_MAP[MODEM_OUT].gpio_bit,0);
-	// dac_init(DAC, DAC_CH2);
 
 	gpio_set_mode(PIN_MAP[MIC_IPHONE].gpio_device, PIN_MAP[MIC_IPHONE].gpio_bit,
 			GPIO_OUTPUT_PP);
@@ -208,7 +201,13 @@ void Geiger::initialise() {
 	gpio_write_bit(PIN_MAP[HP_COMBINED].gpio_device,
 			PIN_MAP[HP_COMBINED].gpio_bit, 0);
 
-	pulse_timer_init();
+	// Restore the pulse width settings:
+	uint16_t pwidth = 0;
+	const char *spulsewidth = flashstorage_keyval_get("PULSE");
+	if (spulsewidth != 0) {
+		sscanf(spulsewidth, "%"SCNu16"", &pwidth);
+	}
+	set_pulsewidth(pwidth);
 
 	// Initialize timer at 2Hz (500k microseconds = 0.5 s)
 	timer_pause(TIMER4);

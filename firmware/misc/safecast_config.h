@@ -71,6 +71,7 @@ extern const uint8 boardUsedPins[];
 #define MIC_IPHONE              35  // PC6
 #define MIC_REVERSE             36  // PC7
 #define HP_COMBINED             12  // PA6
+#define HP_LIMITED				 6  // PA8
 #define GEIGER_PULSE_GPIO       42  // PB3
 #define GEIGER_ON_GPIO           4  // PB5
 

@@ -50,7 +50,7 @@ int main(void) {
 	// Power management strategy: if battery level is lower than 20%, then we
 	// refuse to boot, but we still check battery level regularly and proceed
 	// only once battery level is high enough.
-	if (power_battery_level() < 20) {
+	if (power_battery_level() < 10) {
 
 		// TODO: this is a hack, we should not have to initialize the Geiger counter
 		// when we are in low battery mode. A simple timer trigger should be enough
@@ -89,16 +89,11 @@ int main(void) {
 	Controller c;
 	GUI m_gui(c);
 	c.set_gui(m_gui);
-	// We need the UserInput object in any case, because
+	// We need the UserInput object in every case, because
 	// if the user switches the counter on while it is logging
 	// (on with screen off) it will switch on the screen.
 	UserInput u(m_gui);
 	u.initialise();
-
-	uint8_t *private_key =
-			((uint8_t *) &_binary___binary_data_private_key_data_start);
-	if (private_key[0] != 0)
-		delay_us(1000);
 
 	delay_us(10000);  // can be removed?
 
