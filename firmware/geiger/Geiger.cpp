@@ -281,13 +281,11 @@ void Geiger::update_last_windows() {
 	last_windows[last_windows_position] = current_count;
 	current_count = 0;
 	last_windows_position = (last_windows_position+1) % WINDOWS_STORED;
-	// The number of samples collected is only relevant
-	// while the window is not valid yet
-	if (!m_cpm_valid)
-		m_samples_collected++;
-
 	// Update the CPM
 	calc_cpm_deadtime_compensated();
+	if (m_samples_collected < WINDOWS_STORED)
+		m_samples_collected++;
+
 }
 
 /**
