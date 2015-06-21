@@ -1265,7 +1265,7 @@ void Controller::send_cpm_values() {
 
 void Controller::send_graph_data() {
 	float *graph_data;
-	graph_data = system_geiger->get_cpm_last_windows();
+	graph_data = system_geiger->get_cpm_history();
 	m_gui->receive_update("$RECENTDATA", graph_data);
 }
 

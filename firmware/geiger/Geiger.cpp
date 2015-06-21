@@ -149,9 +149,11 @@ void Geiger::initialise() {
 	}
 	last_windows_position = 0;
 
-	for (uint32_t n = 0; n < WINDOWS_STORED; n++) {
-		cpm_last_windows[n] = 0;
+	for (uint32_t n = 0; n < CPM_HISTORY_SIZE; n++) {
+		cpm_history[n] = 0;
+		cpm_history_p[n] = 0;
 	}
+	cpm_history_position = 0;
 
 	max_averaging_period = 240;
 	current_count = 0;
@@ -278,9 +280,7 @@ bool Geiger::pulse_triggered() {
 void Geiger::update_last_windows() {
 	last_windows[last_windows_position] = current_count;
 	current_count = 0;
-	last_windows_position++;
-	if (last_windows_position >= WINDOWS_STORED)
-		last_windows_position = 0;
+	last_windows_position = (last_windows_position+1) % WINDOWS_STORED;
 	// The number of samples collected is only relevant
 	// while the window is not valid yet
 	if (!m_cpm_valid)
@@ -334,24 +334,20 @@ float Geiger::calc_cpm() {
 
 	// cpm for last 5 seconds
 	int32_t last5sum = 0;
-	int32_t c_position = last_windows_position - 1;
-	for (uint32_t n = 0; n < 10; n++) {
-		if (c_position < 0)
-			c_position = WINDOWS_STORED + c_position;
-		last5sum += last_windows[c_position];
-
-		c_position--;
+	int32_t c_position = last_windows_position - 1- 10;
+	if (c_position < 0)
+		c_position += WINDOWS_STORED;
+	for (uint8_t n = 0; n < 10; n++) {
+		last5sum += last_windows[c_position+n];
 	}
 
 	// cpm for 5 seconds prior to above
 	int32_t old5sum = 0;
-	c_position = last_windows_position - 1 - 10;
-	for (uint32_t n = 0; n < 10; n++) {
-		if (c_position < 0)
-			c_position = WINDOWS_STORED + c_position;
-		old5sum += last_windows[c_position];
-
-		c_position--;
+	c_position = last_windows_position - 1 - 20;
+	if (c_position < 0)
+		c_position += WINDOWS_STORED;
+	for (uint8_t n = 0; n < 10; n++) {
+		old5sum += last_windows[c_position+n];
 	}
 
 	// Invalidate if the last two 5 second windows differ by more than 100 times.
@@ -462,6 +458,11 @@ float Geiger::calc_cpm_deadtime_compensated() {
 	// CPM correction from Medcom
 	current_cpm_deadtime_compensated = cpm / (1 - ((cpm * 1.8833e-6)));
 
+	// And we also save the CPM value into a circular buffer
+	// for graphing
+	cpm_history_p[cpm_history_position] = current_cpm_deadtime_compensated;
+	cpm_history_position = (cpm_history_position+1) % CPM_HISTORY_SIZE;
+
 }
 
 /**
@@ -517,36 +518,18 @@ float Geiger::get_microsieverts_nocal() {
 
 
 /**
- * Returns a float array of the past CPM for graphing it
+ * Returns a float array of the CPM values for the last X seconds for graphing it
  */
-float *Geiger::get_cpm_last_windows() {
+float* Geiger::get_cpm_history() {
 
-	float cpm_last_windows_temp[WINDOWS_STORED];
-	int32_t c_position = last_windows_position + 1; // next value, i.e. oldest
+	int16_t c_position = cpm_history_position + 1;
 
-	// This copies the last windows in a new array, realigned
-	for (uint32_t n = 0; n < WINDOWS_STORED; n++) {
-		cpm_last_windows_temp[n] = last_windows[ c_position++ % WINDOWS_STORED];
-//		c_position++;
-//		if (c_position >= WINDOWS_STORED)
-//			c_position = 0;
+	// This copies the cpm history to a new array, realigned
+	for (uint8_t n = 0; n < CPM_HISTORY_SIZE; n++) {
+		cpm_history[n] = cpm_history_p[ (c_position + n ) % CPM_HISTORY_SIZE];
 	}
 
-	int32_t sum = 0;
-	uint32_t averaging_period = 30;
-	for (uint32_t n = 0; n < averaging_period; n++) {
-		sum += cpm_last_windows_temp[n];
-		cpm_last_windows[n] = 0;
-	}
-
-	for (uint32_t n = averaging_period; n < WINDOWS_STORED; n++) {
-		sum -= cpm_last_windows_temp[n - averaging_period];
-		sum += cpm_last_windows_temp[n];
-		cpm_last_windows[n] = ((float) sum / (float) averaging_period)
-				* WINDOWS_PER_MIN;
-	}
-
-	return cpm_last_windows;
+	return cpm_history;
 }
 
 bool Geiger::is_cpm_valid() {

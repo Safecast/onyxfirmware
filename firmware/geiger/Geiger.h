@@ -11,6 +11,11 @@
 
 #define MAX_CPM            350000
 
+// Number of CPM values we keep in the history buffer
+// Shall be less than or equal to 128 because we use
+// this to draw the graph and the screen is 128 pixels wide
+#define CPM_HISTORY_SIZE		128
+
 // Constants for headphone pulse output
 // (also used in Controller.cpp
 #define PULSE_NONE   0
@@ -24,7 +29,6 @@ public:
 
   Geiger();
   void initialise();
-  float get_cpm30();
   float get_cpm_deadtime_compensated();
   float get_cpm30_deadtime_compensated();
   float get_microsieverts();
@@ -32,11 +36,10 @@ public:
   float get_microrems();
   void  set_calibration(float c);
   float get_calibration();
-
-  float* get_cpm_last_windows();
+  void update_last_windows();
+  float* get_cpm_history();
   void powerup  ();
   void powerdown();
-  void update_last_windows();
   bool is_cpm_valid();
   bool is_cpm30_valid();
   void toggle_beep();
@@ -51,20 +54,24 @@ public:
   void enable_headphones(bool en);
   void set_pulsewidth(uint32_t p);
   uint32_t get_pulsewidth();
-  void pulse_timer_init();
   bool pulse_triggered();
 
-  float    cpm_last_windows[WINDOWS_STORED];
+  float    cpm_history[CPM_HISTORY_SIZE];
+  float    calibration_scaling;
+
+private:
+  bool     m_cpm_valid;
+  uint8_t  cpm_history_position;
   uint16_t last_windows_position;
   uint16_t last_windows[WINDOWS_STORED];
   uint16_t max_averaging_period;
-  float    calibration_scaling;
   bool     m_acquire_and_log;
   uint16_t m_samples_collected;
-  bool     m_cpm_valid;
   float    m_becquerel_eff;
+  float    cpm_history_p[CPM_HISTORY_SIZE];
 
-private:
+  void pulse_timer_init();
+  float get_cpm30();
   float calc_cpm();  // Calculate the CPM and store in the object
   float calc_cpm_deadtime_compensated();
   float    current_cpm_deadtime_compensated;

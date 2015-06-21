@@ -433,104 +433,62 @@ void render_item_head(screen_item &item, bool selected) {
 	draw_text(0, 0, "                ", COLOR_BLACK, header_color);
 }
 
-float m_old_graph_data[120];
-float m_graph_data[120];
+float m_old_graph_data[CPM_HISTORY_SIZE];
+float m_graph_data[CPM_HISTORY_SIZE];
 float *source_graph_data;
 
+/**
+ * Draw the CPM graph for the last 128 CPM values.
+ *
+ */
 void render_item_graph(screen_item &item, bool selected) {
 
-	uint32_t data_size = 240;
-	uint32_t data_offset = 600 - 240;
-	uint32_t data_increment = 2;
 	float max_height = 80;
-
-	uint32_t m_x = item.val1;
-	uint32_t m_y = item.val2;
+	uint8_t m_x = item.val1;
+	uint8_t m_y = item.val2;
 
 	// find min and max in data
-	uint32_t nmax = source_graph_data[data_offset];
-	uint32_t nmin = source_graph_data[data_offset];
-	for (uint32_t n = data_offset; n < (data_offset + data_size); n++) {
+	float nmax = source_graph_data[0];
+	float nmin = source_graph_data[0];
+	for (uint8_t n = 1; n < CPM_HISTORY_SIZE; n++) {
 		if (source_graph_data[n] > nmax)
 			nmax = source_graph_data[n];
 		if (source_graph_data[n] < nmin)
 			nmin = source_graph_data[n];
 	}
 
-	// axis
-	display_draw_line(m_x, m_y, m_x + (data_size / data_increment), m_y,
-	FOREGROUND_COLOR);
-	display_draw_line(m_x, m_y - max_height, m_x + (data_size / data_increment),
-			m_y - max_height, FOREGROUND_COLOR);
+	// Draw axis
+	if (first_render) {
+		display_draw_line(m_x, m_y, m_x + CPM_HISTORY_SIZE, m_y, FOREGROUND_COLOR);
+		display_draw_line(m_x, m_y - max_height, m_x + CPM_HISTORY_SIZE,
+				m_y - max_height, FOREGROUND_COLOR);
+	}
 
-	// if there's no data just draw labels and return.
-	if ((nmin == 0) && (nmax == 0)) {
-		display_draw_tinynumber(m_x + 5, m_y - max_height - 10, nmax, 4,
-		FOREGROUND_COLOR);
-		display_draw_tinynumber(m_x + 5, m_y - 10, nmin, 4, FOREGROUND_COLOR);
+	if ((nmax-nmin) == 0)
 		return;
+
+	// Adjust so that the graph does not overwrite the axes
+	m_y++;
+	max_height--;
+
+	// Rescale data vertically
+	float scale = max_height / (nmax-nmin);
+	float data_point = m_y - (source_graph_data[0] - nmin) * scale;
+	float next_data_point;
+
+	// Render the graph
+	for (uint32_t n = 0; n < CPM_HISTORY_SIZE-2; n++) {
+		next_data_point = m_y - (source_graph_data[n+1] - nmin) * scale;
+		if (!first_render)
+			display_draw_line(n, m_old_graph_data[n], n+1, m_old_graph_data[n+1], background_color);
+		display_draw_line(n, data_point    , n+1, next_data_point    , FOREGROUND_COLOR);
+		m_old_graph_data[n] = data_point;
+		data_point = next_data_point;
 	}
+	// Delete last data point otherwise it sticks
+	// display_draw_point(CPM_HISTORY_SIZE-1, next_data_point, background_color);
 
-	// rescale data
-	float source_y_range = nmax - nmin;
-	float dest_y_range = max_height;
-	float source_x_range = data_size;
-	float dest_x_range = 120;
-
-	float m_graph_count[120];
-	for (int n = 0; n < 120; n++)
-		m_graph_count[n] = 0;
-	for (int n = 0; n < 120; n++)
-		m_graph_data[n] = 0;
-
-	for (uint32_t n = data_offset; n < (data_offset + data_size); n++) {
-		// put data point in the range 0->1
-		float data_point = (source_graph_data[n] - nmin) / source_y_range;
-
-		// put data point in the range m_y -> m_y+dest_y_range
-		data_point = (data_point * dest_y_range);
-
-		uint32_t xpos = ((float) (n - data_offset) / source_x_range)
-				* dest_x_range;
-		m_graph_data[xpos] += data_point;
-		m_graph_count[xpos]++;
-	}
-
-	// apply averaging, and offset to data.
-	for (uint32_t n = 0; n < 120; n++) {
-		if (m_graph_count[n] != 0)
-			m_graph_data[n] = m_y - m_graph_data[n] / m_graph_count[n];
-		else
-			m_graph_data[n] = 0;
-	}
-
-	// start clearing data, clear first 2.
-	if (!first_render)
-		display_draw_line(0, m_old_graph_data[0], 1, m_old_graph_data[1],
-		background_color);
-	if (!first_render)
-		display_draw_line(1, m_old_graph_data[1], 2, m_old_graph_data[2],
-		background_color);
-
-	// render the data
-	for (uint32_t n = 1; n < 120; n++) {
-		uint32_t cx = n;
-
-		if (!first_render && (n < 118)) {
-			display_draw_line(cx + 1, m_old_graph_data[n + 1], cx + 2,
-					m_old_graph_data[n + 2], background_color);
-		}
-
-		display_draw_line(cx - 1, m_graph_data[n - 1], cx, m_graph_data[n],
-		FOREGROUND_COLOR);
-	}
-
-	for (uint32_t n = 0; n < 120; n++) {
-		m_old_graph_data[n] = m_graph_data[n];
-	}
-
-	display_draw_tinynumber(m_x + 5, m_y - max_height - 10, nmax, 4,
-	FOREGROUND_COLOR);
+	display_draw_tinynumber(m_x + 5, m_y - max_height - 10, nmax, 4, FOREGROUND_COLOR);
 	display_draw_tinynumber(m_x + 5, m_y - 10, nmin, 4, FOREGROUND_COLOR);
 
 }
