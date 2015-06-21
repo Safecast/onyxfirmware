@@ -119,6 +119,7 @@ Geiger::Geiger() {
 void Geiger::initialise() {
 
 	calibration_scaling = 1;
+	current_cpm_deadtime_compensated = 0;
 	m_cpm_valid = false;
 	total_count = 0;
 
@@ -284,6 +285,9 @@ void Geiger::update_last_windows() {
 	// while the window is not valid yet
 	if (!m_cpm_valid)
 		m_samples_collected++;
+
+	// Update the CPM
+	calc_cpm_deadtime_compensated();
 }
 
 /**
@@ -317,7 +321,7 @@ uint32_t max(uint32_t a, uint32_t b) {
  *
  *
  */
-float Geiger::get_cpm() {
+float Geiger::calc_cpm() {
 
 	// If there are no samples, return 0
 	if (m_samples_collected == 0) {
@@ -452,13 +456,21 @@ float Geiger::get_cpm30() {
  * IMPORTANT NOTE: if you need to output/display the CPM count, this is the method
  * to use, not the get_cpm above.
  */
-float Geiger::get_cpm_deadtime_compensated() {
-	float cpm = get_cpm();
+float Geiger::calc_cpm_deadtime_compensated() {
+	float cpm = calc_cpm();
 
 	// CPM correction from Medcom
-	return cpm / (1 - ((cpm * 1.8833e-6)));
+	current_cpm_deadtime_compensated = cpm / (1 - ((cpm * 1.8833e-6)));
 
 }
+
+/**
+ * Returns the current CPM
+ */
+float Geiger::get_cpm_deadtime_compensated() {
+	return current_cpm_deadtime_compensated;
+}
+
 
 /**
  * Returns CPM count over the last 30 seconds, 'dead time compensated'
@@ -503,6 +515,7 @@ float Geiger::get_microsieverts_nocal() {
 	return microsieverts;
 }
 
+
 /**
  * Returns a float array of the past CPM for graphing it
  */
@@ -511,11 +524,12 @@ float *Geiger::get_cpm_last_windows() {
 	float cpm_last_windows_temp[WINDOWS_STORED];
 	int32_t c_position = last_windows_position + 1; // next value, i.e. oldest
 
+	// This copies the last windows in a new array, realigned
 	for (uint32_t n = 0; n < WINDOWS_STORED; n++) {
-		cpm_last_windows_temp[n] = last_windows[c_position];
-		c_position++;
-		if (c_position >= WINDOWS_STORED)
-			c_position = 0;
+		cpm_last_windows_temp[n] = last_windows[ c_position++ % WINDOWS_STORED];
+//		c_position++;
+//		if (c_position >= WINDOWS_STORED)
+//			c_position = 0;
 	}
 
 	int32_t sum = 0;

@@ -24,7 +24,6 @@ public:
 
   Geiger();
   void initialise();
-  float get_cpm();
   float get_cpm30();
   float get_cpm_deadtime_compensated();
   float get_cpm30_deadtime_compensated();
@@ -34,7 +33,7 @@ public:
   void  set_calibration(float c);
   float get_calibration();
 
-  float *get_cpm_last_windows();
+  float* get_cpm_last_windows();
   void powerup  ();
   void powerdown();
   void update_last_windows();
@@ -64,6 +63,12 @@ public:
   uint16_t m_samples_collected;
   bool     m_cpm_valid;
   float    m_becquerel_eff;
+
+private:
+  float calc_cpm();  // Calculate the CPM and store in the object
+  float calc_cpm_deadtime_compensated();
+  float    current_cpm_deadtime_compensated;
+
 };
 
 extern Geiger *system_geiger;
