@@ -468,25 +468,23 @@ void render_item_graph(screen_item &item, bool selected) {
 		return;
 
 	// Adjust so that the graph does not overwrite the axes
-	m_y++;
-	max_height--;
+	m_y--;
+	max_height = max_height-2;
 
 	// Rescale data vertically
 	float scale = max_height / (nmax-nmin);
 	float data_point = m_y - (source_graph_data[0] - nmin) * scale;
-	float next_data_point;
 
 	// Render the graph
 	for (uint32_t n = 0; n < CPM_HISTORY_SIZE-2; n++) {
-		next_data_point = m_y - (source_graph_data[n+1] - nmin) * scale;
-		if (!first_render)
-			display_draw_line(n, m_old_graph_data[n], n+1, m_old_graph_data[n+1], background_color);
+		float next_data_point = m_y - (source_graph_data[n+1] - nmin) * scale;
+		display_draw_line(n, m_old_graph_data[n], n+1, m_old_graph_data[n+1], background_color);
 		display_draw_line(n, data_point    , n+1, next_data_point    , FOREGROUND_COLOR);
 		m_old_graph_data[n] = data_point;
 		data_point = next_data_point;
 	}
-	// Delete last data point otherwise it sticks
-	// display_draw_point(CPM_HISTORY_SIZE-1, next_data_point, background_color);
+	m_old_graph_data[CPM_HISTORY_SIZE-2] = data_point;
+	display_draw_point(CPM_HISTORY_SIZE-2, data_point, background_color);
 
 	display_draw_tinynumber(m_x + 5, m_y - max_height - 10, nmax, 4, FOREGROUND_COLOR);
 	display_draw_tinynumber(m_x + 5, m_y - 10, nmin, 4, FOREGROUND_COLOR);
