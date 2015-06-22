@@ -280,12 +280,11 @@ bool Geiger::pulse_triggered() {
 void Geiger::update_last_windows() {
 	last_windows[last_windows_position] = current_count;
 	current_count = 0;
-	last_windows_position = (last_windows_position+1) % WINDOWS_STORED;
-	// Update the CPM
-	calc_cpm_deadtime_compensated();
+	last_windows_position = (last_windows_position + 1) % WINDOWS_STORED;
 	if (m_samples_collected < WINDOWS_STORED)
 		m_samples_collected++;
-
+	// Update the CPM
+	calc_cpm_deadtime_compensated();
 }
 
 /**
@@ -378,8 +377,8 @@ float Geiger::calc_cpm() {
 	if (c_position < 0)
 		c_position = WINDOWS_STORED - 1;
 
-	int32_t samples_used = 0;
-	for (uint32_t n = 0;
+	int16_t samples_used = 0;
+	for (uint16_t n = 0;
 			(n < max_averaging_period) && (n < m_samples_collected); n++) {
 
 		sum += last_windows[c_position];

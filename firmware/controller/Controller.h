@@ -76,8 +76,7 @@ public:
   int16    m_accel_z_stored;
   int16    m_magsensor_stored;
   int32_t  m_warncpm;
-  bool     m_last_switch_state;
-  bool     m_keytrigger;
+  bool     m_last_switch_state;;
   bool     m_warning_raised;
   uint32   m_total_timer_start;
   bool     m_mute_alarm;

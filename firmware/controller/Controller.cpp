@@ -1404,7 +1404,6 @@ void Controller::send_logstatus() {
 void Controller::update() {
 
 	check_warning_level();
-	m_keytrigger = false;
 	do_logging();
 	check_sleep_switch();
 

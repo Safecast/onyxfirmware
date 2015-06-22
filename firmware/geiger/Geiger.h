@@ -74,7 +74,7 @@ private:
   float get_cpm30();
   float calc_cpm();  // Calculate the CPM and store in the object
   float calc_cpm_deadtime_compensated();
-  float    current_cpm_deadtime_compensated;
+  float current_cpm_deadtime_compensated;
 
 };
 
