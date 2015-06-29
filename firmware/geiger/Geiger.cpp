@@ -122,6 +122,7 @@ void Geiger::initialise() {
 	current_cpm_deadtime_compensated = 0;
 	m_cpm_valid = false;
 	total_count = 0;
+	pulse_width = 0;
 
 	// Load settings from flash. Those values
 	// are used by the methods that return calibrated values.
@@ -154,6 +155,14 @@ void Geiger::initialise() {
 		cpm_history_p[n] = 0;
 	}
 	cpm_history_position = 0;
+
+	// Restore the pulse width settings:
+	uint16_t pwidth = 0;
+	const char *spulsewidth = flashstorage_keyval_get("PULSE");
+	if (spulsewidth != 0) {
+		sscanf(spulsewidth, "%"SCNu16"", &pwidth);
+	}
+	set_pulsewidth(pwidth);
 
 	max_averaging_period = 240;
 	current_count = 0;
@@ -206,14 +215,6 @@ void Geiger::initialise() {
 			PIN_MAP[HP_COMBINED].gpio_bit, GPIO_OUTPUT_PP);
 	gpio_write_bit(PIN_MAP[HP_COMBINED].gpio_device,
 			PIN_MAP[HP_COMBINED].gpio_bit, 0);
-
-	// Restore the pulse width settings:
-	uint16_t pwidth = 0;
-	const char *spulsewidth = flashstorage_keyval_get("PULSE");
-	if (spulsewidth != 0) {
-		sscanf(spulsewidth, "%"SCNu16"", &pwidth);
-	}
-	set_pulsewidth(pwidth);
 
 	// Initialize timer at 2Hz (500k microseconds = 0.5 s)
 	timer_pause(TIMER4);
