@@ -15,9 +15,9 @@
 	.thumb_func
 	.syntax unified
 
-	.globl _start
-	.type _start, %function
-_start:
+	.globl __start__
+	.type __start__, %function
+__start__:
 	.fnstart
 	ldr r0, =0x2000BFF0
     ldr r1, =0xBABEFEED
