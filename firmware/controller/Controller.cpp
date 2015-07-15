@@ -542,7 +542,7 @@ void Controller::event_opmode(const char *event, uint8_t mode_val) {
 
 	// Safeguard: if user disabled all opmodes, then force
 	// CPM mode back on.
-	if (enabled_modes ==0) {
+	if ((enabled_modes & (OPMODE_CPM | OPMODE_USV | OPMODE_GRAPH | OPMODE_COUNT | OPMODE_BECQ | OPMODE_QRCODE))==0) {
 		enabled_modes = 1;
 		tick_item("CPM:Mode",true);
 	}
@@ -562,12 +562,14 @@ void Controller::refresh_next_opmode_name() {
 }
 
 void Controller::send_mode_label() {
-	const char* mode_names[] = { "CPM", "USV", "Graph", "Count", "Becq", "QR" };
+	const char* mode_names[] = { "CPM", "\x80Sv/h", "Graph", "Count", "Becq", "QR" };
 	m_gui->receive_update("$NEXTMODE", mode_names[next_mode_label]);
 }
 
 /**
- * Request to jump to the next active Operating mode screen.
+ * Request to jump to the next active Operating mode screen, or
+ * just find the name of the next active operating mode, depending
+ * on 'jump' flag.
  */
 void Controller::event_next_opmode(bool jump) {
 	uint8_t opmodes[] = { 0,  // Main menu
@@ -606,10 +608,10 @@ void Controller::event_next_opmode(bool jump) {
 			i++;
 	}
 
-	// Now, i is the next enabled menu entry:
+	// Now, i is the next enabled menu entry,
+	// and index of this mode name is (i-1)
 	next_mode_label = i-1;
 	if (jump) {
-		next_mode_label = i;
 		m_gui->jump_to_screen(opmodes[i]);
 	}
 

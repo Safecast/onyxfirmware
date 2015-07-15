@@ -1560,10 +1560,8 @@ void GUI::jump_to_screen(uint8_t screen) {
 	selected_item = 1;
 
 	// We need this to make sure the labels for the
-	// main screen are correct:
-	if (screen == 0) {
-	  controller.event_next_opmode(false);
-	}
+	// "next mode" label are correct:
+	controller.event_next_opmode(false);
 }
 
 /**
