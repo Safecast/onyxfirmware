@@ -2,14 +2,14 @@ OS100VERSION := $(shell cat $(TOP)RELEASENUMBER)
 RELEASE_NAME := firmware-$(OS100VERSION)
 
 CFLAGS := -Os -gdwarf-2 -mcpu=cortex-m3 -mthumb -march=armv7-m \
-	-lnostdlib -ffunction-sections -fdata-sections -Wl,--gc-sections \
-	-DBOARD_safecast -DMCU_STM32F101RE -DSTM32_HIGH_DENSITY -DVECT_TAB_BASE -D'OS100VERSION="$(OS100VERSION)"' \
+	-nostdlib -ffunction-sections -fdata-sections -Wl,-static -Wl,--gc-sections \
+	-DBOARD_safecast -DNDEBUG -DMCU_STM32F101RE -DSTM32_HIGH_DENSITY -DVECT_TAB_BASE -D'OS100VERSION="$(OS100VERSION)"' \
 	-I. -I./libmaple -I./display -I./userinput -I./buzzer -I./accelerometer -I./geiger -I./led -I./gui -I./realtime \
 	-I./controller -I./flash_storage -I./serialinterface -I./misc -I./qrcode -I./signing -I./signing/beecrypt -I./log_read -I./modem \
 	-I ./libjson
-CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -Wall -lnostdlib
+CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -Wall -nostdlib
 ASFLAGS := -mcpu=cortex-m3 -march=armv7-m -mthumb -x assembler-with-cpp
-LDFLAGS := -mcpu=cortex-m3 -mthumb -Xlinker --gc-sections --print-gc-sections --march=armv7-m -Wall
+LDFLAGS := -mcpu=cortex-m3 -mthumb -mtune=cortex-m3 -march=armv7-m -Xlinker --gc-sections -Wall 
 
 CC = arm-none-eabi-gcc
 CXX = arm-none-eabi-g++

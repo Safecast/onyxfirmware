@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #define TEXT_LENGTH 17
-#define SCREEN_COUNT 27
+#define SCREEN_COUNT 28
 
 
 // The constants below are the type of items that can be drawn

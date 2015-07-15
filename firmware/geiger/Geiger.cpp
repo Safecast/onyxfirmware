@@ -453,7 +453,7 @@ float Geiger::get_cpm30() {
  * IMPORTANT NOTE: if you need to output/display the CPM count, this is the method
  * to use, not the get_cpm above.
  */
-float Geiger::calc_cpm_deadtime_compensated() {
+void Geiger::calc_cpm_deadtime_compensated() {
 	float cpm = calc_cpm();
 
 	// CPM correction from Medcom

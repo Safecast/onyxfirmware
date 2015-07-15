@@ -219,12 +219,14 @@ void CLS(uint16 color) {
 
 }
 
+/*
 static void Set_Contrast_Color(unsigned char a, unsigned char b, unsigned char c) {
     write_c(0xC1);           // Set Contrast Current for Color A, B, C
     write_d(a);              //   Default => 0x8A (Color A)
     write_d(b);              //   Default => 0x51 (Color B)
     write_d(c);              //   Default => 0x8A (Color C)
 }
+*/
 
 
 void Set_Master_Current(unsigned char d) {

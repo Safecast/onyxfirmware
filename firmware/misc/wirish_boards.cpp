@@ -48,7 +48,7 @@
 static void setupFlash(void);
 static void setupClocks(void);
 static void setupNVIC(void);
-static void setupADC(void);
+//static void setupADC(void);
 static void setupTimers(void);
 
 // TODO: not used anywhere in the project. Remove ?
@@ -117,13 +117,15 @@ static void setupNVIC() {
 #endif
 }
 
-static void adcDefaultConfig(const adc_dev* dev);
+// static void adcDefaultConfig(const adc_dev* dev);
 
+/**
 static void setupADC() {
     rcc_set_prescaler(RCC_PRESCALER_ADC, RCC_ADCPRE_PCLK_DIV_6);
     // ok
     adc_foreach(adcDefaultConfig);
 }
+**/
 
 static void timerDefaultConfig(timer_dev*);
 
@@ -138,6 +140,7 @@ static void setupTimers() {
 	timerDefaultConfig(TIMER4);
 }
 
+/**
 static void adcDefaultConfig(const adc_dev *dev) {
     adc_init(dev);
     // ok
@@ -154,6 +157,7 @@ static void adcDefaultConfig(const adc_dev *dev) {
     adc_set_sample_rate(dev, ADC_SMPR_55_5);
     // stick at 1mA
 }
+**/
 
 static void timerDefaultConfig(timer_dev *dev) {
     timer_adv_reg_map *regs = (dev->regs).adv;

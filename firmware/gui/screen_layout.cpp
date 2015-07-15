@@ -28,19 +28,20 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 // Screen 0 - main screen
 {
- 7,
+ 8,
  {
-   { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT"    , 255},
-   { ITEM_TYPE_MENU       ,15, 1, "Accumulate/Avg" ,6   },
-   { ITEM_TYPE_MENU       ,21, 2, "Becquerel"      ,31  },
-   { ITEM_TYPE_MENU_ACTION, 0, 3, "QR Tweet"       ,32  },
-   { ITEM_TYPE_MENU       , 3, 5, "Settings"       , 0  },
-   { ITEM_TYPE_SOFTKEY	  , 0, 1, "CPM"			   , 255},
-   { ITEM_TYPE_SOFTKEY	  , 2, 25, "Logs"	       , 255},
+   { ITEM_TYPE_HEAD       ,  0,  0, "$CPMDEADINT"    	,255 },
+   { ITEM_TYPE_MENU       , 25,  1, "Data Logging" 		,255 },
+   { ITEM_TYPE_MENU       , 16,  2, "Display Settings"  ,255 },
+   { ITEM_TYPE_MENU       , 17,  3, "Geiger Settings"   ,255 },
+   { ITEM_TYPE_MENU       ,  3,  4, "Warning Settings"  ,255 },
+   { ITEM_TYPE_MENU       , 27,  5, "Operating Modes"   ,255 },
+   { ITEM_TYPE_SOFTKEY	  ,  0,  1, "CPM"			    ,255 },
+   { ITEM_TYPE_SOFTKEY	  ,  2, 18, "About"	            ,255 },
  }
 },
 
-// Screen 1 - Current readings screen
+// Screen 1 - CPM readings screen
 {
   7,
   {
@@ -67,17 +68,14 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   }
 },
 
-// Screen 3 - Settings menu
+// Screen 3 - Warning Settings menu
 {
-  7,
+  4,
   {
-    { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT", 255 },
-    { ITEM_TYPE_MENU       ,16, 1, "Interface" , 8 },
-    { ITEM_TYPE_MENU       ,17, 2, "Geiger"    , 9 },
-    { ITEM_TYPE_MENU       , 9, 3, "Time/Date" , 13 },
-    { ITEM_TYPE_MENU_ACTION, 0, 5, "Mute Alarm", 255 },
-    { ITEM_TYPE_SOFTKEY      ,2, 18, "About"   , 14 },
-    { ITEM_TYPE_SOFTKEY	    ,  0,  0, "Home"   , 255}
+    { ITEM_TYPE_HEAD       ,  0, 0, "$CPMDEADINT", 255 },
+    { ITEM_TYPE_MENU_ACTION,  0, 1, "Mute Alarm", 255 },
+    { ITEM_TYPE_MENU       , 13, 2, "Warning Level", 255 },
+    { ITEM_TYPE_SOFTKEY	    , 0,  0, "Back"   , 255}
   }
 },
 
@@ -89,7 +87,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD    , 0 , 0  , "$CPMDEADINT"    , 255 },
     { ITEM_TYPE_GRAPH   , 4 , 108, "$RECENTDATA"    , 255 },
     { ITEM_TYPE_SOFTKEY	  , 0, 0, "Menu"			, 255},
-    { ITEM_TYPE_SOFTKEY	  , 1, 1, "CPM"				, 255},
+    { ITEM_TYPE_SOFTKEY	  , 1, 15, "Count"				, 255},
     { ITEM_TYPE_SOFTKEY_ACTION	  , 2, 0, "Beep"			, 255},
   }
 },
@@ -137,7 +135,6 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 92, 50 , "$CAL4"      , 255 },
     { ITEM_TYPE_SOFTKEY    ,  0,  4, "Abort", 255   },
     { ITEM_TYPE_SOFTKEY_ACTION,  2,   0, "Save:Calib", 2   },
-//    { ITEM_TYPE_ACTION     ,  0,   0, "CALIBRATE" , 255 },
     { ITEM_TYPE_VARLABEL   ,  0,   0, "$FIXEDSV"   , 255 }
   }
 },
@@ -150,7 +147,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU,            10, 1, "Set Time (UTC)", 15  },
     { ITEM_TYPE_MENU,            11, 2, "Set Date (UTC)", 16  },
     { ITEM_TYPE_MENU,            20, 3, "Set UTC Offset", 33  },
-    { ITEM_TYPE_SOFTKEY	    ,  0,  3, "Back"   , 255}
+    { ITEM_TYPE_SOFTKEY	    ,  0,  16, "Back"   , 255}
   }
 },
 
@@ -213,7 +210,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARNUM     , 54, 50 , "$WARNCPM3"    , 255 },
     { ITEM_TYPE_VARNUM     , 76, 50 , "$WARNCPM4"    , 255 },
     { ITEM_TYPE_VARNUM     , 98, 50 , "$WARNCPM5"    , 255 },
-    { ITEM_TYPE_SOFTKEY	    ,  0,  17, "Back"   , 255},
+    { ITEM_TYPE_SOFTKEY	    ,  0,  3, "Back"   , 255},
     { ITEM_TYPE_SOFTKEY_ACTION	, 2, 0, "Save:WarnCPM" , 2},
     { ITEM_TYPE_LABEL      , 0 ,  20, "Warning CPM" , 47  },
     { ITEM_TYPE_ACTION     ,  0,   0, "WARNSCREEN"  , 255 }
@@ -231,7 +228,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   }
 },
 
-//Screen 15 - Total/Timer mode
+//Screen 15 - Timed count mode
 {
   13,
   {
@@ -246,7 +243,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARLABEL    , 80, 90, "$COUNTWIN",      255},
     { ITEM_TYPE_ACTION      ,  2, 2, "TOTALTIMER" , 255},
     { ITEM_TYPE_SOFTKEY	  	, 0 ,  0, "Back"	   , 255},
-    { ITEM_TYPE_SOFTKEY	  	, 1 , 26, "Setup"	   , 255},
+    { ITEM_TYPE_SOFTKEY	  	, 1 , 21, "Becq"	   , 255},
     { ITEM_TYPE_SOFTKEY	  	, 2 , 15, "Reset"	   , 255}
   }
 },
@@ -257,25 +254,24 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   {
     { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT"   , 255},
     { ITEM_TYPE_MENU       ,12, 1, "Brightness"   , 10 },
-    { ITEM_TYPE_MENU_ACTION, 0, 2, "Beep"  , 11 },
-    { ITEM_TYPE_MENU       ,14, 3, "Language"     , 12 },
+    { ITEM_TYPE_MENU       ,14, 2, "Language"     , 12 },
+    { ITEM_TYPE_MENU       , 9, 3, "Time and date", 255},
     { ITEM_TYPE_MENU_ACTION, 0, 4, "Never Dim"    , 0  },
-    { ITEM_TYPE_SOFTKEY	    ,  0,  3, "Back"   , 255}
+    { ITEM_TYPE_SOFTKEY	    ,  0,  0, "Back"   , 255}
   }
 },
 
 //Screen 17 - Geiger settings
 {
-  8,
+  7,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT"      , 255},
     { ITEM_TYPE_MENU       ,19, 1, "\x80Sv/\x80R"    , 255},
     { ITEM_TYPE_MENU       , 5, 2, "Calibration"     , 26 },
-    { ITEM_TYPE_MENU       ,13, 3, "Warning Levels"  , 28 },
-    { ITEM_TYPE_MENU       ,22, 4, "Bq. Eff. Value"  , 35 },
-    { ITEM_TYPE_MENU_ACTION, 0, 5, "CPM/CPS Auto"    , 36 },
-    { ITEM_TYPE_MENU       , 24, 6, "Pulse output", 255},
-    { ITEM_TYPE_SOFTKEY	    ,  0,  3, "Back"   , 255}
+    { ITEM_TYPE_MENU       ,26, 3, "Timed Count Set"  , 255 },
+    { ITEM_TYPE_MENU_ACTION, 0, 4, "CPM/CPS Auto"    , 36 },
+    { ITEM_TYPE_MENU       , 24, 5, "Pulse output", 255},
+    { ITEM_TYPE_SOFTKEY	    ,  0,  0, "Back"   , 255}
   }
 },
 
@@ -286,7 +282,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD       , 0 , 0, "$CPMDEADINT"        , 255},
     { ITEM_TYPE_LABEL      , 0  ,32, "Firmware Release" , 37 },
     { ITEM_TYPE_LABEL      , 255,64, OS100VERSION       , 255},
-    { ITEM_TYPE_SOFTKEY	    ,  0,  3, "Back"   , 255}
+    { ITEM_TYPE_SOFTKEY	    ,  0,  0, "Back"   , 255}
   }
 },
 
@@ -321,14 +317,15 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 21 - Becquerel
 {
-  6,
+  7,
   {
     { ITEM_TYPE_HEAD        , 0  ,  0, "$CPMDEADINT", 255},
     { ITEM_TYPE_VARLABEL    , 0  , 30, "$BECQINFO"  , 255},
     { ITEM_TYPE_BIGVARLABEL , 0  , 43, "$BECQ"      , 255},
     { ITEM_TYPE_LABEL        ,81 , 90, "Bq/m2"     , 255},
-    { ITEM_TYPE_SOFTKEY	    ,  0,   0, "Menu"   , 255},
-    { ITEM_TYPE_SOFTKEY	    ,  2,  22, "Setup"   , 255},
+    { ITEM_TYPE_SOFTKEY	    ,  0,  0, "Menu"		, 255},
+    { ITEM_TYPE_SOFTKEY	    ,  1,  1, "CPM"		, 255},
+    { ITEM_TYPE_SOFTKEY		,  2,  22, "Setup"	    , 255},
   }
 },
 
@@ -407,6 +404,21 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_LABEL      , 0 ,  20, "Max count window" , 47  },
     { ITEM_TYPE_LABEL      , 255 ,  85, "seconds" , 47  },
     { ITEM_TYPE_ACTION     ,  0,   0, "COUNTWINSCR"  , 255 }
+  }
+},
+
+//Screen 27 - Operating Mode settings
+{
+  8,
+  {
+    { ITEM_TYPE_HEAD       , 0 , 0  , "$CPMDEADINT"  , 255 },
+    { ITEM_TYPE_MENU_ACTION,  0, 1, "CPM:Mode", 255 },
+    { ITEM_TYPE_MENU_ACTION,  0, 2, "\x80Sv / \x80R:Mode", 255 },
+    { ITEM_TYPE_MENU_ACTION,  0, 3, "Graph:Mode", 255 },
+    { ITEM_TYPE_MENU_ACTION,  0, 4, "Timed Count:Mode", 255 },
+    { ITEM_TYPE_MENU_ACTION,  0, 5, "Becquerel:Mode", 255 },
+    { ITEM_TYPE_MENU_ACTION,  0, 6, "QR Code:Mode", 255 },
+    { ITEM_TYPE_SOFTKEY	  	, 0 ,0, "Back"	   , 255},
   }
 }
 

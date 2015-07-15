@@ -59,9 +59,32 @@ Controller::Controller() {
 	m_warncpm = 0;
 	const char *swarncpm = flashstorage_keyval_get("WARNCPM");
 	if (swarncpm != 0) {
-		int32_t c;
-		sscanf(swarncpm, "%"PRIu32"", &c);
-		m_warncpm = c;
+		sscanf(swarncpm, "%"SCNd32"", &m_warncpm);
+	}
+
+	// Get enabled operating modes
+	const char *opm = flashstorage_keyval_get("OPMODES");
+	if (opm != 0) {
+		sscanf(opm, "%"SCNu8"", &enabled_modes);
+		// Restore the ticked status of all menu items:
+		if (enabled_modes & OPMODE_CPM) {
+			tick_item("CPM:Mode", true);
+		}
+		if (enabled_modes & OPMODE_USV) {
+			tick_item("\x80Sv / \x80R:Mode", true);
+		}
+		if (enabled_modes & OPMODE_GRAPH) {
+			tick_item("Graph:Mode", true);
+		}
+		if (enabled_modes & OPMODE_COUNT) {
+			tick_item("Timed Count:Mode", true);
+		}
+		if (enabled_modes & OPMODE_BECQ) {
+			tick_item("Becquerel:Mode", true);
+		}
+		if (enabled_modes & OPMODE_QRCODE) {
+			tick_item("QR Code:Mode", true);
+		}
 	}
 
 	// Get never dim from flash
@@ -197,8 +220,7 @@ void Controller::initialise_calibration() {
 	m_calibration_base = system_geiger->get_microsieverts_nocal();
 	char text_sieverts[16];
 	sprintf(text_sieverts, "%5.3f \x80Sv",
-			m_calibration_base * system_geiger->get_calibration(),
-			text_sieverts);
+			m_calibration_base * system_geiger->get_calibration());
 
 	m_gui->receive_update("$FIXEDSV", text_sieverts);
 
@@ -492,6 +514,27 @@ void Controller::event_geiger_beep(const char *event, const char *value) {
 		tick_item("Beep", false);
 	}
 }
+
+/**
+ * Toggle an operating mode
+ */
+void Controller::event_opmode(const char *event, uint8_t mode_val) {
+
+	// Toggle the operating mode called "event"
+	if (enabled_modes & mode_val) {
+		tick_item(event, false);
+		enabled_modes &= ~mode_val;
+	} else {
+		tick_item(event, true);
+		enabled_modes |= mode_val;
+	}
+
+	// Save the opmode to flash
+	char opmode[10];
+	sprintf(opmode, "%"PRIu8"", enabled_modes);
+	flashstorage_keyval_set("OPMODES", opmode);
+}
+
 
 void Controller::event_usv(const char *event, const char *value) {
 	flashstorage_keyval_set("SVREM", "SV");
@@ -978,6 +1021,18 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 		event_pulse(PULSE_1ms);
 	else if (strcmp(event, " Audio tone") == 0)
 		event_pulse(PULSE_AUDIO);
+	else if (strcmp(event, "CPM:Mode") == 0)
+		event_opmode(event, OPMODE_CPM);
+	else if (strcmp(event, "\x80Sv / \x80R:Mode") == 0)
+		event_opmode(event, OPMODE_USV);
+	else if (strcmp(event, "Graph:Mode") == 0)
+		event_opmode(event, OPMODE_GRAPH);
+	else if (strcmp(event, "Timed Count:Mode") == 0)
+		event_opmode(event, OPMODE_COUNT);
+	else if (strcmp(event, "Becquerel:Mode") == 0)
+		event_opmode(event, OPMODE_BECQ);
+	else if (strcmp(event, "QR Code:Mode") == 0)
+		event_opmode(event, OPMODE_QRCODE);
 	else if (strcmp(event, "Clear Log") == 0)
 		event_clear_log(event, value);
 	else if (strcmp(event, "Save:Brightness") == 0)

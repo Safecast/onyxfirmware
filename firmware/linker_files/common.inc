@@ -5,13 +5,15 @@
  */
 
 OUTPUT_FORMAT ("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
-ENTRY(__start__)
 SEARCH_DIR(.)
 
 /*
  * Link against libgcc, libc, and libm
  */
 GROUP(libgcc.a libc.a libm.a)
+/* This is for the provided newlib. */
+/* GROUP(libnosys.a)
+*/
 
 /* These force the linker to search for particular symbols from
  * the start of the link process and thus ensure the user's
@@ -36,6 +38,7 @@ EXTERN(__cs3_stack)
 PROVIDE(__cs3_stack = __cs3_region_start_ram + LENGTH(ram));
 
 /* Reset vector and chip reset entry point. See start.S */
+ENTRY(__start__)
 EXTERN(__start__)
 PROVIDE(__cs3_reset = __start__);
 
