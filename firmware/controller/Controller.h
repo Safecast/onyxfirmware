@@ -5,13 +5,6 @@
 #include "GUI.h"
 #include <stdint.h>
 
-// Define bit masks for the operating modes:
-#define OPMODE_CPM 1
-#define OPMODE_USV 2
-#define OPMODE_GRAPH 4
-#define OPMODE_COUNT 8
-#define OPMODE_BECQ 16
-#define OPMODE_QRCODE 32
 
 
 class Controller {
@@ -70,6 +63,9 @@ public:
   void send_svrem();
   void send_becq();
   void send_logstatus();
+  void refresh_next_opmode_name();
+  void send_mode_label();
+  void event_next_opmode(bool jump);
 
   GUI     *m_gui;
   bool     m_sleeping;             ///< this indicates display sleep
@@ -103,6 +99,7 @@ public:
 private:
 
   uint8_t	enabled_modes;	// What operating modes are enabled
+  uint8_t    next_mode_label;
   void event_opmode(const char *event,uint8_t mode_val);
   void reset_alarm(int32_t warn_cpm);
 

@@ -567,7 +567,7 @@ void clear_item_head(screen_item &item, bool selected) {
 }
 
 /**
- * Render a soft key.
+ * Clear a soft key.
  * item.val1: 0 to 2 (soft key number)
  * item.val2: unused
  * item.text: label (5 char max)
@@ -1110,6 +1110,8 @@ void GUI::show_dialog(const char *dialog_text1, const char *dialog_text2,
 
 /**
  * The main render loop of the GUI. Called about twice per second.
+ *
+ * TODO: do not update parts of the screen which have not changed!
  */
 void GUI::render() {
 
@@ -1556,6 +1558,12 @@ void GUI::jump_to_screen(uint8_t screen) {
 	current_screen = screen;
 	last_selected_item = 1;
 	selected_item = 1;
+
+	// We need this to make sure the labels for the
+	// main screen are correct:
+	if (screen == 0) {
+	  controller.event_next_opmode(false);
+	}
 }
 
 /**

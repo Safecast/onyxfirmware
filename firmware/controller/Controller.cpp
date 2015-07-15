@@ -29,6 +29,15 @@
 
 Controller *system_controller;
 
+// Define bit masks for the operating modes:
+#define OPMODE_CPM 1
+#define OPMODE_USV 2
+#define OPMODE_GRAPH 4
+#define OPMODE_COUNT 8
+#define OPMODE_BECQ 16
+#define OPMODE_QRCODE 32
+
+
 /**
  * Initialize the system controller. In particular:
  *   - Load settings
@@ -54,6 +63,7 @@ Controller::Controller() {
 	m_displaying_cps = false; // For hysteresis
 	m_cpm_cps_threshold = 1010;
 	m_cps_cpm_threshold = 990;
+	next_mode_label = 0;
 
 	// Get warning cpm from flash
 	m_warncpm = 0;
@@ -63,28 +73,29 @@ Controller::Controller() {
 	}
 
 	// Get enabled operating modes
+	enabled_modes = 255; // By default, all modes enabled
 	const char *opm = flashstorage_keyval_get("OPMODES");
 	if (opm != 0) {
 		sscanf(opm, "%"SCNu8"", &enabled_modes);
-		// Restore the ticked status of all menu items:
-		if (enabled_modes & OPMODE_CPM) {
-			tick_item("CPM:Mode", true);
-		}
-		if (enabled_modes & OPMODE_USV) {
-			tick_item("\x80Sv / \x80R:Mode", true);
-		}
-		if (enabled_modes & OPMODE_GRAPH) {
-			tick_item("Graph:Mode", true);
-		}
-		if (enabled_modes & OPMODE_COUNT) {
-			tick_item("Timed Count:Mode", true);
-		}
-		if (enabled_modes & OPMODE_BECQ) {
-			tick_item("Becquerel:Mode", true);
-		}
-		if (enabled_modes & OPMODE_QRCODE) {
-			tick_item("QR Code:Mode", true);
-		}
+	}
+	// Restore the ticked status of all menu items:
+	if (enabled_modes & OPMODE_CPM) {
+		tick_item("CPM:Mode", true);
+	}
+	if (enabled_modes & OPMODE_USV) {
+		tick_item("\x80Sv / \x80R:Mode", true);
+	}
+	if (enabled_modes & OPMODE_GRAPH) {
+		tick_item("Graph:Mode", true);
+	}
+	if (enabled_modes & OPMODE_COUNT) {
+		tick_item("Timed Count:Mode", true);
+	}
+	if (enabled_modes & OPMODE_BECQ) {
+		tick_item("Becquerel:Mode", true);
+	}
+	if (enabled_modes & OPMODE_QRCODE) {
+		tick_item("QR Code:Mode", true);
 	}
 
 	// Get never dim from flash
@@ -529,12 +540,80 @@ void Controller::event_opmode(const char *event, uint8_t mode_val) {
 		enabled_modes |= mode_val;
 	}
 
+	// Safeguard: if user disabled all opmodes, then force
+	// CPM mode back on.
+	if (enabled_modes ==0) {
+		enabled_modes = 1;
+		tick_item("CPM:Mode",true);
+	}
+
 	// Save the opmode to flash
 	char opmode[10];
 	sprintf(opmode, "%"PRIu8"", enabled_modes);
 	flashstorage_keyval_set("OPMODES", opmode);
 }
 
+/**
+ * Request a refresh of the next opmode menu entry label.
+ * Needs to be called after the GUI object is initialized
+ */
+void Controller::refresh_next_opmode_name() {
+	event_next_opmode(false);
+}
+
+void Controller::send_mode_label() {
+	const char* mode_names[] = { "CPM", "USV", "Graph", "Count", "Becq", "QR" };
+	m_gui->receive_update("$NEXTMODE", mode_names[next_mode_label]);
+}
+
+/**
+ * Request to jump to the next active Operating mode screen.
+ */
+void Controller::event_next_opmode(bool jump) {
+	uint8_t opmodes[] = { 0,  // Main menu
+						  1,  // CPM
+						  2,  // MicroSievert
+						  4,  // Graph
+						  15, // Timed count
+						  21, // Becquerel
+						  28, // QR Code
+	};
+
+	uint8_t cs = m_gui->get_current_screen();
+	uint8_t i = 0;
+	// Find out where we are in the screen succession
+	while ((opmodes[i] != cs) && (i < 8))
+		i++;
+	if (i == 7) {
+		// If we were called while we're not in a screen where we have a
+		// 'next opmode' button, we'll end up here:
+		return;
+	}
+
+	// Select the next screen to start searching for the next
+	// enabled mode:
+	if (i == 6)
+		i = 1;
+	else
+		i++;
+
+	// Find the next enabled screen (We always have at least one menu enabled so
+	// we will never be in an infinite loop)
+	while ( (enabled_modes & ( 1 << (i-1) ) ) == 0) {
+		if (i == 6)
+			i = 1;
+		else
+			i++;
+	}
+
+	// Now, i is the next enabled menu entry:
+	next_mode_label = i-1;
+	if (jump) {
+		next_mode_label = i;
+		m_gui->jump_to_screen(opmodes[i]);
+	}
+
+}
 
 void Controller::event_usv(const char *event, const char *value) {
 	flashstorage_keyval_set("SVREM", "SV");
@@ -1035,6 +1114,8 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 		event_opmode(event, OPMODE_QRCODE);
 	else if (strcmp(event, "Clear Log") == 0)
 		event_clear_log(event, value);
+	else if (strcmp(event,"$NEXTMODE") == 0)
+		event_next_opmode(true); // true for "jump to next mode"
 	else if (strcmp(event, "Save:Brightness") == 0)
 		event_save_brightness(event, value);
 	else if (strcmp(event, "Save:LogInter") == 0)
@@ -1472,4 +1553,5 @@ void Controller::update() {
 	send_svrem();
 	send_becq();
 	send_logstatus();
+	send_mode_label();
 }

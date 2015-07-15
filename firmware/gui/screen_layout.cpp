@@ -30,14 +30,14 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 {
  8,
  {
-   { ITEM_TYPE_HEAD       ,  0,  0, "$CPMDEADINT"    	,255 },
-   { ITEM_TYPE_MENU       , 25,  1, "Data Logging" 		,255 },
-   { ITEM_TYPE_MENU       , 16,  2, "Display Settings"  ,255 },
-   { ITEM_TYPE_MENU       , 17,  3, "Geiger Settings"   ,255 },
-   { ITEM_TYPE_MENU       ,  3,  4, "Warning Settings"  ,255 },
-   { ITEM_TYPE_MENU       , 27,  5, "Operating Modes"   ,255 },
-   { ITEM_TYPE_SOFTKEY	  ,  0,  1, "CPM"			    ,255 },
-   { ITEM_TYPE_SOFTKEY	  ,  2, 18, "About"	            ,255 },
+   { ITEM_TYPE_HEAD       		,  0,  0, "$CPMDEADINT"    	,255 },
+   { ITEM_TYPE_MENU       		, 25,  1, "Data Logging" 		,255 },
+   { ITEM_TYPE_MENU       		, 16,  2, "Display Settings"  ,255 },
+   { ITEM_TYPE_MENU       		, 17,  3, "Geiger Settings"   ,255 },
+   { ITEM_TYPE_MENU       		,  3,  4, "Warning Settings"  ,255 },
+   { ITEM_TYPE_MENU       		, 27,  5, "Operating Modes"   ,255 },
+   { ITEM_TYPE_SOFTKEY_ACTION	,  0,  1, "$NEXTMODE"		    ,255 },
+   { ITEM_TYPE_SOFTKEY	  		,  2, 18, "About"	            ,255 },
  }
 },
 
@@ -50,8 +50,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARLABEL    ,104, 90, "$CPMSLABEL" , 255},
     { ITEM_TYPE_RED_VARLABEL,  5, 80, "$X1000"     , 255},
     { ITEM_TYPE_SOFTKEY	  	, 0 ,  0, "Menu"	   , 255},
-    { ITEM_TYPE_SOFTKEY	  	, 1 ,  2, "$SVREMLABEL"	, 255},
-    { ITEM_TYPE_SOFTKEY_ACTION ,2, 0, "Beep"	, 255},
+    { ITEM_TYPE_SOFTKEY_ACTION	, 1 ,  2, "$NEXTMODE"	, 255},
+    { ITEM_TYPE_SOFTKEY_ACTION ,2, 0, "Beep"	, 255}
   }
 },
 
@@ -63,8 +63,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_BIGVARLABEL , 0 , 30, "$SVREM"      , 255},
     { ITEM_TYPE_VARLABEL    , 80, 90, "$SVREMLABEL" , 255},
     { ITEM_TYPE_SOFTKEY	    ,  0,  0, "Menu"		, 255},
-    { ITEM_TYPE_SOFTKEY	    ,  1,  4, "Graph"		, 255},
-    { ITEM_TYPE_SOFTKEY_ACTION,2,  0, "Beep"	    , 255},
+    { ITEM_TYPE_SOFTKEY_ACTION	    ,  1,  4, "$NEXTMODE"	, 255},
+    { ITEM_TYPE_SOFTKEY_ACTION,2,  0, "Beep"	    , 255}
   }
 },
 
@@ -87,8 +87,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_HEAD    , 0 , 0  , "$CPMDEADINT"    , 255 },
     { ITEM_TYPE_GRAPH   , 4 , 108, "$RECENTDATA"    , 255 },
     { ITEM_TYPE_SOFTKEY	  , 0, 0, "Menu"			, 255},
-    { ITEM_TYPE_SOFTKEY	  , 1, 15, "Count"				, 255},
-    { ITEM_TYPE_SOFTKEY_ACTION	  , 2, 0, "Beep"			, 255},
+    { ITEM_TYPE_SOFTKEY_ACTION	  , 1, 15, "$NEXTMODE"				, 255},
+    { ITEM_TYPE_SOFTKEY_ACTION	  , 2, 0, "Beep"			, 255}
   }
 },
 
@@ -243,7 +243,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARLABEL    , 80, 90, "$COUNTWIN",      255},
     { ITEM_TYPE_ACTION      ,  2, 2, "TOTALTIMER" , 255},
     { ITEM_TYPE_SOFTKEY	  	, 0 ,  0, "Back"	   , 255},
-    { ITEM_TYPE_SOFTKEY	  	, 1 , 21, "Becq"	   , 255},
+    { ITEM_TYPE_SOFTKEY_ACTION	  	, 1 , 21, "$NEXTMODE"  , 255},
     { ITEM_TYPE_SOFTKEY	  	, 2 , 15, "Reset"	   , 255}
   }
 },
@@ -324,8 +324,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_BIGVARLABEL , 0  , 43, "$BECQ"      , 255},
     { ITEM_TYPE_LABEL        ,81 , 90, "Bq/m2"     , 255},
     { ITEM_TYPE_SOFTKEY	    ,  0,  0, "Menu"		, 255},
-    { ITEM_TYPE_SOFTKEY	    ,  1,  1, "CPM"		, 255},
-    { ITEM_TYPE_SOFTKEY		,  2,  22, "Setup"	    , 255},
+    { ITEM_TYPE_SOFTKEY_ACTION	    ,  1,  1, "$NEXTMODE"		, 255},
+    { ITEM_TYPE_SOFTKEY		,  2,  22, "Setup"	    , 255}
   }
 },
 
@@ -418,6 +418,16 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_MENU_ACTION,  0, 4, "Timed Count:Mode", 255 },
     { ITEM_TYPE_MENU_ACTION,  0, 5, "Becquerel:Mode", 255 },
     { ITEM_TYPE_MENU_ACTION,  0, 6, "QR Code:Mode", 255 },
+    { ITEM_TYPE_SOFTKEY	  	, 0 ,0, "Back"	   , 255},
+  }
+},
+
+//Screen 28 - QR Code (placeholder)
+{
+  3,
+  {
+    { ITEM_TYPE_HEAD       , 0 , 0  , "$CPMDEADINT"  , 255 },
+    { ITEM_TYPE_LABEL      , 0, 30, "QR Code", 255 },
     { ITEM_TYPE_SOFTKEY	  	, 0 ,0, "Back"	   , 255},
   }
 }

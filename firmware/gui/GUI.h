@@ -51,6 +51,7 @@ public:
   void render_dialog    (const char *text1 ,const char *text2 ,const char *text3,const char *text4,int img1,int img2,int img3,int img4);
   Controller &controller;
   uint8_t get_item_state_uint8(const char *tag);
+  uint8_t get_current_screen() { return current_screen; }
 
 private:
   uint8_t current_screen;

@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #define TEXT_LENGTH 17
-#define SCREEN_COUNT 28
+#define SCREEN_COUNT 29
 
 
 // The constants below are the type of items that can be drawn
@@ -75,11 +75,11 @@ struct screen_item {
  * stored as flash variables since they are constant, this way they do not take
  * space in our RAM.
  *
- * A screen contains up to 13 items
+ * A screen contains up to 14 items
  */
 struct screen {
   uint8_t       item_count;
-  screen_item   items[13];
+  screen_item   items[14];
 };
 
 extern __FLASH__ screen screens_layout[SCREEN_COUNT];
