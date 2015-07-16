@@ -386,7 +386,7 @@ void render_item_softkey(screen_item &item) {
 	// If it's a variable, then don't render now, wait
 	// for the update to come from the controller
 	if (item.text[0] == '$') {
-		softkeys[item.val1][0] = 1; // Invalidate softkey menu to force re-render next update.
+		// softkeys[item.val1][0] = 1; // Invalidate softkey menu to force re-render next update.
 		return;
 	}
 
@@ -862,7 +862,6 @@ void update_item_softkey(screen_item &item, char * value) {
 		sprintf(text, "%-5.5s", value);
 		text[4] = 0x7F;
 	}
-
 
 	// We don't want to re-render an identical softkey, because
 	// it causes flickering (we don't have double buffering on the screen)
