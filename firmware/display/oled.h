@@ -128,10 +128,10 @@ void oled_reinit(uint8_t clock,uint8_t multiplex,uint8_t functionselect,uint8_t 
 void oled_brightness(uint8_t b);
 void oled_blank(void);
 void oled_unblank(void);
-void Set_Row_Address(unsigned char a, unsigned char b);
-void Set_Column_Address(unsigned char a, unsigned char b);
-void write_d(unsigned char out_data);
-void write_c(unsigned char out_command);
+void Set_Row_Address(uint8_t a, uint8_t b);
+void Set_Column_Address(uint8_t a, uint8_t b);
+void write_d(uint8_t out_data);
+void write_c(uint8_t out_command);
 
 void CLS(uint16 color);
 

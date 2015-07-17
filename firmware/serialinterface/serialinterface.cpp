@@ -298,6 +298,25 @@ void cmd_getdevicetag(char *line) {
 }
 
 /**
+ * Outputs QR Code template string
+ */
+void cmd_getqrtemplate(char *line) {
+  const char *qr = flashstorage_keyval_get("QRTEMPLATE");
+  JSONNODE *n = json_new(JSON_NODE);
+  if(qr != 0) {
+    json_push_back(n, json_new_a("qr", qr));
+  } else {
+    json_push_back(n, json_new_a("qr", "%u"));
+  }
+  json_char *jc = json_write_formatted(n);
+  serial_write_string(jc);
+  json_free(jc);
+  json_delete(n);
+}
+
+
+
+/**
  * Sets the device tag (part 2 of command)
  */
 void serial_setdevicetag_run(char *line) {
@@ -1005,6 +1024,10 @@ void serial_process_command(char *line) {
       if (strcmp(val,"cal") == 0) {
          err = false;
          cmd_calfactor(0);
+      } else
+      if (strcmp(val,"qr") == 0) {
+    	  err = false;
+    	  cmd_getqrtemplate(0);
       }
       json_free(val);
     }
@@ -1052,6 +1075,12 @@ void serial_process_command(char *line) {
         	  // no need to do anything later, the device
         	  // is going to reset...
           }
+      }
+      op = json_get_nocase(cmd, "qr");
+      if (op != 0 && json_type(op) == JSON_STRING) {
+    	  json_char *qr = json_as_string(op);
+          flashstorage_keyval_set("QRTEMPLATE",qr);
+          json_keyval("ok", "qr");
       }
     }
     if (err) {

@@ -230,7 +230,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 15 - Timed count mode
 {
-  13,
+  12,
   {
 	{ ITEM_TYPE_HEAD        ,  0,  0, "$CPMDEADINT", 255},
     { ITEM_TYPE_LABEL       ,  0, 32, "Count:", 255 },
@@ -241,10 +241,10 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARLABEL    , 40, 48, "$TTAVG"    , 255},
     { ITEM_TYPE_VARLABEL    , 48, 64, "$TTTIME"     , 255},
     { ITEM_TYPE_VARLABEL    , 80, 90, "$COUNTWIN",      255},
-    { ITEM_TYPE_ACTION      ,  2, 2, "TOTALTIMER" , 255},
+    // { ITEM_TYPE_ACTION      ,  2, 2, "TOTALTIMER" , 255},  // Do not reset count upon screen enter.
     { ITEM_TYPE_SOFTKEY	  	, 0 ,  0, "Back"	   , 255},
     { ITEM_TYPE_SOFTKEY_ACTION	  	, 1 , 21, "$NEXTMODE"  , 255},
-    { ITEM_TYPE_SOFTKEY	  	, 2 , 15, "Reset"	   , 255}
+    { ITEM_TYPE_SOFTKEY_ACTION	  	, 2 , 15, "Reset:Timer"	   , 255}
   }
 },
 
@@ -424,11 +424,13 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 28 - QR Code (placeholder)
 {
-  3,
+  5,
   {
-    { ITEM_TYPE_HEAD       , 0 , 0  , "$CPMDEADINT"  , 255 },
-    { ITEM_TYPE_LABEL      , 0, 30, "QR Code", 255 },
+	{ ITEM_TYPE_HEAD       , 0 , 0  , "$CPMDEADINT"  , 255 },
+    { ITEM_TYPE_ACTION      , 0, 30, "QR", 255 },
     { ITEM_TYPE_SOFTKEY	  	, 0 ,0, "Back"	   , 255},
+    { ITEM_TYPE_SOFTKEY_ACTION	    ,  1,  1, "$NEXTMODE"		, 255},
+    { ITEM_TYPE_SOFTKEY_ACTION,2,  0, "Beep"	    , 255}
   }
 }
 

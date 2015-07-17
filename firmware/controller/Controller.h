@@ -3,6 +3,8 @@
 
 #include "Geiger.h"
 #include "GUI.h"
+#include "flashstorage.h"
+#include "rtc.h"
 #include <stdint.h>
 
 
@@ -51,7 +53,7 @@ public:
   void event_varnum_time(const char *event,const char *value);
   void event_varnum_date(const char *event,const char *value);
   void event_audioxfer(const char *event,const char *value);
-  void event_qrtweet(const char *event,const char *value);
+  void event_qrtweet();
   void event_pulse(uint16_t width);
   void check_warning_level();
   void do_logging();
@@ -100,6 +102,7 @@ private:
 
   uint8_t	enabled_modes;	// What operating modes are enabled
   uint8_t    next_mode_label;
+  uint32_t	qr_last_update;   // Used to limit the rate of QR code updates
   void event_opmode(const char *event,uint8_t mode_val);
   void reset_alarm(int32_t warn_cpm);
 

@@ -18,12 +18,17 @@
 #define NOTE(x) Serial1.print(__FILE__); Serial1.print(":"); Serial1.print(__LINE__); Serial1.print(" "); Serial1.println(x);
 #define RGB16(r, b, g) ((((r)<<11L)&0x1fL) | (((g)<<5L)&0x3fL) | (((b)<<0L)&0x1fL))
 
-void write_c(unsigned char out_command) {
+void write_c(uint8_t out_command) {
     gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
                    PIN_MAP[LCD_DC_GPIO].gpio_bit,
                    0);
     spi_aux_write(LCD_SPI,&out_command,1);
-    delay_us(70);
+    // Note (E. Lafargue): no idea why there was a delay here, it does not
+    // seem to be needed at all and slows everything down.
+
+    // On the other hand, when removing the delay, it looks like the buzzer
+    // timings are modified (slower). I have really no idea why, to be checked.
+    delay_us(10);
 }
 
 void write_d_stream(void *data, uint32 count) {
@@ -31,15 +36,15 @@ void write_d_stream(void *data, uint32 count) {
                  PIN_MAP[LCD_DC_GPIO].gpio_bit,
                  1);
   spi_aux_write(LCD_SPI,(uint8 *)data, count);
-  delay_us(10);
+  delay_us(1);
 }
 
-void write_d(unsigned char out_data) {
+void write_d(uint8_t out_data) {
     gpio_write_bit(PIN_MAP[LCD_DC_GPIO].gpio_device,
                    PIN_MAP[LCD_DC_GPIO].gpio_bit,
                    1);
     spi_aux_write(LCD_SPI,&out_data,1);
-    delay_us(10);
+    delay_us(1);
 }
 
 
@@ -62,14 +67,14 @@ void oled_platform_init(void) {
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //  Instruction Setting
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void Set_Column_Address(unsigned char a, unsigned char b) {
+void Set_Column_Address(uint8_t a, uint8_t b) {
     write_c(0x15);            // Set Column Address
     write_d(a);              //   Default => 0x00 (Start Address)
     write_d(b);              //   Default => 0x7F (End Address)
 }
 
 
-void Set_Row_Address(unsigned char a, unsigned char b) {
+void Set_Row_Address(uint8_t a, uint8_t b) {
     write_c(0x75);            // Set Row Address
     write_d(a);              //   Default => 0x00 (Start Address)
     write_d(b);              //   Default => 0x7F (End Address)

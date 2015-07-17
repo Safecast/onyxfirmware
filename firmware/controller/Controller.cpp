@@ -51,13 +51,15 @@ Controller::Controller() {
 
 	system_controller = this;
 	m_last_switch_state = true;
-	m_screen_dimmed = true;
+	m_screen_dimmed = false;
 
 	bool sstate = switch_state();
 	m_last_switch_state = sstate;
 
 	m_warning_raised = false;
 	m_dim_off = false;
+
+	qr_last_update = realtime_get_unixtime();
 
 	m_cpm_cps_switch = false;
 	m_displaying_cps = false; // For hysteresis
@@ -96,6 +98,12 @@ Controller::Controller() {
 	}
 	if (enabled_modes & OPMODE_QRCODE) {
 		tick_item("QR Code:Mode", true);
+	}
+
+	// Get QR Code template from flash or load default
+	const char *qtpl = flashstorage_keyval_get("QRTEMPLATE");
+	if (qtpl == 0) {
+		flashstorage_keyval_set("QRTEMPLATE", "http://twitter.com/home?status=CPM:%u");
 	}
 
 	// Get never dim from flash
@@ -998,19 +1006,17 @@ void Controller::event_audioxfer(const char *event, const char *value) {
 /**
  * Generate a QR Code to tweet current CPM
  */
-void Controller::event_qrtweet(const char *event, const char *value) {
-	char str[1024];
+void Controller::event_qrtweet() {
+	char str[80];
 
-	if (system_geiger->is_cpm_valid()) {
-		//12345678901234567890123456789012345    1   2 34567890
-		sprintf(str, "http://twitter.com/home?status=CPM:%u%%23scast",
-				(int) system_geiger->get_cpm_deadtime_compensated());
-	} else {
-		//12345678901234567890123456789012345    1   2 34567890
-		sprintf(str, "http://twitter.com/home?status=CPM:%u%%23bad",
-				(int) system_geiger->get_cpm_deadtime_compensated());
+	const char* qr_template = flashstorage_keyval_get("QRTEMPLATE");
+	if (qr_template != 0) {
+		unsigned int cpm = (unsigned int) floor(
+				system_geiger->get_cpm_deadtime_compensated() + 0.5);
+
+		sprintf(str, qr_template, cpm);
+		qr_draw(str);
 	}
-	qr_draw(str);
 }
 
 /**
@@ -1064,7 +1070,7 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 		event_sleep(event, value);
 	else if (strcmp(event, "KEYPRESS") == 0)
 		m_powerup = true;
-	else if (strcmp(event, "TOTALTIMER") == 0)
+	else if (strcmp(event, "Reset:Timer") == 0)
 		event_totaltimer();
 	else if (strcmp(event, "Save:Calib") == 0)
 		event_save_calibration();
@@ -1144,12 +1150,10 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 		event_brightnessscn(event, value);
 	else if (strcmp(event, "LeftBrightness") == 0)
 		event_leftbrightness(event, value);
-	else if (strcmp(event, "QR Transfer") == 0)
-		qr_logxfer();
 	else if (strcmp(event, "Audio Xfer") == 0)
 		event_audioxfer(event, value);
-	else if (strcmp(event, "QR Tweet") == 0)
-		event_qrtweet(event, value);
+	else if (strcmp(event, "QR") == 0)
+		event_qrtweet();
 	else if (strcmp(event, "varnumchange") == 0) {
 		if (strcmp("$BRIGHTNESS", value) == 0)
 			event_varnum_brightness(event, value);
@@ -1556,4 +1560,13 @@ void Controller::update() {
 	send_becq();
 	send_logstatus();
 	send_mode_label();
+
+	// If we are in the QR Code menu, invalidate every 5 seconds to force a QR code redraw
+	if (m_gui->get_current_screen() == 28) {
+		uint32_t st = realtime_get_unixtime();
+		if (st -qr_last_update > 5) {
+			event_qrtweet();
+			qr_last_update = st;
+		}
+	}
 }

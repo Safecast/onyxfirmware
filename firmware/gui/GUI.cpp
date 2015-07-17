@@ -421,9 +421,9 @@ void render_item_softkey(screen_item &item) {
 		x1 = 86;
 		x2 = 127;
 	}
-	display_draw_rectangle(x1, 109, x2, 127, header_color);
+	display_draw_rectangle(x1, 110, x2, 127, header_color);
 	// We want to center the label
-	draw_text(x1 + 1 + 4 * (5 - strlen(text)), 110, text, COLOR_BLACK, header_color);
+	draw_text(x1 + 1 + 4 * (5 - strlen(text)), 111, text, COLOR_BLACK, header_color);
 }
 
 /**
@@ -881,9 +881,9 @@ void update_item_softkey(screen_item &item, char * value) {
 		x1 = 86;
 		x2 = 127;
 	}
-	display_draw_rectangle(x1, 109, x2, 127, header_color);
+	display_draw_rectangle(x1, 110, x2, 127, header_color);
 	// Center the text when we draw it
-	draw_text(x1 + 1 + 4 * (5 - strlen(text)), 110, text, COLOR_BLACK, header_color);
+	draw_text(x1 + 1 + 4 * (5 - strlen(text)), 111, text, COLOR_BLACK, header_color);
 }
 
 /**
@@ -954,9 +954,8 @@ void update_item_head(screen_item &item, const void *value) {
 		date[n + 1] = 0;
 	}
 
-	display_draw_tinytext(128 - 75, 2, time, header_color);  //HEADER_COLOR);
-	display_draw_tinytext(128 - 75, 9, date, header_color);  //HEADER_COLOR);
-//  display_draw_tinytext(0,128-5,OS100VERSION,FOREGROUND_COLOR);
+	display_draw_tinytext(128 - 75, 2, time, header_color);
+	display_draw_tinytext(128 - 75, 9, date, header_color);
 }
 
 /**

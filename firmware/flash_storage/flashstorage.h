@@ -2,6 +2,12 @@
 #define FLASHSTORAGE_H
 
 #include <stdint.h>
+
+// Settings are stored as key/value, each with max 50 bytes
+#define FLASH_KEYVAL_SIZE     50   // Max size of a settings key name
+#define FLASH_KEYVAL_SIZE_ALL 100  // Max size of a settings key name + key value
+
+
 void flashstorage_initialise();
 
 

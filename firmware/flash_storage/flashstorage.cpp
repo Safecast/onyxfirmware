@@ -46,9 +46,6 @@ bool log_pause = false;
 									// 1 page in the flash area, since pages are 2048 bytes long.
 									// the log area starts above this index
 
-// Settings are stored as key/value, each with max 50 bytes
-#define keyval_size     50   // Max size of a settings key name
-#define keyval_size_all 100  // Max size of a settings key name + key value
 
 // The size of a page of flash
 // TODO: this should come from another place, not be hardcoded here, right ?
@@ -307,7 +304,7 @@ void flashstorage_initialise() {
  */
 char *flashstorage_keyval_get_address(const char *key) {
 
-	for (uint32_t n = 0; n < settings_area_size; n += (keyval_size * 2)) {
+	for (uint32_t n = 0; n < settings_area_size; n += (FLASH_KEYVAL_SIZE * 2)) {
 		if (flash_data_area_aligned[n] == 0xff) {
 			// We are at the end of the settings keys and found nothing.
 			return 0;
@@ -328,7 +325,7 @@ char *flashstorage_keyval_get_address(const char *key) {
  * address.
  */
 char *flashstorage_keyval_get_unalloced() {
-	for (uint32_t n = 0; n < settings_area_size; n += (keyval_size * 2)) {
+	for (uint32_t n = 0; n < settings_area_size; n += (FLASH_KEYVAL_SIZE * 2)) {
 		if (flash_data_area_aligned[n] == 0xff) {
 			return (char *) (flash_data_area_aligned) + n;
 		}
@@ -341,7 +338,7 @@ char *flashstorage_keyval_get_unalloced() {
  */
 void flashstorage_keyval_by_idx(int idx, char *key, char *val) {
 
-	uint32_t n = (keyval_size * 2) * idx;
+	uint32_t n = (FLASH_KEYVAL_SIZE * 2) * idx;
 
 	if (flash_data_area_aligned[n] == 0xff) {
 		key[0] = 0;
@@ -350,11 +347,11 @@ void flashstorage_keyval_by_idx(int idx, char *key, char *val) {
 	}
 
 	strcpy(key, (char *) flash_data_area_aligned + n);
-	strcpy(val, (char *) flash_data_area_aligned + n + keyval_size);
+	strcpy(val, (char *) flash_data_area_aligned + n + FLASH_KEYVAL_SIZE);
 
 	// Safeguard:
-	key[keyval_size - 1] = 0;
-	val[keyval_size - 1] = 0;
+	key[FLASH_KEYVAL_SIZE - 1] = 0;
+	val[FLASH_KEYVAL_SIZE - 1] = 0;
 
 }
 
@@ -369,7 +366,7 @@ const char *flashstorage_keyval_get(const char *key) {
 	char *v = flashstorage_keyval_get_address(key);
 
 	if (v != 0)
-		return v + keyval_size;
+		return v + FLASH_KEYVAL_SIZE;
 
 	return 0;
 }
@@ -382,19 +379,19 @@ const char *flashstorage_keyval_get(const char *key) {
 void flashstorage_keyval_set(const char *key, const char *value) {
 
 	uint8_t pagedata[pagesize];
-	uint8_t new_keyval_data[keyval_size_all];
+	uint8_t new_keyval_data[FLASH_KEYVAL_SIZE_ALL];
 
 	// Fill the new_keyval_data with 0xff so that we don't
 	// unnecessarily wear out the flash with random values
-	for (int i = 0; i < keyval_size_all; i++)
+	for (int i = 0; i < FLASH_KEYVAL_SIZE_ALL; i++)
 		new_keyval_data[i] = 0xff;
 
 	strcpy((char *) new_keyval_data, (char *) key);
-	strcpy((char *) new_keyval_data + keyval_size, (char *) value);
+	strcpy((char *) new_keyval_data + FLASH_KEYVAL_SIZE, (char *) value);
 
 	// Just in case...
-	new_keyval_data[keyval_size - 1] = 0;
-	new_keyval_data[keyval_size_all - 1] = 0;
+	new_keyval_data[FLASH_KEYVAL_SIZE - 1] = 0;
+	new_keyval_data[FLASH_KEYVAL_SIZE_ALL - 1] = 0;
 
 	// Read original page data
 	char *kvaddr = flashstorage_keyval_get_address(key);
@@ -412,7 +409,7 @@ void flashstorage_keyval_set(const char *key, const char *value) {
 	uint32_t data_offset = ((uint32_t) kvaddr) - ((uint32_t) page_address);
 
 	// Update page data with key/value:
-	for (uint32_t n = 0; n < keyval_size_all; n++) {
+	for (uint32_t n = 0; n < FLASH_KEYVAL_SIZE_ALL; n++) {
 		pagedata[n + data_offset] = new_keyval_data[n];
 	}
 
