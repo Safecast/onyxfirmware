@@ -37,13 +37,14 @@ Controller *system_controller;
 #define OPMODE_BECQ 16
 #define OPMODE_QRCODE 32
 
-
 /**
  * Initialize the system controller. In particular:
  *   - Load settings
  *   - Setup the log interval alarm.
  */
 Controller::Controller() {
+
+	system_controller = this;
 
 	m_sleeping = false;
 	m_powerup = false;
@@ -106,15 +107,8 @@ Controller::Controller() {
 		flashstorage_keyval_set("QRTEMPLATE", "http://twitter.com/home?status=CPM:%u");
 	}
 
-	// Get never dim from flash
-	m_never_dim = false;
-	const char *sneverdim = flashstorage_keyval_get("NEVERDIM");
-	if (sneverdim != 0) {
-		if (strcmp(sneverdim, "true") == 0)
-			m_never_dim = true;
-	}
-	// Send this info to the GUI so that the tick correct on the display
-	tick_item("Never Dim", m_never_dim);
+	// Restore/initialize dimming delay - 10 seconds by defaut
+	init_dimdelay();
 
 	// Get "mute alarm" from flash
 	m_mute_alarm = false;
@@ -187,6 +181,31 @@ Controller::Controller() {
 
 void Controller::set_gui(GUI &g) {
 	m_gui = &g;
+}
+
+/**
+ * Reload the Dim delay and enable/disable 'never dim"
+ * if dim delay = 0
+ */
+void Controller::init_dimdelay() {
+
+	dim_delay = 10;
+	const char *dimd = flashstorage_keyval_get("DIMDELAY");
+	if (dimd != 0) {
+		sscanf(dimd, "%"SCNu8"", &dim_delay);
+	}
+
+	// Also get the neverdim info from flash
+	m_neverdim = false;
+	const char *sneverdim = flashstorage_keyval_get("NEVERDIM");
+	if (sneverdim != 0) {
+		if (strcmp(sneverdim, "true") == 0)
+			m_neverdim = true;
+	}
+
+	// Send this info to the GUI so that the tick correct on the display
+	tick_item("Never Dim", m_neverdim);
+
 }
 
 /**
@@ -458,14 +477,19 @@ void Controller::event_save_utcoff(const char *event, const char *value) {
  * Update the value of the "Never Dim" setting
  */
 void Controller::event_neverdim(const char *event, const char *value) {
-	if (m_never_dim == false) {
+	if (m_neverdim == false) {
 		flashstorage_keyval_set("NEVERDIM", "true");
-		m_never_dim = true;
+		m_neverdim = true;
 	} else {
 		flashstorage_keyval_set("NEVERDIM", "false");
-		m_never_dim = false;
+		m_neverdim = false;
+		dim_delay = 10;
+		const char *dimd = flashstorage_keyval_get("DIMDELAY");
+		if (dimd != 0) {
+			sscanf(dimd, "%"SCNu8"", &dim_delay);
+		}
 	}
-	tick_item("Never Dim", m_never_dim);
+	tick_item("Never Dim", m_neverdim);
 }
 
 /**
@@ -570,8 +594,18 @@ void Controller::refresh_next_opmode_name() {
 }
 
 void Controller::send_mode_label() {
-	const char* mode_names[] = { "CPM", "\x80Sv/h", "Graph", "Count", "Becq", "QR" };
-	m_gui->receive_update("$NEXTMODE", mode_names[next_mode_label]);
+	const char* mode_names[] = { "CPM", "", "Graph", "Count", "Becq", "QR" };
+
+	// Special case: if next_mode_label == 1 then we have to udpate depending
+	// on the µSv/µR setting
+	if (next_mode_label == 1) {
+		const char *svrem = flashstorage_keyval_get("SVREM");
+		if (svrem != 0 && strcmp(svrem,"REM") == 0)
+			m_gui->receive_update("$NEXTMODE", "\x80R/h");
+		else
+			m_gui->receive_update("$NEXTMODE", "\x80Sv/h");
+	} else
+		m_gui->receive_update("$NEXTMODE", mode_names[next_mode_label]);
 }
 
 /**
@@ -763,6 +797,27 @@ void Controller::event_getcountwin() {
 	m_gui->receive_update("$COUNTWIN4", &l4);
 	m_gui->receive_update("$COUNTWIN5", &l5);
 	m_gui->redraw();
+
+}
+
+/**
+ * Send the current count window to the GUI as a simple
+ * $COUNTWIN variable (not separate digits like above)
+ */
+void Controller::event_sendcountwin() {
+	int32_t win = 0; // by default, no limit
+
+	const char *val = flashstorage_keyval_get("COUNTERWIN");
+	if (val != NULL) {
+		sscanf(val, "%"PRIi32"", &win);
+	}
+	// Update the GUI with the value of the counter duration
+	if (win> 0) {
+		m_gui->receive_update("$COUNTWIN", val);
+	} else {
+		m_gui->receive_update("$COUNTWIN", "inf.");
+	}
+
 
 }
 
@@ -1142,6 +1197,8 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 		event_loginterval();
 	else if (strcmp(event, "COUNTWINSCR") == 0)
 		event_getcountwin();
+	else if (strcmp(event, "COUNTWIN") == 0)
+		event_sendcountwin();
 	else if (strcmp(event, "WARNSCREEN") == 0)
 		event_warnscreen(event, value);
 	else if (strcmp(event, "DATESCREEN") == 0)
@@ -1310,7 +1367,7 @@ void Controller::check_sleep_switch() {
  */
 void Controller::do_dimming() {
 
-	if (m_never_dim && !m_screen_dimmed)
+	if (m_neverdim && !m_screen_dimmed)
 		return;
 
 	// only dim if not in brightness changing mode
@@ -1321,8 +1378,8 @@ void Controller::do_dimming() {
 		uint32_t current_time = realtime_get_unixtime();
 
 		uint8_t current_brightness = display_get_brightness();
-		if (((current_time - press_time) > 10)
-				&& ((current_time - release_time) > 10)) {
+		if (((current_time - press_time) > dim_delay)
+				&& ((current_time - release_time) > dim_delay)) {
 			if (current_brightness > 1)
 				display_set_brightness(current_brightness / 2);
 			m_screen_dimmed = true;

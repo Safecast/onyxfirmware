@@ -230,7 +230,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 15 - Timed count mode
 {
-  12,
+  13,
   {
 	{ ITEM_TYPE_HEAD        ,  0,  0, "$CPMDEADINT", 255},
     { ITEM_TYPE_LABEL       ,  0, 32, "Count:", 255 },
@@ -241,7 +241,7 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
     { ITEM_TYPE_VARLABEL    , 40, 48, "$TTAVG"    , 255},
     { ITEM_TYPE_VARLABEL    , 48, 64, "$TTTIME"     , 255},
     { ITEM_TYPE_VARLABEL    , 80, 90, "$COUNTWIN",      255},
-    // { ITEM_TYPE_ACTION      ,  2, 2, "TOTALTIMER" , 255},  // Do not reset count upon screen enter.
+    { ITEM_TYPE_ACTION      ,  2, 2,  "COUNTWIN" , 255},  // Ask controller to update the count window
     { ITEM_TYPE_SOFTKEY	  	, 0 ,  0, "Back"	   , 255},
     { ITEM_TYPE_SOFTKEY_ACTION	  	, 1 , 21, "$NEXTMODE"  , 255},
     { ITEM_TYPE_SOFTKEY_ACTION	  	, 2 , 15, "Reset:Timer"	   , 255}

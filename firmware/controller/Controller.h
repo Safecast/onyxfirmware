@@ -24,6 +24,7 @@ public:
   void receive_gui_event(const char *event,const char *value);
   void update();
   void save_warncpm();
+  void init_dimdelay();
 
   void event_save_calibration();
   void event_sleep(const char *event,const char *value);
@@ -44,17 +45,6 @@ public:
   void event_becqscreen(const char *event,const char *value);
   void event_loginterval();
   void event_getcountwin();
-  void event_warnscreen(const char *event,const char *value);
-  void event_datescreen(const char *event,const char *value);
-  void event_brightnessscn(const char *event,const char *value);
-  void event_leftbrightness(const char *event,const char *value);
-  void event_neverdim(const char *event,const char *value);
-  void event_varnum_brightness(const char *event,const char *value);
-  void event_varnum_time(const char *event,const char *value);
-  void event_varnum_date(const char *event,const char *value);
-  void event_audioxfer(const char *event,const char *value);
-  void event_qrtweet();
-  void event_pulse(uint16_t width);
   void check_warning_level();
   void do_logging();
   void check_sleep_switch();
@@ -88,7 +78,6 @@ public:
   uint32   m_total_timer_start;
   bool     m_mute_alarm;
   bool     m_dim_off;
-  bool     m_never_dim;
   bool     m_screen_dimmed;
   uint32_t m_last_cpm_sent_to_gui;
   uint32_t m_count_timer_max;
@@ -101,11 +90,29 @@ public:
 private:
 
   uint8_t	enabled_modes;	// What operating modes are enabled
-  uint8_t    next_mode_label;
+  uint8_t   next_mode_label;
   uint32_t	qr_last_update;   // Used to limit the rate of QR code updates
+  bool      m_neverdim;
+  uint8_t 	dim_delay;		  // Delay before dimming
   void event_opmode(const char *event,uint8_t mode_val);
   void reset_alarm(int32_t warn_cpm);
+  void event_warnscreen(const char *event,const char *value);
+  void event_datescreen(const char *event,const char *value);
+  void event_brightnessscn(const char *event,const char *value);
+  void event_leftbrightness(const char *event,const char *value);
+  void event_neverdim(const char *event,const char *value);
+  void event_varnum_brightness(const char *event,const char *value);
+  void event_varnum_time(const char *event,const char *value);
+  void event_varnum_date(const char *event,const char *value);
+  void event_audioxfer(const char *event,const char *value);
+  void event_qrtweet();
+  void event_pulse(uint16_t width);
+  void event_sendcountwin();
+
 
 };
+
+extern Controller *system_controller;
+
 
 #endif

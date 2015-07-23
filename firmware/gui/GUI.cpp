@@ -65,7 +65,7 @@ void display_draw_equtriangle_inv(uint8_t x, uint8_t y, uint8_t s,
 	}
 }
 
-char ticked_items[10][TEXT_LENGTH];
+char ticked_items[20][TEXT_LENGTH];
 uint32_t ticked_items_size = 0;
 
 /**

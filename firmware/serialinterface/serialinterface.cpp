@@ -20,6 +20,7 @@
 #include "captouch.h"
 #include "power.h"
 #include "libjson.h"
+#include "controller.h"
 
 extern "C" {
   void signing_test();
@@ -91,7 +92,7 @@ void json_keyval(const char *cmd, const char *val) {
   serial_write_string(cmd);
   serial_write_string("\": \"");
   serial_write_string(val);
-  serial_write_string("\"}");
+  serial_write_string("\"}\n");
 }
 
 /**
@@ -104,6 +105,10 @@ void json_keyval(const char *cmd, const char *val) {
  */
 
 void cmd_bootloader(void) {
+
+	//Power down display properly before reset, otherwise we get stray
+	// lit pixels on screen randomly, which is not good.
+	display_powerdown();
 
 	// Write a magic value in RAM
 	*((unsigned long *)0x2000BFF0) = 0xBABEFEED; // 48K STM32F101RET6
@@ -312,6 +317,24 @@ void cmd_getqrtemplate(char *line) {
   serial_write_string(jc);
   json_free(jc);
   json_delete(n);
+}
+
+/**
+ * Get the value of the DIMDELAY variable
+ * 0 means never dim.
+ */
+void cmd_getdim() {
+	const char *ddim = flashstorage_keyval_get("DIMDELAY");
+	  JSONNODE *n = json_new(JSON_NODE);
+	  if (ddim != 0) {
+	    json_push_back(n, json_new_a("dim", ddim));
+	  } else {
+	    json_push_back(n, json_new_a("dim", "10"));
+	  }
+	  json_char *jc = json_write_formatted(n);
+	  serial_write_string(jc);
+	  json_free(jc);
+	  json_delete(n);
 }
 
 
@@ -953,18 +976,16 @@ void serial_writeprivatekey() {
  *
  * JSON commands are as follow:
  *
- * Settings not linked to setting keys
+ * Settings:
  * "set" {
  *      "rtc": integer (Unix timestamp),
  *      "devicetag": string (device tag),
  *      "debug": integer,
  *      "cal": float  (calibration factor)
  *      "reset": "bootloader" (reset device to bootloader for FW upgrade)
+ *      "qr": set the QR code template ("%u" is the CPM count)
+ *      "dim": set the delay before dimming (0 for never dim)
  *      }
- *
- *  Get/set settings keys (not implemented yet):
- * "setkey" { "name": string, "value": value }
- * "getkey": "name"
  *
  *  Getting values not linked to setting keys
  * "get":
@@ -976,7 +997,8 @@ void serial_writeprivatekey() {
  *    - "version"
  *    - "logstatus"
  *    - "cal"
- *
+ *    - "qr"
+ *    - "dim"
  */
 void serial_process_command(char *line) {
 
@@ -1028,6 +1050,10 @@ void serial_process_command(char *line) {
       if (strcmp(val,"qr") == 0) {
     	  err = false;
     	  cmd_getqrtemplate(0);
+      } else
+      if (strcmp(val, "dim") == 0) {
+    	  err = false;
+    	  cmd_getdim();
       }
       json_free(val);
     }
@@ -1080,7 +1106,29 @@ void serial_process_command(char *line) {
       if (op != 0 && json_type(op) == JSON_STRING) {
     	  json_char *qr = json_as_string(op);
           flashstorage_keyval_set("QRTEMPLATE",qr);
+          err = false;
           json_keyval("ok", "qr");
+      }
+      op = json_get_nocase(cmd, "dim");
+      if (op != 0 && json_type(op) == JSON_NUMBER) {
+    	  err = false;
+    	  int ddim = json_as_int(op);
+    	  if (ddim < 0 || ddim > 255) {
+    		  json_keyval("error", "Dim must be 0-255");
+    	  } else {
+    		  // If ddim = 0, this means we want to set the
+    		  // "never dim" flag to 'true', but we don't change
+    		  // the stored/default dim time:
+    		  if (ddim > 0) {
+				  char dim[4];
+				  sprintf(dim, "%i", ddim);
+				  flashstorage_keyval_set("DIMDELAY", dim);
+    		  } else {
+    			  flashstorage_keyval_set("NEVERDIM", "true");
+    		  }
+			  // Reload the dim delay in the system controller
+			  system_controller->init_dimdelay();
+    	  }
       }
     }
     if (err) {
