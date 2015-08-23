@@ -17,7 +17,7 @@
 #define CPM_HISTORY_SIZE		128
 
 // Constants for headphone pulse output
-// (also used in Controller.cpp
+// (also used in Controller.cpp)
 #define PULSE_NONE   0
 #define PULSE_10us   1
 #define PULSE_1ms    2
@@ -29,6 +29,10 @@ public:
 
   Geiger();
   void initialise();
+  void reset_minmax();
+  float get_cpm_min();
+  float get_cpm_max();
+  uint32_t get_logging_period_count();
   float get_cpm_deadtime_compensated();
   float get_cpm30_deadtime_compensated();
   float get_microsieverts();
@@ -65,7 +69,6 @@ private:
   uint16_t last_windows_position;
   uint16_t last_windows[WINDOWS_STORED];
   uint16_t max_averaging_period;
-  bool     m_acquire_and_log;
   uint16_t m_samples_collected;
   float    m_becquerel_eff;
   float    cpm_history_p[CPM_HISTORY_SIZE];
@@ -75,6 +78,8 @@ private:
   float calc_cpm();  // Calculate the CPM and store in the object
   void calc_cpm_deadtime_compensated();
   float current_cpm_deadtime_compensated;
+  float m_cpm_min;
+  float m_cpm_max;
 
 };
 

@@ -108,6 +108,7 @@ private:
   void event_qrtweet();
   void event_pulse(uint16_t width);
   void event_sendcountwin();
+  void event_screen_off();
 
 
 };

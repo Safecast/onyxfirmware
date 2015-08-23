@@ -25,6 +25,7 @@ Geiger *system_geiger;
 using namespace std;
 
 uint32_t current_count;
+uint32_t logging_period_count;
 bool enable_beep = false;
 
 uint32_t total_count;
@@ -86,6 +87,7 @@ void static geiger_rising(void) {
 
 	current_count++;
 	total_count++;
+	logging_period_count++;
 	led_on = true;
 
 	gpio_write_bit(PIN_MAP[BOARD_LED_PIN].gpio_device,
@@ -121,7 +123,10 @@ void Geiger::initialise() {
 	calibration_scaling = 1;
 	current_cpm_deadtime_compensated = 0;
 	m_cpm_valid = false;
+	m_cpm_min = 0;
+	m_cpm_max = 0;
 	total_count = 0;
+	logging_period_count = 0;
 	pulse_width = 0;
 
 	// Load settings from flash. Those values
@@ -166,7 +171,7 @@ void Geiger::initialise() {
 
 	max_averaging_period = 240;
 	current_count = 0;
-	//  geiger_count = 0;
+
 	AFIO_BASE->MAPR |= 0x02000000; // turn off JTAG pin sharing
 
 	// Turn on power on the radiation sensor:
@@ -464,6 +469,13 @@ void Geiger::calc_cpm_deadtime_compensated() {
 	cpm_history_p[cpm_history_position] = current_cpm_deadtime_compensated;
 	cpm_history_position = (cpm_history_position+1) % CPM_HISTORY_SIZE;
 
+	// Last, we keep track of the min/max values
+	if (current_cpm_deadtime_compensated < m_cpm_min)
+		m_cpm_min = current_cpm_deadtime_compensated;
+
+	if (current_cpm_deadtime_compensated > m_cpm_max)
+		m_cpm_max = current_cpm_deadtime_compensated;
+
 }
 
 /**
@@ -471,6 +483,33 @@ void Geiger::calc_cpm_deadtime_compensated() {
  */
 float Geiger::get_cpm_deadtime_compensated() {
 	return current_cpm_deadtime_compensated;
+}
+
+/**
+ * Reset min and max CPM memory. Also resets
+ * the logging_period_count value.
+ */
+void Geiger::reset_minmax() {
+	logging_period_count = 0;
+	m_cpm_min = current_cpm_deadtime_compensated;
+	m_cpm_max = current_cpm_deadtime_compensated;
+}
+
+float Geiger::get_cpm_min() {
+	return m_cpm_min;
+}
+
+float Geiger::get_cpm_max() {
+	return m_cpm_max;
+}
+
+/**
+ * Get the number of counts since last min/max reset
+ * (used to get the number of counts during a logging
+ *  period)
+ */
+uint32_t Geiger::get_logging_period_count() {
+	return logging_period_count;
 }
 
 

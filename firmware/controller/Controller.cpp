@@ -1211,6 +1211,8 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 		event_audioxfer(event, value);
 	else if (strcmp(event, "QR") == 0)
 		event_qrtweet();
+	else if (strcmp(event, "Turn screen off") == 0)
+		event_screen_off();
 	else if (strcmp(event, "varnumchange") == 0) {
 		if (strcmp("$BRIGHTNESS", value) == 0)
 			event_varnum_brightness(event, value);
@@ -1258,34 +1260,44 @@ void Controller::do_logging() {
 		buzzer_morse_debug("R");  // for 'R'TC alarm  .-.
 		m_alarm_log = true;
 		m_last_alarm_time = rtc_get_time(RTC);
-#ifndef DISABLE_ACCEL
-		accel_read_state(&m_accel_x_stored, &m_accel_y_stored,
-				&m_accel_z_stored);
-#endif
+
 		//m_magsensor_stored = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
 		// set new alarm for log_interval_seconds from now.
 		rtc_clear_alarmed();
 	}
 
 	if (m_alarm_log == true) {
+
+		// Only log if we have at least a 30 seconds valid reading.
+		// Otherwise, just skip this log interval and just rearm the
+		// RTC alarm. (previous behaviour could lead to logging stopping if
+		// the user turned on the counter just before logging started, and back
+		// off again because the reading became valid. This new approach does not have
+		// this bug/limitation/issue.
 		if (system_geiger->is_cpm30_valid()) {
 			buzzer_morse_debug("L");  // for 'L'og  .-..
 
 			log_data_t data;
-#ifndef DISABLE_ACCEL
-			accel_read_state(&data.accel_x_end, &data.accel_y_end,
-					&data.accel_z_end);
-#endif
 			//data.magsensor_end = gpio_read_bit(PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit);
 
 			data.time = rtc_get_time(RTC);
-			data.cpm = system_geiger->get_cpm30_deadtime_compensated();
+			// If we have a proper CPM reading (not only CPM30), then
+			// use it and indicate it in the log type.
+			if (system_geiger->is_cpm_valid()) {
+				data.cpm = system_geiger->get_cpm_deadtime_compensated();
+				data.cpm_min = system_geiger->get_cpm_min();
+				data.cpm_max = system_geiger->get_cpm_max();
+				data.log_type = LOG_TYPE_CPM;
+			} else {
+				data.cpm = system_geiger->get_cpm30_deadtime_compensated();
+				data.cpm_min = 0;
+				data.cpm_max = 0;
+				data.log_type = LOG_TYPE_CPM30;
+			}
 
-			data.accel_x_start = m_accel_x_stored;
-			data.accel_y_start = m_accel_y_stored;
-			data.accel_z_start = m_accel_z_stored;
 			//data.magsensor_start = m_magsensor_stored;
-			data.log_type = UINT_MAX;
+			data.duration = m_log_interval_seconds;
+			data.counts = system_geiger->get_logging_period_count();
 
 			flashstorage_log_pushback((uint8_t *) &data, sizeof(log_data_t));
 
@@ -1295,20 +1307,29 @@ void Controller::do_logging() {
 						255);
 			}
 
-			m_alarm_log = false;
-			// We can have one last alarm after m_log_interval_seconds is set to zero,
-			// so make sure we don't re-enable the alarms then.
-			if (m_log_interval_seconds > 0) {
-				rtc_set_alarm(RTC, m_last_alarm_time + m_log_interval_seconds);
-				rtc_enable_alarm(RTC);
-			}
-			if (m_sleeping) {
-				buzzer_morse_debug("S");  // for 'S'tandby  ...
-				power_standby();
-			} else {
-				buzzer_morse_debug("A"); // for 'A'wake   .-
-			}
+			// Reset the min/max CPM values for the next
+			// logging window
+			system_geiger->reset_minmax();
+
 		}
+
+		m_alarm_log = false;
+
+		// We can have one last alarm after m_log_interval_seconds is set to zero,
+		// so make sure we don't re-enable the alarms then.
+		if (m_log_interval_seconds > 0) {
+			rtc_set_alarm(RTC, m_last_alarm_time + m_log_interval_seconds);
+			rtc_enable_alarm(RTC);
+		}
+		if (m_sleeping) {
+			buzzer_morse_debug("S");  // for 'S'tandby  ...
+			power_standby();
+		} else {
+			buzzer_morse_debug("A"); // for 'A'wake   .-
+		}
+
+
+
 	}
 }
 
@@ -1357,6 +1378,22 @@ void Controller::check_sleep_switch() {
 		m_powerup = false;
 
 	}
+}
+
+/**
+ * Turn the screen off, and deactivate the keyboard. This way, the Onyx will continue
+ * logging continuously, but will save battery. The only way to get out of this mode
+ * is to put the unit in standby mode.
+ */
+void Controller::event_screen_off() {
+	// Put display to sleep.
+	// Note: we don't adjust m_sleeping otherwise the Onyx
+	//       we go to standby next time we write something
+	//       in the log.
+	display_powerdown();
+	// Then turn off the keyboard
+	cap_deinit();
+
 }
 
 /**

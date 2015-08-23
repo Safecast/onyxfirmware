@@ -250,14 +250,15 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
 
 //Screen 16 - User interface settings
 {
-  6,
+  7,
   {
     { ITEM_TYPE_HEAD       , 0, 0, "$CPMDEADINT"   , 255},
     { ITEM_TYPE_MENU       ,12, 1, "Brightness"   , 10 },
     { ITEM_TYPE_MENU       ,14, 2, "Language"     , 12 },
     { ITEM_TYPE_MENU       , 9, 3, "Time and date", 255},
-    { ITEM_TYPE_MENU_ACTION, 0, 4, "Never Dim"    , 0  },
-    { ITEM_TYPE_SOFTKEY	    ,  0,  0, "Back"   , 255}
+    { ITEM_TYPE_MENU_ACTION, 0, 4, "Never dim"    , 0  },
+    { ITEM_TYPE_MENU_ACTION, 0, 5, "Turn screen off"  , 0  },
+    { ITEM_TYPE_SOFTKEY	    ,  0,  0, "Back"   , 255},
   }
 },
 

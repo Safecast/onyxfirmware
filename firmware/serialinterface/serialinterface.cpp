@@ -581,9 +581,9 @@ void cmd_logstress(char *line) {
 
   data.time  = rtc_get_time(RTC);
   data.cpm   = 1;
-  data.accel_x_start = 2;
-  data.accel_y_start = 3;
-  data.accel_z_start = 4;
+//  data.accel_x_start = 2;
+//  data.accel_y_start = 3;
+//  data.accel_z_start = 4;
   data.log_type      = UINT_MAX;
 
   char err[50];
@@ -1128,6 +1128,7 @@ void serial_process_command(char *line) {
     		  }
 			  // Reload the dim delay in the system controller
 			  system_controller->init_dimdelay();
+	          json_keyval("ok", "dim");
     	  }
       }
     }

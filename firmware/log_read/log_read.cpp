@@ -86,27 +86,24 @@ int log_read_block(char *buf) {
 		// time is iso8601, with no timezone.
 		sprintf(buf, "{\"time\":\"%s\",", timestr);
 		buf += strlen(buf);
-		sprintf(buf, "\"cpm\":%"PRIu32",\"duration\":30,",
+		sprintf(buf, "\"cpm\":%"PRIu32",",
 				flash_log[log_position].cpm);
 		buf += strlen(buf);
-		// sprintf(buf,"\"counts\":%"PRIu32",",flash_log[log_position].counts);
-		// buf += strlen(buf);
-		// sprintf(buf,"\"interval\":%"PRIu32",",flash_log[log_position].interval);
-		// buf += strlen(buf);
-		sprintf(buf,
-				"\"accel_x_start\":%d,\"accel_y_start\":%d,\"accel_z_start\":%d,",
-				flash_log[log_position].accel_x_start,
-				flash_log[log_position].accel_y_start,
-				flash_log[log_position].accel_z_start);
+		sprintf(buf,"\"counts\":%"PRIu32",",flash_log[log_position].counts);
 		buf += strlen(buf);
-		sprintf(buf,
-				"\"accel_x_end\":%d,\"accel_y_end\":%d,\"accel_z_end\":%d}",
-				flash_log[log_position].accel_x_end,
-				flash_log[log_position].accel_y_end,
-				flash_log[log_position].accel_z_end);
+		sprintf(buf,"\"duration\":%"PRIu32",",flash_log[log_position].duration);
 		buf += strlen(buf);
-		// sprintf(buf,"\"magsensor_start\":%d,\"magsensor_end\":%d}",flash_log[log_position].magsensor_start,flash_log[log_position].magsensor_end);
-		// buf += strlen(buf);
+		sprintf(buf,"\"min\":%"PRIu32",",flash_log[log_position].cpm_min);
+		buf += strlen(buf);
+		sprintf(buf,"\"max\":%"PRIu32",",flash_log[log_position].cpm_max);
+		buf += strlen(buf);
+		if (flash_log[log_position].log_type == LOG_TYPE_CPM) {
+			sprintf(buf,"\"type\":\"CPM\"}");
+		} else {
+			sprintf(buf,"\"type\":\"CPM30\"}");
+		}
+		buf += strlen(buf);
+
 
 		// add trailing comma on all but last log entry.
 		if (log_position != (logsize - 1)) {
