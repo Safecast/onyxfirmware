@@ -73,8 +73,8 @@ __FLASH__ screen screens_layout[SCREEN_COUNT] = {
   4,
   {
     { ITEM_TYPE_HEAD       ,  0, 0, "$CPMDEADINT", 255 },
-    { ITEM_TYPE_MENU_ACTION,  0, 1, "Mute Alarm", 255 },
-    { ITEM_TYPE_MENU       , 13, 2, "Warning Level", 255 },
+    { ITEM_TYPE_MENU_ACTION,  0, 1, "Mute alarm", 255 },
+    { ITEM_TYPE_MENU       , 13, 2, "Warning level", 255 },
     { ITEM_TYPE_SOFTKEY	    , 0,  0, "Back"   , 255}
   }
 },

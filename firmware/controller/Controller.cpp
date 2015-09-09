@@ -118,7 +118,7 @@ Controller::Controller() {
 			m_mute_alarm = true;
 	}
 	// Send this info to the GUI so that the tick correct on the display
-	tick_item("Mute Alarm", m_mute_alarm);
+	tick_item("Mute alarm", m_mute_alarm);
 
 	// Restore Beep settings from flash
 	const char *beep = flashstorage_keyval_get("GEIGERBEEP");
@@ -204,7 +204,7 @@ void Controller::init_dimdelay() {
 	}
 
 	// Send this info to the GUI so that the tick correct on the display
-	tick_item("Never Dim", m_neverdim);
+	tick_item("Never dim", m_neverdim);
 
 }
 
@@ -312,12 +312,11 @@ void Controller::save_loginterval() {
 	char sloginterval[16];
 	sprintf(sloginterval, "%"PRIu32"", m_log_interval_seconds);
 	flashstorage_keyval_set("LOGINTERVAL", sloginterval);
+	rtc_clear_alarmed();
 	if (m_log_interval_seconds > 0) {
 		rtc_enable_alarm(RTC);
-		uint32_t current_time = realtime_get_unixtime();
-		rtc_set_alarm(RTC, current_time + m_log_interval_seconds);
+		rtc_set_alarm(RTC, realtime_get_unixtime() + m_log_interval_seconds);
 	} else {
-		rtc_clear_alarmed();
 		rtc_disable_alarm(RTC);
 	}
 	m_gui->jump_to_screen(0);
@@ -474,7 +473,7 @@ void Controller::event_save_utcoff(const char *event, const char *value) {
 }
 
 /**
- * Update the value of the "Never Dim" setting
+ * Update the value of the "Never dim" setting
  */
 void Controller::event_neverdim(const char *event, const char *value) {
 	if (m_neverdim == false) {
@@ -489,7 +488,7 @@ void Controller::event_neverdim(const char *event, const char *value) {
 			sscanf(dimd, "%"SCNu8"", &dim_delay);
 		}
 	}
-	tick_item("Never Dim", m_neverdim);
+	tick_item("Never dim", m_neverdim);
 }
 
 /**
@@ -498,11 +497,11 @@ void Controller::event_neverdim(const char *event, const char *value) {
 void Controller::event_mute_alarm() {
 	if (m_mute_alarm == false) {
 		flashstorage_keyval_set("MUTEALARM", "true");
-		tick_item("Mute Alarm", true);
+		tick_item("Mute alarm", true);
 		m_mute_alarm = true;
 	} else {
 		flashstorage_keyval_set("MUTEALARM", "false");
-		tick_item("Mute Alarm", false);
+		tick_item("Mute alarm", false);
 		m_mute_alarm = false;
 	}
 	// Clear the alarm to force a re-trigger on the GUI with or witout
@@ -1141,9 +1140,9 @@ void Controller::receive_gui_event(const char *event, const char *value) {
 		save_warncpm();
 	else if (strcmp(event, "Japanese") == 0)
 		event_japanese(event, value);
-	else if (strcmp(event, "Never Dim") == 0)
+	else if (strcmp(event, "Never dim") == 0)
 		event_neverdim(event, value);
-	else if (strcmp(event, "Mute Alarm") == 0)
+	else if (strcmp(event, "Mute alarm") == 0)
 		event_mute_alarm();
 	else if (strcmp(event, "English") == 0)
 		event_english(event, value);
@@ -1267,13 +1266,6 @@ void Controller::do_logging() {
 	}
 
 	if (m_alarm_log == true) {
-
-		// Only log if we have at least a 30 seconds valid reading.
-		// Otherwise, just skip this log interval and just rearm the
-		// RTC alarm. (previous behaviour could lead to logging stopping if
-		// the user turned on the counter just before logging started, and back
-		// off again because the reading became valid. This new approach does not have
-		// this bug/limitation/issue.
 		if (system_geiger->is_cpm30_valid()) {
 			buzzer_morse_debug("L");  // for 'L'og  .-..
 
@@ -1311,25 +1303,22 @@ void Controller::do_logging() {
 			// logging window
 			system_geiger->reset_minmax();
 
+			// We can now stop logging until the next period
+			m_alarm_log = false;
+
+			// We can have one last alarm after m_log_interval_seconds is set to zero,
+			// so make sure we don't re-enable the alarms then.
+			if (m_log_interval_seconds > 0) {
+				rtc_set_alarm(RTC, m_last_alarm_time + m_log_interval_seconds);
+				rtc_enable_alarm(RTC);
+			}
+			if (m_sleeping) {
+				buzzer_morse_debug("S");  // for 'S'tandby  ...
+				power_standby();
+			} else {
+				buzzer_morse_debug("A"); // for 'A'wake   .-
+			}
 		}
-
-		m_alarm_log = false;
-
-		// We can have one last alarm after m_log_interval_seconds is set to zero,
-		// so make sure we don't re-enable the alarms then.
-		if (m_log_interval_seconds > 0) {
-			rtc_set_alarm(RTC, m_last_alarm_time + m_log_interval_seconds);
-			rtc_enable_alarm(RTC);
-		}
-		if (m_sleeping) {
-			buzzer_morse_debug("S");  // for 'S'tandby  ...
-			power_standby();
-		} else {
-			buzzer_morse_debug("A"); // for 'A'wake   .-
-		}
-
-
-
 	}
 }
 

@@ -65,7 +65,8 @@ void display_draw_equtriangle_inv(uint8_t x, uint8_t y, uint8_t s,
 	}
 }
 
-char ticked_items[20][TEXT_LENGTH];
+#define MAX_TICKED_ITEMS 22
+char ticked_items[MAX_TICKED_ITEMS][TEXT_LENGTH];
 uint32_t ticked_items_size = 0;
 
 /**
@@ -75,7 +76,7 @@ uint32_t ticked_items_size = 0;
  */
 void tick_item(const char *name, bool tick_val) {
 
-	if ((ticked_items_size >= 10) && (tick_val == true))
+	if ((ticked_items_size >= MAX_TICKED_ITEMS) && (tick_val == true))
 		return;
 
 	for (uint32_t n = 0; n < ticked_items_size; n++) {
