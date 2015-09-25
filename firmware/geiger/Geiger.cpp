@@ -469,12 +469,16 @@ void Geiger::calc_cpm_deadtime_compensated() {
 	cpm_history_p[cpm_history_position] = current_cpm_deadtime_compensated;
 	cpm_history_position = (cpm_history_position+1) % CPM_HISTORY_SIZE;
 
-	// Last, we keep track of the min/max values
-	if (current_cpm_deadtime_compensated < m_cpm_min)
-		m_cpm_min = current_cpm_deadtime_compensated;
+	// Last, we keep track of the min/max values, but only
+	// if we have a valid CPM reading (otherwise those values fluctuate
+	// too much and are not meaningful)
+	if (m_cpm_valid) {
+		if (current_cpm_deadtime_compensated < m_cpm_min)
+			m_cpm_min = current_cpm_deadtime_compensated;
 
-	if (current_cpm_deadtime_compensated > m_cpm_max)
-		m_cpm_max = current_cpm_deadtime_compensated;
+		if (current_cpm_deadtime_compensated > m_cpm_max)
+			m_cpm_max = current_cpm_deadtime_compensated;
+	}
 
 }
 
