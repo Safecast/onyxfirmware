@@ -42,13 +42,15 @@ typedef void ( *p_progress )( u32 wrote );
 
 // Loader functions
 int stm32_init( const char* portname, u32 baud );
-int stm32_get_bl_version( u8 *major, u8 *minor ); 
+int stm32_get_version( u8 *major, u8 *minor );
 int stm32_get_chip_id( u16 *version );
 int stm32_write_unprotect();
+int stm32_read_unprotect();
 int stm32_erase_flash();
 int stm32_write_flash( p_read_data read_data_func, p_progress progress_func );
 int stm32_erase_flash_page(u32 page_number,int page_count);
 int stm32_write_flash_page(u32 address_in,int page_count,p_read_data read_data_func, p_progress progress_func );
+int stm32_read_flash( u32 offset, u32 datalen );
 
 #endif
 
