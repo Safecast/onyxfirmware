@@ -55,7 +55,7 @@ pictures: to565
 	convert ./binary_data/tinyfont.png -depth 1 gray:./binary_data/tinyfont_data
 	convert ./binary_data/font.png -depth 2 gray:./binary_data/font_data
 	convert ./binary_data/bignumbers.png -depth 2 gray:./binary_data/bignumbers_data
-	convert ./binary_data/fixed_images.png -depth 2 gray:./binary_data/fixed_images
+	# convert ./binary_data/fixed_images.png -depth 2 gray:./binary_data/fixed_images
 
 safecast.elf:	main.cpp $(LIBMAPLEOBJS) $(OUROBJS)	libcs3 json pictures $(CRYPTOFILES)
 	$(LD_DEFAULT) -o ./binary_data/font_data.o ./binary_data/font_data
@@ -116,7 +116,7 @@ monitor:
 	screen /dev/ttyUSB0 115200
 
 clean:
-	rm -f safecast.elf safecast.map $(LIBMAPLEOBJS) $(OUROBJS) $(BINARYOBJS) $(PICTUREOBJS) $(CRYPTOFILES)
+	rm -f safecast.elf safecast.map $(LIBMAPLEOBJS) $(OUROBJS) $(BINARYOBJS) $(CRYPTOFILES)
 	cd ./libjson; make clean; cd ..
 	rm -f libcs3_stm32_src/*.o libcs3_stm32_src/*.a
 	rm -f misc/to565

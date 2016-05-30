@@ -315,7 +315,7 @@ void Controller::save_loginterval() {
 	rtc_clear_alarmed();
 	if (m_log_interval_seconds > 0) {
 		rtc_enable_alarm(RTC);
-		rtc_set_alarm(RTC, realtime_get_unixtime() + m_log_interval_seconds);
+		rtc_set_alarm(RTC, realtime_get_unixtime() + m_log_interval_seconds -1);
 	} else {
 		rtc_disable_alarm(RTC);
 	}
@@ -356,7 +356,7 @@ void Controller::save_time() {
 	realtime_setdate(hours, min, sec, day, month, year);
 	// If we are logging, we must reset the alarm!
 	if (m_log_interval_seconds > 0) {
-		rtc_set_alarm(RTC, rtc_get_time(RTC) + m_log_interval_seconds);
+		rtc_set_alarm(RTC, rtc_get_time(RTC) + m_log_interval_seconds -1);
 	}
 
 	flashstorage_log_userchange();
@@ -384,7 +384,7 @@ void Controller::save_date() {
 	realtime_setdate(hours, min, sec, day, month, year);
 	// If we are logging, we must reset the alarm!
 	if (m_log_interval_seconds > 0) {
-		rtc_set_alarm(RTC, rtc_get_time(RTC) + m_log_interval_seconds);
+		rtc_set_alarm(RTC, rtc_get_time(RTC) + m_log_interval_seconds -1);
 	}
 
 	flashstorage_log_userchange();
@@ -1309,7 +1309,9 @@ void Controller::do_logging() {
 			// We can have one last alarm after m_log_interval_seconds is set to zero,
 			// so make sure we don't re-enable the alarms then.
 			if (m_log_interval_seconds > 0) {
-				rtc_set_alarm(RTC, m_last_alarm_time + m_log_interval_seconds);
+				// We need the -1 because the alarm triggers at the end of the second,
+				// not at the start
+				rtc_set_alarm(RTC, m_last_alarm_time + m_log_interval_seconds -1);
 				rtc_enable_alarm(RTC);
 			}
 			if (m_sleeping) {
