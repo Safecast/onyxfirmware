@@ -1339,9 +1339,16 @@ void Controller::check_sleep_switch() {
 		m_last_switch_state = sstate;
 
 		// If switch went from power to sleep,
-		// then go so sleep
+		// then go to sleep.
+		// 2017.07.28 - E. Lafargue: also, if we are charging,
+		//              do not really go to sleep, but simply disable the
+		//              display. This is because going to sleep will put the
+		//              charge timer enable pin in high impedance, disabling
+		//              the LiPo charger chip safety timer, leading to potential
+		//              hazardous situations if Onyx left charging for very long
+		//              durations on old/damaged batteries.
 		if (sstate == SWITCH_SLEEP) {
-			if (m_alarm_log && (!m_sleeping)) {
+			if ((m_alarm_log || power_charging() ) && (!m_sleeping)) {
 				m_sleeping = true;
 				display_powerdown();
 			} else {
@@ -1367,6 +1374,7 @@ void Controller::check_sleep_switch() {
 
 		m_sleeping = false;
 		m_powerup = false;
+		m_gui->jump_to_screen(1);   // Force a jump to the CPM screen
 
 	}
 }

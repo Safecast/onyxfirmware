@@ -160,7 +160,7 @@ int main(void) {
 
 	/**
 	 * Start of main event loop here, we will not leave this
-	 * loop until battery runs our or user changes the standby switch
+	 * loop until battery runs out or user changes the standby switch
 	 * position.
 	 *
 	 * c is our controller

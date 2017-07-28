@@ -90,9 +90,9 @@ upload_mac: release
 	@echo "Starting device firmware upload..."
 	# sudo kextunload -b com.FTDI.driver.FTDIUSBSerialDriver
 	# On Mavericks, Apple is handling the FTDI driver, for better or worse:
-	#sudo kextunload -b com.apple.driver.AppleUSBFTDI 
+	sudo kextunload -b com.apple.driver.AppleUSBFTDI 
 	../firmware_loader/fwload -f $(RELEASE_NAME).bin
-	#sudo kextload -b com.apple.driver.AppleUSBFTDI 
+	sudo kextload -b com.apple.driver.AppleUSBFTDI 
 	# sudo kextload -b com.FTDI.driver.FTDIUSBSerialDriver
 	@echo
 	@echo "Done... seems it worked fine :)"
