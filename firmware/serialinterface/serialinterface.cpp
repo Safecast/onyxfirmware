@@ -21,6 +21,7 @@
 #include "power.h"
 #include "libjson.h"
 #include "controller.h"
+#include "power.h"
 
 extern "C" {
   void signing_test();
@@ -336,6 +337,27 @@ void cmd_getdim() {
 	  json_free(jc);
 	  json_delete(n);
 }
+
+/**
+ * Get the status of the battery & charger
+ *
+ */
+void cmd_getbat() {
+	// Read battery status
+	int stat2 = gpio_read_bit(PIN_MAP[CHG_STAT2_GPIO].gpio_device,PIN_MAP[CHG_STAT2_GPIO].gpio_bit);
+	int stat1 = gpio_read_bit(PIN_MAP[CHG_STAT1_GPIO].gpio_device,PIN_MAP[CHG_STAT1_GPIO].gpio_bit);
+	  JSONNODE *n = json_new(JSON_NODE);
+	  JSONNODE *n2 = json_new(JSON_NODE);
+	  json_set_name(n2, "battery");
+	  json_push_back(n2, json_new_i("stat1", stat1));
+	  json_push_back(n2, json_new_i("stat2", stat2));
+	  json_push_back(n, n2);
+	  json_char *jc = json_write_formatted(n);
+	  serial_write_string(jc);
+	  json_free(jc);
+	  json_delete(n);
+}
+
 
 
 
@@ -999,6 +1021,7 @@ void serial_writeprivatekey() {
  *    - "cal"
  *    - "qr"
  *    - "dim"
+ *    - "bat"
  */
 void serial_process_command(char *line) {
 
@@ -1054,6 +1077,10 @@ void serial_process_command(char *line) {
       if (strcmp(val, "dim") == 0) {
     	  err = false;
     	  cmd_getdim();
+      } else
+      if (strcmp(val, "bat") == 0) {
+    	  err = false;
+    	  cmd_getbat();
       }
       json_free(val);
     }

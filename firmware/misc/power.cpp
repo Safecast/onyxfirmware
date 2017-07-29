@@ -344,3 +344,22 @@ int power_charging() {
   if((stat1 == 0) && (stat2 != 0)) return true;
                               else return false;
 }
+
+// True if we detect a fault condition
+int power_fault() {
+	int stat2 = gpio_read_bit(PIN_MAP[CHG_STAT2_GPIO].gpio_device,PIN_MAP[CHG_STAT2_GPIO].gpio_bit);
+	int stat1 = gpio_read_bit(PIN_MAP[CHG_STAT1_GPIO].gpio_device,PIN_MAP[CHG_STAT1_GPIO].gpio_bit);
+
+	if ((stat1 != 0) && (stat2 != 0)) return true;
+	else return false;
+}
+
+// True if we are charged
+int power_charged() {
+	int stat2 = gpio_read_bit(PIN_MAP[CHG_STAT2_GPIO].gpio_device,PIN_MAP[CHG_STAT2_GPIO].gpio_bit);
+	int stat1 = gpio_read_bit(PIN_MAP[CHG_STAT1_GPIO].gpio_device,PIN_MAP[CHG_STAT1_GPIO].gpio_bit);
+
+	if ((stat1 != 0) && (stat2 == 0)) return true;
+	else return false;
+}
+

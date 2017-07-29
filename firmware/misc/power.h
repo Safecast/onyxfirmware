@@ -21,6 +21,8 @@ int power_set_state(int state);
 int power_get_state(void);
 void power_standby(void);
 int power_charging();
+int power_charged();
+int power_fault();
 
 #define WAKEUP_NONE 0
 #define WAKEUP_RTC  1

@@ -1320,7 +1320,10 @@ void Controller::do_logging() {
 				// this will disable the LiPo charger safety timer
 				// Note that if we are m_sleeping + charging, then the
 				// screen should be off already.
-				if (!power_charging())
+				// We also test for power_charged so that if we are connected
+				// to USB, we continue working as usual through the USB port with the
+				// screen off.
+				if (!(power_charging()|| power_charged()))
 					power_standby();
 			} else {
 				buzzer_morse_debug("A"); // for 'A'wake   .-
@@ -1345,7 +1348,7 @@ void Controller::check_sleep_switch() {
 
 		// If switch went from power to sleep,
 		// then go to sleep.
-		// 2017.07.28 - E. Lafargue: also, if we are charging,
+		// 2017.07.28 - E. Lafargue: also, if we are connected to USB,
 		//              do not really go to sleep, but simply disable the
 		//              display. This is because going to sleep will put the
 		//              charge timer enable pin in high impedance, disabling
@@ -1353,7 +1356,8 @@ void Controller::check_sleep_switch() {
 		//              hazardous situations if Onyx left charging for very long
 		//              durations on old/damaged batteries.
 		if (sstate == SWITCH_SLEEP) {
-			if ((m_alarm_log || power_charging() ) && (!m_sleeping)) {
+			m_powerup = false;
+			if ((m_alarm_log || power_charging() || power_charged()) && (!m_sleeping)) {
 				m_sleeping = true;
 				display_powerdown();
 				cap_deinit(); // Also make sure keyboard is disabled to avoid blind keypresses
@@ -1361,14 +1365,14 @@ void Controller::check_sleep_switch() {
 				m_sleeping = true;
 				power_standby();
 			}
-		} else if (sstate == SWITCH_POWERUP) {
+		} else { // sstate == SWITCH_POWERUP
 			m_powerup = true;
 		}
 	}
 
 	// Power up the display here only if we were already on but
 	// with display sleeping (in logging mode)
-	if (m_powerup == true && m_sleeping) {
+	if (m_powerup && m_sleeping) {
 		display_powerup();
 		cap_init(); // Make sure keyboard is re-enabled
 
