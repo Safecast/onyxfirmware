@@ -118,6 +118,8 @@ void gpio_init_all(void) {
     gpio_init(GPIOB);
     gpio_init(GPIOC);
     gpio_init(GPIOD);
+    return;
+    // We do not use any of those on the Onyx
 #ifdef STM32_HIGH_DENSITY
     gpio_init(GPIOE);
     gpio_init(GPIOF);

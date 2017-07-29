@@ -176,16 +176,16 @@ int openSerialPorts(int baud) {
 	 use lsmod to check this and rmmod ftdi_sio to remove
 	 also rmmod usbserial
       */
-      printf("Error FT_OpenEx(%d), device\n", ftStatus, i);
+      printf("Error FT_OpenEx(%d), device\n", ftStatus);
       return -1;
     }
     
     printf("Opened device %s\n", cBufLD[i]);
     
-    if(getandcheckCBUS(ftHandle[i]) ) {
-      printf( "getandcheckCBUS failed, exiting.\n" );
-      return -1;
-    }
+//    if(getandcheckCBUS(ftHandle[i]) ) {
+ //     printf( "getandcheckCBUS failed, exiting.\n" );
+ //     return -1;
+ //   }
     
     iDevicesOpen++;
     if((ftStatus = FT_SetBaudRate(ftHandle[i], baud)) != FT_OK) {

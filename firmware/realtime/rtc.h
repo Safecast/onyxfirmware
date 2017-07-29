@@ -115,6 +115,7 @@ void rtc_set_time(rtc_dev *dev, uint32 time);
 uint32 rtc_get_time(rtc_dev *dev);
 int rtc_set_alarm(rtc_dev *dev,uint32 time);
 int rtc_enable_alarm(rtc_dev *dev);
+int rtc_disable_alarm(rtc_dev *dev);
 
 void __irq_rtcalarm(void);
 void __irq_rtc(void);

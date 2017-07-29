@@ -9,9 +9,10 @@
 #define PWRSTATE_ERROR 5   // an error conditions state
 #include <stdint.h>
 
-int power_initialise(void);
+int power_initialise_minimum(void);
+int power_initialise_full(void);
 int power_deinit(void);
-void power_wfi(void);
+void power_sleep(void);
 int power_switch_state(void);
 
 int power_is_battery_low(void);
@@ -20,6 +21,8 @@ int power_set_state(int state);
 int power_get_state(void);
 void power_standby(void);
 int power_charging();
+int power_charged();
+int power_fault();
 
 #define WAKEUP_NONE 0
 #define WAKEUP_RTC  1

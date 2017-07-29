@@ -236,14 +236,22 @@ void usart_putudec(usart_dev *dev, uint32 val) {
  */
 
 static inline void usart_irq(usart_dev *dev) {
+	/* We can get RXNE and ORE interrupts here. Only RXNE signifies
+	 * availability of a byte in DR.
+	 *
+	 * See table 198 (sec 27.4, p809) in STM document RM0008 rev 15.
+	 * We enable RXNEIE.
+	 * */
+    if ((uint8)dev->regs->SR & USART_SR_RXNE) {
 #ifdef USART_SAFE_INSERT
-    /* If the buffer is full and the user defines USART_SAFE_INSERT,
-     * ignore new bytes. */
-    rb_safe_insert(dev->rb, (uint8)dev->regs->DR);
+		/* If the buffer is full and the user defines USART_SAFE_INSERT,
+		 * ignore new bytes. */
+		rb_safe_insert(dev->rb, (uint8)dev->regs->DR);
 #else
-    /* By default, push bytes around in the ring buffer. */
-    rb_push_insert(dev->rb, (uint8)dev->regs->DR);
+		/* By default, push bytes around in the ring buffer. */
+		rb_push_insert(dev->rb, (uint8)dev->regs->DR);
 #endif
+    }
 }
 
 void __irq_usart1(void) {

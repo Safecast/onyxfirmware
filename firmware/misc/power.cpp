@@ -9,6 +9,8 @@
 #include "adc.h"
 #include "bkp.h"
 #include "display.h"
+#include "captouch.h"
+#include "accel.h"
 
 #include <stdio.h>
 
@@ -32,89 +34,138 @@ static uint8 lastPowerState = PWRSTATE_OFF;
 
 /**
  *  return true if the current boot was a wakeup from the WKUP pin.
+ *  WKUP can wake the MCU from sleep on rising edge.
  *
- *  The WKUP Pin behaves as follows:
- * - If the "Wake up" switch is in up position (standby) & connected to GND:
+ *  The PA0-WKUP Pin behaves as follows:
+ * - If the "Wake up" switch is pulled to GND: WKUP moves with Geiger Pulse
  *    - If Geiger_Pulse is low, then WKUP is low
  *    - If Geiger_Pulse is high, then WKUP is high
- * - If the "Wake up switch" is in the low position (on) & connected to VMCU
+ * - If the "Wake up switch" is connected to VMCU
  *     - WKUP is always high
+ *
+ *     Return:
+ *     0 : did not wake up from Standby
+ *     1 : woke up from standby and WKUP is low
+ *     2:  woke up from standby and WKUP is high
  */
 int power_get_wakeup_source() {
 
-//  gpio_set_mode (GPIOA,0, GPIO_INPUT_PD);
-  gpio_set_mode (PIN_MAP[WAKEUP_GPIO].gpio_device,PIN_MAP[WAKEUP_GPIO].gpio_bit,GPIO_INPUT_PD);
+	gpio_set_mode (PIN_MAP[WAKEUP_GPIO].gpio_device,PIN_MAP[WAKEUP_GPIO].gpio_bit,GPIO_INPUT_PD);
+	int wkup = gpio_read_bit(PIN_MAP[WAKEUP_GPIO].gpio_device, PIN_MAP[WAKEUP_GPIO].gpio_bit);
 
-//  int wkup = gpio_read_bit(GPIOA,0);
-  int wkup = gpio_read_bit(PIN_MAP[WAKEUP_GPIO].gpio_device, PIN_MAP[WAKEUP_GPIO].gpio_bit);
+	// Check WUF bit to know if the device just came back from Standby mode
+	// through WKUP pin or RTC alarm
+	bool wokeup = false;
+	if (PWR_BASE->CSR & BIT(PWR_CSR_WUF)) wokeup = true;
 
-  // TODO: stop using hardcoded values and use global
-  // definitions. Debug this...
-  //
-  //volatile uint32_t *pwr_csr = (uint32_t *) 0x40007004;
-  bool wokeup = false;
-  if (PWR_BASE->CSR & PWR_CSR_SBF) wokeup = true;
-//  if(*pwr_csr & 1) wokeup = true;
+	if(!wokeup           ) return WAKEUP_NONE;
+	if( wokeup && (!wkup)) return WAKEUP_RTC;
+	if( wokeup &&   wkup ) return WAKEUP_WKUP;
 
-  if(!wokeup           ) return 0;
-  if( wokeup && (!wkup)) return 1;
-  if( wokeup &&   wkup ) return 2;
-
-  return -1;
+	return -1;
 }
 
-int power_initialise(void) {
-  gpio_set_mode (PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit,GPIO_OUTPUT_PP);
-  gpio_write_bit(PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit,0);
 
-  gpio_set_mode (PIN_MAP[CHG_STAT2_GPIO]    .gpio_device,PIN_MAP[CHG_STAT2_GPIO]    .gpio_bit,GPIO_INPUT_FLOATING);
-  gpio_set_mode (PIN_MAP[CHG_STAT1_GPIO]    .gpio_device,PIN_MAP[CHG_STAT1_GPIO]    .gpio_bit,GPIO_INPUT_FLOATING);
-  gpio_set_mode (PIN_MAP[WAKEUP_GPIO]       .gpio_device,PIN_MAP[WAKEUP_GPIO]       .gpio_bit,GPIO_INPUT_PD);
-  gpio_set_mode (PIN_MAP[BATT_MEASURE_ADC]  .gpio_device,PIN_MAP[BATT_MEASURE_ADC]  .gpio_bit,GPIO_INPUT_ANALOG);
-  gpio_set_mode (PIN_MAP[MAGSENSE_GPIO]     .gpio_device,PIN_MAP[MAGSENSE_GPIO]     .gpio_bit,GPIO_INPUT_PD);
+/**
+ * Power up just the minimum we need for the device in flash logging mode
+ */
+int power_initialise_minimum(void) {
 
-  // setup and initialize the outputs
-  // initially, don't measure battery voltage
-  gpio_set_mode (PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,GPIO_OUTPUT_PP);
-  gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
+	  gpio_set_mode (PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit,GPIO_OUTPUT_PP);
+	  gpio_write_bit(PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit,0);
+
+	  gpio_set_mode (PIN_MAP[CHG_STAT2_GPIO]    .gpio_device,PIN_MAP[CHG_STAT2_GPIO]    .gpio_bit,GPIO_INPUT_FLOATING);
+	  gpio_set_mode (PIN_MAP[CHG_STAT1_GPIO]    .gpio_device,PIN_MAP[CHG_STAT1_GPIO]    .gpio_bit,GPIO_INPUT_FLOATING);
+	  gpio_set_mode (PIN_MAP[WAKEUP_GPIO]       .gpio_device,PIN_MAP[WAKEUP_GPIO]       .gpio_bit,GPIO_INPUT_PD);
+	  gpio_set_mode (PIN_MAP[BATT_MEASURE_ADC]  .gpio_device,PIN_MAP[BATT_MEASURE_ADC]  .gpio_bit,GPIO_INPUT_ANALOG);
+
+	  // Configure ADC1 (doing this does not use more power)
+	  rcc_set_prescaler(RCC_PRESCALER_ADC, RCC_ADCPRE_PCLK_DIV_6);
+	  adc_init(ADC1);
+	  adc_set_extsel(ADC1, ADC_SWSTART);
+	  adc_set_exttrig(ADC1, true);
+
+	  gpio_set_mode (PIN_MAP[MAGSENSE_GPIO]     .gpio_device,PIN_MAP[MAGSENSE_GPIO]     .gpio_bit,GPIO_INPUT_PD);
+
+	  // initially, don't measure battery voltage
+	  gpio_set_mode (PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,GPIO_OUTPUT_PP);
+	  gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
+
+	  // initially, turn off the hall effect sensor
+	  gpio_set_mode (PIN_MAP[MAGPOWER_GPIO].gpio_device,PIN_MAP[MAGPOWER_GPIO].gpio_bit,GPIO_OUTPUT_PP);
+	  gpio_write_bit(PIN_MAP[MAGPOWER_GPIO].gpio_device,PIN_MAP[MAGPOWER_GPIO].gpio_bit,0);
+
+	  // as a hack, tie this low to reduce current consumption
+	  // until we hook it up to a proper DAC output
+	  gpio_set_mode (PIN_MAP[LIMIT_VREF_DAC].gpio_device,PIN_MAP[LIMIT_VREF_DAC].gpio_bit,GPIO_OUTPUT_PP);
+	  gpio_write_bit(PIN_MAP[LIMIT_VREF_DAC].gpio_device,PIN_MAP[LIMIT_VREF_DAC].gpio_bit,0);
+
+	  // initially, charge timer is enabled (active low)
+	  gpio_set_mode (PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_device,PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_bit,GPIO_OUTPUT_PP);
+	  gpio_write_bit(PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_device,PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_bit,0);
+
+	  // initially OLED power supply is off
+	  gpio_set_mode (PIN_MAP[LED_PWR_ENA].gpio_device,PIN_MAP[LED_PWR_ENA].gpio_bit,GPIO_OUTPUT_PP);
+	  gpio_write_bit(PIN_MAP[LED_PWR_ENA].gpio_device,PIN_MAP[LED_PWR_ENA].gpio_bit,0);
+
+	  return 0;
+
+}
+
+/**
+ * Power up the rest of the peripherals for the device to work in user mode
+ * (screen on, etc).
+ *
+ * Note: power_initialise_minimum has to be called first
+ */
+int power_initialise_full(void) {
 
 
-  // initially, turn off the hall effect sensor
-  gpio_set_mode (PIN_MAP[MAGPOWER_GPIO].gpio_device,PIN_MAP[MAGPOWER_GPIO].gpio_bit,GPIO_OUTPUT_PP);
-  gpio_write_bit(PIN_MAP[MAGPOWER_GPIO].gpio_device,PIN_MAP[MAGPOWER_GPIO].gpio_bit,0);
-
-  // as a hack, tie this low to reduce current consumption
-  // until we hook it up to a proper DAC output
-  gpio_set_mode (PIN_MAP[LIMIT_VREF_DAC].gpio_device,PIN_MAP[LIMIT_VREF_DAC].gpio_bit,GPIO_OUTPUT_PP);
-  gpio_write_bit(PIN_MAP[LIMIT_VREF_DAC].gpio_device,PIN_MAP[LIMIT_VREF_DAC].gpio_bit,0);
-
-  // initially, charge timer is enabled (active low)
-  gpio_set_mode (PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_device,PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_bit,GPIO_OUTPUT_PP);
-  gpio_write_bit(PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_device,PIN_MAP[CHG_TIMEREN_N_GPIO].gpio_bit,0);
-
-  // initially OLED is off
-  gpio_set_mode (PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,GPIO_OUTPUT_PP);
-  gpio_write_bit(PIN_MAP[LED_PWR_ENA_GPIO].gpio_device,PIN_MAP[LED_PWR_ENA_GPIO].gpio_bit,0);
 
   return 0;
 }
 
-// returns a calibrated ADC code for the current battery voltage
+/**
+ * Enable/Disable ADC1 for battery level measurement (we keep it off
+ * to save battery power)
+ */
+void power_adc_enable(bool en) {
+	if (en) {
+		  adc_enable(ADC1);
+		  adc_calibrate(ADC1);
+		  adc_set_sample_rate(ADC1, ADC_SMPR_55_5);
+	} else {
+		adc_disable(ADC1);
+	}
+
+}
+
+/**
+ *  returns a calibrated ADC code for the current battery voltage
+ *  from 0 to 100, in percentage
+ */
 uint16 power_battery_level(void) {
   uint32 battVal;
   uint32 vrefVal;
 
+  // enable reference voltage only during measurement
   uint32 cr2 = ADC1->regs->CR2;
-  cr2 |= ADC_CR2_TSEREFE; // enable reference voltage only for this measurement
+  cr2 |= ADC_CR2_TSEREFE;
   ADC1->regs->CR2 = cr2;
 
-  gpio_set_mode(PIN_MAP[BATT_MEASURE_ADC].gpio_device,PIN_MAP[BATT_MEASURE_ADC].gpio_bit,GPIO_INPUT_ANALOG);
-  gpio_set_mode(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,GPIO_OUTPUT_PP);
-  gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,1);
+  // Enable ADC1 (both Vref and Batt measurement are connected to ADC1 in our config)
+  power_adc_enable(true);
 
+  // Enable battery measurement circuit:
+  gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,1);
+  // Take battery measurement
   battVal = (uint32) adc_read(PIN_MAP[BATT_MEASURE_ADC].adc_device,PIN_MAP[BATT_MEASURE_ADC].adc_channel);
+  // Disable battery measurement circuit:
   gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
+
   vrefVal = (uint32) adc_read(ADC1, 17);
+
+  power_adc_enable(false);
 
   cr2 &= ~ADC_CR2_TSEREFE; // power down reference to save battery power
   ADC1->regs->CR2 = cr2;
@@ -126,7 +177,7 @@ uint16 power_battery_level(void) {
 
   int16 bat_percent = ((batratio-bat_min)/(bat_max-bat_min))*100;
 
-  // incase our min and max are set incorrectly.
+  // in case our min and max are set incorrectly.
   if(bat_percent < 0  ) bat_percent = 0;
   if(bat_percent > 100) bat_percent = 100;
   return bat_percent;
@@ -138,34 +189,19 @@ uint16 power_battery_level(void) {
 }
 
 
-// power_is_battery_low should measure ADC and determine if the battery voltage is
-// too low to continue operation. When that happens, we should immediately
-// power down to prevent over-discharge of the battery.
+/**
+ *
+ * power_is_battery_low should measure ADC and determine if the battery voltage is
+ *  too low to continue operation. When that happens, we should immediately
+ *  power down to prevent over-discharge of the battery.
+ *
+ *  returns 1 if battery is low, 0 otherwise.
+ */
 int power_is_battery_low(void) {
+
   // only once every LOG_BATT_FREQ events do we actually measure the battery
   // this is to reduce power consumption
-  gpio_init_all();
-  afio_init();
 
-  // init ADC
-  rcc_set_prescaler(RCC_PRESCALER_ADC, RCC_ADCPRE_PCLK_DIV_6);
-  adc_init(ADC1);
-
-  // this is from "adcDefaultConfig" inside boards.cpp
-  // lifted and modified here so *only* ADC1 is initialized
-  // the default routine "does them all"
-  adc_set_extsel(ADC1, ADC_SWSTART);
-  adc_set_exttrig(ADC1, true);
-
-  adc_enable(ADC1);
-  adc_calibrate(ADC1);
-  adc_set_sample_rate(ADC1, ADC_SMPR_55_5);
-
-  // again, a minimal set of operations done to save power; these are lifted from
-  // setup_gpio()
-  gpio_set_mode(PIN_MAP[BATT_MEASURE_ADC].gpio_device,PIN_MAP[BATT_MEASURE_ADC].gpio_bit,GPIO_INPUT_ANALOG);
-  gpio_set_mode(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,GPIO_OUTPUT_PP);
-  gpio_write_bit(PIN_MAP[MEASURE_FET_GPIO].gpio_device,PIN_MAP[MEASURE_FET_GPIO].gpio_bit,0);
 
   // normally 0, 5 for testing
   if( power_battery_level() <= 1 ) return 1;
@@ -190,73 +226,102 @@ uint32_t  _get_CONTROL()
   return 0;
 }
 
+/**
+ * Goes into standby mode. Will wake up on RTC interrupt or Wakeup switch only.
+ * On wakeup, we get the equivalent of a reset.
+ *
+ * TODO: somehow this routine does not use the structures of libmaple ?
+ *       code style is inconsistent with other sections...
+ */
 void power_standby(void) {
 
-  // ensure display is shutdown
+	// Shutdown the display. It needs to be powered down properly,
+	// otherwise naively switching off its power will lead to stray
+	// current on the IO lines and 100/200 uA current waste.
+	display_powerdown();
 
-  adc_foreach(adc_disable);
-  timer_foreach(timer_disable);
+	// Put the captouch sensor in low power mode
+	cap_deinit();
 
-  //RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
-    // RCC->AHBENR |= RCC_AHBPeriph;
+	// Put the accelerometer to sleep
+	// Note: the accel should be sleeping all the time except when measuring,
+	//       this is a safeguard.
+	accel_deinit();
 
-  uint32_t val = RCC_APB1Periph_PWR | RCC_APB1Periph_BKP;
-  volatile uint32_t *rcc_ahbenr = (uint32_t *) 0x40021000;
-  *rcc_ahbenr |= val;
+	// Disable all ADCs and timers:
+	adc_foreach(adc_disable);
+	timer_foreach(timer_disable);
+
+	// No need to deconfigure the GPIOs because all pins are in
+	// high impedance mode in Standby mode. this switches the iRover off automatically
+	// as well as all other peripherals...
+
+	/**
+	 * Not quite sure what this is attempting to do ??? Since we are
+	 * in standby mode, this looks totally irrelevant to me
+	 */
+	/*
+	uint32_t val = RCC_APB1Periph_PWR | RCC_APB1Periph_BKP;
+	volatile uint32_t *rcc_ahbenr = (uint32_t *) 0x40021000;
+	*rcc_ahbenr |= val;
+
+	volatile uint32_t *cr_dbp_bb = (uint32_t *) ((0x42000000 + (0x7000) * 32) + (0x08 * 4));
+	*cr_dbp_bb = !0;
+
+	delay_us(100);
+
+	_set_CONTROL();
+    */
 
 
-  //PWR_BackupAccessCmd(ENABLE);
-  //*(__IO uint32_t *) CR_DBP_BB = (uint32_t)NewState;
-  volatile uint32_t *cr_dbp_bb = (uint32_t *) ((0x42000000 + (0x7000) * 32) + (0x08 * 4));
-  *cr_dbp_bb = !0;
+	// Configure CPU to enter standby mode upon WFI:
+	// As per manual:
+	//  Enter standby with WFI (Wait for Interrupt) or WFE (Wait for Event) while:
+	// – Set SLEEPDEEP in Cortex™-M3 System Control register
+	// – Set PDDS bit in Power Control register (PWR_CR)
+	// – Clear WUF bit in Power Control/Status register (PWR_CSR)
 
-  delay_us(100);
+	volatile uint32_t *pwr_cr  = (uint32_t *) 0x40007000;
+	volatile uint32_t *pwr_csr = (uint32_t *) 0x40007004;
+	volatile uint32_t *scb_scr = (uint32_t *) 0xE000ED10;
 
-  _set_CONTROL();
+	*scb_scr |= (uint16_t) 1 << 2;   // SCB_SCR_SLEEPDEEP;   // set deepsleep
+	*pwr_cr  |= (uint16_t) 1 << 1;   // PWR_CR_PDDS          // set PDDS
+  	  	  	  	  	  	  	      	 // PDDS at 1: Enter Standby mode when the CPU enters Deepsleep
+	*pwr_cr  |= (uint16_t) 1 << 2;   //PWR_CSR_WUF;         // clear WUF (set to 1 to clear)
+	*pwr_csr |= (uint16_t) 1 << 8;   // EWUP                // enable wakeup pin
 
-  volatile uint32_t *pwr_cr = (uint32_t *) 0x40007000;
-  volatile uint32_t *pwr_csr = (uint32_t *) 0x40007004;
-  volatile uint32_t *scb_scr = (uint32_t *) 0xE000ED10;
+	delay_us(100); // WUF is cleared after 2 clock cycles, so we need to delay a bit
 
-  *pwr_csr |= (uint16_t) 256; // EWUP (enable wakeup)
-  *pwr_cr |= (uint8_t) 0x06; //PWR_CR_PDDS); // set PDDS
+	asm volatile (
+			"WFI\n\t"
+	);
 
-  uint32_t temp = *pwr_cr;
-  temp |= 6;
-  *pwr_cr = temp;
-  *pwr_cr |= (uint16_t) 0x04; //PWR_CSR_WUF; // clear WUF
-
-
-  *scb_scr |= (uint16_t) 0x04; // SCB_SCR_SLEEPDEEP; // set deepsleep
-
-  delay_us(100);
-
-  asm volatile (
-    "WFI\n\t" // note for WFE, just replace this with WFE
-  );
-
-  // should never get here - manual beeps for debugging if we do.
-  for(int i=0;i<11;i++) {
-    for(int n=0;n<100;n++) {
-      gpio_toggle_bit(GPIOB,9);
-      delay_us(1000);
-    }
-    delay_us(100000);
-  }
+	// We will never end up there after the WFI call above.
 
 }
 
-void power_wfi(void) {
+/**
+ *  Enters sleep mode by calling "Wait for Interrupt". then returns
+ */
+void power_sleep(void) {
+
   // request wait for interrupt (in-line assembly)
   asm volatile (
     "WFI\n\t" // note for WFE, just replace this with WFE
-    "BX r14"
+    "BX r14" // The BX r14 instruction acts as a function return
+		     // and pops the return address and ARM or Thumb state from the return stack.
   );
 }
 
 int power_deinit(void) {
   // disable wake on interrupt
-  PWR_BASE->CSR &= ~PWR_CSR_EWUP;
+  PWR_BASE->CSR &= ~BIT(PWR_CSR_EWUP);
+  // make sure hall effect sensor is off
+  gpio_write_bit(PIN_MAP[MAGPOWER_GPIO].gpio_device,PIN_MAP[MAGPOWER_GPIO].gpio_bit,0);
+  // DAC Hack
+  gpio_write_bit(PIN_MAP[LIMIT_VREF_DAC].gpio_device,PIN_MAP[LIMIT_VREF_DAC].gpio_bit,0);
+
   power_standby();
   return 0;
 }
@@ -279,3 +344,22 @@ int power_charging() {
   if((stat1 == 0) && (stat2 != 0)) return true;
                               else return false;
 }
+
+// True if we detect a fault condition
+int power_fault() {
+	int stat2 = gpio_read_bit(PIN_MAP[CHG_STAT2_GPIO].gpio_device,PIN_MAP[CHG_STAT2_GPIO].gpio_bit);
+	int stat1 = gpio_read_bit(PIN_MAP[CHG_STAT1_GPIO].gpio_device,PIN_MAP[CHG_STAT1_GPIO].gpio_bit);
+
+	if ((stat1 != 0) && (stat2 != 0)) return true;
+	else return false;
+}
+
+// True if we are charged
+int power_charged() {
+	int stat2 = gpio_read_bit(PIN_MAP[CHG_STAT2_GPIO].gpio_device,PIN_MAP[CHG_STAT2_GPIO].gpio_bit);
+	int stat1 = gpio_read_bit(PIN_MAP[CHG_STAT1_GPIO].gpio_device,PIN_MAP[CHG_STAT1_GPIO].gpio_bit);
+
+	if ((stat1 != 0) && (stat2 == 0)) return true;
+	else return false;
+}
+

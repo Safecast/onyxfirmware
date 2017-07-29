@@ -14,8 +14,12 @@
  * @return 0 if in Sleep position
  */
 bool switch_state() {
-  int wakeup = gpio_read_bit(PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit);
-  if(wakeup != 0) return 0; else return 1;
+	int wakeup = gpio_read_bit(PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,
+			PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit);
+	if (wakeup != 0)
+		return SWITCH_SLEEP;
+	else
+		return SWITCH_POWERUP;
 }
 
 /**
@@ -23,5 +27,6 @@ bool switch_state() {
  * called once by the firmware, and before any further call to switch_state()
  */
 void switch_initialise(void) {
-  gpio_set_mode (PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit, GPIO_INPUT_PD);
+	gpio_set_mode(PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_device,
+			PIN_MAP[MANUAL_WAKEUP_GPIO].gpio_bit, GPIO_INPUT_PD);
 }

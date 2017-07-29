@@ -2,14 +2,14 @@ OS100VERSION := $(shell cat $(TOP)RELEASENUMBER)
 RELEASE_NAME := firmware-$(OS100VERSION)
 
 CFLAGS := -Os -gdwarf-2 -mcpu=cortex-m3 -mthumb -march=armv7-m \
-	-lnostdlib -ffunction-sections -fdata-sections -Wl,--gc-sections \
-	-DBOARD_safecast -DMCU_STM32F101RE -DSTM32_HIGH_DENSITY -DVECT_TAB_BASE -D'OS100VERSION="$(OS100VERSION)"' \
+	-nostdlib -ffunction-sections -fdata-sections -Wl,-static -Wl,--gc-sections \
+	-DBOARD_safecast -DNDEBUG -DMCU_STM32F101RE -DSTM32_HIGH_DENSITY -DVECT_TAB_BASE -D'OS100VERSION="$(OS100VERSION)"' \
 	-I. -I./libmaple -I./display -I./userinput -I./buzzer -I./accelerometer -I./geiger -I./led -I./gui -I./realtime \
 	-I./controller -I./flash_storage -I./serialinterface -I./misc -I./qrcode -I./signing -I./signing/beecrypt -I./log_read -I./modem \
 	-I ./libjson
-CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -Wall -lnostdlib
+CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -Wall -nostdlib
 ASFLAGS := -mcpu=cortex-m3 -march=armv7-m -mthumb -x assembler-with-cpp
-LDFLAGS := -mcpu=cortex-m3 -mthumb -Xlinker --gc-sections --print-gc-sections --march=armv7-m -Wall
+LDFLAGS := -mcpu=cortex-m3 -mthumb -mtune=cortex-m3 -march=armv7-m -Xlinker --gc-sections -Wall 
 
 CC = arm-none-eabi-gcc
 CXX = arm-none-eabi-g++
@@ -20,9 +20,9 @@ LIBMAPLEOBJS = libmaple/spi.o libmaple/rcc.o libmaple/timer.o libmaple/adc.o lib
 
 OUROBJS = ./display/display.o ./display/spi_aux.o ./display/oled.o ./userinput/captouch.o ./accelerometer/accel.o ./misc/power.o ./misc/wirish_boards.o ./misc/safecast_config.o ./main.o ./realtime/realtime.o ./realtime/rtc.o ./gui/GUI.o ./display/nfont.o ./gui/screen_layout.o ./buzzer/buzzer.o ./geiger/Geiger.o ./misc/utils.o ./flash_storage/flashstorage.o ./serialinterface/serialinterface.o ./controller/Controller.o ./userinput/switch.o ./qrcode/qr_encodeem.o ./qrcode/qr_utils.o ./qrcode/qr_xfer.o ./signing/hal.o ./log_read/log_read.o ./modem/modem.o
 
-BINARYOBJS = ./binary_data/tinyfont_data.o ./binary_data/font_data.o ./binary_data/bignumbers_data.o ./binary_data/flash_data.o ./binary_data/fixed_images.o ./binary_data/splashscreen.o ./binary_data/private_key_data.o ./binary_data/help_screens_en.o ./binary_data/help_screens_jp.o
+BINARYOBJS = ./binary_data/tinyfont_data.o ./binary_data/font_data.o ./binary_data/bignumbers_data.o ./binary_data/flash_data.o ./binary_data/fixed_images.o ./binary_data/splashscreen.o ./binary_data/private_key_data.o
 
-PICTUREOBJS = ./binary_data/{fixed_images,bignumbers_data,font_data,tinyfont_data,help_screens_en,help_screens_jp,splashscreen,splashscreen888}
+PICTUREOBJS = ./binary_data/{fixed_images,bignumbers_data,font_data,tinyfont_data,splashscreen,splashscreen888}
 
 JSONOBJS = ./libjson/Objects_static/internalJSONNode.o ./libjson/Objects_static/JSONAllocator.o ./libjson/Objects_static/JSONChildren.o \
            ./libjson/Objects_static/JSONDebug.o ./libjson/Objects_static/JSONIterators.o ./libjson/Objects_static/JSONMemory.o ./libjson/Objects_static/JSONNode.o \
@@ -55,25 +55,19 @@ pictures: to565
 	convert ./binary_data/tinyfont.png -depth 1 gray:./binary_data/tinyfont_data
 	convert ./binary_data/font.png -depth 2 gray:./binary_data/font_data
 	convert ./binary_data/bignumbers.png -depth 2 gray:./binary_data/bignumbers_data
-	convert ./binary_data/fixed_images.png -depth 2 gray:./binary_data/fixed_images
-	convert ./binary_data/help_screens_en.png -depth 2 gray:./binary_data/help_screens_en
-	convert ./binary_data/help_screens_jp.png -depth 2 gray:./binary_data/help_screens_jp
+	# convert ./binary_data/fixed_images.png -depth 2 gray:./binary_data/fixed_images
 
 safecast.elf:	main.cpp $(LIBMAPLEOBJS) $(OUROBJS)	libcs3 json pictures $(CRYPTOFILES)
 	$(LD_DEFAULT) -o ./binary_data/font_data.o ./binary_data/font_data
 	$(LD_DEFAULT) -o ./binary_data/bignumbers_data.o ./binary_data/bignumbers_data
 	$(LD_DEFAULT) -o ./binary_data/tinyfont_data.o ./binary_data/tinyfont_data
 	$(LD_DEFAULT) -o ./binary_data/fixed_images.o ./binary_data/fixed_images
-	$(LD_DEFAULT) -o ./binary_data/help_screens_en.o ./binary_data/help_screens_en
-	$(LD_DEFAULT) -o ./binary_data/help_screens_jp.o ./binary_data/help_screens_jp
 	$(LD_DEFAULT) -o ./binary_data/splashscreen.o ./binary_data/splashscreen
 	$(LD_DEFAULT) -o ./binary_data/private_key_data.o ./binary_data/private_key_data
 	$(OBJCOPY_DEFAULT) ./binary_data/font_data ./binary_data/font_data.o
 	$(OBJCOPY_DEFAULT) ./binary_data/bignumbers_data ./binary_data/bignumbers_data.o
 	$(OBJCOPY_DEFAULT) ./binary_data/tinyfont_data ./binary_data/tinyfont_data.o
 	$(OBJCOPY_DEFAULT) ./binary_data/fixed_images ./binary_data/fixed_images.o
-	$(OBJCOPY_DEFAULT) ./binary_data/help_screens_en ./binary_data/help_screens_en.o
-	$(OBJCOPY_DEFAULT) ./binary_data/help_screens_jp ./binary_data/help_screens_jp.o
 	$(OBJCOPY_DEFAULT) ./binary_data/flash_data ./binary_data/flash_data.o
 	$(OBJCOPY_DEFAULT) ./binary_data/splashscreen ./binary_data/splashscreen.o
 	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm --rename-section .data=.private_key_data,alloc,load,readonly,data,contents ./binary_data/private_key_data ./binary_data/private_key_data.o
@@ -122,7 +116,7 @@ monitor:
 	screen /dev/ttyUSB0 115200
 
 clean:
-	rm -f safecast.elf safecast.map $(LIBMAPLEOBJS) $(OUROBJS) $(BINARYOBJS) $(PICTUREOBJS) $(CRYPTOFILES)
+	rm -f safecast.elf safecast.map $(LIBMAPLEOBJS) $(OUROBJS) $(BINARYOBJS) $(CRYPTOFILES)
 	cd ./libjson; make clean; cd ..
 	rm -f libcs3_stm32_src/*.o libcs3_stm32_src/*.a
 	rm -f misc/to565

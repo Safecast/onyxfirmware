@@ -9,6 +9,7 @@
 #include "flashstorage.h"
 #include "oled.h"
 #include "display.h"
+#include "buzzer.h"
 #include <limits.h>
 #include "dac.h"
 #include "log_read.h"
@@ -19,6 +20,8 @@
 #include "captouch.h"
 #include "power.h"
 #include "libjson.h"
+#include "controller.h"
+#include "power.h"
 
 extern "C" {
   void signing_test();
@@ -90,7 +93,33 @@ void json_keyval(const char *cmd, const char *val) {
   serial_write_string(cmd);
   serial_write_string("\": \"");
   serial_write_string(val);
-  serial_write_string("\"}");
+  serial_write_string("\"}\n");
+}
+
+/**
+ * Firmware command to jump to DFU bootloader for firmware upgrades
+ *
+ * In order to make our life easier, we just load a special magic value
+ * in the RAM and trigger a reset. RAM survives the reset and the value is checked
+ * at boot time. This way we don't need to deinit the CPU before jumping to bootloader,
+ * reset takes care of this for us.
+ */
+
+void cmd_bootloader(void) {
+
+	//Power down display properly before reset, otherwise we get stray
+	// lit pixels on screen randomly, which is not good.
+	display_powerdown();
+
+	// Write a magic value in RAM
+	*((unsigned long *)0x2000BFF0) = 0xBABEFEED; // 48K STM32F101RET6
+
+	// Initialize Reset counter too
+	*((unsigned long *)0x2000BFF4) = 0x0;
+
+	// Now reset!
+	nvic_sys_reset();
+
 }
 
 /**
@@ -275,6 +304,64 @@ void cmd_getdevicetag(char *line) {
 }
 
 /**
+ * Outputs QR Code template string
+ */
+void cmd_getqrtemplate(char *line) {
+  const char *qr = flashstorage_keyval_get("QRTEMPLATE");
+  JSONNODE *n = json_new(JSON_NODE);
+  if(qr != 0) {
+    json_push_back(n, json_new_a("qr", qr));
+  } else {
+    json_push_back(n, json_new_a("qr", "%u"));
+  }
+  json_char *jc = json_write_formatted(n);
+  serial_write_string(jc);
+  json_free(jc);
+  json_delete(n);
+}
+
+/**
+ * Get the value of the DIMDELAY variable
+ * 0 means never dim.
+ */
+void cmd_getdim() {
+	const char *ddim = flashstorage_keyval_get("DIMDELAY");
+	  JSONNODE *n = json_new(JSON_NODE);
+	  if (ddim != 0) {
+	    json_push_back(n, json_new_a("dim", ddim));
+	  } else {
+	    json_push_back(n, json_new_a("dim", "10"));
+	  }
+	  json_char *jc = json_write_formatted(n);
+	  serial_write_string(jc);
+	  json_free(jc);
+	  json_delete(n);
+}
+
+/**
+ * Get the status of the battery & charger
+ *
+ */
+void cmd_getbat() {
+	// Read battery status
+	int stat2 = gpio_read_bit(PIN_MAP[CHG_STAT2_GPIO].gpio_device,PIN_MAP[CHG_STAT2_GPIO].gpio_bit);
+	int stat1 = gpio_read_bit(PIN_MAP[CHG_STAT1_GPIO].gpio_device,PIN_MAP[CHG_STAT1_GPIO].gpio_bit);
+	  JSONNODE *n = json_new(JSON_NODE);
+	  JSONNODE *n2 = json_new(JSON_NODE);
+	  json_set_name(n2, "battery");
+	  json_push_back(n2, json_new_i("stat1", stat1));
+	  json_push_back(n2, json_new_i("stat2", stat2));
+	  json_push_back(n, n2);
+	  json_char *jc = json_write_formatted(n);
+	  serial_write_string(jc);
+	  json_free(jc);
+	  json_delete(n);
+}
+
+
+
+
+/**
  * Sets the device tag (part 2 of command)
  */
 void serial_setdevicetag_run(char *line) {
@@ -299,6 +386,23 @@ void cmd_setdevicetag(char *line) {
   command_stack_size++;
 }
 
+/**
+ * Output morse code (part 2)
+ */
+void morse_code_run(char *line) {
+	if (line[0] == '_')
+		command_stack_pop();
+}
+
+/**
+ * Output morse code (part 1)
+ */
+void cmd_morse_code(char *line) {
+	serial_write_string("Morse code (capital, '_' to exit):\r\n#>");
+	command_stack[command_stack_size++] = morse_code_run;
+}
+
+
 void cmd_magread(char *line) {
   gpio_set_mode (PIN_MAP[41].gpio_device,PIN_MAP[41].gpio_bit, GPIO_OUTPUT_PP); // MAGPOWER
   gpio_set_mode (PIN_MAP[29].gpio_device,PIN_MAP[29].gpio_bit, GPIO_INPUT_PU);  // MAGSENSE
@@ -322,10 +426,13 @@ void cmd_magread(char *line) {
  * { "cpm": {
  *     "value": val,      // Actual value
  *     "valid": boolean,  // Valid flag
- *     "raw": val,        // Uncompensated value
  *     "cpm30": val       // 30 second window
+ *     "usv": val         // reading in microsieverts per hour
  *      }
  *  }
+ *
+ * TODO: also output uSv/h value that reflects the settings
+ *       of the device.
  *
  *  See Geiger.cpp for a more in-depth explanation of
  *  raw and compensated CPM values.
@@ -337,8 +444,9 @@ void cmd_cpm(char *line) {
   json_set_name(reading, "cpm");
   json_push_back(reading, json_new_f("value", system_geiger->get_cpm_deadtime_compensated()));
   json_push_back(reading, json_new_b("valid", system_geiger->is_cpm_valid()));
-  json_push_back(reading, json_new_f("raw", system_geiger->get_cpm()));
-  json_push_back(reading, json_new_f("cpm30", system_geiger->get_cpm30()));
+  json_push_back(reading, json_new_f("cpm30", system_geiger->get_cpm30_deadtime_compensated()));
+  json_push_back(reading, json_new_f("usv", system_geiger->get_microsieverts()));
+  json_push_back(reading, json_new_i("count", system_geiger->get_total_count()));
   json_push_back(n, reading);
   json_char *jc = json_write_formatted(n);
   serial_write_string(jc);
@@ -435,6 +543,19 @@ void cmd_guid(char *line) {
   serial_write_string("\"}\r\n");
 }
 
+/**
+ * Prints the calibration factor of the device. Does not use libjson
+ * for output formatting for the sake of convenience.
+ */
+void cmd_calfactor(char *line) {
+	char calstr[20];
+	float cal = system_geiger->get_calibration();
+	sprintf(calstr, "%f", cal);
+	serial_write_string("{ \"cal\": \"");
+	serial_write_string(calstr);
+	serial_write_string("\"}\r\n");
+}
+
 void cmd_keyvalid(char *line) {
   if( signing_isKeyValid() == 1 )
     serial_write_string("uu_valid VALID KEY\r\n");
@@ -471,6 +592,10 @@ void cmd_logclear(char *line) {
   serial_write_string("Cleared\r\n");
 }
 
+void cmd_dumpflash(char *line) {
+	flashstorage_dump_hex();
+}
+
 void cmd_logstress(char *line) {
   serial_write_string("Log stress testing - 5000 writes\r\n");
 
@@ -478,16 +603,16 @@ void cmd_logstress(char *line) {
 
   data.time  = rtc_get_time(RTC);
   data.cpm   = 1;
-  data.accel_x_start = 2;
-  data.accel_y_start = 3;
-  data.accel_z_start = 4;
+//  data.accel_x_start = 2;
+//  data.accel_y_start = 3;
+//  data.accel_z_start = 4;
   data.log_type      = UINT_MAX;
 
   char err[50];
   for(int n=0;n<5000;n++) {
     data.cpm = n;
     int r = flashstorage_log_pushback((uint8_t *) &data,sizeof(log_data_t));
-    sprintf(err,"return code: %d\r\n",r);
+    sprintf(err,"Entry: %i return code: %d\r\n",n, r);
     serial_write_string(err);
   }
   serial_write_string("Complete\r\n");
@@ -679,7 +804,7 @@ void cmd_batinfodisp(char *line) {
     char s[20];
     sprintf(s,"%d   ",bat);
 
-    display_draw_text(0,0,s,0);
+    display_draw_text(0,0,s,COLOR_WHITE, COLOR_BLACK);
     delay_us(1000000);
   }
 }
@@ -726,6 +851,8 @@ void register_cmds() {
   register_cmd("KEYVALSET"     ,cmd_keyvalset);
   register_cmd("CAPTOUCHTEST"  ,cmd_captouchparams);
   register_cmd("CAPTOUCHDUMP"  ,cmd_captouchdump);
+  register_cmd("DUMPFLASH"	   ,cmd_dumpflash);
+  register_cmd("MORSE"		   ,cmd_morse_code);
   // misc
   register_cmd("HELLO"         ,cmd_hello);
   register_cmd("LIST GAMES"    ,cmd_games);
@@ -871,15 +998,16 @@ void serial_writeprivatekey() {
  *
  * JSON commands are as follow:
  *
- * Settings not linked to setting keys
+ * Settings:
  * "set" {
- *      "rtc": integer (Unix timestamp)
- *      "devicetag": string (device tag)
+ *      "rtc": integer (Unix timestamp),
+ *      "devicetag": string (device tag),
+ *      "debug": integer,
+ *      "cal": float  (calibration factor)
+ *      "reset": "bootloader" (reset device to bootloader for FW upgrade)
+ *      "qr": set the QR code template ("%u" is the CPM count)
+ *      "dim": set the delay before dimming (0 for never dim)
  *      }
- *
- *  Get/set settings keys (Work in progress not implemented yet):
- * "setkey" { "name": string, "value": value }
- * "getkey": "name"
  *
  *  Getting values not linked to setting keys
  * "get":
@@ -888,7 +1016,12 @@ void serial_writeprivatekey() {
  *    - "devicetag"
  *    - "settings"
  *    - "cpm"
- *
+ *    - "version"
+ *    - "logstatus"
+ *    - "cal"
+ *    - "qr"
+ *    - "dim"
+ *    - "bat"
  */
 void serial_process_command(char *line) {
 
@@ -932,6 +1065,22 @@ void serial_process_command(char *line) {
       if (strcmp(val,"logstatus") == 0) {
          err = false;
          cmd_logstatus(0);
+      } else
+      if (strcmp(val,"cal") == 0) {
+         err = false;
+         cmd_calfactor(0);
+      } else
+      if (strcmp(val,"qr") == 0) {
+    	  err = false;
+    	  cmd_getqrtemplate(0);
+      } else
+      if (strcmp(val, "dim") == 0) {
+    	  err = false;
+    	  cmd_getdim();
+      } else
+      if (strcmp(val, "bat") == 0) {
+    	  err = false;
+    	  cmd_getbat();
       }
       json_free(val);
     }
@@ -957,6 +1106,58 @@ void serial_process_command(char *line) {
           json_keyval("ok", "rtc");
         }
       }
+      op = json_get_nocase(cmd, "debug");
+      if (op != 0 && json_type(op) == JSON_NUMBER) {
+    	  err = false;
+    	  json_char *mode = json_as_string(op);
+    	  flashstorage_keyval_set("DEBUG", mode);
+    	  json_keyval("ok","debug");
+      }
+      op = json_get_nocase(cmd, "cal");
+      if (op != 0 && json_type(op) == JSON_NUMBER) {
+    	  err = false;
+    	  float cal = json_as_float(op);
+    	  system_geiger->set_calibration(cal);
+    	  json_keyval("ok","cal");
+      }
+      op = json_get_nocase(cmd, "reset");
+      if (op != 0 && json_type(op) == JSON_STRING) {
+          json_char *tag = json_as_string(op);
+          if (strcmp(tag, "bootloader") == 0) {
+        	  cmd_bootloader();
+        	  // no need to do anything later, the device
+        	  // is going to reset...
+          }
+      }
+      op = json_get_nocase(cmd, "qr");
+      if (op != 0 && json_type(op) == JSON_STRING) {
+    	  json_char *qr = json_as_string(op);
+          flashstorage_keyval_set("QRTEMPLATE",qr);
+          err = false;
+          json_keyval("ok", "qr");
+      }
+      op = json_get_nocase(cmd, "dim");
+      if (op != 0 && json_type(op) == JSON_NUMBER) {
+    	  err = false;
+    	  int ddim = json_as_int(op);
+    	  if (ddim < 0 || ddim > 255) {
+    		  json_keyval("error", "Dim must be 0-255");
+    	  } else {
+    		  // If ddim = 0, this means we want to set the
+    		  // "never dim" flag to 'true', but we don't change
+    		  // the stored/default dim time:
+    		  if (ddim > 0) {
+				  char dim[4];
+				  sprintf(dim, "%i", ddim);
+				  flashstorage_keyval_set("DIMDELAY", dim);
+    		  } else {
+    			  flashstorage_keyval_set("NEVERDIM", "true");
+    		  }
+			  // Reload the dim delay in the system controller
+			  system_controller->init_dimdelay();
+	          json_keyval("ok", "dim");
+    	  }
+      }
     }
     if (err) {
       json_keyval("error", "unknown command");
@@ -974,30 +1175,31 @@ uint32_t currentline_position=0;
  * Receive and process what we received on the serial port. This
  * is called from the main event loop in main.cpp
  *
- * TODO: this should really be interrupt driven IMHO (E. Lafargue)
- *
  */
 void serial_eventloop() {
-  char buf[1024];
+  char buf[64];
 
-  uint32_t read_size = usart_rx(USART1,(uint8 *) buf,1024);
-  if(read_size == 0) return;
-
-  if(read_size > 1024) return; // something went wrong
+  // The ring buffer for the UART is 64 bytes, so we will never
+  // get more than 63 bytes...
+  uint32_t read_size = usart_rx(USART1,(uint8 *) buf,63);
+  if (read_size == 0) return;
 
   for(uint32_t n=0;n<read_size;n++) {
-
     // We echo characters
     usart_putc(USART1, buf[n]);
-
     if((buf[n] == 13) || (buf[n] == 10)) {
       serial_write_string("\r\n");
       currentline[currentline_position]=0;
       serial_process_command(currentline);
       currentline_position=0;
+      usart_reset_rx(USART1);
     } else {
       currentline[currentline_position] = buf[n];
       currentline_position++;
+      if (currentline_position > 1024) {
+    	  serial_write_string("Input buffer overflow");
+    	  currentline_position = 0;
+      }
     }
   }
 }

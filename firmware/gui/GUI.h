@@ -6,12 +6,14 @@
 #include "display.h"
 #include "UserInput.h"
 
-#define MAX_SCREEN_STACK 10
 #define NEW_KEYS_MAX_SIZE 40
 #define FOREGROUND_COLOR 65535
 #define BACKGROUND_COLOR 0
+#define COLOR_BLUE  0xF800
+#define COLOR_RED   0x7E0
+#define COLOR_GREEN 0x1F
+
 #define HEADER_COLOR_NORMAL 0xF800
-//#define HEADER_COLOR_CPMINVALID 0x03E0
 #define HEADER_COLOR_CPMINVALID 0x03EF
 
 #define LANGUAGE_ENGLISH  0
@@ -31,57 +33,52 @@ class Controller;
 
 class GUI {
 
-private:
-  int current_screen;
-  int selected_item;
-  int last_selected_item;
-
 public:
 
   GUI(Controller &r);
 
   void render();
-  void receive_touch(int key_id,int type);
+  void set_cpm_alarm(bool alarm, bool silent, float cpm);
   void receive_update(const char *tag,const void *value);
   void receive_key(int key,int type);
   void set_key_trigger();
   void redraw();
   void set_sleeping(bool sleeping);
-  void jump_to_screen(const char screen);
-  void push_stack(int current_screen,int selected_item);
+  void jump_to_screen(uint8_t screen);
   void toggle_screen_lock();
   void set_language(uint8_t lang);
   void show_dialog      (const char *text1 ,const char *text2 ,const char *text3,const char *text4,bool buzz,int img1=255,int img2=255,int img3=255,int img4=255);
   void render_dialog    (const char *text1 ,const char *text2 ,const char *text3,const char *text4,int img1,int img2,int img3,int img4);
-  Controller &receive_gui_events;
-
+  Controller &controller;
   uint8_t get_item_state_uint8(const char *tag);
-private:
-  int32_t selected_screen_stack[MAX_SCREEN_STACK];
-  int32_t selected_item_stack  [MAX_SCREEN_STACK];
-  int32_t selected_stack_size;
+  uint8_t get_current_screen() { return current_screen; }
 
-  void pop_stack(int &current_screen,int &selected_item);
-  void clear_stack();
+private:
+  uint8_t current_screen;
+  uint8_t selected_item;
+  uint8_t last_selected_item;
+
+  bool cpm_alarm; // indicator that we have a High CPM alarm (change display background in red)
 
   void process_key_up();
   void process_key_down();
 
+  bool softkey_active(uint8_t keynum);
+  uint8_t softkey_screen(uint8_t idx);
+  uint8_t softkey_index(uint8_t idx);
+   char* softkey_action(uint8_t idx);
+
   void process_key(int key_id,int type);
   void process_keys();
 
-  void clear_screen(int32_t c_screen,int32_t c_selected);
-  void show_help_screen(uint8_t help_screen);
+  void clear_screen();
   void leave_screen_actions(int screen);
   void clear_pending_keys();
 
-  int32_t clear_screen_selected;
-  int32_t clear_screen_screen;
-  bool    clear_next_render;
   bool    m_trigger_any_key;
-  bool    m_sleeping;
   bool    m_redraw;
   bool    m_screen_lock;
+
 
 
   int new_keys_start;
@@ -100,8 +97,8 @@ private:
   int  m_repeat_key;
   int m_repeat_time;
   int m_repeat_delay;
-  bool m_displaying_help;
   bool m_repeated;
+  bool m_discard_next_keypress;
 };
 
 void tick_item(const char *name,bool tick_val);

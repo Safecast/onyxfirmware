@@ -17,27 +17,19 @@ using namespace std;
 extern GUI *system_gui;
 
 void qr_draw(char *inputdata) {
-  int first_keys = cap_lastkey();
 
-  display_clear(0xFFFF);
-  for(;;) {
-    int keys = cap_lastkey();
-    if(keys != first_keys) {
-      display_clear(0);
-      system_gui->redraw();
-      return;
-    }
-		
     int outputdata_len=16;
-		uint8_t image[2048]; // can be smaller
+	uint8_t image[2048]; // can be smaller
+
+	display_draw_rectangle(0,16,127,109, COLOR_WHITE);
 
 		int width=2;
 		int ok = qr_encode_data(0,0,0,1,(uint8_t *) inputdata,strlen(inputdata),image,&outputdata_len,&width);
 
-	  if(ok != 0) display_draw_text(0,64-8,"QR Error",0);
-	  if(ok != 0) display_draw_number(0,80,ok,5,0);
+	  if(ok != 0) display_draw_text(0,64-8,"QR Error",COLOR_WHITE, COLOR_BLACK);
+	  if(ok != 0) display_draw_number(0,80,ok,5,COLOR_WHITE, COLOR_BLACK);
 
-		int block_count = 4;
+		int block_count = 8;
 		int scale       = 3;
 		int block_size  = (width*scale)/block_count;
 		uint16_t block_data[2048];
@@ -56,8 +48,10 @@ void qr_draw(char *inputdata) {
 
 			display_draw_image(0+pad,block_y+pad,(width*scale),block_size,block_data);
 			block_y += block_size;
+			// Avoid overwriting the softkeys at the bottom:
+			if ((block_y+pad) >= 109)
+				return;
 		}
-  }
 }
 
 void qr_logxfer() {
@@ -117,8 +111,8 @@ void qr_logxfer() {
     id_pos+=(data_per_qr-4);
 
 		display_clear(0xFFFF);
-	  if(ok != 0) display_draw_text(0,64-8,"QR Error",0);
-	  if(ok != 0) display_draw_number(0,80,ok,5,0);
+	  if(ok != 0) display_draw_text(0,64-8,"QR Error",COLOR_WHITE, COLOR_BLACK);
+	  if(ok != 0) display_draw_number(0,80,ok,5, COLOR_WHITE, COLOR_BLACK);
 
 		int block_count = 4;
 		int scale       = 3;
