@@ -190,8 +190,12 @@ int main(void) {
 		// (in case we have an alarm) then stop.
 		m_gui.render();
 
+		// Note: we are moving the serial event loop outside of the
+		// !c.m_sleeping check below, so that we still respond to
+		// serial commands with the screen off.
+		serial_eventloop();
+
 		if (!c.m_sleeping) {
-			serial_eventloop();
 
 			// Screen lock code
 			uint32_t release1_time = cap_last_press(KEY_BACK);

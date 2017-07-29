@@ -1316,7 +1316,12 @@ void Controller::do_logging() {
 			}
 			if (m_sleeping) {
 				buzzer_morse_debug("S");  // for 'S'tandby  ...
-				power_standby();
+				// If we are charging, do not go into standby, because
+				// this will disable the LiPo charger safety timer
+				// Note that if we are m_sleeping + charging, then the
+				// screen should be off already.
+				if (!power_charging())
+					power_standby();
 			} else {
 				buzzer_morse_debug("A"); // for 'A'wake   .-
 			}
@@ -1351,6 +1356,7 @@ void Controller::check_sleep_switch() {
 			if ((m_alarm_log || power_charging() ) && (!m_sleeping)) {
 				m_sleeping = true;
 				display_powerdown();
+				cap_deinit(); // Also make sure keyboard is disabled to avoid blind keypresses
 			} else {
 				m_sleeping = true;
 				power_standby();
@@ -1364,6 +1370,7 @@ void Controller::check_sleep_switch() {
 	// with display sleeping (in logging mode)
 	if (m_powerup == true && m_sleeping) {
 		display_powerup();
+		cap_init(); // Make sure keyboard is re-enabled
 
 		const char *devicetag = flashstorage_keyval_get("DEVICETAG");
 		char revtext[10];
